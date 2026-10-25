@@ -1,14 +1,14 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade7365';
-import * as sheet from './sheetdata.js?v=6ade7365';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade7365';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade7365';
-import { MISSION_GP } from './content.js?v=6ade7365';
-import { ranks } from './rulebook.js?v=6ade7365';
-import { merged, editContent } from './content-store.js?v=6ade7365';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade7365';
-import { myId } from './app.js?v=6ade7365';
-import { ixLink } from './effects.js?v=6ade7365';
+import * as store from './store.js?v=6ade73fa';
+import * as sheet from './sheetdata.js?v=6ade73fa';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade73fa';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade73fa';
+import { MISSION_GP } from './content.js?v=6ade73fa';
+import { ranks } from './rulebook.js?v=6ade73fa';
+import { merged, editContent } from './content-store.js?v=6ade73fa';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade73fa';
+import { myId } from './app.js?v=6ade73fa';
+import { ixLink } from './effects.js?v=6ade73fa';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -78,7 +78,7 @@ export function renderGuild(main) {
   <div class="card" style="padding:6px 12px">${storage.length ? `<ul class="log" style="max-height:none">${storage.map(([id, b]) => `<li class="row nowrap"><span class="grow">${ixLink(b.name)} ×${b.qty}</span><button class="btn alt sm" data-take-item="${id}">To bag</button></li>`).join('')}</ul>` : '<p class="muted small">Storage is empty.</p>'}</div>
 
   <div class="section-title"><h2>Characters</h2><button class="btn alt sm" id="newchar">+ New character</button></div>
-  <div class="grid g2">${party.map((c) => `<button class="card row nowrap" style="text-align:left;cursor:pointer;margin:0" data-view="${c.id}">${portrait(c, 'sm')}<div class="grow"><div class="char-name" style="font-size:19px">${esc(c.nickname)}${c.id === myId() ? ' <span class="pill">you</span>' : ''}</div><div class="char-sub">${esc(c.pokemon)} · ${c.hp}/${maxHp(c)} HP · TP ${c.tp || 0}</div></div></button>`).join('')}</div>
+  <div class="grid g2">${party.map((c) => `<button class="card row nowrap" style="text-align:left;cursor:pointer;margin:0" data-view="${c.id}">${portrait(c, 'sm')}<div class="grow"><div class="char-name" style="font-size:19px">${esc(c.nickname)}${c.id === myId() ? ' <span class="pill">you</span>' : ''}</div><div class="char-sub">${esc(c.pokemon)} · ${c.hp}/${maxHp(c)} HP · TP ${c.tp || 0} · ${num(c.poke).toLocaleString()} Poké</div></div></button>`).join('')}</div>
   <p class="small muted">Making a character? Fill in the <a href="https://forms.gle/GYmxXLQ7a3rcVRoH6" target="_blank" rel="noopener">Background Form</a> first, then read <a href="#/rules/r/new-character">New Character</a>.</p>
 
   <div class="section-title"><h2>Session history</h2></div>

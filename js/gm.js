@@ -1,14 +1,14 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6ade7365';
-import * as sheet from './sheetdata.js?v=6ade7365';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ade7365';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ade7365';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ade7365';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal } from './play.js?v=6ade7365';
-import { missionCard, finishMission, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ade7365';
-import { merged, editContent } from './content-store.js?v=6ade7365';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ade7365';
-import { CONFIG } from './config.js?v=6ade7365';
+import * as store from './store.js?v=6ade73fa';
+import * as sheet from './sheetdata.js?v=6ade73fa';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ade73fa';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ade73fa';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ade73fa';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal } from './play.js?v=6ade73fa';
+import { missionCard, finishMission, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ade73fa';
+import { merged, editContent } from './content-store.js?v=6ade73fa';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ade73fa';
+import { CONFIG } from './config.js?v=6ade73fa';
 
 const PORTRAIT_LIST = ['beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -100,10 +100,12 @@ export async function renderGM(main) {
     <h2>End of session</h2>
     <div class="grid g2">
       <label class="f">Guild Points earned<input id="egp" type="number" inputmode="numeric" value="0"></label>
-      <label class="f">Poké earned<input id="epoke" type="number" inputmode="numeric" value="0"></label>
+      <label class="f">Poké to guild coffers<input id="epoke" type="number" inputmode="numeric" value="0"></label>
     </div>
     <h4 style="margin-top:10px">${ixLink('Training', 'Training Points')} per character</h4>
     <div class="grid g2">${Object.values(store.get('party') || {}).map((c) => `<label class="f">${esc(c.nickname)}<input data-tp="${c.id}" type="number" inputmode="numeric" value="0"></label>`).join('')}</div>
+    <h4 style="margin-top:10px">Poké per character</h4>
+    <div class="grid g2">${Object.values(store.get('party') || {}).map((c) => `<label class="f">${esc(c.nickname)} (has ${num(c.poke)})<input data-epk="${c.id}" type="number" inputmode="numeric" value="0"></label>`).join('')}</div>
     <label class="check"><input type="checkbox" id="erest" checked> Everyone rests: full HP and Will, statuses cleared</label>
     <label class="f">What happened (players see this in Session history)<textarea id="esum" rows="3"></textarea></label>
     <button class="btn block" id="endsess" style="margin-top:8px">Finish session ${sess.n || 1}</button>
@@ -320,6 +322,7 @@ function bindGM(main) {
     const party = store.get('party') || {};
     const tpLines = [];
     $$('[data-tp]', main).forEach((i) => { const v = num(i.value); const c = party[i.dataset.tp]; if (!c) return; if (v) tpLines.push(`${c.nickname} +${v} TP`); });
+    $$('[data-epk]', main).forEach((i) => { const v = num(i.value); const c = party[i.dataset.epk]; if (!c || !v) return; tpLines.push(`${c.nickname} +${v} Poké`); store.update('party/' + c.id, (x) => (x ? { ...x, poke: num(x.poke) + v } : x)); });
     store.update('guild', (x) => ({ ...x, gp: (x.gp || 0) + gp, coffers: (x.coffers || 0) + poke }));
     $$('[data-tp]', main).forEach((i) => store.update('party/' + i.dataset.tp, (c) => {
       if (!c) return c; c.tp = (c.tp || 0) + num(i.value);
@@ -370,7 +373,7 @@ function bindGM(main) {
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6ade7365');
+    const { openTable } = await import('./app.js?v=6ade73fa');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));

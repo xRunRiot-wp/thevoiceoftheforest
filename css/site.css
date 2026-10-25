@@ -273,3 +273,9 @@ details.gs h4 { margin: 12px 0 4px; }
 /* Her Google Site banners: show the whole picture (titles are painted into them) */
 .hero.banner img.hdr { height: auto; aspect-ratio: 3 / 1; object-fit: cover; image-rendering: auto; }
 .hero.banner { margin-bottom: 14px; }
+
+/* Poké bank */
+.pokebank { text-align: center; }
+.pokebank .pokeamt { font-size: 30px; margin: 4px 0 10px; }
+.pokebank .pokeamt span { font-size: 16px; }
+.pokebank .row { justify-content: center; }
