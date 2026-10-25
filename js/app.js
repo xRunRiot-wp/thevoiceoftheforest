@@ -59,7 +59,9 @@ function statusChip() {
   const el = $('#tablechip');
   if (!el) return;
   const code = store.tableCode();
-  if (s.mode === 'shared') { el.textContent = `Table ${code} · ${s.connected ? 'live' : 'connecting…'}`; el.classList.toggle('live', s.connected); }
+  // "live" = the GM has the game running (GM screen toggle), not just the connection
+  const live = !!store.get('session/live');
+  if (s.mode === 'shared') { el.textContent = `Table ${code} · ${!s.connected ? 'connecting…' : live ? 'live' : 'not live'}`; el.classList.toggle('live', s.connected && live); }
   else { el.textContent = `Table ${code} · this device`; el.classList.remove('live'); }
 }
 
@@ -88,7 +90,7 @@ store.subscribe(() => {
     const a = document.activeElement;
     const typing = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT') && main.contains(a);
     if (document.querySelector('.sheet-bg')) return;   // a modal is open; it refreshes itself
-    if (!typing && ['play', 'gm', 'guild'].includes(current)) rerender?.();
+    if (!typing && ['join', 'play', 'gm', 'guild'].includes(current)) rerender?.();
   });
 });
 

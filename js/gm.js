@@ -32,6 +32,8 @@ export async function renderGM(main) {
   <div class="session">
     <div class="row" style="justify-content:space-between"><b>Session ${sess.n || 1}</b><span class="small">${missions[sess.mission] ? esc(missions[sess.mission].title) : 'no current mission'}</span></div>
     <div class="small">${sess.dungeon ? `${esc(sess.dungeon)} · floor ${sess.floor || 1}${sess.floors ? ' of ' + sess.floors : ''}` : 'Not in a dungeon'}</div>
+    <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small">${sess.live ? 'Game is <b>live</b>: players see the table as playing now.' : 'Game is <b>not live</b>: players see the table as closed.'}</span>
+      <button class="btn ${sess.live ? 'alt' : ''} sm" id="golive">${sess.live ? 'End live game' : 'Go live'}</button></div>
   </div>
 
   <section id="gm-Battle" class="card">
@@ -355,6 +357,12 @@ function bindGM(main) {
     const ix = await loadIndex();
     const hits = ix.list.filter((x) => x.name.toLowerCase().includes(q) || (x.aka || []).some((a) => a.toLowerCase().includes(q))).slice(0, 25);
     out.innerHTML = hits.map((x) => `<a class="ixrow" href="#" data-ix="${esc(x.id)}"><span class="pill k">${esc(x.kind)}${x.edited ? ' · edited' : ''}</span><b>${esc(x.name)}</b><p>${esc(x.outcome || '')}</p></a>`).join('') || '<p class="muted small">Nothing found.</p>';
+  };
+
+  s('#golive').onclick = () => {
+    const on = !store.get('session/live');
+    store.update('session', (x) => ({ ...(x || {}), live: on, liveSince: on ? Date.now() : null }));
+    toast(on ? 'The game is live' : 'The game is no longer live');
   };
 
   // ---- table
