@@ -1,0 +1,44 @@
+Ecj,Calculation,Effect,,Trainer Actions,Calculation,,Required Successes,Difficulty Settings
+🔢 1. Initiative,1d6 + Initiative Score (Dexterity + Alert),Determine order,,♻️ Switching Pokemon,N/A,,1,Troublesome
+🎯 2. Use a Move,"Roll xd6. Count Successes (Subtract successes for injuries).
+Needed Successes: 1st Action = 1 Success | 2nd Action = 2 Successes
+| 3rd Action = 3 Successes | 4th Action = 4 Successes | 5th Action = 5 Successes",Move declared/success,,🍶 Use an Item on a Pokemon,Roll Pool = Clever + Medicine,,2,Challenging
+➿ Evasion (Optional),"Roll Pool = Dexterity + Evasion 
+(ex: If you scored more successes on accuracy than foe - attack hits | otherwise foe evades)",No Damage,,🌳 Search for cover,Roll Pool = Insight + Alert,,3,Hard
+💥 Clash (Optional),"Roll Pool = Foe Move's Strength/Special + Clash
+(ex: If you score more successes on accuracy than foe - attacks hits | otherwise clash -1 HP for both)",Defense/Negate,,🥷 Enter the fray,1d6 + Initiative Score (Dexterity + Alert) of trainer,,4,Insane
+💥 3. Damage,"Subtract 1 HP for each Success. Successes comes from pool
+(Strength/Special + Move's Power - Foe's DEF/SDEF). Add two dice to pool
+for Critical Hits (Subtract successes for injuries). Add/subtract damage for 
+effectiveness.",Move hit damage,,💨 Run Away from Battle,"Your Roll Pool = Dexterity + Athletic
+Foe's Roll Pool = Foe's Dexterity + Athletic
+
+Compare successes.",,5,Almost Impossible
+🎯 4.Next!  💥,Steps 2 - 3 for next in the order,Next trainer/pokemon,,,,,,
+🤹‍♀️ Multiple Actions (Optional),Depends on Action,Use another move,,Healing,Calculation,,"Success = roll 4, 5 or 6",
+End of Round,Depends on Trainer Action,Perform Trainer Action, ,🛌Trainer/Pokemon,auto-heal 1 HP per 8 hours,,Critical Hit = 3 or more Successes more than Acc.,
+,,,,Basic,3 HP,,"Failure = roll 1, 2, or 3 (No 4, 5, or 6)",
+,,,,Complete,5 HP (Regular and Lethal),,Critical Fail = Every two 1's removes a Success,
+Move Effectiveness,Calculation,Effect,,Fixed,Up to X Damage,,,
+⏫ Super Effective (both types),Total damage + 2,Double Weakeness,,Fixed Complete,Up to X Damage (Lethal),,,
+⬆️ Super Effective,Total damage + 1,Weakeness,,,,,Dice Pool,# of dice = Stat + Skills
+❌ Immune,0,Immune,,Fainting,Effect,,,
+⏬ Not very effective (both types),Total damage - 2,Double Resistance,,💤 Pokemon,Strained Relationship - reduce happiness and loyalty,,💖 HP,"Vitality + Base HP
+Vitality + 4 (Humans)"
+⬇️ Not very effective,Total damage - 1,Resistance,,,Recalled in Pokeball for safety until treated,,,
+,,,,💤 Trainer,Need aid of other humans,,✊ Will Points,Earn Like DnD Inspiration
+Ranks,,,,,,,,Ignore Bad Rolls/Reroll
+,,,,Pain Penalizations,Effect,,,
+,PokéroleDex,,,💯 Full HP,None,,,
+,RESOURCES | pokerole,,,⚠️ Half HP,1 removed Success,,,
+,,,,💀 1 HP,2 removed Successes,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,Move Pool = 2 + Insight,,,Regular Encounter,Insight ,,,
+,Training - Choose an attribute + Lore (Trainer),,,SPECIAL ENCOUNTER,Alert,,,
+,Success - Move choosing. Stat increase. Depends on rank change,,,,,,,
+,"_ Attributes, _ Skills, _ Category (Social)",,,,,,,

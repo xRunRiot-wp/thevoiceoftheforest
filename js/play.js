@@ -1,0 +1,478 @@
+// Join a table, then the player's Play screen.
+import * as store from './store.js';
+import * as sheet from './sheetdata.js';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js';
+import { STATUS_IX, INTRO, QUICK_LINKS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js';
+import { myId, setMe, joined, setJoined, openTable } from './app.js';
+import { CONFIG } from './config.js';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js';
+import { merged } from './content-store.js';
+
+export async function allMoves() {
+  const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
+  const have = new Set(s.map((m) => m.name.toLowerCase()));
+  const extra = ix.list.filter((e) => e.kind === 'Move' && e.mv && !have.has(e.name.toLowerCase())).map((e) => ({ name: e.name, ...e.mv }));
+  return merged('moves', [...s, ...extra], (m) => m.name.toLowerCase());
+}
+
+const party = () => store.get('party') || {};
+export const me = () => party()[myId()] || null;
+
+// ---------------------------------------------------------------- join
+export function renderJoin(main) {
+  const p = Object.values(party()).filter((c) => !c.guest || c.guest.controller === 'player');
+  main.innerHTML = `
+  <div class="hero"><img class="hdr" src="assets/headers/treasure_town.png" alt="">
+    <div class="over"><div class="win"><span class="who">Guildmaster Beautifly:</span> Welcome, explorer! Join your table to begin today's adventure.</div></div></div>
+  <div class="after-hero"></div>
+  <div class="card">
+    <h2>Join a table</h2>
+    <p class="small muted">Your GM gives you the table code. Pick your character and you're in.</p>
+    <div class="row nowrap"><input id="code" class="grow" value="${esc(store.tableCode())}" autocapitalize="characters" aria-label="Table code"><button class="btn" id="go">Open</button></div>
+    ${store.status.mode === 'local' ? `<p class="small muted" style="margin-top:8px">Live sharing between phones isn't switched on yet, so this table saves on this device. Your GM can move it with Export / Import.</p>` : ''}
+  </div>
+  <div class="section-title"><h2>Who are you playing?</h2></div>
+  <div class="grid g2">
+    ${p.map((c) => `<button class="card row nowrap" style="text-align:left;cursor:pointer;margin:0" data-pick="${c.id}">
+        ${portrait(c, 'sm')}<div class="grow"><div class="char-name" style="font-size:20px">${esc(c.nickname)}</div><div class="char-sub">${esc(c.pokemon)} · ${esc(c.rank || '')}</div></div></button>`).join('')}
+    <button class="card" style="cursor:pointer;margin:0;text-align:left" id="newchar"><div class="char-name" style="font-size:20px">+ New character</div><div class="char-sub">Make your Pokémon (follows the New Character rules)</div></button>
+    <button class="card" style="cursor:pointer;margin:0;text-align:left" id="watch"><div class="char-name" style="font-size:20px">Just watching</div><div class="char-sub">See the table without a character</div></button>
+  </div>
+  <div class="row" style="margin-top:14px"><a class="btn dark" href="#/gm">I'm the GM</a></div>
+
+  <div class="section-title"><h2>${esc(INTRO.title)}</h2></div>
+  <div class="card emblem"><div class="win">${INTRO.body.map((t) => esc(t)).join('<br><br>')}</div></div>
+  <div class="section-title"><h2>Campaign links</h2></div>
+  <div class="grid g2">${QUICK_LINKS.map((l) => `<a class="linkbtn" href="${l.href}" target="_blank" rel="noopener"><b>${esc(l.label)}</b><span>${esc(l.sub)}</span></a>`).join('')}</div>`;
+
+  $('#go', main).onclick = async () => { await openTable($('#code', main).value); renderJoin(main); toast('Table ' + store.tableCode() + ' opened'); };
+  $$('[data-pick]', main).forEach((b) => b.onclick = () => { setMe(b.dataset.pick); setJoined(true); location.hash = '#/play'; });
+  $('#watch', main).onclick = () => { setMe(''); setJoined(true); location.hash = '#/play'; };
+  $('#newchar', main).onclick = () => editCharacter(null, (id) => { setMe(id); setJoined(true); location.hash = '#/play'; });
+}
+
+// ---------------------------------------------------------------- play screen
+export function renderPlay(main) {
+  const c = me();
+  const sess = store.get('session') || {};
+  const combat = store.get('combat') || {};
+  const missions = store.get('missions') || {};
+  const mission = missions[sess.mission];
+  const order = combatOrder();
+  const cur = combat.active ? order[combat.turn || 0] : null;
+  const myTurn = cur && c && cur.ref === c.id;
+  const reveals = Object.entries(store.get('reveal') || {}).sort().reverse();
+  const lastReveal = reveals[0]?.[1];
+
+  main.innerHTML = `
+  ${myTurn ? `<div class="yourturn">Your turn, ${esc(c.nickname)}!</div>` : ''}
+  <div class="session">
+    <div class="row" style="justify-content:space-between"><b>${mission ? esc(mission.title) : 'No mission picked yet'}</b><span class="small">${mission ? esc(mission.rank) + ' Rank' : ''}</span></div>
+    <div class="small">${sess.dungeon ? esc(sess.dungeon) + (sess.floors ? ` · Floor ${sess.floor || 1} of ${sess.floors}` : sess.floor ? ` · Floor ${sess.floor}` : '') : 'Not in a dungeon'}${combat.active ? ` · Battle, round ${combat.round || 1}` : ''}</div>
+  </div>
+  ${lastReveal && Date.now() - lastReveal.t < 6 * 3600e3 ? `<div class="row nowrap" style="align-items:flex-start;margin-bottom:12px">${lastReveal.portrait ? `<div class="portrait sm"><img src="assets/portraits/${esc(lastReveal.portrait)}.png" alt=""></div>` : ''}<div class="win grow"><span class="who">${esc(lastReveal.title || 'GM')}:</span> ${esc(lastReveal.text)}</div></div>` : ''}
+
+  ${c ? charCard(c) : `<div class="card"><h3>Watching</h3><p class="small muted">You're not playing a character on this device.</p><a class="btn" href="#/join">Pick a character</a></div>`}
+
+  ${combat.active ? `<div class="section-title"><h3>Turn order</h3><span class="pill">Round ${combat.round || 1}</span></div>${orderList(order, combat.turn || 0, false)}` : ''}
+
+  <div class="section-title"><h3>Party</h3></div>
+  ${partyStrip(c?.id)}
+
+  <div class="section-title"><h3>Dice log</h3><button class="btn alt sm" id="freeroll">Roll dice</button></div>
+  <div class="card">${diceLog()}</div>
+  <a class="btn dark fab" href="#/rules">Rulebook</a>`;
+
+  if (c) bindCharCard(main, c);
+  $('#freeroll', main).onclick = () => freeRoll(c);
+  $$('[data-viewchar]', main).forEach((b) => b.onclick = () => viewCharacter(b.dataset.viewchar));
+}
+
+export function combatOrder() {
+  const p = party();
+  const list = Object.entries((store.get('combat') || {}).list || {}).map(([id, x]) => {
+    const c = x.ref && p[x.ref];
+    return c ? { id, ...x, name: c.nickname, hp: c.hp ?? maxHp(c), maxHp: maxHp(c), status: c.status || [] } : { id, ...x };
+  });
+  return list.sort((a, b) => (b.init ?? -99) - (a.init ?? -99) || String(a.name).localeCompare(b.name));
+}
+
+export function orderList(order, turn, gmView) {
+  const visible = gmView ? order : order.filter((x) => x.kind !== 'enemy' || x.revealed);
+  if (!visible.length) return '<p class="muted small">Nobody in the battle yet.</p>';
+  return `<ul class="order">${visible.map((x) => {
+    const i = order.indexOf(x);
+    return `<li class="${i === turn ? 'cur' : ''} ${x.kind === 'enemy' ? 'enemy' : ''}" data-cid="${x.id}">
+      <span class="ini">${x.init ?? '–'}</span>
+      <div class="grow"><div class="nm">${esc(x.name)}${gmView && x.kind === 'enemy' && !x.revealed ? ' <span class="pill">hidden</span>' : ''}</div>
+      ${x.kind === 'enemy' && !gmView ? bar(x.hp, x.maxHp) : `${bar(x.hp, x.maxHp)}<div class="small">${x.hp}/${x.maxHp} HP</div>`}
+      ${(x.status || []).length ? `<div class="small" style="color:var(--bad)">${esc(x.status.join(', '))}</div>` : ''}</div>
+      ${gmView ? `<div class="stepper"><button class="btn alt sm" data-chp="${x.id}" data-d="-1">−</button><button class="btn alt sm" data-chp="${x.id}" data-d="1">+</button><button class="btn alt sm" data-cmore="${x.id}">…</button></div>` : ''}
+    </li>`;
+  }).join('')}</ul>`;
+}
+
+export function partyStrip(meId) {
+  const p = Object.values(party());
+  if (!p.length) return '<p class="muted">No characters yet.</p>';
+  return `<div class="party">${p.map((x) => {
+    const mx = maxHp(x);
+    return `<button class="pm ${x.id === meId ? 'me' : ''}" data-viewchar="${x.id}" style="text-align:left;cursor:pointer">
+      <div class="row nowrap">${portrait(x, 'xs')}<div class="grow"><div class="nm">${esc(x.nickname)}</div><div class="small muted">${x.guest ? '<span class="pill" style="font-size:11px">Guest</span> ' : ''}${x.hp}/${mx} HP</div></div></div>
+      ${bar(x.hp, mx)}<div class="st">${esc((x.status || []).join(', '))}</div></button>`;
+  }).join('')}</div>`;
+}
+
+export function diceLog(limit = 30) {
+  const rolls = Object.entries(store.get('rolls') || {}).sort().reverse().slice(0, limit);
+  if (!rolls.length) return '<p class="muted small">No rolls yet. Tap a move to roll.</p>';
+  return `<ul class="log">${rolls.map(([, r]) => `<li><span class="t">${timeAgo(r.t)}</span><span class="who">${esc(r.by)}</span> ${esc(r.label)}<br>
+    ${r.dice ? diceFaces(r.dice, { pool: r.kind !== 'sum' && r.kind !== 'chance' }) : ''} <b>${esc(r.text)}</b></li>`).join('')}</ul>`;
+}
+
+export function logRoll(by, label, dice, text, kind = 'pool') {
+  store.pushLimited('rolls', { by, label, dice, text, kind, t: Date.now() }, 80);
+}
+
+// ---------------------------------------------------------------- character card
+function charCard(c) {
+  const mx = maxHp(c);
+  const st = c.status || [];
+  return `<div class="card">
+    <div class="char-head">${portrait(c)}<div class="grow">
+      <div class="char-name">${esc(c.nickname)}</div>
+      <div class="char-sub">${esc(c.pokemon)}${c.nature ? ' · ' + ixLink('Nature (personality)', c.nature) : ''}${c.rank ? ' · ' + ixLink(c.rank + ' Rank', c.rank) : ''}${c.instinctRank ? ' · ' + ixLink('Instinct', c.instinctRank) : ''}</div>
+      <div class="chips" style="margin-top:4px">${[c.type1, c.type2].filter(Boolean).map((t) => `<a href="#" class="chip type ty-${esc(t)}" data-ixname="Type effectiveness">${esc(t)}</a>`).join('')}${c.ability ? `<a href="#" class="pill" data-ixname="${esc(c.ability)}">${esc(c.ability)}</a>` : ''}</div>
+    </div></div>
+    <div class="meter"><b>${ixLink('HP')}</b>${bar(c.hp, mx)}<span class="val">${c.hp}/${mx}</span></div>
+    <div class="row" style="justify-content:flex-end"><div class="stepper"><button class="btn alt" data-hp="-1">−1</button><button class="btn alt" data-hp="1">+1</button><button class="btn alt" data-hp="full">Full</button></div></div>
+    <div class="meter"><b>${ixLink('Will points', 'Will')}</b>${bar(c.willCur, c.will, 'will')}<span class="val">${c.willCur ?? 0}/${c.will}</span></div>
+    <div class="row" style="justify-content:flex-end"><div class="stepper"><button class="btn alt" data-will="-1">Spend</button><button class="btn alt" data-will="1">+1</button></div></div>
+    <div class="tri" style="margin-top:10px">
+      <a href="#" data-ixname="Humanity" class="ixbox"><b>${c.humanity ?? 0}</b><span>Humanity</span></a><a href="#" data-ixname="Instinct" class="ixbox"><b>${c.instinct ?? 0}</b><span>Instinct</span></a>
+      <a href="#" data-ixname="Logic" class="ixbox"><b>${c.logic ?? 0}</b><span>Logic</span></a><a href="#" data-ixname="Primal points" class="ixbox"><b>${c.primal ?? 0}</b><span>Primal</span></a>
+    </div>
+    <div class="section-title" style="margin-top:12px"><h4 style="margin:0">Status</h4><button class="btn alt sm" id="stedit">Change</button></div>
+    <div class="chips">${st.length ? st.map((s) => `<a href="#" class="chip on" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a>`).join('') : '<span class="small muted">Healthy</span>'}</div>
+
+    <div class="section-title"><h3>Moves</h3><span class="small muted">tap to roll</span></div>
+    <div class="moves">${(c.moves || []).map((m, i) => `<div class="move movecard"><a href="#" data-ixname="${esc(m)}" class="mvname"><b>${esc(m)}</b></a><span data-minfo="${esc(m)}">…</span><p class="mveff" data-meff="${esc(m)}"></p><button class="btn block" data-move="${i}">Roll ${esc(m)}</button></div>`).join('') || '<p class="muted small">No moves on this sheet yet.</p>'}
+      <button class="move" data-struggle="Physical Struggle"><b>Struggle</b><span>Physical · Dex + Brawl · Power 0</span></button></div>
+
+    <div class="row" style="margin-top:12px"><button class="btn" id="qroll">Quick roll</button><button class="btn alt" id="initroll">Initiative</button><button class="btn alt" id="primal">${st.includes('Primal State') ? 'Leave Primal' : 'Primal State'}</button></div>
+
+    <div class="section-title"><h3>Bag</h3><button class="btn alt sm" id="additem">+ Item</button></div>
+    ${bagList(c)}
+
+    <details open style="margin-top:12px"><summary class="pix" style="font-size:18px;cursor:pointer;min-height:40px">Stats &amp; skills</summary>
+      ${statGrids(c)}
+      <p class="small" style="margin-top:8px">${ixLink('Garments', 'Held item')}: ${esc(c.held || '—')} · ${ixLink('Garments')}: ${esc(c.garments || '—')} · ${ixLink('Training', 'Training Points')}: ${c.tp || 0}</p>
+      ${c.notes ? `<h4>Notes</h4><p class="small" style="white-space:pre-wrap">${esc(c.notes)}</p>` : ''}
+    </details>
+    <div class="row" style="margin-top:12px"><button class="btn alt sm" id="editme">Edit character</button><a class="btn alt sm" href="#/join">Switch character</a></div>
+  </div>`;
+}
+
+function bagList(c) {
+  const bag = Object.entries(store.get('bag') || {}).filter(([, b]) => b.owner === c.id || b.owner === 'team');
+  if (!bag.length) return '<p class="muted small">Empty. Items the team finds land here.</p>';
+  return `<ul class="log" style="max-height:none">${bag.map(([id, b]) => `<li class="row nowrap"><span class="grow"><a href="#" data-ixname="${esc(b.name)}"><b>${esc(b.name)}</b></a> ×${b.qty}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span>
+    <button class="btn sm" data-use="${id}">Use</button></li>`).join('')}</ul>`;
+}
+
+function bindCharCard(main, c) {
+  const path = 'party/' + c.id;
+  $$('[data-hp]', main).forEach((b) => b.onclick = () => store.update(path, (x) => { const mx = maxHp(x); x.hp = b.dataset.hp === 'full' ? mx : clamp((x.hp ?? mx) + num(b.dataset.hp), 0, mx); return x; }));
+  $$('[data-will]', main).forEach((b) => b.onclick = () => store.update(path, (x) => { x.willCur = clamp((x.willCur ?? x.will) + num(b.dataset.will), 0, x.will || 0); return x; }));
+  $('#primal', main).onclick = () => togglePrimal(c);
+  $('#stedit', main).onclick = () => pickStatus(c);
+  $('#editme', main).onclick = () => editCharacter(c.id);
+  $('#qroll', main).onclick = () => quickRoll(c);
+  $('#initroll', main).onclick = () => rollInitiative(c);
+  $('#additem', main).onclick = () => addItem(c.id);
+  $$('[data-use]', main).forEach((b) => b.onclick = () => useItem(b.dataset.use, c));
+  Promise.all([allMoves(), loadIndex()]).then(([list, ix]) => {
+    const base = sheet.moveIndex(list);
+    // Follow Index aliases (e.g. a sheet's "Metranome" is Metronome).
+    const idx = { get: (k) => base.get(k) || base.get(ix.byName.get(k)?.name?.toLowerCase() || '') };
+    $$('[data-minfo]', main).forEach((s) => {
+      const m = idx.get(s.dataset.minfo.toLowerCase());
+      s.textContent = m ? `${m.type} · ${m.cat} · Accuracy ${m.acc.join(' + ') || '—'}${m.power != null ? ' · Damage ' + (m.cat === 'Special' ? 'Special' : 'Strength') + ' + Power ' + m.power : ''}` : 'not in the moves list — you can still roll it';
+    });
+    $$('[data-meff]', main).forEach((p) => { const m = idx.get(p.dataset.meff.toLowerCase()); p.innerHTML = m?.effect ? linkify(m.effect, ix, m.name) : (m ? 'No added effect.' : ''); });
+    $$('[data-move]', main).forEach((b) => b.onclick = () => moveRoll(c, idx.get(c.moves[+b.dataset.move].toLowerCase()) || { name: c.moves[+b.dataset.move], type: '', cat: 'Status', acc: [], power: null, effect: '' }));
+    $$('[data-struggle]', main).forEach((b) => b.onclick = () => moveRoll(c, idx.get('physical struggle') || { name: 'Physical Struggle', type: 'None', cat: 'Physical', acc: ['Dexterity', 'Brawl'], power: 0, effect: '' }));
+  });
+}
+
+function togglePrimal(c) {
+  const on = (c.status || []).includes('Primal State');
+  if (!on && !confirm('Enter Primal State? You regain all HP, cure status, ignore pain and add Instinct dice to every action — and lose 1 Humanity.')) return;
+  store.update('party/' + c.id, (x) => {
+    if (on) { x.status = (x.status || []).filter((s) => s !== 'Primal State'); }
+    else { x.hp = maxHp(x); x.status = ['Primal State']; x.humanity = Math.max(0, (x.humanity || 0) - 1); }
+    return x;
+  });
+  store.pushLimited('log', { t: Date.now(), text: on ? `${c.nickname} calms down and leaves Primal State.` : `${c.nickname} enters Primal State! (−1 Humanity)` });
+}
+
+// ---------------------------------------------------------------- stats
+export function statVal(c, name) {
+  if (!c || !name) return 0;
+  const n = String(name).trim();
+  if (/^(smart|clever)/i.test(n)) return num(c.Clever);
+  if (/^will$/i.test(n)) return num(c.will);
+  const key = Object.keys(c).find((k) => k.toLowerCase() === n.toLowerCase());
+  return key ? num(c[key]) : 0;
+}
+const primalDice = (c) => ((c.status || []).includes('Primal State') ? num(c.instinct) : 0);
+const painOf = (c) => ((c.status || []).includes('Primal State') ? 0 : painFor(c.hp ?? maxHp(c), maxHp(c)));
+
+// ---------------------------------------------------------------- move roll
+function moveRoll(c, m) {
+  const accPool = m.acc.reduce((s, a) => s + statVal(c, a), 0);
+  const accMod = num((m.effect.match(/Accuracy\s*-\s*(\d)/i) || [])[1]);
+  const chance = num((m.effect.match(/Roll\s+(\d+)\s+Chance Dice/i) || [])[1]);
+  const stab = m.type && [c.type1, c.type2].includes(m.type);
+  const dmgStat = m.cat === 'Special' ? 'Special' : 'Strength';
+  const targets = combatOrder().filter((x) => x.ref !== c.id && (x.kind !== 'enemy' || x.revealed));
+  let lastAcc = null;
+
+  const sheetEl = modal(`
+    <h2>${esc(m.name)}</h2>
+    <div class="chips">${typeChip(m.type)}<span class="pill">${esc(m.cat)}</span>${m.power != null ? `<span class="pill">Power ${m.power}</span>` : ''}</div>
+    ${m.effect ? `<p class="small" style="margin-top:8px" id="meff">${esc(m.effect)}</p>` : ''}
+    <p class="small"><a href="#" data-ixname="Use a Move">How attacking works</a> · <a href="#" data-ixname="Damage">Damage</a> · <a href="#" data-ixname="Critical hit">Critical hits</a></p>
+    <div class="card" style="margin-top:10px">
+      <h3>1. Accuracy</h3>
+      <p class="small muted">${esc(m.acc.join(' + ') || 'no accuracy listed')} = ${accPool} dice${primalDice(c) ? ` + ${primalDice(c)} Primal` : ''}${painOf(c) ? ` · pain −${painOf(c)} success${painOf(c) > 1 ? 'es' : ''}` : ''}${accMod ? ` · move accuracy −${accMod}` : ''}</p>
+      <div class="grid g2">
+        <label class="f">Which action this round?<select id="act">${[1, 2, 3, 4, 5].map((n) => `<option value="${n}">${n === 1 ? '1st' : n === 2 ? '2nd' : n === 3 ? '3rd' : n + 'th'} action (needs ${n})</option>`).join('')}</select></label>
+        <label class="f">Extra dice<input id="xd" type="number" inputmode="numeric" value="0"></label>
+      </div>
+      <button class="btn block" id="racc" style="margin-top:10px">Roll accuracy</button>
+      <div class="result" id="accres"></div>
+    </div>
+    ${m.power != null ? `<div class="card">
+      <h3>2. Damage</h3>
+      <div class="grid g2">
+        <label class="f">Target${targets.length ? `<select id="tgt"><option value="">— pick —</option>${targets.map((t) => `<option value="${t.id}" data-def="${t.kind === 'enemy' ? '' : ''}">${esc(t.name)}</option>`).join('')}</select>` : '<input disabled value="No battle running">'}</label>
+        <label class="f">Foe's ${m.cat === 'Special' ? 'Sp. Defense (Insight)' : 'Defense (Vitality)'}<input id="def" type="number" inputmode="numeric" value="1"></label>
+        <label class="f">Type match-up<select id="eff"><option value="0">Normal</option><option value="1">Super effective (+1)</option><option value="2">Super effective, both types (+2)</option><option value="-1">Not very effective (−1)</option><option value="-2">Not very effective, both (−2)</option><option value="immune">Immune (0)</option></select></label>
+        <label class="check"><input type="checkbox" id="stab" ${stab ? 'checked' : ''}> Same type as you (+1 die)</label>
+        <label class="check"><input type="checkbox" id="crit"> Critical hit (+2 dice)</label>
+      </div>
+      <p class="small muted">${dmgStat} ${statVal(c, dmgStat)} + Power ${m.power} − foe's defense</p>
+      <button class="btn block" id="rdmg">Roll damage</button>
+      <div class="result" id="dmgres"></div>
+    </div>` : ''}
+    ${chance ? `<div class="card"><h3>Chance dice</h3><p class="small">${chance} chance dice — any 6 triggers the effect.</p><button class="btn block" id="rch">Roll ${chance} chance dice</button><div class="result" id="chres"></div></div>` : ''}
+  `);
+
+  if (m.effect) loadIndex().then((ix) => { const el = $('#meff', sheetEl); if (el) el.innerHTML = linkify(m.effect, ix, m.name); });
+  $('#racc', sheetEl).onclick = () => {
+    const need = num($('#act', sheetEl).value, 1);
+    const dice = Math.max(1, accPool + primalDice(c) + num($('#xd', sheetEl).value));
+    const r = pool(dice, { pain: painOf(c) + accMod });
+    const hit = r.succ >= need;
+    const crit = r.succ >= need + 3;
+    lastAcc = { hit, crit };
+    if ($('#crit', sheetEl)) $('#crit', sheetEl).checked = crit;
+    const text = `${r.succ} success${r.succ === 1 ? '' : 'es'} — ${hit ? (crit ? 'CRITICAL HIT!' : 'Hit!') : 'Miss'}`;
+    $('#accres', sheetEl).innerHTML = `${diceFaces(r.dice)}<div class="big">${text}</div>${r.onesPen ? `<div class="small muted">two 1s cost ${r.onesPen} success</div>` : ''}<div class="small muted">Foe may Evade (Dex + Evasion) or Clash — they need more successes than you.</div>`;
+    logRoll(c.nickname, `${m.name} — accuracy (needs ${need})`, r.dice, text);
+  };
+  if ($('#rdmg', sheetEl)) $('#rdmg', sheetEl).onclick = () => {
+    const def = num($('#def', sheetEl).value);
+    const effV = $('#eff', sheetEl).value;
+    let dice = statVal(c, dmgStat) + m.power - def + ($('#stab', sheetEl).checked ? 1 : 0) + ($('#crit', sheetEl).checked ? 2 : 0) + primalDice(c);
+    dice = Math.max(1, dice);
+    const r = pool(dice, { pain: painOf(c) });
+    let dmg = effV === 'immune' ? 0 : Math.max(0, r.succ + num(effV));
+    const text = `${dmg} damage`;
+    const tgtId = $('#tgt', sheetEl)?.value;
+    $('#dmgres', sheetEl).innerHTML = `${diceFaces(r.dice)}<div class="big">${text}</div>${tgtId ? `<button class="btn good" id="apply">Take ${dmg} HP from ${esc(targets.find((t) => t.id === tgtId)?.name || '')}</button>` : ''}`;
+    logRoll(c.nickname, `${m.name} — damage (${dice} dice)`, r.dice, text);
+    if (tgtId) $('#apply', sheetEl).onclick = () => { applyDamage(tgtId, dmg); toast('Done'); closeModal(); };
+  };
+  if ($('#rch', sheetEl)) $('#rch', sheetEl).onclick = () => {
+    const r = roll(chance);
+    const hit = r.includes(6);
+    $('#chres', sheetEl).innerHTML = `${diceFaces(r, { pool: false })}<div class="big">${hit ? 'Effect triggers!' : 'No effect'}</div>`;
+    logRoll(c.nickname, `${m.name} — chance dice`, r, hit ? 'effect triggers!' : 'no effect', 'chance');
+  };
+}
+
+export function applyDamage(combatantId, dmg) {
+  const x = (store.get('combat') || {}).list?.[combatantId];
+  if (!x) return;
+  const pc = x.ref && party()[x.ref];
+  const hp = Math.max(0, (pc ? pc.hp ?? maxHp(pc) : x.hp ?? 0) - dmg);
+  if (pc) store.set(`party/${x.ref}/hp`, hp); else store.set(`combat/list/${combatantId}/hp`, hp);
+  if (hp === 0) store.pushLimited('log', { t: Date.now(), text: `${x.name} fainted!` });
+}
+
+// ---------------------------------------------------------------- quick rolls
+function quickRoll(c) {
+  const opts = [
+    ['Exploring', QUICK_TASKS.map(([l, a, b]) => [l, [a, b]])],
+    ['Social', QUICK_SOCIAL.map(([l, a, b]) => [l, [a, b]])],
+    ['Special', SPECIAL_ROLLS.filter(([, v]) => v !== 'init')],
+  ];
+  const all = opts.flatMap(([, list]) => list);
+  const sheetEl = modal(`<h2>Quick roll</h2>
+    <label class="f">What are you doing?<select id="qr">${opts.map(([g, list]) => `<optgroup label="${g}">${list.map(([l, s]) => `<option value="${all.findIndex((x) => x[0] === l)}">${esc(l)} — ${esc(s.join(' + '))}</option>`).join('')}</optgroup>`).join('')}</select></label>
+    <div class="grid g2" style="margin-top:8px">
+      <label class="f">Helpers (+1 die each, max 2)<select id="help"><option>0</option><option>1</option><option>2</option></select></label>
+      <label class="f">Extra dice<input id="xd" type="number" inputmode="numeric" value="0"></label>
+    </div>
+    <button class="btn block" id="go" style="margin-top:10px">Roll</button>
+    <div class="result" id="res"></div>
+    <p class="small muted" style="margin-top:10px">0 = complication · 1 = partial success at a cost · 2 = success · 3+ = excellent, gain a clue or advantage</p>`);
+  $('#go', sheetEl).onclick = () => {
+    const [label, stats] = all[num($('#qr', sheetEl).value)];
+    const dice = Math.max(1, stats.reduce((s, a) => s + statVal(c, a), 0) + num($('#help', sheetEl).value) + num($('#xd', sheetEl).value) + primalDice(c));
+    const r = pool(dice, { pain: painOf(c) });
+    const out = r.succ === 0 ? 'complication' : r.succ === 1 ? 'partial success' : r.succ === 2 ? 'success' : 'excellent!';
+    const text = `${r.succ} success${r.succ === 1 ? '' : 'es'} — ${out}`;
+    $('#res', sheetEl).innerHTML = `${diceFaces(r.dice)}<div class="big">${text}</div>`;
+    logRoll(c.nickname, `${label} (${stats.join(' + ')})`, r.dice, text);
+  };
+}
+
+function rollInitiative(c) {
+  const d = die(6);
+  const total = d + statVal(c, 'Dexterity') + statVal(c, 'Alert');
+  logRoll(c.nickname, 'Initiative (1d6 + Dex + Alert)', [d], `${total}`, 'sum');
+  const combat = store.get('combat') || {};
+  const entry = Object.entries(combat.list || {}).find(([, x]) => x.ref === c.id);
+  if (entry) store.set(`combat/list/${entry[0]}/init`, total);
+  toast(`Initiative ${total}${entry ? ' — added to the turn order' : ''}`);
+}
+
+export function freeRoll(c) {
+  const sheetEl = modal(`<h2>Roll dice</h2>
+    <h3>Dice pool (successes on 4+)</h3>
+    <div class="row nowrap"><input id="pn" type="number" inputmode="numeric" value="3" class="grow" aria-label="Number of dice"><button class="btn" id="rp">Roll pool</button></div>
+    <h3 style="margin-top:14px">Plain dice</h3>
+    <div class="row nowrap"><input id="xn" type="number" inputmode="numeric" value="2" style="width:70px" aria-label="Count"><span class="pix">d</span>
+      <select id="xs" style="width:90px">${[4, 6, 8, 10, 12, 20].map((s) => `<option ${s === 6 ? 'selected' : ''}>${s}</option>`).join('')}</select><span class="pix">+</span><input id="xp" type="number" inputmode="numeric" value="0" style="width:70px" aria-label="Plus"><button class="btn" id="rx">Roll</button></div>
+    <h3 style="margin-top:14px">Chance dice (6 triggers)</h3>
+    <div class="row nowrap"><input id="cn" type="number" inputmode="numeric" value="1" class="grow" aria-label="Chance dice"><button class="btn" id="rc">Roll</button></div>
+    <div class="result" id="res"></div>`);
+  const who = c?.nickname || 'Watcher';
+  $('#rp', sheetEl).onclick = () => { const r = pool(clamp(num($('#pn', sheetEl).value, 1), 1, 40)); const t = `${r.succ} success${r.succ === 1 ? '' : 'es'}`; $('#res', sheetEl).innerHTML = `${diceFaces(r.dice)}<div class="big">${t}</div>`; logRoll(who, `${r.dice.length}-dice pool`, r.dice, t); };
+  $('#rx', sheetEl).onclick = () => { const n = clamp(num($('#xn', sheetEl).value, 1), 1, 40); const s = num($('#xs', sheetEl).value, 6); const p = num($('#xp', sheetEl).value); const r = roll(n, s); const t = `${sum(r) + p}`; $('#res', sheetEl).innerHTML = `${diceFaces(r, { pool: false })}<div class="big">= ${t}</div>`; logRoll(who, `${n}d${s}${p ? (p > 0 ? '+' : '') + p : ''}`, r, t, 'sum'); };
+  $('#rc', sheetEl).onclick = () => { const r = roll(clamp(num($('#cn', sheetEl).value, 1), 1, 20)); const hit = r.includes(6); $('#res', sheetEl).innerHTML = `${diceFaces(r, { pool: false })}<div class="big">${hit ? 'Triggers!' : 'No effect'}</div>`; logRoll(who, `${r.length} chance dice`, r, hit ? 'triggers!' : 'no effect', 'chance'); };
+}
+
+// ---------------------------------------------------------------- items
+export function addItem(owner, path = 'bag') {
+  const p = party();
+  const sheetEl = modal(`<h2>Add an item</h2>
+    <label class="f">Item<input id="nm" list="itemlist" placeholder="e.g. Oran Berry"></label><datalist id="itemlist"></datalist>
+    <div class="grid g2" style="margin-top:8px"><label class="f">How many<input id="q" type="number" inputmode="numeric" value="1"></label>
+    <label class="f">Who carries it<select id="ow"><option value="team">Team bag</option>${Object.values(p).map((c) => `<option value="${c.id}" ${c.id === owner ? 'selected' : ''}>${esc(c.nickname)}</option>`).join('')}</select></label></div>
+    <button class="btn block" id="ok" style="margin-top:10px">Add</button>`);
+  sheet.treasure().then((t) => { $('#itemlist', sheetEl).innerHTML = [...new Set([...t.map((x) => x.name), 'Oran Berry', 'Apple', 'Big Apple', 'Reviver Seed', 'Blast Seed', 'Sleep Seed', 'Heal Seed', 'Pecha Berry', 'Cheri Berry', 'Rawst Berry', 'Leppa Berry', 'Sitrus Berry', 'Iron Thorn', 'Geo Pebble', 'Stick'])].map((n) => `<option value="${esc(n)}">`).join(''); });
+  $('#ok', sheetEl).onclick = () => {
+    const name = $('#nm', sheetEl).value.trim(); if (!name) return;
+    const q = Math.max(1, num($('#q', sheetEl).value, 1)); const ow = $('#ow', sheetEl).value;
+    const bag = store.get(path) || {};
+    const same = Object.entries(bag).find(([, b]) => b.name.toLowerCase() === name.toLowerCase() && b.owner === ow);
+    if (same) store.set(`${path}/${same[0]}/qty`, same[1].qty + q); else store.set(`${path}/${uid()}`, { name, qty: q, owner: ow });
+    closeModal();
+  };
+}
+
+function useItem(id, c) {
+  const b = (store.get('bag') || {})[id]; if (!b) return;
+  if (b.qty <= 1) store.set('bag/' + id, null); else store.set(`bag/${id}/qty`, b.qty - 1);
+  store.pushLimited('log', { t: Date.now(), text: `${c.nickname} used ${b.name}.` });
+  logRoll(c.nickname, `used ${b.name}`, null, '', 'note');
+  toast(`${b.name} used`);
+}
+
+// ---------------------------------------------------------------- view / edit characters
+export function viewCharacter(id) {
+  const c = party()[id]; if (!c) return;
+  const mx = maxHp(c);
+  modal(`<div class="char-head">${portrait(c)}<div class="grow"><div class="char-name">${esc(c.nickname)}</div><div class="char-sub">${esc(c.pokemon)} · ${esc(c.rank || '')} · ${esc(c.nature || '')}</div>
+    <div class="chips" style="margin-top:4px">${typeChip(c.type1)}${typeChip(c.type2)}${c.ability ? `<span class="pill">${esc(c.ability)}</span>` : ''}</div></div></div>
+    <div class="meter"><b>HP</b>${bar(c.hp, mx)}<span class="val">${c.hp}/${mx}</span></div>
+    <div class="meter"><b>Will</b>${bar(c.willCur, c.will, 'will')}<span class="val">${c.willCur ?? 0}/${c.will}</span></div>
+    <p class="small" style="color:var(--bad)">${esc((c.status || []).join(', '))}</p>
+    <p class="small"><b>Moves:</b> ${esc((c.moves || []).join(', ') || '—')}</p>
+    ${statGrids(c)}
+    <div class="row" style="margin-top:12px"><button class="btn alt" id="ed">Edit</button></div>`, (el) => { $('#ed', el).onclick = () => editCharacter(id); });
+}
+
+const FIELD = (k, label, v, type = 'text', extra = '') => `<label class="f">${label}<input data-k="${k}" type="${type}" ${type === 'number' ? 'inputmode="numeric"' : ''} value="${esc(v ?? '')}" ${extra}></label>`;
+const SELECT = (k, label, v, opts) => `<label class="f">${label}<select data-k="${k}"><option value=""></option>${opts.map((o) => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></label>`;
+
+export function editCharacter(id, onCreated) {
+  const isNew = !id;
+  const c = isNew ? { nickname: '', pokemon: '', rank: 'Starter', instinctRank: 'Cub', logic: 2, instinct: 1, humanity: 6, primal: 0, will: 3, baseHp: 3, moves: [], status: [], tp: 0 } : structuredClone(party()[id]);
+  const sheetEl = modal(`<h2>${isNew ? 'New character' : 'Edit ' + esc(c.nickname)}</h2>
+    ${isNew ? `<div class="win tight small" style="font-size:16px;margin-bottom:10px">1. Fill in the <a href="https://forms.gle/GYmxXLQ7a3rcVRoH6" target="_blank" rel="noopener">Background Form</a> first (who you were).<br>2. Build your Pokémon below using the Rulebook for stat points — starter rank, non-legendary, lives mostly on land.<br>3. Logic and Instinct start at 1; add +1 to one of them. Humanity 6 with Logic 2/Instinct 1, or 4 with Logic 1/Instinct 2.</div>` : ''}
+    <div class="grid g2">
+      ${FIELD('nickname', 'Name', c.nickname)}${FIELD('pokemon', 'Pokémon', c.pokemon)}
+      ${SELECT('nature', 'Nature', c.nature, NATURES)}${SELECT('rank', 'Rank', c.rank, RANK_NAMES)}
+      ${SELECT('type1', 'Type 1', c.type1, TYPES)}${SELECT('type2', 'Type 2', c.type2, TYPES)}
+      ${FIELD('ability', 'Ability', c.ability)}${SELECT('instinctRank', 'Instinct rank', c.instinctRank, ['Prey', 'Cub', 'Beta', 'Hunter', 'Alpha', 'Predator'])}
+    </div>
+    <h4 style="margin-top:10px">Mystery Dungeon scores</h4>
+    <div class="grid g4" style="grid-template-columns:repeat(2,1fr)">${FIELD('logic', 'Logic', c.logic, 'number')}${FIELD('instinct', 'Instinct', c.instinct, 'number')}${FIELD('humanity', 'Humanity', c.humanity, 'number')}${FIELD('primal', 'Primal points', c.primal, 'number')}
+      ${FIELD('baseHp', 'Base HP', c.baseHp, 'number')}${FIELD('will', 'Will', c.will, 'number')}${FIELD('tp', 'Training Points', c.tp, 'number')}${FIELD('hp', 'Current HP', c.hp ?? '', 'number')}</div>
+    <h4 style="margin-top:10px">Attributes</h4><div class="grid" style="grid-template-columns:repeat(2,1fr)">${ATTRS.map((a) => FIELD(a, a, c[a] ?? 1, 'number')).join('')}</div>
+    <h4 style="margin-top:10px">Skills</h4><div class="grid" style="grid-template-columns:repeat(2,1fr)">${SKILLS.map((a) => FIELD(a, a, c[a] ?? 0, 'number')).join('')}</div>
+    <h4 style="margin-top:10px">Social</h4><div class="grid" style="grid-template-columns:repeat(2,1fr)">${SOCIAL.map((a) => FIELD(a, a === 'Clever' ? 'Smart/Clever' : a, c[a] ?? 1, 'number')).join('')}</div>
+    <h4 style="margin-top:10px">Moves (one per line)</h4><textarea data-k="moves" rows="5">${esc((c.moves || []).join('\n'))}</textarea>
+    <div class="grid g2" style="margin-top:8px">${FIELD('held', 'Held item', c.held)}${FIELD('garments', 'Garments', c.garments)}${FIELD('player', 'Player', c.player)}</div>
+    <label class="f" style="margin-top:8px">Notes<textarea data-k="notes">${esc(c.notes || '')}</textarea></label>
+    ${store.gmUnlocked() ? `<div class="card" style="margin-top:10px"><h4>${ixLink('Guest party member', 'Guest')} (temporary party member)</h4>
+      <label class="check"><input type="checkbox" id="isguest" ${c.guest ? 'checked' : ''}> This is a guest / escort / NPC helper</label>
+      <div class="grid g2"><label class="f">Leaves<select id="gleave">${['mission', 'floor', 'session', 'manual'].map((o) => `<option ${c.guest?.leaves === o ? 'selected' : ''} value="${o}">${{ mission: 'when the mission ends', floor: 'at the next floor', session: 'at the end of the session', manual: 'when I remove them' }[o]}</option>`).join('')}</select></label>
+      <label class="f">Controlled by<select id="gctl"><option value="gm" ${c.guest?.controller !== 'player' ? 'selected' : ''}>GM</option><option value="player" ${c.guest?.controller === 'player' ? 'selected' : ''}>A player can pick them</option></select></label></div></div>` : ''}
+    <div class="row" style="margin-top:12px"><button class="btn" id="save">Save</button>${isNew ? '' : '<button class="btn bad" id="del">Remove</button>'}</div>`);
+  $('#save', sheetEl).onclick = () => {
+    $$('[data-k]', sheetEl).forEach((el) => {
+      const k = el.dataset.k;
+      if (k === 'moves') c.moves = el.value.split('\n').map((s) => s.trim()).filter(Boolean);
+      else if (el.type === 'number') c[k] = el.value === '' ? null : num(el.value);
+      else c[k] = el.value.trim();
+    });
+    if (!c.nickname) { toast('Give your character a name'); return; }
+    const nid = id || uid();
+    c.id = nid;
+    if (c.hp == null) c.hp = maxHp(c);
+    c.hp = clamp(c.hp, 0, maxHp(c));
+    if (c.willCur == null || c.willCur > c.will) c.willCur = c.will;
+    const gEl = $('#isguest', sheetEl);
+    if (gEl) c.guest = gEl.checked ? { leaves: $('#gleave', sheetEl).value, controller: $('#gctl', sheetEl).value, since: c.guest?.since || Date.now() } : null;
+    store.set('party/' + nid, c);
+    closeModal();
+    if (isNew) onCreated?.(nid);
+  };
+  if (!isNew) $('#del', sheetEl).onclick = () => { if (confirm(`Remove ${c.nickname} from this table?`)) { store.set('party/' + id, null); closeModal(); } };
+}
+
+export { RULES, CONFIG };
+
+
+function statGrids(c) {
+  const g = (title, list) => `<h4 style="margin-top:8px">${title}</h4><div class="statgrid">${list.map((a) => `<a href="#" class="stat" data-ixname="${a}">${a}<b>${c[a] ?? 0}</b></a>`).join('')}</div>`;
+  return g('Attributes', ATTRS) + g('Skills', SKILLS) + g('Social', SOCIAL);
+}
+
+function pickStatus(c) {
+  const el = modal(`<h2>Status for ${esc(c.nickname)}</h2><p class="small muted">Tap a condition to add or remove it. Tap "What is it?" to read the rule.</p>
+    <div class="stack">${STATUSES.map((s) => `<div class="row nowrap"><button class="chip grow ${(c.status || []).includes(s) ? 'on' : ''}" data-st="${esc(s)}" style="justify-content:flex-start;min-height:44px">${esc(s)}</button><a href="#" class="btn alt sm" data-ixname="${esc(STATUS_IX[s] || s)}">What is it?</a></div>`).join('')}</div>`);
+  $$('[data-st]', el).forEach((b) => b.onclick = () => {
+    store.update('party/' + c.id, (x) => { const s = new Set(x.status || []); s.has(b.dataset.st) ? s.delete(b.dataset.st) : s.add(b.dataset.st); x.status = [...s]; return x; });
+    b.classList.toggle('on');
+  });
+}
+
+wireRolls(me, statVal, logRoll);

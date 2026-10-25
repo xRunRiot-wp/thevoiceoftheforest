@@ -1,0 +1,737 @@
+Type Ability Name Here:,Static,
+,,
+,,
+,,
+,"This Pokémon’s body is always ready to let off a jolt of static electricity at the
+slightest touch.","Whenever this Pokémon is hit with a Non-Ranged Physical Attack, roll 3 Chance
+Dice to Paralyze its foe."
+,,
+,,
+,,
+,,
+,,
+Ability Type,Description,Effects
+Adaptability,"The Pokémon will easily adapt to its surroundings, it will travel with ease no matter the terrain.","Whenever this Pokémon uses a Damaging Move that matches its Type, Add 1 Dice to the Damage pool of that attack."
+Aerilate,"The Pokémon never touches the ground, a neverending wind current can be felt swirling around it.","Normal-Type Attacks that the Pokémon uses will deal damage as if they were Flying-Type, affecting STAB, weakness and resistance. Add 1 Dice of damage to Flying moves."
+Aftermath,"When hurt or upset, the Pokémon will prepare to burst. If hit hard enough, it will explode on contact.","If this Pokémon faints due to a Non-Ranged Physical Attack , the user of that attack is dealt 2 Damage."
+Air Lock,"The Pokémon surrounds itself in a vacuum. Every particle of rain, sand, and hail stands floating still around it, and even heat is filtered out of the place","Negate all the effects of a Weather Condition in the field. If there are no weather conditions in the field, they cannot be activated by Moves or Abilities. If one is already active, it does not disappear but provides no effects."
+Analytic,"The Pokémon will never charge recklessly, it will take a moment to think about the best decision to make in any situation.","If this Pokémon has a lower initiative than its target, Add 1 Dice to all of its Damage Pools."
+Anger Point,The Pokémon will easily get aggressive. Little to no provocation is needed for it to start throwing a tantrum and ripping everything to shreds.,"If a foe lands a Critical Hit on this Pokémon, increase 3 Points to its Strength Attribute."
+Anticipation,The Pokémon is always alert for threats and rarely sits to relax. If it perceives a potential danger it will get anxious and start shuddering.,"If a foe knows a move that would deal Lethal or Super Effective damage against this Pokémon, it will alert its Trainer"
+Arena Trap,"The ground around this Pokémon becomes really soft and hard to walk in. When in danger, it will sink the ground around itself creating a shifting sand pit.","Foe Pokémon on the ground become Blocked, they cannot escape or be switched out for as long as this Pokémon is in the field."
+Aroma Veil,This Pokémon lets off a nice smell that helps you to stay relaxed even under stressful situations.,"User and Allies in range are immune to the effects of the moves: Taunt, Torment Attract, Disable, Encore, and Heal Block."
+Aura Break,"Anyone emitting a particularly evil aura will be purified, anyone with an aura of purity will be corrupted by evil by coming close to this Pokémon.","Invert the effects that the Abilities Dark Aura and Fairy Aura have on their users. If said Abilities would increase a Dice Pool for their user, reduce it instead."
+Bad Dreams,"This Pokémon can transfer its evil intent through the world of dreams, wreaking havoc and bringing fear into the minds of those deep in slumber.","At the end of the Round, deal 1 Damage to anyone in the battlefield that has the Sleep Status Condition"
+Ball Fetch,The Pokémon is a bit obsessed with playing “fetch the ball” it can play for hours and hours and never get bored of it.,"Whenever you throw a pokéball to a wild Pokémon, if the roll for catching it is unsuccessful, the pokéball will not break, this Pokémon will bring it back to you at the end of the scene instead."
+Battery,This Pokémon’s presence creates an electric field that charges up electronics and even makes others feel energized.,Increase 1 point to the Special of all Ally Pokémon in Range. Ally Pokémon get 1 Bonus Dice to all their Special Move’s Damage Pool.
+Battle Armor,"The Skin of the Pokémon is covered by plates of a very resistant material, like rock, steel or an exoskeleton.","If a Foe lands a Critical Hit on this Pokémon, it will not get any Bonus Dice for it"
+Battle Bond,"The Pokémon forges a strong bond with those who face the fiercest battles. After a victory, a surge of power surfaces thanks to their friendship.","AFTER a foe is defeated by this Pokémon, if it has a Loyalty score of 5, change its Form into “Battle-Bond Form” (BBF) until the end of the scene or until it or its Trainer faints. Only one Pokémon per party may have this Ability. Pokémon with this Ability can’t hold a Mega-Stone."
+Beast Boost,"A wicked satisfaction grows as this creature brings out destruction, for it becomes more savage with every foe that falls to its power.","If a foe faints because of an attack dealt by this Ultra-Beast, Increase 1 Point to its Attribute with highest limit. Up to 3 points can be increased this way. Only Ultra-Beasts might have this Ability. Beast Boost can’t be swapped or copied."
+Berserk,"This Pokémon is usually calm in demeanor, but when its life or someone it cares for is in danger, the adrenaline rush will transform it into an enraged beast.","When this Pokémon’s HP is half or less, Increase its Special Attribute by 1."
+Big Pecks,This tenacious Pokémon uses its beak to cover its weak spots.,This Pokémon cannot have its Defense reduced.
+Blaze,The Fire on this Pokémon’s body will burn incredibly fierce just before fading.,"When this Pokémon’s HP is at half or less, Pain Penalization will not reduce successes from Damage rolls of its Fire-Type Moves, and they will get 1 extra die to their Damage Pool."
+Bulletproof,The armor on this Pokémon’s body protects it from projectiles and small explosions.,Reduce by 1 all damage from Special and Ranged Physical Attacks done to this Pokémon
+Cheek Pouch,The Pokémon is able to store food and objects inside its stretchy cheeks for later consumption.,"This Pokémon restores 2 HP whenever it eats a berry with no HP healing effect. (e.g. Pecha Berry, Lum Berry)"
+Chlorophyll,"The Pokémon synthesizes sunlight to get energy, if it’s kept in a sunny environment it will rarely need to eat.","If Sunny Weather is in effect, Increase 2 Points to this Pokémon’s Dexterity Attribute."
+Clear Body,"The Pokémon is completely aware of all its body surroundings, trying to sneak on it will be incredibly difficult.",Other Pokémon cannot Increase or Decrease the Attributes of this Pokémon. This Pokémon can still Increase or Decrease its own Attributes.
+Cloud Nine,"This Pokémon will easily feel pleased, and it’s prone to be happier than others. No matter if it’s sunny or rainy it will never feel gloomy.",Negate the effects of Weather Conditions on this Pokémon.
+Color Change,This Pokémon can change its color and energy to camouflage and merge with the surroundings.,When this Pokémon is dealt damage it will temporarily change its type to match the type of the move that just hit it. The effect ends if the Pokémon is removed from battle.
+Comatose,"For some reason this Pokémon is always asleep and can’t wake up. Still, it is able to understand commands and move just as if it were sleepwalking",The Pokémon permanently has the “Sleep” Status Condition but it is immune to its effects. This Pokémon can’t be inflicted other Status Condition. Moves and Abilities affecting Asleep Pokémon still have an effect on it
+Competitive,This Pokémon’s determination grows in the face of adversity. It is always trying to compete with those around it.,"The first time this Pokémon gets an Attribute reduced by a foe during a battle, Increase 2 Points to its Special."
+Compound Eyes,This Pokémon has a peripheral vision that allows it to locate its targets with great precision.,This Pokémon gets 2 Bonus Dice on the Accuracy Pool of any move with Reduced Accuracy.
+Contrary,Most of the time this Pokémon will want to do the opposite of what you want. Sometimes it even contradicts itself.,"If anything would Decrease an Attribute of this Pokémon, Increase it instead. If anything would Increase an Attribute of this Pokémon, Decrease it instead."
+Corrosion,"This Pokémon’s venom can eat through metal, wood, and most inorganic and organic materials. Be careful not to touch it!",Ignore any immunity the foe has to Poison-Type Damage and/or to be inflicted Poison and Badly Poisoned Status Ailments.
+Cotton Down,"The cotton fluff on this pokémon’s body is constantly being shed, it can be used to make beautiful clothes but it’s also bothersome to walk on.","Is Pokémon is hit with a Non-Ranged Physical Attack, reduce the speed of all Pokémon close to it. (Allies and foes alike at storyteller’s discretion)"
+Cursed Body,This Pokémon carries a curse within itself. Crossing this Pokémon is not a good idea.,"Whenever this Pokémon is dealt damage with a Move, Roll 3 Chance Dice to Disable that move. More than one Move may be disabled this way."
+Cute Charm,"It may be its twinkly eyes or its rosy cheeks, but other people and Pokémon will try to win this Pokémon’s heart.","If a foe hits this Pokémon with a Non-Ranged Physical Attack, roll 3 Chance Dice to make the foe fall in Love."
+Damp,"The Pokémon gathers the humidity in the air around itself. Lighting a spark or keeping a fire on, will be almost impossible close to it.",No ally or foe will be able to use the moves Explosion or Self-Destruct in an area around this Pokémon.
+Dancer,"When someone begins to dance, this Pokémon dances too. It expresses its feelings and communicates through little jigs.","Whenever a Pokémon uses a Move with the word “Dance” (i.e. Dragon Dance, Petal Dance etc.) This Pokémon gets a free action to use the same Move immediately after and succeeds automatically. (Damage must be rolled)"
+Dark Aura,"A powerful black aura comes out of this Pokémón, shrouding the field in darkness and filling everyone’s hearts with evil, selfishness and corruption.",Increase 2 dice to all Damage Pools of Dark-Type Moves of all Pokémon in the field. This effect does not stack. Pokémon and Trainers on the field will not cooperate with each other.
+Dauntless Shield,The valorous resolve of this Pokémon makes it impervious to physical damage though sheer will. It’s pressence can be unnerving.,"Whenever this Pokémon enters battle, Increase 2 Points to its Defense. Outside of battle, this Pokémon is immune to physical damage."
+Dazzling,"Its beautiful scales reflect light in a mirror-like manner, no one can help but to stop on their tracks when they glance at this Pokémon.",Foes cannot use Priotity Moves against this Pokémon
+Defeatist,"This Pokémon is a pessimist by nature. When things get difficult, it will be the first to give up.","If this Pokémon is at half or less of its total HP, roll this Pokemon’s Loyalty every action, if the roll fails Reduce 2 Points to its Strength and Special Attributes for that action. If it’s successful it may keep its attributes unchaged."
+Defiant,"This Pokémon will not yield, the harder the situation gets, the higher its fighting spirit will grow. It may, however, be a bit of a rebel.","The first time this Pokémon has an Attribute reduced during a battle, Increase 2 Points to its Strength."
+Delta Stream,"The wind currents blow through the entire battlefield, Pokémon might be blown away if they don’t know how to fly.","When this Pokémon comes out, it automatically starts the effects of Strong Wind Weather. The effects end when the Pokémon leaves the battle. (In case of stalemate, The Pokémon with highest Will might keep the dominant weather)"
+Desolate Land,"The sun burns so hot your skin gets red and blistered, all water evaporates, and every step of this Pokémon makes the ground become molten lava.","When this Pokémon comes out, it automatically starts the effects of Harsh Sunlight Weather. The effects end when the Pokémon leaves the battle. (In case of stalemate, The Pokémon with highest Will might keep the dominant weather)"
+Disguise,"This Pokémon wears a convincing disguise of another Pokémon. If it receives damage, the disguise will break, making it appear as if it received a fatal injury","The first time this Pokémon would receive damage during a battle, reduce that damage to zero. Entry Hazards, Weather Conditions and Status Ailments do not trigger this Ability."
+Download,This Pokémon is able to scan and access digital data within computers and download the info into itself. Too much data might make it feel heavy.,When this Pokémon comes out it will scan its foes and provide information about them. It will then Increase 1 Point to either Strength or Special Attribute at Storyteller’s discretion.
+Drizzle,The sky will keep raining in an apparent never-ending storm for as long as this Pokémon wants to.,"When this Pokémon comes out, it automatically starts the effects of Rain Weather. The effects end when the Pokémon leaves the battle. (In case of stalemate the Pokémon with higher Will might keep the dominant weather)"
+Drought,"The Sunlight will be harshly bright, and the heat will increase in the field for as long as this Pokémon wants to.","When this Pokémon comes out, it automatically starts the effects of Sunny Weather. The effects end when the Pokémon leaves the battle. (In case of stalemate the Pokémon with higher Will might keep the dominant weather)"
+Dry Skin,"The skin of this Pokémon will need special care, constant hydration and protection against heat.","If Sunny Weather is in effect, this Pokémon will receive 1 damage at the end of each round. Fire attacks will deal 1 additional Damage to this Pokémon. Water attacks may heal 1 HP to this Pokémon instead of dealing damage."
+Early Bird,"Pokémon with this ability are light sleepers that will easily rise from slumber.
+They wake up full of energy with just a couple hours of sleep.","The time this Pokémon would be asleep is reduced by half, it will only need to
+score 2 successes on its Insight roll to wake up in battle.
+This effect does not apply for the move “Rest”"
+Effect Spore,"When stressed, this Pokémon will leak spores through its body that scatter in
+the air causing severe allergies.","If hit by a Non-Ranged Physical Attack, the Pokémon rolls 3 Chance Dice to
+Poison, Paralize or Sleep the foe at random."
+Electric Surge,"The Pokémon can surround itself with an electric field that fills the air with
+tension and keeps everyone on edge.","When this Pokémon comes out, it automatically starts the effects of the Move
+Electric Terrain. (In case of stalemate the Pokémon with higher Will might keep
+the dominant Terrain)"
+Emergency Exit,"The Pokémon makes tactical escapes when the situation escalates out of
+control. You may force him to fight despite this but it won’t like it.","Whenever this Pokémon reaches half or less of its HP, it will switch out to its
+pokéball, sending an Ally to take its place. If there is no Ally, the battle may end.
+This Ability’s effect is not affected by Block."
+Fairy Aura,"A powerful pink glowing aura comes out of this Pokémón, covering the field in
+a glimmering light, filling everyone’s hearts with peace, hope and love.","Increase 2 dice to all Damage Pools of Fairy-Type Moves of all Pokémon in the
+field. This effect does not stack.
+Pokémon and Trainers on the field will not attack the user of this Ability."
+Filter,"This Pokémon uses an invisible energy field to filter away harmful energies and
+substances.","If a foe uses a move that would deal Super Effective Damage to this Pokémon,
+reduce by 1 the total Damage from that attack."
+Flame Body,"This Pokémon can willingly ignite its body on fire, receiving no harm from it.
+Objects that come in contact with this Pokémon may catch fire.","When hit by a Non-Ranged Physical Attack, this Pokémon rolls 3 Chance Dice
+to burn the foe."
+Flare Boost,"Pokémon with this Ability benefit from the extreme heat produced by fire.
+It might be somewhat of a pyromaniac.","If this Pokémon gets any Burn condition, Increase 2 points to its Special
+attribute."
+Flash Fire,"This Pokémon is capable of consuming other fire sources and adding them
+to its own. Walking through embers, fire, lava and hell feel like a breeze to it.","The first time this Pokémon is hit by a Fire-Type move, add 1 Extra Die to
+the Damage Pool of Fire-type Moves this Pokémon uses until the end of the
+scene. Fire-type moves do not deal damage to this Pokémon."
+Flower Gift,"This Pokémon petals radiate full of energy when the sun shines bright.
+The energy irradiated makes those around feel stronger.","If Sunny weather is in effect, Increase 2 Points to the Strength and Sp.Defense
+Attribute of the user and its allies."
+Flower Veil,"This Pokémon makes flowers grow in gardens and near other Pokémon to
+protect them from harm.","User and allies can’t have their Attributes reduced.
+User and allies can’t have any Status Condition inflicted on them.
+Previously inflicted Attribute reductions and/or ailments remain."
+Fluffy,"This Pokémon’s fur is so fluffy you could die So soft and snuggly that it invites
+you to hug it. Tumble dry with no heat, do not iron.","Reduce by 2 the Damage dealt to this Pokémon by All Physical Attacks.
+Incread by 2 the Damage dealt to this Pokémon by Fire-Type Attacks."
+Forecast,"This Pokémon can absorb the elements around to adapt and survive even
+under extreme conditions. ","The Type of this Pokémon will change depending on the active weather.
+Fire under Sun, Water under Rain, Ice under Hail and Rock under Sand."
+Forewarn,"When this Pokémon feels bad intentions or disaster approaching, it will mentally
+warn its trainer. The trainer must make a roll of Insight to get the message.","In battle, this Pokémon will warn about the strongest move one of its foes has.
+Storyteller has to reveal it to the trainer of this Pokémon in secret."
+Friend Guard,"The Pokémon is adorable and wakes the parental instincts in others. All of its
+allies will seek to protect it all the time","If this Pokémon is hit by a move performed by an ally, Reduce by 2 the
+damage dealt to it."
+Frisk,"This Pokémon can see the items others may be carrying, even if they are
+hidden","When this Pokémon enters the battlefield, Storyteller must reveal its trainer
+the held item of one foe."
+Full Metal Body,"This Pokémon’s body is a thick metal armor, its shiny coat cannot be muddled.
+Look inside of it and you may be blinded by the sun’s brightness.","Other Pokémon cannot Decrease the Attributes of this Pokémon.
+This Pokémon can still Decrease its own Attributes."
+Fur Coat,"This Pokémon’s fluffy exterior is cuddly, soft, hypoallergenic, and also serves as
+a cushion against powerful blows.",Reduce by 2 the Damage dealt to this Pokémon by All Physical Attacks.
+Gale Wings,"This Pokémon’s wings are perfectly designed to ride the roughest winds
+effortlessly.",Add “Priority” to all Flying-Type Moves of this Pokémon.
+Galvanize,"The body of this Pokémon is surrounded by electrical currents, this makes it
+very energized in everything it does.","Normal-Type Attacks that the Pokémon uses will deal damage as if they were
+Electric-Type, affecting STAB, weakness and resistance.
+Add 1 Extra Die of Damage to Electric Moves."
+Gluttony,"This Pokémon eats all day long, it has no problem to find food sources since
+not a picky eater at all.","This Pokémon can eat any type of food, medicine or herbal medicine with no
+negative effect. This pokémon can eat any held berries at any point of the
+battle as a free action."
+Gooey,"This Pokémon’s sticky ooze will rub into anyone that touches it. This may
+become quite a burden. On the bright side, it is a natural and organic glue.","The first time an opponent hits this Pokémon with a Non-Ranged Physical
+Attack, reduce 1 Point to its Dexterity Attribute."
+Gorilla Tactics,"The Pokémon manners leave a lot to be desired, it is brutish and uncivilized, its
+only approach to facing problems: “Smash it!” ","At the start of the fight, choose a Move. Increase 1 point to this Pokémon’s
+Strength Attribute, it can only perform the chosen Move but it may Evade
+every Round. This effect resets if the Pokémon is recalled from battle. "
+Grass Pelt,"This Pokémon has a lush coat of grass to protect its body, even if you cut it,
+it will regrow in a few days.","If the effects of the move Grassy Terrain are active, Increase 2 Points to this
+Pokémon’s Defense Attribute."
+Grassy Surge,"The Pokémon can surround itself with an grass field that makes it easy to
+relax and laze around in the sun.","When this Pokémon comes out, it automatically starts the effects of the Move
+Grassy Terrain. (In case of stalemate the Pokémon with higher Will might keep
+the dominant Terrain)"
+Gulp Missile,"This Pokémon is an excellent hunter, when diving into a pool of water it will
+always come out with prey. And it will sometimes use the prey as a weapon...","If this Pokémon uses the Moves Surf or Dive, it will change forms after dealing damage.
+“Gulping Form” if it has more than half HP remaining, “Gorging Form” if it has half or less HP
+remaining. If the Pokémon is dealt damage by a foe when it is in any of this Forms, deal 2
+Dice of Damage and an effect to it. Return this Pokémon to its regular form afterwards."
+Guts,"This Pokémon dares to do everything no one else dares to, and won’t lose its
+determination easily, it may be a little reckless, though.","While affected by a Status Condition, Increase 2 Points to this Pokémon’s
+Strength Attribute."
+Harvest,"This Pokémon will naturally produce edible fruits in a short period of time, if fed
+with berries it will start growing them too.","If this Pokémon uses a berry as a held item during a fight, the berry will grow
+back at the end of the day."
+Healer,"The Pokémon has healing powers, and will use them without hesitation to aid
+others","If an Ally on the battlefield has a Status Ailment, at the End of the Round this
+Pokémon rolls 3 Chance Dice to heal it."
+Heatproof,This Pokémon can resist very high temperatures without trouble.,"Burn 1 deals no Damage to this Pokémon.
+If this Pokémon is hit by a Fire-Type Attack, Reduce the damage dealt by 2."
+Heavy Metal,"The metal covering the body of the Pokémon is so thick that it easily doubles
+the normal weight of the Pokémon.","Moves with damage based on weight get their damage pool modified
+accordingly."
+Honey Gather,"The Pokémon produces its own honey, you can get a small barrel of high
+quality honey every day.","A small barrel of honey can be sold for up to $100.
+Honey attracts wild Pokémon and feeding a Pokémon with it will make it happy."
+Huge Power,"The Pokémon has an unnatural source of Strength beyond its physical
+appearance.",This Pokémon has a permanent increase of 1 point to its Strength attribute.
+Hunger Switch,"This Pokémon becomes really upset if it gets hungry, it will bite and act out
+unless you constantly give it snacks. ","At the End of the Round, switch this Pokémon’s form.
+Only Morpeko may have this ability. This ability cannot be copied or switched."
+Hustle,"The Pokémon will perform everything in a hurry, usually being kind of sloppy.","This Pokémon gets an extra Reduced Accuracy and 2 Extra Dice to the
+Damage pool for all its Physical Attacks."
+Hydration,"The Body of the Pokémon absorbs water and uses its moisture to maintain a
+healthy state.","When Rain weather is in effect, this Pokémon will cure any status ailment it has
+at the end of the round."
+Hyper Cutter,The claws of this Pokémon are very sharp and can’t be dulled.,This Pokémon cannot have its Strength Attribute reduced by any means.
+Ice Body,"The Pokémon’s body is almost frozen, it feels at home when temperatures are
+below zero.","If Hail Weather is in effect you may restore 1 HP to this Pokémon at the end of
+the round. This Pokémon is immune to damage from Hail weather."
+Ice Face,"This Pokémon’s face is covered by thick block of ice that serves as cover for
+its body. If it breaks it will need very cold temperatures to form it again.","The Pokémon has 2 extra HP when it is on “Ice Face form”. If the Ice receives
+2 damage, change the Pokémon’s form to “No-Ice Form”. To restore “Ice Face
+Form” the Pokémon must be out one whole Round while Hail weather is active."
+Ice Scales,"This Pokémon’s body is covered by crystal scales made of ice. Always cold to
+the touch, it easily deflects most projectiles, energy and light on its surface.",Reduce by 2 the Damage dealt to this Pokémon by All Special Attacks.
+Illuminate,"The Pokémon naturally produces light through its body. Other Pokémon
+approach curiously when they see this light.","Increases the chance of random Wild Pokémon encounters.
+If there were enviromental challenges where there is reduced visibility, this
+Pokémon and it’s allies are immune to the effects."
+Illusion,"The Pokémon casts an illusion on itself to look like another creature it has
+seen. The illusion is undistinguishable from the real one.","When this Pokémon comes out, it will have the form of another Pokémon in
+the party, it will regain its original form if it receives damage.
+When taking a human form it cannot speak and its tail may remain visible."
+Immunity,"The Pokémon has a very strong immune system and will rarely get sick. It could
+even eat rotten food without getting sick.",Poison and Badly Poison Status deal no damage to this Pokémon.
+Imposter,"This Pokémon can alter its own cell structure extremely fast to transform into
+a copy of another being.","As soon as it enters to battle, this Pokémon will be under the effects of the
+move Transform."
+Infiltrator,"The Pokémon is very stealthy with its movements, it is naturally harder to
+detect than others.","Shield Moves, Safeguard, Substitute, Light Screen, and Reflect are ignored by
+this Pokémon."
+Innards Out,"As it has no extremities, this Pokémon expels its own internal organs to use
+them as limbs or to defend itself from harm. Gross but effective.","If an attack would faint this Pokémon, it inflicts damage on the foe equal to
+whatever remaining HP it had."
+Inner Focus,"The Pokémon is extremely serious and focused on everything it does.
+It remains calm and never backs down, even if it’s getting severly injured.","This Pokémon does not Flinch and cannot be Intimidated.
+(Intimidate Ability does not have any effect against this Pokémon."
+Insomnia,"The Pokémon does not need to sleep, it will be awake no matter the hour.",This Pokémon is not affected by the Sleep Status.
+Intimidate,"This Pokémon has an overwhelming presence that inspires both fear and
+respect from others.","When this Pokémon comes into battle, Reduce 1 Point to the Strength of all
+foes in range. This effect will last for as long as this Pokémon is out.
+Reduce random encounters with wild Pokémon."
+Intrepid Sword,"This audacious Pokémon’s is fearless to any challenge, its strength increases
+through sheer will. It’s presence can be very menacing. ","Whenever this Pokémon enters battle, Increase 2 Points to its Strength.
+Outside of battle, this Pokémon can cut through any surface."
+Iron Barbs,"This Pokémon is covered with sharp steel quills that hurt anyone who may
+touch them carelessly","Whenever this Pokémon is hit with a Non- Ranged Physical Attack, Roll 1 Die of
+Damage against the attacker."
+Iron Fist,"The hands of this Pokémon are very strong and heavy, when curled into fists
+they can go through anything.",Add 1 Dice to the Damage Pool of Fist Based moves. 
+Justified,"This Pokémon has an innate sense of justice, wrong doings will make them
+really angry.","The first time this Pokémon is hit by a Dark-Type Attack or if it has witnessed
+something it considers unjust, Increase 1 Point to its Strength Attribute."
+Keen Eye,"This Pokémon has an exceptional sight, locating small or far away objects will
+be a lot easier.","This Pokémon cannot have successes removed from its Accuracy rolls by
+Moves, Items or Abilities.
+Pain Penalizations and Difficulty Penalties may still apply."
+Klutz,"This Pokémon does not understand how to use tools correctly usually using
+them in unexpected ways.",Held items won’t have any effect on this Pokémon.
+Leaf Guard,The leaves on this Pokémon expand with the sun to cover its body.,"If Sunny weather is in effect, this Pokémon can’t have any Status Conditions
+inflicted. Previously inflicted conditions remain."
+Levitate,The Pokémon floats to move around without touching the ground.,"Ground-Type moves and effects on the ground won’t affect this Pokémon.
+If a Pokémon uses a move that binds it to the ground the effects are lost until
+it is free again."
+Libero,"This Pokémon always has its mind in the game. It will favor a defensive position
+and make the best special passes when it finally attacks. 
+","Whenever this Pokémon uses a move, first change its type to that of the
+move. If the move is an attack and deals damage, use the appropriate STAB.
+"
+Light Metal,"The Material covering its body will be light as a feather, causing this Pokémon
+to weight from 50% to 75% less than it is supposed to.","Moves with damage based on weight get their damage pool modified
+accordingly."
+Lightning Rod,This Pokémon will attract lightning and electricity to itself to charge its power.,"If anyone uses an Electric-Type move with a Single target, it will be redirected
+to this Pokémon; it is immune to damage from them. The first time this Pokémon
+ is hit by an Electric-Type move, Increase 1 Point to this Pokemon’s Sp"
+Limber,"The muscles of this Pokémon are incredibly flexible and elastic. Easing their
+movement, agility and grace.",This Pokémon is not affected by the Paralysis Status.
+Liquid Ooze,"The Pokémon produces a pestilent and toxic ooze within its body. Do not
+attempt to eat it.","If hit by a move that would asborb this Pokemon’s vital energy (Leech seed,
+Dream Eater, Drain Punch, etc.) it will instead deal that amount as damage."
+Liquid Voice,"Sound waves from its voice turn the moisture in the air into water, seemingly
+conjuring dew, rain and even cascades out of nothing.",All Sound-Based Moves this Pokémon uses are considered Water-Type.
+Long Reach,"The Pokémon is able to attack through the shadows of objects and foes
+meanwhile the real targets suffer the damage.",All Attacks made by this Pokémon are considered Ranged attacks.
+Magic Bounce,"The Pokémon will use psychic control on its foe to make it indirecly harm itself,
+making it look like magic.","All Support moves that target this Pokémon or its side of the battlefield will
+have its effects redirected into the foe’s instead."
+Magic Guard,"The Pokémon is covered by a faint energy that stops any minor harm that
+may come its way.","This Pokémon won’t receive damage from Status Conditions, Recoil, Held Items
+or Weather Conditions."
+Magician,"This Pokémon excells at performing simple magic tricks that amaze others,
+such as conjuring and vanishing objects nearby in the blink of an eye.","This Pokémon will steal the Held Item of a foe it just hit.
+For information on Held Items see p. 83."
+Magma Armor,"The body of the Pokémon is always hot to the touch, it can heat a large room
+just by standing inside and can also endure high temperatures.",This Pokémon is not affected by the Frozen Status.
+Magnet Pull,"This Pokémon can activate a magnetic field around itself to attract all kinds
+of metals.",All Steel-Type Pokémon on the field are Blocked.
+Marvel Scale,The beautiful scales of this Pokémon will harden when its body is under stress.,"If this Pokémon has a Status Ailment, Increase 2 points to its Defense Attribute."
+Mega Launcher,"The cannons on this Pokémon’s body allow it to fire extremely powerful
+attacks.","Add 2 Extra Dice to the Damage pool/Healing Pool of moves with the keyword
+“Pulse” and “Aura” on their name."
+Merciless,"Once this Pokémon senses weakness, it begins acting according to their
+brutal nature. They can be cruel if not put on their place.","If the Foe is inflicted with Poison or Badly Poison, all of this Pokémon Moves
+are considered to be Critical Hits. This Pokémon will not hold back when using
+Lethal Damage Moves at Storyteller’s discretion."
+Mimicry,This Pokémon’s body is perfect for camouflaging in the ground. It can sometimes get lost but you will find it if some unfortunate victim steps on it.,"If there is a Terrain Move active (i.e. Electric Terrain, Psyichic Terrain etc.)
+Change this Pokémon’s main type to match the active Terrain. Restore its
+original main type if the terrain effects end."
+Minus,"This Pokémon has a natural Negative charge. It will attract Positive charge
+and repel other negative charge. They are prone to feel blue.","If an ally Pokémon on the field has the ability “Plus”, Increase 2 Points to the
+Special Attribute of this Pokémon.
+"
+Mirror Armor,"The Pokémon’s body is covered with a shiny armor. Said armor will repel and
+bounce back anything intending to weaken it.","All Attribute-reducing effects that target this Pokémon or its side of the
+battlefield will have its effects redirected into the foe’s instead."
+Misty Surge,"The Pokémon can surround itself with a Misty field that it’s eerily quiet, it feels
+peaceful and soothing but also lonesome and isolated.","When this Pokémon comes out, it automatically starts the effects of the Move
+Misty Terrain. (In case of stalemate the Pokémon with higher Will might keep
+the dominant Terrain)"
+Mold Breaker,"This Pokémon will find unusual ways to achieve its goals. They are inventive
+and go around problems.","If a foe Pokémon has a type, an immunity, or an Ability that would prevent this
+Pokémon from attacking with a certain Move, ignore it."
+Moody,"The Pokémon will have some severe mood swings, and be temperamental
+most of the time. Hopefully it’s just a phase.","At the end of each round, reset Attributes modified by Moody, then Reduce 1
+Point to a random Attribute and Increase 1 Point to another random Attribute. "
+Motor Drive,This Pokémon absorbs electricity and stores it as energy to run faster.,"The first time this Pokémon is hit by an Electric-type move, Increase 1 Point to
+its Dexterity Attribute. This Pokémon doesn’t receive damage from Electrictype moves."
+Moxie,"This Pokémon is naturally fierce and will try to get to a position of power by
+defeating the alphas in the pack.","If a foe faints because of an attack dealt by this Pokémon, Increase 1 Point to
+its Strength Attribute. Up to 3 points can be increased this way."
+Multiscale,"This Pokémon is covered by two layers of hard scales, if one layer is damaged
+it will be shed and regrown later.","If this Pokémon was at full health, Reduce by 1 the damage dealt by an attack."
+Multitype,"All the energies that created the universe flow raw through this Pokémon’s
+body and it harnesses whichever is more convenient at the moment.","This Pokémon can freely change its Type at any moment.
+This Ability can’t be copied, switched, changed, ignored, or negated in any way."
+Mummy,"This Pokémon will curse whoever dares to inflict harm upon them, the curse
+may even last for generations and will need the aid of a medium to lift it.
+","When this Pokémon hits or gets hit with a Non-Ranged Physical Attack, the
+foe’s ability is changed to Mummy. "
+Natural Cure,"This Pokémon’s body will generate substances to heal itself. They can be used
+to create medicine.","At the end of the round, if this Pokémon has a Status Ailment, it Rolls 3 Chance
+Dice to heal itself."
+Neuroforce,"This Pokémon’s psychic power is overwhelming and can be felt even by simply
+standing nearby. It will exploit any weakness it finds in your mind.","This Pokémon will deal 1 automatic Damage on any Move that is Super
+Effective against a foe."
+Neutralizing Gas,"The Pokémon is surrounded by a sweet-smelling but noxious gas.
+Most people and Pokémon can’t help but to stop and smell it, though.","Foe Pokémon in range will have their Abilities effects negated as long as this
+Pokémon is out."
+No Guard,"This Pokémon can focus on attacking perfectly but will be open to the
+attacks of its foes as it won’t focus on anything but its precision.","You can declare you won’t make any Evasion Action at the start of the Round.
+If you do, roll all moves of this Pokémon as if they had no reduced accuracy"
+Normalize,"The Pokémon’s actions are never impressive, always dull and never seem
+to accomplish anything exceptional.","All the moves known by this Pokémon are considered Normal Type. Affecting
+STAB, weaknesses, immunities, and resistances. Add 1 Dice of Damage to all
+Normal Moves."
+Oblivious,This Pokémon will rarely have a satisfactory social interaction. It’ll be too selfabsorbed to take the hints of what is expected from it.,"This Pokémon is not affected by the Love Status. It is immune to the effects of
+moves that affect its feelings such as Taunt, Charm, Captivate etc."
+"Overcoat
+","The Pokémon will have a protective coat surrounding its body that allows it to
+live under extreme weather conditions.",This Pokémon won’t be damaged by weather conditions.
+Overgrow,"When this Pokémon is hurt, it will grow huge plants in its body to defend itself,
+this plants are very strong but wither quickly","When this Pokémon’s HP is at half or less, Pain Penalization will not reduce
+successes from Damage rolls of its Grass-Type Moves, and they will get 1 extra
+die to their Damage Pool"
+Own Tempo,"This Pokémon will do everything at its own pace, peer pressure will be ignored.
+It’s behaviour reflexive and calm... maybe too calm. ",This Pokémon is not affected by the Confused Status.
+Parental Bond,"The Pokémon and its youngling are really close to each other, they do
+everything together. The parent is very protective.
+","All of the Damage Pools of this Pokémon get rolled twice. Choose the highest
+roll to deal damage to the foe."
+Pastel Veil,"The Pokémon is surrounded by a soft-colored glimmer. This energy feels pure
+and full of innocence. Untaintable and otherwordly.","User and Allies in range are immune to Poison and Badly Poison.
+If the condition was inflicted before this Pokémon came out, it will remain"
+Perish Body,"This Pokémon’s silently curses those who cross it. Condemning their souls to
+suffer as it has suffered. Avoid this Pokémon, lest you suffer its grudge.","If this Pokémon is hit with Non-Ranged Physical Attack, the Foe will receive its
+remaining HP as damage and faint after three Rounds, unless it is removed
+from battle."
+Pick Up,"This Pokémon will often gather objects and keep a small hoard of treasure it
+may share with you.","If this Pokémon was out of its Pokéball, at the end of the scene see what it
+found for you at Storyteller’s discretion."
+Pickpocket,"The Pokémon will instinctively steal from others. It takes whatever it can when
+people are not looking.","If this Pokémon is not holding an Item it will steal the held Item of the foe it just
+hit with a Non-Ranged Physical Attack.
+For information on Held Items see p. 83"
+Pixilate,"This Pokémon scatters fairy dust that brings happy thoughts to the mind.
+Everything it does looks incredibly adorable.","Normal-Type Attacks that the Pokémon uses will deal damage as if they were
+Fairy-Type. Affecting STAB, weakness and resistance.
+Add 1 extra Die of Damage to Fairy Moves."
+Plus,"This Pokémon has a natural Positive charge. It will attract negative charge
+and repel other positive charge. It has a red blush all the time.
+","If an ally Pokémon has the ability “Minus”, Increase 2 Points to the Special
+Attribute of this Pokémon."
+Poison Heal,"The Pokémon has an immunity to any poison and also assimilates that venom
+as an energy source.","If this Pokémon becomes poisoned or badly poisoned. It will Heal 1 HP at the
+end of each round instead of receiving damage. The Poison will be completely
+absorbed after 3 Rounds."
+Poison Point,"The pointy thorns and scales on this Pokémon release poison that will
+infect anyone who touches them roughly. Wear gloves when handling them.","If this Pokémon is hit by a Non-Ranged Physical Attack, Roll 3 Chance Dice to
+Poison the foe."
+Poison Touch,"Venomous substances will ooze through the body of this Pokémon, you’ll
+become very sick if it touches you.","If this Pokémon hits its foe with a Non-Ranged Physical Attack, Roll 2 Chance
+Dice to Poison the foe.
+"
+Power Construct,"Small cells gather around this Pokémon and are absorbed into its body.
+It grows bigges and stronger as more cells come together.","At the end of the Round, if this Pokémon has half or less of its HP, change its Form
+to the next one. When this Pokémon changes Form, remove Status Ailments &
+restore its full HP & Will. This Ability can’t be copied, switched, or changed."
+Power of Alchemy,"This Pokémon can absorb the essence of everything it touches, fusing with
+the chemical composition and even the genes of discarded trash.","For the next 24 Hours the Pokémon copies the ability of a fainted foe.
+Multiple Abilities may be copied this way, but only one may be active during
+combat. (Certain Abilities cannot be copied at Storyteller’s Discretion)"
+Power Spot,"The Pokémon releases a mysterious energy that messes up with electronics
+and compasses but can somehow make you feel very energized.","Increase 1 Extra Die to the Damage Pools from Moves of One Ally.
+This Effect does not stack on the same Ally if multiple Pokémon use this Ability."
+Prankster,"This Pokémon will always have a michievous twinkle on its eyes, no one around
+will be safe from its pranks.","Add Pritority +1 to all Support moves of this Pokémon.
+"
+Pressure,"Being around this Pokémon will be very stressing and demanding, even the
+bravest will feel themselves faltering.","While this Pokémon is out, reduce the total Will Points of all foes by half,
+rounded down.
+"
+Primordial Sea,"The torrential rain barely lets you breath, the field quickly becomes flooded
+and you must swim to stay afloat. No fire can be ignited at a time like this.","When this Pokémon comes out, it automatically starts the effects of Typhoon
+Weather. The effects end when the Pokémon leaves the battle. (In case of
+stalemate, The Pokémon with highest Will might keep the dominant weather)"
+Prism Armor,"This Pokémon’s body is an incredibly resilient armor. It manages to withstand
+even hits that should shatter it into pieces.","Negate all automatic Damage from any Super Effective Move dealt to this
+Pokémon. "
+Propeller Tail,"The Pokémon’s tail allows it to maneuver very easily while in the water. It has
+no problem making sudden sharp turns to pursue and catch its prey.","Ignore any Moves or Abilities that would redirect this Pokémon’s Moves into
+another target. (i.e. The Move “Follow Me”, the Ability “Lightining Rod” etc.)"
+Protean,"This Pokémon’s versatile body gives it proficiency on practically everything it
+sets out to do.","Whenever this Pokémon uses a move, first change its type to that of the
+move. If the move is an attack and deals damage, use the appropriate STAB."
+Psychic Surge,"The Pokémon can surround itself with a Psychic field that makes everyone
+pause, hearing things that are not there.","When this Pokémon comes out, it automatically starts the effects of the Move
+Psychic Terrain. (In case of stalemate the Pokémon with higher Will might keep
+the dominant Terrain)"
+Punk Rock,"The Pokémon loves music and loud noises. It is constantly jamming with its air
+guitar and can easily improvise a music number out of nothing.","Sound-Based Moves this Pokémon uses have 1 Extra Die to their Damage Pool.
+Sound-Based Moves deal 2 less Damage to this Pokémon"
+Pure Power,"The Pokémon makes use of its Psychic powers to move objects several times
+bigger.",This Pokémon has a permanent increase of 1 point to its Strength attribute.
+Queenly Majesty,"This Pokémon’s presence commands awe and respect. Others have no
+choice but to do as it says, whoever tries to outplay it, will feel its discontent.",Foes cannot use Priotity Moves against this Pokémon.
+Quick Feet,"Most of the time this Pokémon will seem to be in a hurry. When pressured, it will
+move faster than normal.","While affected by any Status Condition, Increase 2 Points to this Pokémon’s
+Dexterity Attribute. The Pokémon may be inflicted with Paralysis condition but
+this Ability prevents its effects."
+Rain Dish,The Pokémon will store rain water for drink and nourishment.,"If Rain weather is in effect, you may restore 1 HP to this Pokémon at the end
+of each Round."
+Rattled,"When this scaredy Pokémon becomes startled or scared it will make haste to
+get away from danger.","The first time this Pokémon is hit by a Bug, Dark, or Ghost-Type Attack,
+Increase 1 Point to its Dexterity Attribute."
+Receiver,"This Pokémon is used to learning the tactic behavior of other Pokémon with
+which they have a bond.","If an Ally is fainted in battle, this Pokémon may copy their ability for the next
+24 hours. Only one Ability may be copied this way. (Certain Abilities cannot be
+copied at Storyteller’s Discretion)"
+Reckless,"The Pokémon will often get into risky situations in order to get what it wants.
+They are prone to risk their lives without thinking on the consequences.
+","When this Pokémon performs a move with Recoil, Add 2 Extra Dice to the
+Damage Pool of that move.
+"
+Refrigerate,"This Pokémon’s body works akin to a freezer, it can freeze things just by
+touching them.","Normal-Type Attacks that the Pokémon uses will deal damage as if they were
+Ice-Type. Affecting STAB, weakness and resistance. Add 1 Die of Damage to
+Ice moves."
+Regenerator,"The body of this Pokémon will regenerate from damage really quick, wounds
+that would take days to heal will get better in a few hours.","This Pokémon may Heal up to 4 Damage or up to 2 Lethal Damage on its own
+every day. The Pokémon must be out of combat to benefit from this effect."
+Ripen,"The Pokémon can ripen fruits and berries in no time to make them extra
+sweet and delicious, healing berries will have their effects boosted.","Moves that use berries for added effects will have 2 Extra Dice on their
+Damage Pool (i.e. “Natural Gift” etc.)
+Increase the Healing properties of Berries at Storyteller’s discretion."
+Rivalry,"The Pokémon will be very competitive with others to prove its position as the
+alpha of the group, however, it will try to gain the favor of possible mates.","If this Pokémon has a foe of the same gender, Increase 1 Point to its Strength
+Attribute.
+If the foe is the opposite gender, Reduce 1 Point to its Strength Attribute."
+RKS System,"The Pokémon’s physiology morphs according to the data disc inserted in its
+RKS-drive. There are 17 discs, one for each Type. (No disc is Normal Type).","Change the Pokemon’s Type to match the Disc on its Held Item slot.
+(i.e. Electric Disc makes this Pokémon become an Electric Type)"
+Rock Head,"The head and body of the Pokémon are so resistant that they barely feel
+anything. Careful as they bump into things without even noticing.",This Pokémon will not receive damage from Recoil.
+Rough Skin,"Use protection on your hands when touching this Pokémon. Its body is
+covered by sharp scales or barbs that get hooked into the skin.","Whenever this Pokémon is hit with a Non-Ranged Physical Attack, Roll 1 Die of
+damage against the attacker. "
+Run Away,"This Pokémon is the master of escape. It will be difficult to catch and can even
+squeeze through the tiniest gaps to get away.","This Pokémon cannot be Blocked.
+It may also obtain bonus dice to escape from battle or captivity at Storyteller’s
+discretion."
+Sand Force,"The Pokémon controls the particles of sand around the battlefield to give a
+boost to its attacks.
+","If Sandstorm Weather is in effect when this Pokémon deals damage using
+Ground, Steel or Rock-Type attacks, add 1 Extra Die to the damage pool of
+that attack. The Pokémon is immune to damage from Sandstorm Weather."
+Sand Rush,"While sand whips across the battlefield, the Pokémon can paddle through it
+as if it was water. ","If Sandstorm Weather is in effect, increase 1 Point to the Dexterity Attibute of
+this Pokémon. The Pokémon is immune to damage from Sandstorm Weather."
+Sand Spit,"The Pokémon slithers through the desert sand, eating some of it in the
+process, if it gets hit (or sneezes) a sandstorm will blow up.","If this Pokémon is hit with a Non-Ranged Physical attack, it starts the effects
+of Sandstorm Weather. The effect lasts 4 rounds."
+Sand Stream,"The Pokémon can activate a raging sandstorm around itself that will last for
+as long as it wants.","When this Pokémon comes out, it automatically starts the effects of Sandstorm Weather. The effects end when the Pokémon leaves the battle. (In case
+of stalemate the Pokémon with higher Will, might keep the dominant weather)"
+Sand Veil,"The Pokémon’s body is easily concealed by sand particles on the air. 
+","If Sandstorm Weather is in effect, increase 1 Point to the Evasion of this
+Pokémon. The Pokémon is immune to damage from Sandstorm weather."
+Sap Sipper,"This Pokémon’s diet consists strictly of plants, it is particularly fond of sweet
+sap for nourishment.","The first time this Pokémon is hit by a Grass-type attack, Increase 1 Point to its
+Strength Attribute instead of dealing damage.
+Grass-type moves do not deal damage to this Pokémon."
+Schooling,"When this Pokémon is threatened, it calls thousands of allies to create an
+uncontrollable monster. The closer to the sea, the faster they arrive.","Only Wishiwashi can use this Ability. When this Pokémon reaches half or less of its HP
+its allies will arrive, when they do, replace your Pokémon for Wishiwashi School-Form
+at full HP. Increase its Rank to Pro. At the end of the battle restore Wishiwashi to its
+base form. (Healing/Fainting/Recalling prevents allies from arriving)"
+Scrappy,This Pokémon does not believe in ghosts.,"This Pokémon has the ability to hit Ghost-type Pokémon with Normal-type
+and Fighting-type moves, dealing Regular Damage. Apply the right resistances
+or weaknesses to the foe if it has a secondary type."
+Screen Cleaner,"This Pokémon is constantly cleaning an invisible screen, it cleans them so well
+that even real glass screens can disappear after it is done with them.
+","When this Pokémon enters the field, remove any barries (i.e.Light Screen,
+Reflect etc.) on both the user and the foe’s side of the field."
+"Serene Grace
+","This Pokémon will bring good luck as if it was blessed by the heavens.
+Its presence is soothing, it makes you feel calm and full of joy.","Add 2 Extra Chance Dice to all effects done by this Pokémon. (e.g. A move has
+3 Chance Dice to Flinch the foe, will roll 5 Dice with this Pokémon)"
+Shadow Shield,"When it is at full strength, this Pokémon’s ghostly body cannot be touched
+or pierced by anything, it can even go through walls as if they weren’t there.","If this Pokémon was at full health, Reduce by 2 the damage dealt by an attack.
+This effect cannot be ignored by Moves or Abilities."
+Shadow Tag,"The Pokémon steps on the opponent’s shadow, preventing them from
+moving too far. 
+","All foes become Blocked.
+Ghost-type Pokémon are immune to this effect.
+Pokémon with the same ability are immune to this effect."
+Shed Skin,"This Pokémon’s body is constantly growing skin anew and molting the old one
+when it becomes too damaged.","At the end of the round. If this Pokémon has a Status Condition, it rolls 3
+Chance Dice to heal itself."
+Sheer Force,This Pokémon is only interested in showing off its incredible battle prowess.,"Whenever this Pokémon uses an attack with chance dice for an additional
+effect, you may ignore those chance dice and add 2 Dice to its damage pool."
+Shell Armor,This Pokémon’s shell protects its vulnerable spots from its opponents,"If a foe lands a Critical Hit on this Pokémon, it will not get its Bonus Damage
+Dice for that attack.
+"
+Shield Dust,This Pokémon constantly generates specs of dust to shield and protect itself.,"If this Pokémon is hit by an attack with chance dice for an additional effect, it
+won’t be affected by said effects."
+Shields Down,"The Pokémon’s core is protected by a sturdy shield, if the shield is shattered
+the Pokémon starts acting crazy.","Only Minior can use this Ability. After reaching half or less of its HP in battle,
+replace Minior by Minior (Core) at full HP. To restore it to its base form, the core
+must be set free and then recaptured after it returns a few days later."
+Simple,"This Pokémon’s ingenuous mind is easily swayed by not only its own, but also
+outside influences. It often finds ways to simplify things.","If this Pokémon gets an Attribute reduced, reduce 1 more Point.
+If this Pokémon gets an Attribute increased, increase 1 more Point."
+Skill Link,"This Pokémon can proficiently chain a flurry of attacks. It also enjoys repetition
+and sequences.",Add 2 Dice to the Accuracy roll of Successive Actions.
+Slow Start,"The Pokémon has remained dormant for thousands of years, its movements
+are heavy and slow, run away before it unleashes its full power.","During the first 5 Rounds of a battle, this Pokémon will always go last in the
+initiative order. After those 5 Rounds are over, Increase 2 points to its Strength
+and Dexterity Attributes, and it will always go first in the initiative order.
+This effect resets if the Pokémon is called out of combat."
+Slush Rush,"The Pokémon is used to run and hunt on icy terrain, moving swiftly through
+the snow during blizzards and ice storms.
+","If Hail Weather is in effect, increase 1 Point to the Dexterity Attibute of this
+Pokémon. The Pokémon is immune to damage from Hail Weather."
+Sniper,"This Pokémon will stealthily locate itself in an advantageous position to strike
+its foe’s weak spots.","If this Pokémon lands a Critical Hit, it will get 3 Bonus Dice to the Damage Pool
+of its attack instead of the regular 2."
+Snow Cloak,"This Pokémon’s skin blends well with the surrounding snow and hail, you can
+barely see it.","If Hail weather is in effect, Increase 1 Point to the Evasion of this Pokémon.
+The Pokémon is immune to damage from Hail weather."
+Snow Warning,"The Pokémon is able to call a terrible hailstorm at will. Snow will cover the
+battlefield and sharp ice shards will come plummeting from the sky.","When this Pokémon comes out, it automatically starts the effects of Hail
+Weather. The effects end when the Pokémon leaves the battle. (In case of
+stalemate the Pokémon with higher Will might keep the dominant weather)"
+Solar Power,"The Pokémon is capable of overcharging itself with energy from the sun,
+making it more powerful but also taking a toll on its body.","While Sunny Weather is in effect, Increase 2 Points to this Pokémon’s Special
+Attribute. If Sunny weather is in effect, this Pokémon will receive 1 damage at
+the end of the round."
+Solid Rock,"This Pokémon’s body is composed of extremely hard rock, protecting it from
+everything, even its own weaknesses.","If this Pokémon is hit by a move dealing Super-Effective Damage, reduce 1
+Damage dealt to it."
+Soul-Heart,"This Pokémon is naturally caring and nurturing and if there’s a threat to its
+loved ones, its soul will be made stronger out of love.
+","If a foe faints because of an attack dealt by this Pokémon, Increase 1 Point to
+its Special Attribute. Up to 3 points can be increased this way."
+Soundproof,"This Pokémon’s body is structured to protect it from noises that might disturb
+its peace and focus. So it’s not ignoring you, it just can’t hear you.","This Pokémon is immune to the damage and effects of all Sound-based
+moves."
+Speed Boost,"This Pokémon will start maneuvering at an accelerated rate, it will move as if
+it blinked from place to place.","At the end of the Round, Increase 1 Point to this Pokémon’s Dexterity
+Attribute. Up to 3 Points might be added this way."
+Stakeout,"The Pokémon is constantly surveilling its environment, looking out for possible
+prey, attacking them when they are most vulnerable.","Whenever a Foe Pokémon switches out, this Pokémon will inflict 1 additional
+Damage with its first successful attack to its replacement."
+Stall,"This Pokémon is indecisive and always lets others act first before making its
+mind on what action to take.",This Pokémon always goes last in the the initiative order. 
+Stalwart,"The Pokémon naturally has a high sense of duty and loyalty, once you give it
+a task it will not stray until its quest is complete.","Ignore any Moves or Abilities that would redirect this Pokémon’s Moves into
+another target. (i.e. The Move “Follow Me”, the Ability “Lightining Rod” etc.)"
+Stamina,"This Pokémon cannot get tired. It regains its fortitude when it feels weak. Even
+when it barely eats or sleeps.","The first time this Pokémon receives Damage in combat, increase 1 point to its
+Defense and Special Defense."
+Stance Change,"This Pokémon’s can change forms and become a migthy shield or a powerful
+blade. Its attributes switch upon a change of stance.","Only Aegislash may use this Ability. At the beginning of the round, choose
+a Form. While in Sword Stance it can only use Attack moves. While in Shield
+Stance, it can only use Support Moves. Adjust its Attributes according to the
+Rank and Limits it has for each Form."
+Static,"This Pokémon’s body is always ready to let off a jolt of static electricity at the
+slightest touch.","Whenever this Pokémon is hit with a Non-Ranged Physical Attack, roll 3 Chance
+Dice to Paralyze its foe."
+Steadfast,This Pokémon becomes even more dependable when adversity strikes.,"The first time this Pokémon is affected by Flinch, Increase 1 Point to its
+Dexterity Attribute."
+Steam Engine,"The Pokémon works as a steam furnance, with a bit of fire and water it can
+move anything at great speeds. It also loves to eat coal.","The first time this Pokémon is hit with a Fire or Water-Type Move. Increase 3
+Points to its Dexterity Atribute."
+Steelworker,"The Pokémon is able of molding and eating steel, giving shape and a sharper
+edge to whatever metal it touches.","Steel-Type Attacks used by this Pokémon get 1 Extra Die to their Damage
+Pool."
+Steely Spirit,"The Pokémon has a balky behaviour most of the time. If it sets its mind to
+something it will see it done. Infuriating and inspiring at the same time.
+","Steel-Type Attacks used by this Pokémon and Allies get 1 Extra Die to their
+Damage Pool."
+Stench,"This Pokémon can emit a smell so unpleasant it repels other people
+and Pokémon.","Reduces the chance of random Wild Pokémon encounters.
+Whenever this Pokémon is hit with a Non-Ranged Physical Attack, it Rolls
+1 Chance Dice to Flinch the foe. "
+Sticky Hold,"This Pokémon’s body is always oozing adhesive substances, if something gets
+glued, it will be very difficult to remove.","This Pokémon’s Held Item cannot be removed, stolen or swapped by Moves or
+Abilities."
+Storm Drain,"The Pokémon absorbs moisture and liquids like a sponge, then uses them to
+increase its power and last more time outside of water.","If anyone uses a Water-Type move with a Single target, it will be redirected to
+this Pokémon; it is immune to damage from them. The first time this Pokémon
+ is hit by a Water-Type move, Increase 1 Point to this Pokemon’s Special."
+Strong Jaw,"The Pokémon’s strong jaw gives it tremendous biting power. Its teeth can tear
+through almost anything.","If this Pokémon uses a move with the Keywords: Fang, Bite or Crunch,
+add 1 Extra Dice to the Damage Pool of that Move."
+Sturdy,"This Pokémon’s body is extremely resistant to damage, it can withstand
+almost anything.","The first time this Pokémon would faint due to a Damaging move, it will remain
+at 1 HP instead. Status Conditions and Self inflicted damage will still cause it to
+faint. The Pokémon must rest for an hour before benefiting from Sturdy again."
+Suction Cups,"This Pokémon’s limbs contain suckers that allow it to stay rooted in place.
+It can stick to any kind of surface, even upside down.",The Pokémon is immune to effects that force switches. 
+Super Luck,"This Pokémon has an incredible good luck, good things happen to it regularly.","Add “High Critical” to all the Attack Moves of this Pokémon.
+If a move already has the High Critical property, this Pokémon will only need 1
+More Success on the Accuracy roll to land a Critical instead of 2."
+Surge Surfer,"This Pokémon’s magnetic field allows it to stand and surf on top of electric
+currents as if it were floating.","If Electric Terrain is in effect, Increase 2 Points to this Pokémon’s Dexterity
+Attribute."
+Swarm,"The Pokémon enters a hive mind state when its life is on the line, becoming
+more feral and aggressive.","When this Pokémon’s HP is at half or less, Pain Penalization will not reduce
+successes from Damage rolls of its Bug-Type Moves, and they will get 1 extra
+die to their Damage Pool. "
+Sweet Veil,This Pokémon’s delicious aroma will wake the appetite of all Pokémon nearby.,"The Pokémon and its allies are immune to the Sleep status.
+Increase random encounters with Wild Pokémon."
+Swift Swim,"The Pokémon will move faster on water than on land, even a puddle covered
+roadway will allow it to use its full speed.","If Rain Weather is in effect, Increase 2 Points to this Pokémon’s Dexterity
+Attribute."
+"Symbiosis
+","This Pokémon enjoys forming a beneficial relationship with any ally it teams
+up with.","If an ally loses or spends its Held Item, this Pokémon will immediately give the
+one it’s holding to the ally as a free action. "
+Synchronize,"The Pokémon can share its mood, feelings and sensations with others,
+specially with those who caused it pain.
+","If a foe inflicts a Status Condition to this Pokémon, the same condition is
+inflicted into the foe unless it is immune to the effect."
+Tangled Feet,"The Pokémon moves in a very strange and particular way when dizzy or
+confused, this usually works to its advantage.","While this Pokémon is Confused, Add an extra “Reduced Accuracy” to all
+the foe’s Moves which target this Pokémon."
+Tangling Hair,"This Pokémon’s hair is thick and tough, it easily tangles anyone who comes
+close to it. Brush it twice a day to keep it silky and shiny.","The first time a foe hits this Pokémon with a Non-Ranged Physical
+Attack, reduce 1 Point to its Dexterity Attribute."
+Technician,"This Pokémon is meticulous and precise in tasks that everyone else would
+perform roughly and without care. ",Add 1 dice to the Damage pool of all Moves with Power 2 or less.
+Telepathy,"This Pokémon can communicate using telepathy. It can send messages to
+other minds but it cannot receive messages back",This Pokémon won’t receive damage from moves performed by its allies.
+Teravolt,"There’s a ball of blue lightning coming out of this Pokémon that prevents its
+foes from being out of reach, no matter what you do, it will zap you.","If a Move, Item or Ability would prevent this Pokémon from targeting a foe or
+inflicting an effect, ignore it. (e.g. A Pokémon with Immunity can be Poisoned, A
+Pokémon with Levitate can be hit by Ground moves). "
+Thick Fat,"This Pokémon’s body has a thick layer of blubber that protects it against harsh
+temperatures. ",Reduce by 1 the damage taken from Fire and Ice-Type moves.
+Tinted Lens,"This Pokémon’s goggle-like eyes can find the good side in every bad situation,
+even when there is none.","If a foe has a resistance against an attack performed by this Pokémon, make
+that attack deal Regular Damage instead. If the foe has a double resistance,
+make the attack as if the foe had only one."
+Torrent,"This Pokémon builds up pressure to shoot water streams. When that pressure
+cannot be held in, it is released through uncontrollable torrents","When this Pokémon’s HP is at half or less, Pain Penalization will not reduce
+successes from Damage rolls of its Water-Type Moves, and they will get
+1 Extra Die to their Damage Pool. "
+Tough Claws,"This Pokémon’s claws are so sturdy, they can tear through almost anything.","Whenever this Pokémon uses a Non-Ranged Physical Attack, Add 1 Die to its
+damage pool."
+Toxic Boost,"The blood of this Pokémon boils and goes into a powerful rampage whenever
+it is afflicted by Poison.","If this Pokémon gets the Poison or Badly Poison Status, Increase 2 Point to its
+Strength Attribute."
+Trace,"This Pokémon mimics the special characteristics of the others, making them
+look as if they were its own.","This Pokémon copies the ability of one random foe when it comes out.
+Effect ends if this Pokémon is removed from the battle. Some Abilities (Flower Gift,
+Illusion, Imposter, Stance Change, Wonder Guard etc.) Can’t be copied."
+Triage,"The Pokémon feels the urgency to treat the injured; it is also very quick to
+stitch and make knots. A skill often used to instantly mend wounds.","Add Pritority +1 to all Support moves of this Pokémon that Heal HP or cure
+Status Ailments."
+Truant,"This Pokémon is extremely lazy, it won’t make even the tiniest effort and often
+loafs off even in the heat of battle.","Roll this Pokemon’s Loyalty every other turn, and score at least 2 successes.
+If the roll fails this Pokémon refuses to act. If it is successful it may act normally."
+Turboblaze,"The Pokémon surrounds everything with a giant ball of swirling flames that
+prevents its foes from being out of reach, there is no escaping the heat.","If a Move, Item or Ability would prevent this Pokémon from targeting a foe or
+inflicting an effect, ignore it. (e.g. A Pokémon with Immunity can be Poisoned, A
+Pokémon with Levitate can be hit by Ground moves)."
+Unaware,"The Pokémon is oblivious to many details in its surroundings, it will rarely take
+notice of things going on.","This Pokémon ignores any of the opponent’s Attribute increases or
+decreases. Both when attacking and taking damage."
+Unburden,"This Pokémon is most comfortable when it is freed from having to carry stuff
+around. It loves to be able to move without restrictions.","The first time this Pokémon loses or spends its held item and is no longer
+holding any, Increase 2 Points to its Dexterity Attribute."
+Unnerve,"It may be its powerful gaze or its menacing presence, but others near this
+Pokémon become really nervous to the point where they lose their appetite.","Opponents may not consume their held berry while this Pokémon is in the
+field."
+Victory Star,"This Pokémon’s presence is an incredible boost for morale. Those who get its
+favor will be guided to victory.","This Pokémon’s and All its allies damaging moves gain “Never Miss” while this
+Pokémon is on the field. This Ability can’t be switched or swapped."
+Vital Spirit,"The Pokémon is incredibly active and energetic. It needs constant activity
+and excercise or else it will act destructive. It never sleeps.",The Pokémon is immune to the Sleep status.
+Volt Absorb,"This Pokémon’s body is practically a battery that is always happy to become
+charged to full capacity.","Whenever this Pokémon is hit by an Electric-Type Move, you may Heal 1 HP
+instead of receiving damage.
+Electric-type moves do not deal damage to this Pokémon."
+Wandering Spirit,"The Pokémon is a wandering ghost with a haunted expression on its face. It it won’t
+heed your call and might get lost floating aimlessly. Get to a Medium to heal it.","If this Pokémon hits a Foe with a Non-Ranged Physical Attack, it switches its Ability
+with the Foe’s. Some Abilities (Flower Gift, Illusion, Imposter, Stance Change, Wonder
+Guard etc.) can’t be switched at Storyteller’s discretion."
+Water Absorb,"The Pokémon’s body is mostly made of water, it stores water inside itself and
+uses it for nourishment.","Whenever this Pokémon is hit by a Water-Type Move, you may Heal 1 HP
+instead of receiving damage.
+Water-type moves do not deal damage to this Pokémon"
+Water Bubble,"The Pokémon is shielded by a water bubble. Strangely, the bubble has clear
+water inside instead of air.","Fire-Type Moves deal 1 less damage to this Pokémon.
+This Pokémon is immune to Burn 1 and Burn 2 Status.
+Add 2 Extra Dice to the Damage Pool of this Pokémon’s Water-Type Moves."
+Water Compaction,"The body of the Pokémon can absorb water at an astounding rate, its body
+hardens as it quickly dries.
+","The first time this Pokémon is hit by a Water-Type Move, Increase its Defense
+by 2 instead of receiving damage.
+Water-type moves do not deal damage to this Pokémon.
+"
+Water Veil,"This Pokémon is always wet and producing water to keep itself moist. Thanks
+to this, the Pokémon can stay away from a body of water for a long time.",The Pokémon is immune to any of the Burn status.
+Weak Armor,"This Pokémon’s protective outer layers can come off, allowing it to move freely
+and be more agile.","The first time this Pokémon is hit by any Physical Attack, Increase 1 Point to its
+Dexterity Attribute and Reduce 1 Point to its Defense."
+White Smoke,"The Pokémon is constantly releasing fumes of white smoke making it difficult
+to be seen. It uses the smoke to conceal itself.","Foes cannot reduce the Attributes of this Pokémon. However, it can still lower
+its own Attributes."
+Wimp Out,"The Pokémon goes into a lot of stress whenever its exoskeleton is weakened,
+it can escape from any situation out of sheer cowardice.","Whenever this Pokémon reaches half of its total HP, it will switch out to its
+pokéball, sending an Ally to take its place. If there is no Ally, the battle may end.
+This Ability’s effect is not affected by Block."
+Wonder Guard,"This Pokémon’s body is protected by an incredible otherworldly aura. Most
+things get through as if nothing was there.","This Pokémon only receives damage from Status Conditions, and from Moves
+that deal Super Effective damage against it. This Pokémon is immune to damage
+from other sources like weather conditions and entry hazards."
+Wonder Skin,"The skin of this Pokémon is covered by a thin protective veil that allows it to
+weaken dangerous hazards.","Reduce up to 2 Chance Dice from foes against this Pokémon. (Example: The
+move Ember has 1 Chance Dice to Burn the foe, against this Pokémon it has
+zero Chance Dice)."
+Zen Mode,"Under extreme stress, this Pokémon will unlock its hidden psychic abilities
+through the power of meditation. It will go back to normal the next day.","Only Darmanitan may use this Ability. When at half or less of its HP, change to
+Zen Mode Form at the end of the Round. Use its Zen Mode Form from then
+on. Adjust its Attributes according to the Rank and Limits it has for each Form."
