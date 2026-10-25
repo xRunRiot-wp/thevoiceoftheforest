@@ -1,15 +1,15 @@
-import { CONFIG } from './config.js?v=6ade85fc';
-import * as store from './store.js?v=6ade85fc';
-import * as sheet from './sheetdata.js?v=6ade85fc';
-import { $, $$, esc, uid } from './util.js?v=6ade85fc';
-import { closeModal, maxHp } from './ui.js?v=6ade85fc';
-import { renderJoin, renderPlay } from './play.js?v=6ade85fc';
-import { renderGM } from './gm.js?v=6ade85fc';
-import { renderGuild } from './guild.js?v=6ade85fc';
-import { renderRules } from './rulebook.js?v=6ade85fc';
-import { renderVault } from './vault.js?v=6ade85fc';
-import { renderGames } from './games.js?v=6ade85fc';
-import { renderFriendZone } from './friendzone.js?v=6ade85fc';
+import { CONFIG } from './config.js?v=6ade870c';
+import * as store from './store.js?v=6ade870c';
+import * as sheet from './sheetdata.js?v=6ade870c';
+import { $, $$, esc, uid } from './util.js?v=6ade870c';
+import { closeModal, maxHp } from './ui.js?v=6ade870c';
+import { renderJoin, renderPlay } from './play.js?v=6ade870c';
+import { renderGM } from './gm.js?v=6ade870c';
+import { renderGuild } from './guild.js?v=6ade870c';
+import { renderRules } from './rulebook.js?v=6ade870c';
+import { renderVault } from './vault.js?v=6ade870c';
+import { renderGames } from './games.js?v=6ade870c';
+import { renderFriendZone } from './friendzone.js?v=6ade870c';
 
 const main = $('#main');
 let current = '';
@@ -31,8 +31,11 @@ export async function openTable(code) {
 // A brand-new table starts from the campaign spreadsheet: the party in the Guild tab and the guild coffers.
 async function seedIfEmpty() {
   if (store.get('seeded')) return;
-  const wait = store.status.mode === 'shared' ? new Promise((r) => setTimeout(r, 1500)) : null;
-  if (wait) { await wait; if (store.get('seeded')) return; }
+  // Only seed a table we KNOW is empty. A slow connection must never look like a new table
+  // (that once overwrote a live table's missions and party).
+  const state = await Promise.race([store.whenLoaded(), new Promise((r) => setTimeout(() => r('timeout'), 20000))]);
+  if (state === 'timeout' || store.get('seeded')) return;
+  if (state === 'data' && Object.keys(store.get('party') || {}).length + Object.keys(store.get('missions') || {}).length) return;
   let g = { coffers: null, chars: [] };
   try { g = await sheet.guild(); } catch { /* offline */ }
   const party = {};

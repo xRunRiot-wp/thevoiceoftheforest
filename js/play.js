@@ -1,17 +1,17 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade85fc';
-import * as sheet from './sheetdata.js?v=6ade85fc';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade85fc';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade85fc';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade85fc';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade85fc';
-import { CONFIG } from './config.js?v=6ade85fc';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade85fc';
-import { merged, editContent } from './content-store.js?v=6ade85fc';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade85fc';
-import { guildName } from './guild.js?v=6ade85fc';
-import { homeHTML } from './sitepages.js?v=6ade85fc';
-import * as dice3d from './dice3d.js?v=6ade85fc';
+import * as store from './store.js?v=6ade870c';
+import * as sheet from './sheetdata.js?v=6ade870c';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade870c';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade870c';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade870c';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade870c';
+import { CONFIG } from './config.js?v=6ade870c';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade870c';
+import { merged, editContent } from './content-store.js?v=6ade870c';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade870c';
+import { guildName } from './guild.js?v=6ade870c';
+import { homeHTML } from './sitepages.js?v=6ade870c';
+import * as dice3d from './dice3d.js?v=6ade870c';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);

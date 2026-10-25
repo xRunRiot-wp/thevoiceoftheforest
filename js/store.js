@@ -2,8 +2,8 @@
 // Saved on this device; when a Firebase Realtime Database URL is set in config.js the same
 // tree is shared live with everyone at the table (REST + server-sent events, no SDK).
 // GM-only data is encrypted with the GM passcode before it is stored anywhere.
-import { CONFIG } from './config.js?v=6ade85fc';
-import { uid } from './util.js?v=6ade85fc';
+import { CONFIG } from './config.js?v=6ade870c';
+import { uid } from './util.js?v=6ade870c';
 
 const LS = 'dc.table.';
 const listeners = new Set();
@@ -61,8 +61,14 @@ if (bc) bc.onmessage = (e) => {
   tree = setIn(tree, e.data.path.split('/').filter(Boolean), e.data.value); emit();
 };
 
+// Resolves once the shared table's first full copy has arrived: 'empty' (a brand-new table) or 'data'.
+let loadedRes = null; let loadedP = Promise.resolve('local');
+export const whenLoaded = () => loadedP;
+
 export async function open(tableCode) {
   code = tableCode;
+  firstRemote = true;
+  loadedP = new Promise((r) => { loadedRes = r; });
   remote?.close(); remote = null;
   try { tree = JSON.parse(localStorage.getItem(LS + code) || '{}'); } catch { tree = {}; }
   gm = null; gmKey = null;
@@ -75,6 +81,7 @@ export async function open(tableCode) {
     remote.onerror = () => { status.connected = false; emit(); };
   } else {
     status.mode = 'local';
+    loadedRes('local');
   }
   emit();
 }
@@ -84,6 +91,7 @@ function applyRemote({ path, data }, patch) {
   const parts = path.split('/').filter(Boolean);
   if (!parts.length && firstRemote) {
     firstRemote = false;
+    loadedRes?.(data == null ? 'empty' : 'data');
     // Empty shared table: upload what this device already has.
     if (data == null && Object.keys(tree).length) { fetch(dbUrl(''), { method: 'PUT', body: JSON.stringify(tree) }); return; }
   }
