@@ -3,11 +3,12 @@ import * as store from './store.js';
 import * as sheet from './sheetdata.js';
 import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js';
 import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js';
-import { STATUS_IX, INTRO, QUICK_LINKS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js';
 import { myId, setMe, joined, setJoined, openTable } from './app.js';
 import { CONFIG } from './config.js';
 import { ixLink, wireRolls, linkify, loadIndex } from './effects.js';
-import { merged } from './content-store.js';
+import { merged, editContent } from './content-store.js';
+import * as dice3d from './dice3d.js';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -132,8 +133,28 @@ export function diceLog(limit = 30) {
     ${r.dice ? diceFaces(r.dice, { pool: r.kind !== 'sum' && r.kind !== 'chance' }) : ''} <b>${esc(r.text)}</b></li>`).join('')}</ul>`;
 }
 
-export function logRoll(by, label, dice, text, kind = 'pool') {
+export function logRoll(by, label, dice, text, kind = 'pool', sides = 6) {
   store.pushLimited('rolls', { by, label, dice, text, kind, t: Date.now() }, 80);
+  if (dice && dice.length) dice3d.show(dice, { kind, sides });
+}
+
+// ---------------------------------------------------------------- role-play actions
+const ACTION_SCHEMA = [['name', 'Action'], ['attr', 'Attribute (e.g. Insight, Cute, Logic)'], ['skill', 'Skill (e.g. Alert, Allure)'], ['text', 'What it is for', 'area']];
+export const actions = () => merged('actions', ACTIONS);
+
+function actionRoll(c, a, extra = 0) {
+  const base = statVal(c, a.attr) + statVal(c, a.skill);
+  const dice = Math.max(1, base + primalDice(c) + extra);
+  const r = pool(dice, { pain: painOf(c) });
+  const out = r.succ === 0 ? 'complication' : r.succ === 1 ? 'partial success' : r.succ === 2 ? 'success' : 'excellent!';
+  const text = `${r.succ} success${r.succ === 1 ? '' : 'es'} — ${out}`;
+  logRoll(c.nickname, `${a.name} (${a.attr} + ${a.skill})`, r.dice, text);
+  const el = modal(`<h2>${esc(a.name)}</h2><p class="small muted">${esc(a.text || '')}</p>
+    <p class="small">${esc(a.attr)} ${statVal(c, a.attr)} + ${esc(a.skill)} ${statVal(c, a.skill)}${extra ? ` + ${extra} extra` : ''}${primalDice(c) ? ` + ${primalDice(c)} Primal` : ''} = ${dice} dice${painOf(c) ? ` · pain −${painOf(c)}` : ''}</p>
+    <div class="result">${diceFaces(r.dice)}<div class="big">${text}</div>${r.onesPen ? `<div class="small muted">two 1s cost ${r.onesPen} success</div>` : ''}</div>
+    <p class="small muted">0 = complication · 1 = partial success at a cost · 2 = success · 3+ = excellent</p>
+    <div class="row nowrap" style="margin-top:8px"><label class="f grow">Extra dice (helpers, items)<input id="xd" type="number" inputmode="numeric" value="${extra}"></label><button class="btn" id="again" style="align-self:flex-end">Roll again</button></div>`);
+  $('#again', el).onclick = () => actionRoll(c, a, num($('#xd', el).value));
 }
 
 // ---------------------------------------------------------------- character card
@@ -161,7 +182,10 @@ function charCard(c) {
     <div class="moves">${(c.moves || []).map((m, i) => `<div class="move movecard"><a href="#" data-ixname="${esc(m)}" class="mvname"><b>${esc(m)}</b></a><span data-minfo="${esc(m)}">…</span><p class="mveff" data-meff="${esc(m)}"></p><button class="btn block" data-move="${i}">Roll ${esc(m)}</button></div>`).join('') || '<p class="muted small">No moves on this sheet yet.</p>'}
       <div class="move movecard"><a href="#" data-ixname="Physical Struggle" class="mvname"><b>Struggle</b></a><span>None · Physical · Accuracy Dexterity + Brawl · Damage Strength + Power 0</span><p class="mveff">Always available, even with no moves left.</p><button class="btn block" data-struggle="Physical Struggle">Roll Struggle</button></div></div>
 
-    <div class="row" style="margin-top:12px"><button class="btn" id="qroll">Quick roll</button><button class="btn alt" id="initroll">Initiative</button><button class="btn alt" id="primal">${st.includes('Primal State') ? 'Leave Primal' : 'Primal State'}</button></div>
+    <div class="section-title"><h3>Actions</h3><span class="small muted">tap to roll${store.gmUnlocked() ? ' · <a href="#" id="edact">edit</a>' : ''}</span></div>
+    <div class="actions">${actions().map((a) => `<button class="actbtn" data-act="${esc(a.id)}"><b>${esc(a.name)}</b><span>${esc(a.attr)} + ${esc(a.skill)} · ${statVal(c, a.attr) + statVal(c, a.skill)} ${statVal(c, a.attr) + statVal(c, a.skill) === 1 ? "die" : "dice"}</span></button>`).join('')}</div>
+
+    <div class="row" style="margin-top:12px"><button class="btn" id="qroll">Quick roll</button><button class="btn alt" id="dskin">Dice skin</button><button class="btn alt" id="initroll">Initiative</button><button class="btn alt" id="primal">${st.includes('Primal State') ? 'Leave Primal' : 'Primal State'}</button></div>
 
     <div class="section-title"><h3>Bag</h3><button class="btn alt sm" id="additem">+ Item</button></div>
     ${bagList(c)}
@@ -190,6 +214,17 @@ function bindCharCard(main, c) {
   $('#stedit', main).onclick = () => pickStatus(c);
   $('#editme', main).onclick = () => editCharacter(c.id);
   $('#qroll', main).onclick = () => quickRoll(c);
+  $('#dskin', main).onclick = () => dice3d.skinPicker();
+  $$('[data-act]', main).forEach((b) => b.onclick = () => actionRoll(c, actions().find((a) => a.id === b.dataset.act)));
+  const ea = $('#edact', main);
+  if (ea) ea.onclick = (e) => {
+    e.preventDefault();
+    const el = modal(`<h2>Actions</h2><p class="small muted">Change, add or remove the action buttons every character sees.</p>
+      <div>${actions().map((a) => `<div class="row nowrap" style="margin:6px 0"><span class="grow"><b>${esc(a.name)}</b> <span class="small muted">${esc(a.attr)} + ${esc(a.skill)}</span></span><button class="btn alt sm" data-e="${esc(a.id)}">Edit</button></div>`).join('')}</div>
+      <button class="btn" id="newact" style="margin-top:8px">+ New action</button>`);
+    $$('[data-e]', el).forEach((x) => x.onclick = () => editContent('actions', ACTION_SCHEMA, actions().find((a) => a.id === x.dataset.e), { onSave: () => location.reload() }));
+    $('#newact', el).onclick = () => editContent('actions', ACTION_SCHEMA, null, { title: 'New action', onSave: () => location.reload() });
+  };
   $('#initroll', main).onclick = () => rollInitiative(c);
   $('#additem', main).onclick = () => addItem(c.id);
   $$('[data-use]', main).forEach((b) => b.onclick = () => useItem(b.dataset.use, c));
@@ -364,7 +399,7 @@ export function freeRoll(c) {
     <div class="result" id="res"></div>`);
   const who = c?.nickname || 'Watcher';
   $('#rp', sheetEl).onclick = () => { const r = pool(clamp(num($('#pn', sheetEl).value, 1), 1, 40)); const t = `${r.succ} success${r.succ === 1 ? '' : 'es'}`; $('#res', sheetEl).innerHTML = `${diceFaces(r.dice)}<div class="big">${t}</div>`; logRoll(who, `${r.dice.length}-dice pool`, r.dice, t); };
-  $('#rx', sheetEl).onclick = () => { const n = clamp(num($('#xn', sheetEl).value, 1), 1, 40); const s = num($('#xs', sheetEl).value, 6); const p = num($('#xp', sheetEl).value); const r = roll(n, s); const t = `${sum(r) + p}`; $('#res', sheetEl).innerHTML = `${diceFaces(r, { pool: false })}<div class="big">= ${t}</div>`; logRoll(who, `${n}d${s}${p ? (p > 0 ? '+' : '') + p : ''}`, r, t, 'sum'); };
+  $('#rx', sheetEl).onclick = () => { const n = clamp(num($('#xn', sheetEl).value, 1), 1, 40); const s = num($('#xs', sheetEl).value, 6); const p = num($('#xp', sheetEl).value); const r = roll(n, s); const t = `${sum(r) + p}`; $('#res', sheetEl).innerHTML = `${diceFaces(r, { pool: false })}<div class="big">= ${t}</div>`; logRoll(who, `${n}d${s}${p ? (p > 0 ? '+' : '') + p : ''}`, r, t, 'sum', s); };
   $('#rc', sheetEl).onclick = () => { const r = roll(clamp(num($('#cn', sheetEl).value, 1), 1, 20)); const hit = r.includes(6); $('#res', sheetEl).innerHTML = `${diceFaces(r, { pool: false })}<div class="big">${hit ? 'Triggers!' : 'No effect'}</div>`; logRoll(who, `${r.length} chance dice`, r, hit ? 'triggers!' : 'no effect', 'chance'); };
 }
 

@@ -7,6 +7,7 @@ import { renderJoin, renderPlay } from './play.js';
 import { renderGM } from './gm.js';
 import { renderGuild } from './guild.js';
 import { renderRules } from './rulebook.js';
+import { renderGames } from './games.js';
 
 const main = $('#main');
 let current = '';
@@ -46,7 +47,7 @@ async function seedIfEmpty() {
 }
 
 const ROUTES = [
-  ['play', 'Play'], ['guild', 'Guild'], ['rules', 'Rulebook'], ['gm', 'GM'],
+  ['play', 'Play'], ['guild', 'Guild'], ['games', 'Games'], ['rules', 'Rulebook'], ['gm', 'GM'],
 ];
 
 function navHTML(active) {
@@ -70,7 +71,7 @@ async function route() {
   current = page;
   $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : page);
   window.scrollTo(0, 0);
-  const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, rules: renderRules }[page] || renderJoin;
+  const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, games: renderGames, rules: renderRules }[page] || renderJoin;
   rerender = () => render(main, rest);
   await rerender();
   statusChip();

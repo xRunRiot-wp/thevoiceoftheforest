@@ -292,6 +292,28 @@ export const GARMENTS = [
   ['Magic Jewelry', 'Very Rare', 'Grants one predetermined move the wearer normally wouldn’t learn'],
 ];
 
+// Role-play actions shown as roll buttons on every character (Attribute + Skill dice pool)
+export const ACTIONS = [
+  { name: 'Perception', attr: 'Insight', skill: 'Alert', text: 'Notice danger, spot clues, hear something coming.' },
+  { name: 'Investigate', attr: 'Insight', skill: 'Nature', text: 'Study tracks, plants, ruins or a strange object.' },
+  { name: 'Persuade', attr: 'Beauty', skill: 'Allure', text: 'Talk someone round in a friendly way.' },
+  { name: 'Charm', attr: 'Cute', skill: 'Allure', text: 'Win someone over by being harmless and adorable.' },
+  { name: 'Negotiate', attr: 'Clever', skill: 'Etiquette', text: 'Bargain, trade or hold a proper, respectful talk.' },
+  { name: 'Inspire', attr: 'Cool', skill: 'Etiquette', text: 'Lead the team or steady a scared ally.' },
+  { name: 'Intimidate', attr: 'Tough', skill: 'Intimidate', text: 'Scare, threaten or command cooperation.' },
+  { name: 'Deceive', attr: 'Clever', skill: 'Perform', text: 'Lie, bluff or act a part.' },
+  { name: 'Distract', attr: 'Cool', skill: 'Perform', text: 'Put on a show or draw attention away.' },
+  { name: 'Sneak', attr: 'Dexterity', skill: 'Stealth', text: 'Move unseen, hide or set an ambush.' },
+  { name: 'Escape', attr: 'Dexterity', skill: 'Evasion', text: 'Slip free, dodge a grab or get away.' },
+  { name: 'Climb & Balance', attr: 'Dexterity', skill: 'Athletic', text: 'Climb, jump, swim, cross or catch.' },
+  { name: 'Lift & Force', attr: 'Strength', skill: 'Athletic', text: 'Carry, push, break or build.' },
+  { name: 'Grapple', attr: 'Strength', skill: 'Brawl', text: 'Grab, pin or wrestle.' },
+  { name: 'Endure', attr: 'Vitality', skill: 'Alert', text: 'Keep watch, resist fatigue, hunger or weather.' },
+  { name: 'Sense Aura', attr: 'Special', skill: 'Channel', text: 'Feel energy, sense a Mystery Dungeon or use your power outside battle.' },
+  { name: 'Remember', attr: 'Logic', skill: 'Insight', text: 'Recall something from your human life (Logic + Insight).' },
+  { name: 'Trust Instinct', attr: 'Instinct', skill: 'Alert', text: 'Act on gut feeling (Instinct + Alert).' },
+];
+
 // E-Rank quick roll guide
 export const QUICK_TASKS = [
   ['Search or notice clues', 'Insight', 'Alert'], ['Navigate or identify plants', 'Insight', 'Nature'],
