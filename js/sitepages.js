@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6ade73fa';
-import { esc } from './util.js?v=6ade73fa';
-import { LINKS } from './content.js?v=6ade73fa';
+import { GS_TEXT } from './gstext.js?v=6ade75c1';
+import { esc } from './util.js?v=6ade75c1';
+import { LINKS } from './content.js?v=6ade75c1';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -69,6 +69,15 @@ export function homeHTML() {
     <p>${esc(body)}</p><h3>${esc(ask)}</h3></div>`;
   return `<div class="home-row">${col('Your Humanity', 'assets/gs/home_1.jpg', text('Your Humanity:'), 'What will you choose?')}${col('Your Instinct', 'assets/gs/home_5.png', text('Your Instinct:'), 'Will it consume you?')}</div>
     <a href="assets/gs/home_team.png" target="_blank" class="site-img"><img src="assets/gs/home_team.png" alt="" loading="lazy"></a>`;
+}
+
+// Rulebook hub: each section of her site as a picture tile in rows, its pages as buttons underneath
+const TILE_ART = { 'meet-the-characters': 'assets/gs/home_team.png', 'story-guild-rank-progression': 'assets/banners/chapter_0.jpg' };
+export function navTilesHTML() {
+  const sub = (kids) => kids.flatMap(([k, t, g]) => [`<a href="${href(k)}">${esc(t)}</a>`, ...(g ? sub(g) : [])]);
+  return `<div class="navtiles">${SITE_NAV.map(([k, t, kids]) => `<div class="navtile">
+    <a class="navtile-head" href="${href(k)}"><img src="${TILE_ART[k] || bannerFor(k)}" alt="" loading="lazy"><span>${esc(t)}</span></a>
+    ${kids ? `<div class="navtile-kids">${sub(kids).join('')}</div>` : ''}</div>`).join('')}</div>`;
 }
 
 export function navHTML(current) {

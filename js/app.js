@@ -1,13 +1,13 @@
-import { CONFIG } from './config.js?v=6ade73fa';
-import * as store from './store.js?v=6ade73fa';
-import * as sheet from './sheetdata.js?v=6ade73fa';
-import { $, $$, esc, uid } from './util.js?v=6ade73fa';
-import { closeModal, maxHp } from './ui.js?v=6ade73fa';
-import { renderJoin, renderPlay } from './play.js?v=6ade73fa';
-import { renderGM } from './gm.js?v=6ade73fa';
-import { renderGuild } from './guild.js?v=6ade73fa';
-import { renderRules } from './rulebook.js?v=6ade73fa';
-import { renderGames } from './games.js?v=6ade73fa';
+import { CONFIG } from './config.js?v=6ade75c1';
+import * as store from './store.js?v=6ade75c1';
+import * as sheet from './sheetdata.js?v=6ade75c1';
+import { $, $$, esc, uid } from './util.js?v=6ade75c1';
+import { closeModal, maxHp } from './ui.js?v=6ade75c1';
+import { renderJoin, renderPlay } from './play.js?v=6ade75c1';
+import { renderGM } from './gm.js?v=6ade75c1';
+import { renderGuild } from './guild.js?v=6ade75c1';
+import { renderRules } from './rulebook.js?v=6ade75c1';
+import { renderGames } from './games.js?v=6ade75c1';
 
 const main = $('#main');
 let current = '';
