@@ -1,15 +1,15 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade84c9';
-import * as sheet from './sheetdata.js?v=6ade84c9';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade84c9';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade84c9';
-import { MISSION_GP } from './content.js?v=6ade84c9';
-import { ranks } from './rulebook.js?v=6ade84c9';
-import { merged, editContent } from './content-store.js?v=6ade84c9';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade84c9';
-import { myId } from './app.js?v=6ade84c9';
-import { ledger, canWithdraw, recordWithdrawal, lowAlertHTML } from './vault.js?v=6ade84c9';
-import { ixLink } from './effects.js?v=6ade84c9';
+import * as store from './store.js?v=6ade84f2';
+import * as sheet from './sheetdata.js?v=6ade84f2';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade84f2';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade84f2';
+import { MISSION_GP } from './content.js?v=6ade84f2';
+import { ranks } from './rulebook.js?v=6ade84f2';
+import { merged, editContent } from './content-store.js?v=6ade84f2';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade84f2';
+import { myId } from './app.js?v=6ade84f2';
+import { lowAlertHTML } from './vault.js?v=6ade84f2';
+import { ixLink } from './effects.js?v=6ade84f2';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -125,7 +125,7 @@ export function renderGuild(main) {
   <div class="section-title"><h2>Mission board</h2></div>
   ${active.length ? active.map(([id, m]) => missionCard(id, m)).join('') : '<p class="muted">No open missions right now.</p>'}
 
-  <div class="section-title"><h2>Shop</h2><span class="small muted">pays from the guild Poké</span></div>
+  <div class="section-title"><h2>Shop</h2><span class="small muted">paid from the character’s own Poké</span></div>
   <div class="card" style="padding:6px 12px"><ul class="log" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><span class="grow">${ixLink(s.name)} <span class="small muted">${esc(s.kind || '')}</span></span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>
 
   <div class="section-title"><h2>Storage</h2><a class="btn alt sm" href="#/vault">Open Storage & Poké</a></div>
@@ -146,28 +146,26 @@ export function renderGuild(main) {
   $('#newchar', main).onclick = () => editCharacter(null);
 }
 
+// shop buys are paid from the buying character's own Poké and go into their bag
 function buy(id) {
   const s = shop().find((x) => x.id === id); if (!s) return;
-  const gpath = 'guild'; const g = store.get(gpath) || {};   // one shared coffer
   const price = num(s.price);
-  if ((g.coffers || 0) < price) { toast('Not enough Poké'); return; }
-  const buyerG = (store.get('party') || {})[myId()]?.guild;
-  if (!canWithdraw(buyerG, price)) return;
-  const party = Object.values(store.get('party') || {});
-  const el = modal(`<h2>Buy ${esc(s.name)}</h2><p>${price} Poké from the shared guild coffers (has ${(g.coffers || 0).toLocaleString()}).</p>
-    <label class="f">Who gets it<select id="ow"><option value="team">Team bag</option>${party.map((c) => `<option value="${c.id}" ${c.id === myId() ? 'selected' : ''}>${esc(c.nickname)}</option>`).join('')}</select></label>
+  const party = Object.values(store.get('party') || {}).filter((c) => !c.guest);
+  if (!party.length) { toast('Make a character first'); return; }
+  const el = modal(`<h2>Buy ${esc(s.name)}</h2><p>${price} Poké, paid by the character buying it.</p>
+    <label class="f">Who's buying<select id="ow">${party.map((c) => `<option value="${c.id}" ${c.id === myId() ? 'selected' : ''}>${esc(c.nickname)} (${num(c.poke).toLocaleString()} Poké)</option>`).join('')}</select></label>
     <button class="btn block" id="ok" style="margin-top:10px">Buy</button>`);
   $('#ok', el).onclick = () => {
     const ow = $('#ow', el).value;
-    store.update(gpath, (x) => ({ ...x, coffers: (x.coffers || 0) - price }));
+    const buyer = (store.get('party') || {})[ow];
+    if (!buyer) return;
+    if (num(buyer.poke) < price) { toast(`${buyer.nickname} only has ${num(buyer.poke).toLocaleString()} Poké`); return; }
+    store.update('party/' + ow, (x) => ({ ...x, poke: num(x?.poke) - price }));
     const bag = store.get('bag') || {};
     const same = Object.entries(bag).find(([, b]) => b.name === s.name && b.owner === ow);
     if (same) store.set(`bag/${same[0]}/qty`, same[1].qty + 1); else store.set('bag/' + uid(), { name: s.name, qty: 1, owner: ow });
     if (s.stock !== '' && s.stock != null) store.set(`content/shop/${s.id}`, { ...s, builtin: undefined, edited: undefined, id: undefined, stock: Math.max(0, num(s.stock) - 1) });
-    store.pushLimited('log', { t: Date.now(), text: `Bought ${s.name} for ${price} Poké.` });
-    const buyer = (store.get('party') || {})[myId()];
-    ledger(buyer?.guild, `${buyer?.nickname || 'Someone'} bought ${s.name}`, -price);
-    recordWithdrawal(buyer?.guild, price);
+    store.pushLimited('log', { t: Date.now(), text: `${buyer.nickname} bought ${s.name} for ${price} Poké.` });
     closeModal(); toast('Bought ' + s.name);
   };
 }

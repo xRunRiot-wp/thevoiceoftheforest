@@ -1,13 +1,13 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import * as store from './store.js?v=6ade84c9';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ade84c9';
-import { modal, portrait } from './ui.js?v=6ade84c9';
-import * as sheet from './sheetdata.js?v=6ade84c9';
-import { shop } from './guild.js?v=6ade84c9';
-import { merged, editContent } from './content-store.js?v=6ade84c9';
-import { logRoll, me, addTeamFx } from './play.js?v=6ade84c9';
-import { ranks } from './rulebook.js?v=6ade84c9';
+import * as store from './store.js?v=6ade84f2';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ade84f2';
+import { modal, portrait } from './ui.js?v=6ade84f2';
+import * as sheet from './sheetdata.js?v=6ade84f2';
+import { shop } from './guild.js?v=6ade84f2';
+import { merged, editContent } from './content-store.js?v=6ade84f2';
+import { logRoll, me, addTeamFx } from './play.js?v=6ade84f2';
+import { ranks } from './rulebook.js?v=6ade84f2';
 
 export const GAMES = [
   {
