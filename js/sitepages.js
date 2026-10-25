@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6ade7841';
-import { esc } from './util.js?v=6ade7841';
-import { LINKS } from './content.js?v=6ade7841';
+import { GS_TEXT } from './gstext.js?v=6ade796e';
+import { esc } from './util.js?v=6ade796e';
+import { LINKS } from './content.js?v=6ade796e';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -95,7 +95,7 @@ export function pageHTML(key, L = esc) {
   const p = sitePage(key);
   if (!p) return '<p>That page is not on the campaign site.</p>';
   const parent = p.parent && sitePage(p.parent);
-  const body = blocksHTML(key, L);
+  const body = key === 'home' ? homeHTML() : blocksHTML(key, L);   // same layout as the site's home page
   const kids = p.kids.length ? `<div class="toc" style="margin-top:12px">${p.kids.map(([k, t]) => `<a href="${href(k)}">${esc(t)}</a>`).join('')}</div>` : '';
   return `<div class="hero banner"><img class="hdr" src="${bannerFor(key)}" alt=""></div>
     <p class="small muted" style="margin:10px 0 0">${parent ? `<a href="${href(parent.key)}">${esc(parent.title)}</a> › ` : ''}Campaign site</p>

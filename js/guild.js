@@ -1,14 +1,15 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade7841';
-import * as sheet from './sheetdata.js?v=6ade7841';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade7841';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade7841';
-import { MISSION_GP } from './content.js?v=6ade7841';
-import { ranks } from './rulebook.js?v=6ade7841';
-import { merged, editContent } from './content-store.js?v=6ade7841';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade7841';
-import { myId } from './app.js?v=6ade7841';
-import { ixLink } from './effects.js?v=6ade7841';
+import * as store from './store.js?v=6ade796e';
+import * as sheet from './sheetdata.js?v=6ade796e';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade796e';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade796e';
+import { MISSION_GP } from './content.js?v=6ade796e';
+import { ranks } from './rulebook.js?v=6ade796e';
+import { merged, editContent } from './content-store.js?v=6ade796e';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade796e';
+import { myId } from './app.js?v=6ade796e';
+import { ledger } from './vault.js?v=6ade796e';
+import { ixLink } from './effects.js?v=6ade796e';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -111,8 +112,8 @@ export function renderGuild(main) {
   <div class="section-title"><h2>Shop</h2><span class="small muted">pays from the guild Poké</span></div>
   <div class="card" style="padding:6px 12px"><ul class="log" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><span class="grow">${ixLink(s.name)} <span class="small muted">${esc(s.kind || '')}</span></span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>
 
-  <div class="section-title"><h2>Storage</h2><button class="btn alt sm" id="addstore">+ Item</button></div>
-  <div class="card" style="padding:6px 12px">${storage.length ? `<ul class="log" style="max-height:none">${storage.map(([id, b]) => `<li class="row nowrap"><span class="grow">${ixLink(b.name)} ×${b.qty}</span><button class="btn alt sm" data-take-item="${id}">To bag</button></li>`).join('')}</ul>` : '<p class="muted small">Storage is empty.</p>'}</div>
+  <div class="section-title"><h2>Storage</h2><a class="btn alt sm" href="#/vault">Open Storage & Poké</a></div>
+  <p class="small muted">Each guild's storage and Poké activity is on the <a href="#/vault">Vault</a> tab (${storage.length} item${storage.length === 1 ? '' : 's'} stored).</p>
 
   <div class="section-title"><h2>Characters</h2><button class="btn alt sm" id="newchar">+ New character</button></div>
   <div class="grid g2">${party.map((c) => `<button class="card row nowrap" style="text-align:left;cursor:pointer;margin:0" data-view="${c.id}">${portrait(c, 'sm')}<div class="grow"><div class="char-name" style="font-size:19px">${esc(c.nickname)}${c.id === myId() ? ' <span class="pill">you</span>' : ''}</div><div class="char-sub">${esc(c.pokemon)} · ${esc(guildName(c.guild))} · ${c.hp}/${maxHp(c)} HP · TP ${c.tp || 0} · ${num(c.poke).toLocaleString()} Poké</div></div></button>`).join('')}</div>
@@ -125,10 +126,8 @@ export function renderGuild(main) {
   bindTracker(main);
   $$('[data-take]', main).forEach((b) => b.onclick = () => { store.set(`missions/${b.dataset.take}/status`, 'taken'); store.pushLimited('log', { t: Date.now(), text: `Mission taken: ${(store.get('missions') || {})[b.dataset.take]?.title}` }); });
   $$('[data-buy]', main).forEach((b) => b.onclick = () => buy(b.dataset.buy));
-  $$('[data-take-item]', main).forEach((b) => b.onclick = () => moveToBag(b.dataset.takeItem));
   $$('[data-view]', main).forEach((b) => b.onclick = () => viewCharacter(b.dataset.view));
   $('#newchar', main).onclick = () => editCharacter(null);
-  $('#addstore', main).onclick = () => addItem('team', 'storage');
 }
 
 function buy(id) {
@@ -148,6 +147,8 @@ function buy(id) {
     if (same) store.set(`bag/${same[0]}/qty`, same[1].qty + 1); else store.set('bag/' + uid(), { name: s.name, qty: 1, owner: ow });
     if (s.stock !== '' && s.stock != null) store.set(`content/shop/${s.id}`, { ...s, builtin: undefined, edited: undefined, id: undefined, stock: Math.max(0, num(s.stock) - 1) });
     store.pushLimited('log', { t: Date.now(), text: `Bought ${s.name} for ${price} Poké.` });
+    const buyer = (store.get('party') || {})[myId()];
+    ledger(buyer?.guild, `${buyer?.nickname || 'Someone'} bought ${s.name}`, -price);
     closeModal(); toast('Bought ' + s.name);
   };
 }

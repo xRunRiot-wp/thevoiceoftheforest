@@ -1,16 +1,17 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade7841';
-import * as sheet from './sheetdata.js?v=6ade7841';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade7841';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade7841';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade7841';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade7841';
-import { CONFIG } from './config.js?v=6ade7841';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade7841';
-import { merged, editContent } from './content-store.js?v=6ade7841';
-import { guildName } from './guild.js?v=6ade7841';
-import { homeHTML } from './sitepages.js?v=6ade7841';
-import * as dice3d from './dice3d.js?v=6ade7841';
+import * as store from './store.js?v=6ade796e';
+import * as sheet from './sheetdata.js?v=6ade796e';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade796e';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade796e';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade796e';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade796e';
+import { CONFIG } from './config.js?v=6ade796e';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade796e';
+import { merged, editContent } from './content-store.js?v=6ade796e';
+import { ledger, stash } from './vault.js?v=6ade796e';
+import { guildName } from './guild.js?v=6ade796e';
+import { homeHTML } from './sitepages.js?v=6ade796e';
+import * as dice3d from './dice3d.js?v=6ade796e';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -173,6 +174,7 @@ function pokeMove(c, kind) {
   if (kind === 'give' || kind === 'take') store.update(gp, (g) => ({ ...g, coffers: num(g?.coffers) - sign * amt }));
   const verb = { add: 'got', spend: 'spent', give: 'gave the guild coffers', take: 'took from the guild coffers' }[kind];
   store.pushLimited('log', { t: Date.now(), text: `${c.nickname} ${verb} ${amt} Poké (now ${mine + sign * amt}).` });
+  if (kind === 'give' || kind === 'take') ledger(c.guild, `${c.nickname} ${kind === 'give' ? 'put in' : 'took out'} Poké`, kind === 'give' ? amt : -amt);
 }
 
 // ---------------------------------------------------------------- character card
@@ -182,6 +184,7 @@ function charCard(c) {
   return `<div class="card">
     <div class="char-head">${portrait(c)}<div class="grow">
       <div class="char-name">${esc(c.nickname)}</div>
+      <div class="workfor"><span class="small">Working for:</span>${[['woodland', 'Woodland Base'], ['vanguard', 'Vanguard Guild']].map(([k, n]) => `<button class="chip ${(c.guild || 'woodland') === k ? 'on' : ''}" data-setguild="${k}">${n}</button>`).join('')}</div>
       <div class="char-sub">${esc(c.pokemon)}${c.nature ? ' · ' + ixLink('Nature (personality)', c.nature) : ''}${c.rank ? ' · ' + ixLink(c.rank + ' Rank', c.rank) : ''}${c.instinctRank ? ' · ' + ixLink('Instinct', c.instinctRank) : ''}</div>
       <div class="chips" style="margin-top:4px">${[c.type1, c.type2].filter(Boolean).map((t) => `<a href="#" class="chip type ty-${esc(t)}" data-ixname="Type effectiveness">${esc(t)}</a>`).join('')}${c.ability ? `<a href="#" class="pill" data-ixname="${esc(c.ability)}">${esc(c.ability)}</a>` : ''}</div>
     </div></div>
@@ -225,7 +228,7 @@ function bagList(c) {
   const bag = Object.entries(store.get('bag') || {}).filter(([, b]) => b.owner === c.id || b.owner === 'team');
   if (!bag.length) return '<p class="muted small">Empty. Items the team finds land here.</p>';
   return `<ul class="log" style="max-height:none">${bag.map(([id, b]) => `<li class="row nowrap"><span class="grow"><a href="#" data-ixname="${esc(b.name)}"><b>${esc(b.name)}</b></a> ×${b.qty}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span>
-    <button class="btn sm" data-use="${id}">Use</button></li>`).join('')}</ul>`;
+    <button class="btn alt sm" data-stash="${id}">Store</button><button class="btn sm" data-use="${id}">Use</button></li>`).join('')}</ul>`;
 }
 
 function bindCharCard(main, c) {
@@ -251,6 +254,11 @@ function bindCharCard(main, c) {
   $('#additem', main).onclick = () => addItem(c.id);
   $$('[data-poke]', main).forEach((b) => b.onclick = () => pokeMove(c, b.dataset.poke));
   $$('[data-use]', main).forEach((b) => b.onclick = () => useItem(b.dataset.use, c));
+  $$('[data-stash]', main).forEach((b) => b.onclick = () => stash(b.dataset.stash, c));
+  $$('[data-setguild]', main).forEach((b) => b.onclick = () => {
+    store.set(`party/${c.id}/guild`, b.dataset.setguild);
+    store.pushLimited('log', { t: Date.now(), text: `${c.nickname} is working for the ${guildName(b.dataset.setguild)}.` });
+  });
   Promise.all([allMoves(), loadIndex()]).then(([list, ix]) => {
     const base = sheet.moveIndex(list);
     // Follow Index aliases (e.g. a sheet's "Metranome" is Metronome).
@@ -427,7 +435,7 @@ export function freeRoll(c) {
 }
 
 // ---------------------------------------------------------------- items
-export function addItem(owner, path = 'bag') {
+export function addItem(owner, path = 'bag', guild = null) {
   const p = party();
   const sheetEl = modal(`<h2>Add an item</h2>
     <label class="f">Item<input id="nm" list="itemlist" placeholder="e.g. Oran Berry"></label><datalist id="itemlist"></datalist>
@@ -439,8 +447,10 @@ export function addItem(owner, path = 'bag') {
     const name = $('#nm', sheetEl).value.trim(); if (!name) return;
     const q = Math.max(1, num($('#q', sheetEl).value, 1)); const ow = $('#ow', sheetEl).value;
     const bag = store.get(path) || {};
-    const same = Object.entries(bag).find(([, b]) => b.name.toLowerCase() === name.toLowerCase() && b.owner === ow);
-    if (same) store.set(`${path}/${same[0]}/qty`, same[1].qty + q); else store.set(`${path}/${uid()}`, { name, qty: q, owner: ow });
+    const sameG = (b) => path !== 'storage' || (b.guild || 'woodland') === (guild || 'woodland');
+    const same = Object.entries(bag).find(([, b]) => b.name.toLowerCase() === name.toLowerCase() && b.owner === ow && sameG(b));
+    if (same) store.set(`${path}/${same[0]}/qty`, same[1].qty + q); else store.set(`${path}/${uid()}`, { name, qty: q, owner: ow, ...(path === 'storage' ? { guild: guild || 'woodland' } : {}) });
+    if (path === 'storage') ledger(guild, `${me()?.nickname || 'GM'} added ${name} ×${q} to storage`);
     closeModal();
   };
 }

@@ -1,13 +1,14 @@
-import { CONFIG } from './config.js?v=6ade7841';
-import * as store from './store.js?v=6ade7841';
-import * as sheet from './sheetdata.js?v=6ade7841';
-import { $, $$, esc, uid } from './util.js?v=6ade7841';
-import { closeModal, maxHp } from './ui.js?v=6ade7841';
-import { renderJoin, renderPlay } from './play.js?v=6ade7841';
-import { renderGM } from './gm.js?v=6ade7841';
-import { renderGuild } from './guild.js?v=6ade7841';
-import { renderRules } from './rulebook.js?v=6ade7841';
-import { renderGames } from './games.js?v=6ade7841';
+import { CONFIG } from './config.js?v=6ade796e';
+import * as store from './store.js?v=6ade796e';
+import * as sheet from './sheetdata.js?v=6ade796e';
+import { $, $$, esc, uid } from './util.js?v=6ade796e';
+import { closeModal, maxHp } from './ui.js?v=6ade796e';
+import { renderJoin, renderPlay } from './play.js?v=6ade796e';
+import { renderGM } from './gm.js?v=6ade796e';
+import { renderGuild } from './guild.js?v=6ade796e';
+import { renderRules } from './rulebook.js?v=6ade796e';
+import { renderVault } from './vault.js?v=6ade796e';
+import { renderGames } from './games.js?v=6ade796e';
 
 const main = $('#main');
 let current = '';
@@ -47,7 +48,7 @@ async function seedIfEmpty() {
 }
 
 const ROUTES = [
-  ['play', 'Play'], ['guild', 'Guild'], ['games', 'Games'], ['rules', 'Rulebook'], ['gm', 'GM'],
+  ['play', 'Play'], ['guild', 'Guild'], ['vault', 'Vault'], ['games', 'Games'], ['rules', 'Rulebook'], ['gm', 'GM'],
 ];
 
 function navHTML(active) {
@@ -73,7 +74,7 @@ async function route() {
   current = page;
   $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : page);
   window.scrollTo(0, 0);
-  const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, games: renderGames, rules: renderRules }[page] || renderJoin;
+  const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, vault: renderVault, games: renderGames, rules: renderRules }[page] || renderJoin;
   rerender = () => render(main, rest);
   await rerender();
   statusChip();
@@ -90,7 +91,7 @@ store.subscribe(() => {
     const a = document.activeElement;
     const typing = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT') && main.contains(a);
     if (document.querySelector('.sheet-bg')) return;   // a modal is open; it refreshes itself
-    if (!typing && ['join', 'play', 'gm', 'guild'].includes(current)) rerender?.();
+    if (!typing && ['join', 'play', 'gm', 'guild', 'vault'].includes(current)) rerender?.();
   });
 });
 
