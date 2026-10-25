@@ -220,7 +220,7 @@ export const RULES = [
 export const HANDOUTS = [
   ['banner', 'Banner'], ['combat', 'Movement & Combat'], ['directing', 'Directing Teammates'], ['dungeon_building', 'Build a Dungeon'],
   ['guild_rank', 'Guild Ranks & Rewards'], ['missions_items', 'Missions, Items & Garments'], ['humanity', 'Humanity'], ['instinct', 'Instinct'],
-  ['evolving', 'Evolving'], ['training', 'Training'], ['recruiting', 'Recruiting'], ['recruiting_limits', 'Recruiting & Guild Rank'],
+  ['evolution', 'Evolution'], ['evolving', 'Evolving (older version)'], ['training', 'Training'], ['recruiting', 'Recruiting'], ['recruiting_limits', 'Recruiting & Guild Rank'],
   ['traps', 'Traps & Hazards'], ['dungeon_village_missions', 'Dungeon & Non-Dungeon Missions'],
   ['story_ranks', 'Story & Guild Rank Progression'], ['mission_ranks', 'Missions, Items & Garments (site)'], 
 ];
@@ -249,8 +249,8 @@ export const CAST = [
   { name: 'Slakoth', art: 'assets/gs/cast_slakoth.jpg', species: 'Slakoth', portrait: 'slakoth', text: 'A quiet dungeon guide with no memories from before he was found injured outside a mystery dungeon one year ago. Business is slow, but he’s earned a reputation for calmly navigating dangerous places. Most customers find him snoozing on the sign outside the Miltankshake Shack well after closing. His relaxed, sometimes oblivious behavior conceals a painful sense of failure.' },
   { name: 'Magnemite', art: 'assets/gs/cast_magnemite.jpg', species: 'Magnemite', portrait: 'magnemite', nature: 'Jolly', text: 'Fantasy engineer and young inventor—goofy, creative and logical. Approaches every problem as something that can be solved with gears, tools, and a sufficiently strange idea. His inventions almost work. Goal: invent something genuinely cool.' },
   { name: 'Puff', art: 'assets/gs/cast_puff.jpg', species: 'Cottonee', nature: 'Quirky', text: 'An unusually old Cottonee who floats through life stirring up harmless trouble and making others laugh. After Puff’s father chose their twin to inherit the family shop, Puff left home to find a place—and a purpose—of their own.' },
-  { name: 'Rox', art: 'assets/gs/cast_rox.jpg', species: '', nature: 'Modest', text: 'An energetic adventurer who believes every small problem is the beginning of an important mission. Humble, quiet and kind. Travels from community to community helping Pokémon in need and leaves simple stone markers behind. Goal: grow strong enough to protect others and build the welcoming dojo he once dreamed of.' },
-  { name: 'Felicia', art: 'assets/gs/cast_felicia.jpg', species: '', nature: 'Bold', text: 'Metalwork artisan—focused, determined, curious, and intensely motivated once something captures her interest. Has a sharp eye for unusual materials and the patience to turn scraps, relics and rare finds into something meaningful.' },
+  { name: 'Rox', art: 'assets/gs/cast_rox.jpg', species: 'Jangmo-o', nature: 'Modest', text: 'An energetic adventurer who believes every small problem is the beginning of an important mission. Humble, quiet and kind. Travels from community to community helping Pokémon in need and leaves simple stone markers behind. Goal: grow strong enough to protect others and build the welcoming dojo he once dreamed of.' },
+  { name: 'Felicia', art: 'assets/gs/cast_felicia.jpg', species: 'Tinkatink', nature: 'Bold', text: 'Metalwork artisan—focused, determined, curious, and intensely motivated once something captures her interest. Has a sharp eye for unusual materials and the patience to turn scraps, relics and rare finds into something meaningful.' },
   { name: 'Rocky', art: 'assets/gs/cast_rocky.jpg', species: 'Sudowoodo', portrait: 'sudowoodo', nature: 'Mild', text: 'A calm, dependable wanderer who creates stone art and keeps getting drawn into adventures through small acts of kindness. He doesn’t remember his past, but balancing stones makes him feel strangely at home. Goal: help protect the peaceful community he’s come to consider home.' },
   { name: 'Mimi & Kippy', art: 'assets/gs/cast_mimi_kippy.jpg', species: 'Pikachu & Mudkip', portrait: 'pikachu', portrait2: 'mudkip', text: 'A hardy Pikachu and their loyal Mudkip partner rose from rookie explorers to one of the guild’s celebrated Diamond Rank teams (Team Pika Pals). They recovered stolen Time Gears, survived the future’s paralyzed world, reached Temporal Tower and helped prevent time from collapsing.' },
 ];
@@ -416,3 +416,39 @@ export const DUNGEON_EVENTS = [
 export const DUNGEON_TYPES = ['Forest', 'Cave', 'Ruins / Temple', 'Abandoned House', 'Factory', 'Legendary Den', 'Coast', 'Mountain', 'Lake'];
 
 export const DISCLAIMER = 'A fan-made tabletop campaign. Pokémon and Pokémon Mystery Dungeon are © Nintendo, Creatures Inc., GAME FREAK inc., The Pokémon Company and Spike Chunsoft. This site is not affiliated with or endorsed by them. PokéRole is a fan game by its own creators.';
+
+// From the GM's Discord (#world-events) and her campaign compendium. Player-facing facts only.
+export const WORLD = {
+  charter: ['Welcome to the Gravity Falls Guild! As a rescue team member, you will explore Mystery Dungeons, assist Pokémon in need, uncover mysteries, and contribute to the future of the forest.',
+    'Our guild operates through rotating rescue assignments. You are not required to attend every session, and your teammates may change from mission to mission.',
+    'Friday expeditions take place in person. Sunday expeditions take place online. Both contribute to the same story, and their results change our shared world.',
+    'Every rescue matters. A team that recovers supplies may be just as important as one that defeats a powerful enemy.',
+    'Your character grows through adventures, while the entire guild grows through shared accomplishments. No single rescue team can save the forest alone!'],
+  guilds: [
+    { name: 'Vanguard Guild', text: ['You are an experienced rescue guild hired by Guildmaster Beautifly to investigate the recent increase in mysterious Pokémon disappearances.',
+      'Your team will lead dangerous, high-priority missions while coordinating with the less experienced Woodland Base. Both guilds share one world, and your actions will have lasting consequences.',
+      'Expectations: a serious, story-driven group focused on roleplay, character development, investigation, and meaningful decisions. Humor is welcome, but engagement, teamwork, and consistent attendance are important (as much as you can!).',
+      'The forest is hiding something, and Beautifly is counting on you to uncover the truth.'] },
+    { name: 'Woodland Base', text: ['You are members of Guildmaster Beautifly’s rescue guild, a growing organization of aspiring rescuers dedicated to helping Pokémon in need.',
+      'With mysterious disappearances increasing throughout the region, your guild has taken on greater responsibilities. While the experienced Vanguard Guild tackles dangerous frontline missions, your team will focus on rescues, exploration, investigations, and supporting the community.',
+      'Expectations: a flexible, story-driven group focused on adventure, teamwork, character development, and having fun! Attendance is more casual, and rescue teams will change based on availability and mission needs.',
+      'Every rescue matters! Your choices will shape the world and may directly affect the Vanguard’s missions. Even the smallest rescue team can make a big difference!'] },
+  ],
+  schedule: 'Friday sessions in person, Sunday sessions online in between, roughly 6:30–10 PM.',
+  places: ['Woodland Base (the hub)', 'Sunshell Beach', 'Mooncliff Mountains', 'Echo Cavern', 'Crystal Lake', 'Blossom Meadow', 'Ancient Ruins', 'Whispering Falls', 'Twilight Falls'],
+  camps: [
+    { name: 'Mooncliff Mountains', text: 'Regirock is the strict expedition commander and caretaker: preparedness, punctuality and safety come first.' },
+    { name: 'Tidal Rest Camps', text: 'Rampardos is the festive beach-gathering caretaker, Dhelmise an experienced water-rescue captain, and Galarian Slowking the sentinel.' },
+    { name: 'Hollowlight Encampment', text: 'Bayou-like, lit by an unusual purple glow like Chandelure flames. Chandelure is the methodical surveyor and caretaker who insists on cave safety; Walrein is the sentinel.' },
+    { name: 'Blossom Meadow, Glasswater Camps and Relicwatch', text: 'Other camps across the region. Every camp has a Psychic Link post.' },
+  ],
+  npcs: [
+    { name: 'Guildmaster Beautifly', text: 'Leads the guild. Once cheerful, now serious; her husband vanished in the forest collapse seven years ago and she is still searching for him.' },
+    { name: 'Beedrill', text: 'Champion rank, Mild nature. The guild’s den mother.' },
+    { name: 'Scolipede', text: 'Champion rank, Naughty nature. Part of Beautifly’s earlier story.' },
+    { name: 'Diglett', text: 'Pro rank, Jolly nature. Curt but knowledgeable.' },
+    { name: 'Machop', text: 'Beginner rank, Hardy nature. Missing, perhaps somewhere near Sunshell Beach.' },
+    { name: 'Rayson the Wingull', text: 'A timid young Wingull with a twin, determined to become brave. Rescued from Twilight Falls.' },
+    { name: 'Aegislash', text: 'Runs a travelling wagon shop with six item slots.' },
+  ],
+};

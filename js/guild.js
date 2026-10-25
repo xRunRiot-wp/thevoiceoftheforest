@@ -18,7 +18,7 @@ export const SHOP_DEFAULTS = [
 export const SHOP_SCHEMA = [['name', 'Item'], ['price', 'Price (Poké)', 'number'], ['kind', 'Kind'], ['stock', 'Stock (blank = unlimited)', 'number']];
 export const shop = () => merged('shop', SHOP_DEFAULTS);
 
-export const MISSION_SCHEMA = [['rank', 'Rank', 'select:E|D|C|B|A|S|X'], ['title', 'Title'], ['client', 'Client'], ['place', 'Where'], ['details', 'Details', 'area'], ['reward', 'Reward (items / Poké)'], ['gp', 'Guild Points (blank = by rank)', 'number'], ['status', 'Status', 'select:open|taken|done|failed']];
+export const MISSION_SCHEMA = [['rank', 'Rank', 'select:E|D|C|B|A|S|X'], ['title', 'Title'], ['client', 'Client'], ['place', 'Where'], ['details', 'Details', 'area'], ['reward', 'Reward (items / Poké)'], ['gp', 'Guild Points (blank = by rank)', 'number'], ['status', 'Status', 'select:open|taken|done|failed'], ['art', 'Picture link (optional)']];
 
 export function rankFor(gp) {
   const list = ranks().filter((r) => r.gp != null);
@@ -31,6 +31,7 @@ export function missionCard(id, m, { gm = false } = {}) {
   const gp = m.gp ?? MISSION_GP[m.rank] ?? 0;
   return `<div class="card mission ${esc(m.status || '')} ${m.hidden ? 'hidden' : ''}">
     <div class="row" style="justify-content:space-between"><span class="pill">${esc(m.rank)} Rank · ${gp} GP</span><span class="pill">${m.hidden ? 'GM only' : esc(m.status || 'open')}</span></div>
+    ${m.art ? `<a href="${esc(m.art)}" target="_blank"><img class="art-wide" src="${esc(m.art)}" alt="" loading="lazy" style="max-height:260px;object-fit:cover"></a>` : ''}
     <h3 style="margin:8px 0 4px">${esc(m.title)}</h3>
     ${m.client ? `<p class="small muted">Client: ${esc(m.client)}${m.place ? ' · ' + esc(m.place) : ''}</p>` : ''}
     ${m.details ? `<p class="small">${esc(m.details)}</p>` : ''}${m.reward ? `<p class="small"><b>Reward:</b> ${esc(m.reward)}</p>` : ''}

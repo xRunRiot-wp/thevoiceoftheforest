@@ -3,7 +3,7 @@ import * as store from './store.js';
 import * as sheet from './sheetdata.js';
 import { $, $$, esc } from './util.js';
 import { portrait } from './ui.js';
-import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js';
+import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js';
 import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js';
 import { merged, editContent } from './content-store.js';
 import { pageHTML, navHTML } from './sitepages.js';
@@ -45,7 +45,7 @@ export async function renderRules(main, [sub, arg]) {
   const RULE_GS = { 'new-character': 'how-to-play_new-character', combat: 'how-to-play_beginner-mechanics_combat-and-movement', traps: 'how-to-play_beginner-mechanics_traps-and-hazards', evolution: 'how-to-play_advanced-mechanics_evolution', training: 'how-to-play_advanced-mechanics_training', recruiting: 'how-to-play_advanced-mechanics_recruiting', directing: 'how-to-play_advanced-mechanics_directing-teammates' };
   const back = '<a class="btn alt sm" href="#/rules">← Rulebook</a>';
   const pages = {
-    '': hub, site: sitePageView, coverage, index: indexPage, r: rulePage, story, cast: castPage, ranks: ranksPage, rivals: rivalsPage, items: itemsPage, handouts, links, credits,
+    '': hub, world: worldPage, site: sitePageView, coverage, index: indexPage, r: rulePage, story, cast: castPage, ranks: ranksPage, rivals: rivalsPage, items: itemsPage, handouts, links, credits,
   };
   (pages[sub || ''] || hub)();
 
@@ -65,7 +65,7 @@ export async function renderRules(main, [sub, arg]) {
       <div class="section-title"><h2>Rules</h2>${addBtn('id="addrule"', '+ Rule page')}</div>
       <div class="toc">${rules().map((r) => `<a href="#/rules/r/${esc(r.id)}">${esc(r.title)}</a>`).join('')}</div>
       <div class="section-title"><h2>The campaign</h2></div>
-      <div class="toc"><a href="#/rules/story">Story & chapters</a><a href="#/rules/cast">Meet the characters</a><a href="#/rules/ranks">Guild ranks</a><a href="#/rules/rivals">Rival teams</a><a href="#/rules/handouts">Handouts</a><a href="#/rules/links">Campaign links</a><a href="#/rules/credits">Credits</a><a href="#/rules/coverage">Index coverage check</a></div>`;
+      <div class="toc"><a href="#/rules/world">World, guilds & NPCs</a><a href="#/rules/story">Story & chapters</a><a href="#/rules/cast">Meet the characters</a><a href="#/rules/ranks">Guild ranks</a><a href="#/rules/rivals">Rival teams</a><a href="#/rules/handouts">Handouts</a><a href="#/rules/links">Campaign links</a><a href="#/rules/credits">Credits</a><a href="#/rules/coverage">Index coverage check</a></div>`;
     const res = $('#results', main);
     $('#q', main).oninput = (e) => { const q = e.target.value.trim(); res.innerHTML = q ? resultsHTML(search(q).slice(0, 30)) : ''; };
     const a = $('#addrule', main); if (a) a.onclick = () => editContent('rules', RULE_SCHEMA, null, { title: 'New rule page', onSave: () => renderRules(main, [sub]) });
@@ -177,6 +177,18 @@ export async function renderRules(main, [sub, arg]) {
       <div class="grid g2" style="margin-top:12px"><a class="handout" href="assets/gs/story_ranks.jpg" target="_blank"><img src="assets/gs/story_ranks.jpg" alt="" loading="lazy" style="aspect-ratio:auto"><span>Story & rank progression</span></a><a class="handout" href="assets/gs/mission_ranks.jpg" target="_blank"><img src="assets/gs/mission_ranks.jpg" alt="" loading="lazy" style="aspect-ratio:auto"><span>Missions, items & garments</span></a></div>`;
     $$('[data-ed]', main).forEach((b) => b.onclick = () => editContent('ranks', RANK_SCHEMA, ranks().find((c) => c.id === b.dataset.ed), { onSave: () => renderRules(main, [sub]) }));
     const a = $('#add', main); if (a) a.onclick = () => editContent('ranks', RANK_SCHEMA, null, { title: 'New rank', onSave: () => renderRules(main, [sub]) });
+  }
+
+  function worldPage() {
+    const card = (h, ps) => `<div class="card"><h3 style="margin-top:0">${esc(h)}</h3>${ps.map((t) => `<p>${L(t)}</p>`).join('')}</div>`;
+    main.innerHTML = `${back}<h1 style="margin-top:10px">World, guilds & NPCs</h1>
+      ${card('The Gravity Falls Guild Charter', WORLD.charter)}
+      <p class="small"><b>When we play:</b> ${esc(WORLD.schedule)}</p>
+      <a href="assets/discord/vanguard_woodland.jpg" target="_blank"><img class="art-wide" src="assets/discord/vanguard_woodland.jpg" alt="Vanguard Guild and Woodland Guild" loading="lazy"></a>
+      ${WORLD.guilds.map((g) => card('Welcome to the ' + g.name + '!', g.text)).join('')}
+      <div class="section-title"><h2>Places</h2></div><div class="card"><ul>${WORLD.places.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>
+      <div class="section-title"><h2>Camps & caretakers</h2></div>${WORLD.camps.map((c) => card(c.name, [c.text])).join('')}
+      <div class="section-title"><h2>Guild & world NPCs</h2></div>${WORLD.npcs.map((c) => card(c.name, [c.text])).join('')}`;
   }
 
   function rivalsPage() {

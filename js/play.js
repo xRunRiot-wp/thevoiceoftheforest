@@ -26,6 +26,7 @@ export function renderJoin(main) {
   const p = Object.values(party()).filter((c) => !c.guest || c.guest.controller === 'player');
   main.innerHTML = `
   <div class="hero banner"><img class="hdr" src="assets/banners/home.jpg" alt="Voice of the Forest: A PokeRole Mystery Dungeon Campaign"></div>
+  <details class="card"><summary><b>Watch the player trailer</b></summary><video src="assets/discord/player_trailer.mp4" controls playsinline preload="none" style="width:100%;border-radius:10px;margin-top:8px"></video></details>
   <div class="card emblem"><div class="win"><span class="who">Guildmaster Beautifly:</span> ${store.get('session/live') ? "Welcome, explorer! The game is live. Join your table to begin today's adventure." : 'Welcome, explorer! No game is running right now. Look around, and come back when your GM goes live.'}</div></div>
   <div class="card">
     <h2>Join a table</h2>
