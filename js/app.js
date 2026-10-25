@@ -1,14 +1,14 @@
-import { CONFIG } from './config.js?v=6ade82f5';
-import * as store from './store.js?v=6ade82f5';
-import * as sheet from './sheetdata.js?v=6ade82f5';
-import { $, $$, esc, uid } from './util.js?v=6ade82f5';
-import { closeModal, maxHp } from './ui.js?v=6ade82f5';
-import { renderJoin, renderPlay } from './play.js?v=6ade82f5';
-import { renderGM } from './gm.js?v=6ade82f5';
-import { renderGuild } from './guild.js?v=6ade82f5';
-import { renderRules } from './rulebook.js?v=6ade82f5';
-import { renderVault } from './vault.js?v=6ade82f5';
-import { renderGames } from './games.js?v=6ade82f5';
+import { CONFIG } from './config.js?v=6ade836b';
+import * as store from './store.js?v=6ade836b';
+import * as sheet from './sheetdata.js?v=6ade836b';
+import { $, $$, esc, uid } from './util.js?v=6ade836b';
+import { closeModal, maxHp } from './ui.js?v=6ade836b';
+import { renderJoin, renderPlay } from './play.js?v=6ade836b';
+import { renderGM } from './gm.js?v=6ade836b';
+import { renderGuild } from './guild.js?v=6ade836b';
+import { renderRules } from './rulebook.js?v=6ade836b';
+import { renderVault } from './vault.js?v=6ade836b';
+import { renderGames } from './games.js?v=6ade836b';
 
 const main = $('#main');
 let current = '';

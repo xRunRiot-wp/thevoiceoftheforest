@@ -1,17 +1,17 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade82f5';
-import * as sheet from './sheetdata.js?v=6ade82f5';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade82f5';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade82f5';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade82f5';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade82f5';
-import { CONFIG } from './config.js?v=6ade82f5';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade82f5';
-import { merged, editContent } from './content-store.js?v=6ade82f5';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade82f5';
-import { guildName } from './guild.js?v=6ade82f5';
-import { homeHTML } from './sitepages.js?v=6ade82f5';
-import * as dice3d from './dice3d.js?v=6ade82f5';
+import * as store from './store.js?v=6ade836b';
+import * as sheet from './sheetdata.js?v=6ade836b';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade836b';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade836b';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade836b';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade836b';
+import { CONFIG } from './config.js?v=6ade836b';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade836b';
+import { merged, editContent } from './content-store.js?v=6ade836b';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade836b';
+import { guildName } from './guild.js?v=6ade836b';
+import { homeHTML } from './sitepages.js?v=6ade836b';
+import * as dice3d from './dice3d.js?v=6ade836b';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -79,6 +79,8 @@ export function renderPlay(main) {
   </div>
   ${lastReveal && Date.now() - lastReveal.t < 6 * 3600e3 ? `<div class="row nowrap" style="align-items:flex-start;margin-bottom:12px">${lastReveal.portrait ? `<div class="portrait sm"><img src="assets/portraits/${esc(lastReveal.portrait)}.png" alt=""></div>` : ''}<div class="win grow"><span class="who">${esc(lastReveal.title || 'GM')}:</span> ${esc(lastReveal.text)}</div></div>` : ''}
 
+  ${teamFxHTML()}
+
   ${c ? charCard(c) : `<div class="card"><h3>Watching</h3><p class="small muted">You're not playing a character on this device.</p><a class="btn" href="#/join">Pick a character</a></div>`}
 
   ${combat.active ? `<div class="section-title"><h3>Turn order</h3><span class="pill">Round ${combat.round || 1}</span></div>${orderList(order, combat.turn || 0, false)}` : ''}
@@ -91,8 +93,37 @@ export function renderPlay(main) {
   <a class="btn dark fab" href="#/rules">Rulebook</a>`;
 
   if (c) bindCharCard(main, c);
+  bindTeamFx(main);
   $('#freeroll', main).onclick = () => freeRoll(c);
   $$('[data-viewchar]', main).forEach((b) => b.onclick = () => viewCharacter(b.dataset.viewchar));
+}
+
+// ---- WHOLE TEAM effects banner: effects on everyone; exhaustable ones get a tick box per character
+export function addTeamFx(name, text, exhaust = true) {
+  store.set('teamfx/' + store.tid(), { name, text, exhaust, used: {}, t: Date.now() });
+}
+function teamFxHTML() {
+  const fx = Object.entries(store.get('teamfx') || {}).sort((a, b) => (a[1].t || 0) - (b[1].t || 0));
+  const gm = store.gmUnlocked();
+  if (!fx.length && !gm) return '';
+  const p = Object.values(party()).filter((x) => !x.guest);
+  return `<div class="teamfx"><div class="row" style="justify-content:space-between"><b class="tfx-title">🌟 WHOLE TEAM effects</b>${gm ? '<button class="btn alt sm" id="tfxadd">+ Effect</button>' : ''}</div>
+    ${fx.length ? fx.map(([id, f]) => { const used = f.used || {}; const all = f.exhaust && p.length && p.every((x) => used[x.id]);
+      return `<div class="tfx ${all ? 'spent' : ''}"><div class="row nowrap" style="justify-content:space-between;align-items:flex-start"><div class="grow"><b>${esc(f.name)}</b>${f.exhaust ? ' <span class="pill">once each</span>' : ''}${f.text ? `<div class="small">${esc(f.text)}</div>` : ''}</div>${gm ? `<button class="btn alt sm" data-tfxdel="${id}">Remove</button>` : ''}</div>
+      ${f.exhaust ? `<div class="tfx-used">${p.map((x) => `<label><input type="checkbox" data-tfx="${id}" data-who="${x.id}" ${used[x.id] ? 'checked' : ''}> ${esc(x.nickname)}</label>`).join('')}</div>${all ? '<div class="small muted">Everyone has used it.</div>' : ''}` : ''}</div>`; }).join('') : '<p class="small muted">No team effects right now. Add one with + Effect.</p>'}</div>`;
+}
+function bindTeamFx(main) {
+  $$('[data-tfx]', main).forEach((b) => b.onchange = () => store.set(`teamfx/${b.dataset.tfx}/used/${b.dataset.who}`, b.checked || null));
+  $$('[data-tfxdel]', main).forEach((b) => b.onclick = () => store.set('teamfx/' + b.dataset.tfxdel, null));
+  const a = $('#tfxadd', main);
+  if (a) a.onclick = () => {
+    const el = modal(`<h2>New WHOLE TEAM effect</h2>
+      <label class="f">Name<input id="tn" placeholder="e.g. Wish Granted"></label>
+      <label class="f">What it does<textarea id="tt" rows="3" placeholder="e.g. +1 success on your next roll"></textarea></label>
+      <label class="row nowrap" style="margin-top:8px"><input type="checkbox" id="tx" checked> Exhaustable (each character can use it once)</label>
+      <button class="btn block" id="ok" style="margin-top:10px">Add</button>`);
+    $('#ok', el).onclick = () => { const n = $('#tn', el).value.trim(); if (!n) return; addTeamFx(n, $('#tt', el).value.trim(), $('#tx', el).checked); closeModal(); };
+  };
 }
 
 export function combatOrder() {

@@ -1,13 +1,13 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import * as store from './store.js?v=6ade82f5';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ade82f5';
-import { modal, portrait } from './ui.js?v=6ade82f5';
-import * as sheet from './sheetdata.js?v=6ade82f5';
-import { shop } from './guild.js?v=6ade82f5';
-import { merged, editContent } from './content-store.js?v=6ade82f5';
-import { logRoll, me } from './play.js?v=6ade82f5';
-import { ranks } from './rulebook.js?v=6ade82f5';
+import * as store from './store.js?v=6ade836b';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ade836b';
+import { modal, portrait } from './ui.js?v=6ade836b';
+import * as sheet from './sheetdata.js?v=6ade836b';
+import { shop } from './guild.js?v=6ade836b';
+import { merged, editContent } from './content-store.js?v=6ade836b';
+import { logRoll, me, addTeamFx } from './play.js?v=6ade836b';
+import { ranks } from './rulebook.js?v=6ade836b';
 
 export const GAMES = [
   {
@@ -254,6 +254,11 @@ export function renderGames(main, [arg]) {
         if (it) { giveItem(c.id, it.name); parts.push(`<p class="claim ok">🎒 <b>${esc(it.name)}</b> added to ${esc(c.nickname)}’s bag.</p>`); }
       }
       if (/spin again for free/i.test(tw[2])) free += 1;
+      if (/whole team/i.test(tw[2])) {
+        const [name, text] = tw[2].split(/:\s*/, 2);
+        addTeamFx(name, `${text || tw[2]} (from ${c.nickname}’s ${g.name} spin)`, true);
+        parts.push('<p class="claim ok">🌟 Added to the <b>WHOLE TEAM effects</b> banner on the Play page.</p>');
+      }
     }
     if (/spin again twice/i.test(p)) free += 2;
     let items = itemCount(p);
