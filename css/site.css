@@ -290,3 +290,24 @@ details.gs h4 { margin: 12px 0 4px; }
 .navtile-kids { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; }
 .navtile-kids a { padding: 6px 10px; border-radius: 99px; background: var(--cream2); border: 2px solid var(--cream3); color: var(--brown); text-decoration: none; font-size: 14px; }
 .navtile-kids a:hover, .navtile-head:hover span { color: var(--orange, #e07a1f); }
+
+/* Guild: completed-missions tracker on the right (top on phones) */
+.guild-layout { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.guild-side { order: -1; }
+@media (min-width: 900px) {
+  .guild-layout { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
+  .guild-side { order: 2; position: sticky; top: 110px; max-height: calc(100vh - 120px); overflow-y: auto; }
+}
+.tracker { background: var(--paper); border: 2px solid var(--brown2); border-radius: 12px; padding: 10px; }
+.tracker h2 { margin: 0 0 8px; font-size: 20px; }
+.trk { border: 2px solid var(--cream3); border-radius: 10px; background: var(--cream2); margin-bottom: 8px; overflow: hidden; }
+.trk.failed { opacity: .85; border-color: var(--bad); }
+.trk summary { display: flex; gap: 10px; align-items: center; padding: 6px; cursor: pointer; list-style: none; }
+.trk summary::-webkit-details-marker { display: none; }
+.trk summary::after { content: '▸'; font-size: 18px; color: var(--brown); }
+.trk[open] summary::after { content: '▾'; }
+.trk summary img, .trk-noart { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; flex: none; background: var(--cream3); }
+.trk summary b { display: block; font-size: 15px; line-height: 1.2; }
+.trk-body { padding: 0 10px 10px; background: var(--paper); }
+.trk-var { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--cream3); }
+.trk-var textarea { width: 100%; margin: 4px 0; }

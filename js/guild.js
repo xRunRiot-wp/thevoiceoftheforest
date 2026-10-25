@@ -1,14 +1,14 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade75c1';
-import * as sheet from './sheetdata.js?v=6ade75c1';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade75c1';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade75c1';
-import { MISSION_GP } from './content.js?v=6ade75c1';
-import { ranks } from './rulebook.js?v=6ade75c1';
-import { merged, editContent } from './content-store.js?v=6ade75c1';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade75c1';
-import { myId } from './app.js?v=6ade75c1';
-import { ixLink } from './effects.js?v=6ade75c1';
+import * as store from './store.js?v=6ade764a';
+import * as sheet from './sheetdata.js?v=6ade764a';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade764a';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade764a';
+import { MISSION_GP } from './content.js?v=6ade764a';
+import { ranks } from './rulebook.js?v=6ade764a';
+import { merged, editContent } from './content-store.js?v=6ade764a';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade764a';
+import { myId } from './app.js?v=6ade764a';
+import { ixLink } from './effects.js?v=6ade764a';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -40,6 +40,32 @@ export function missionCard(id, m, { gm = false } = {}) {
   </div>`;
 }
 
+// ---- completed missions tracker (right-hand column): name + picture always shown, details fold open
+const openTrack = new Set();   // stays open across live refreshes
+function trackerHTML(list) {
+  const gm = store.gmUnlocked();
+  return `<div class="tracker"><h2>Completed missions</h2>
+    ${list.length ? list.map(([id, m]) => `<details class="trk ${esc(m.status)}" data-trk="${id}" ${openTrack.has(id) ? 'open' : ''}>
+      <summary>${m.art ? `<img src="${esc(m.art)}" alt="" loading="lazy">` : '<span class="trk-noart"></span>'}<span class="grow"><b>${esc(m.title)}</b><span class="small">${esc(m.rank)} Rank · ${m.status === 'failed' ? 'failed' : 'completed'}</span></span></summary>
+      <div class="trk-body">
+        ${m.client ? `<p class="small muted">Client: ${esc(m.client)}${m.place ? ' · ' + esc(m.place) : ''}</p>` : ''}
+        ${m.details ? `<p class="small">${esc(m.details)}</p>` : ''}${m.reward ? `<p class="small"><b>Reward:</b> ${esc(m.reward)}</p>` : ''}
+        ${m.art ? `<a class="small" href="${esc(m.art)}" target="_blank">Open picture</a>` : ''}
+        <div class="trk-var"><b class="small">How it went (GM notes)</b>
+          ${gm ? `<textarea rows="3" data-var="${id}" placeholder="Any changes from the posted mission: different twists, rewards, who went…">${esc(m.variation || '')}</textarea><button class="btn sm" data-varsave="${id}">Save notes</button>`
+    : m.variation ? `<p class="small" style="white-space:pre-wrap">${esc(m.variation)}</p>` : '<p class="small muted">No notes yet.</p>'}</div>
+      </div></details>`).join('') : '<p class="small muted">Finished missions show up here.</p>'}
+    ${gm ? '' : '<p class="small muted" style="margin-top:8px">GM: unlock the GM screen to write notes here.</p>'}</div>`;
+}
+function bindTracker(main) {
+  $$('[data-trk]', main).forEach((d) => d.ontoggle = () => (d.open ? openTrack.add(d.dataset.trk) : openTrack.delete(d.dataset.trk)));
+  $$('[data-varsave]', main).forEach((b) => b.onclick = () => {
+    const id = b.dataset.varsave;
+    store.set(`missions/${id}/variation`, $(`[data-var="${id}"]`, main).value.trim() || null);
+    toast('Mission notes saved');
+  });
+}
+
 export function finishMission(id, ok) {
   const m = (store.get('missions') || {})[id]; if (!m) return;
   const gp = m.gp ?? MISSION_GP[m.rank] ?? 0;
@@ -54,6 +80,8 @@ export function renderGuild(main) {
   const g = store.get('guild') || {};
   const r = rankFor(g.gp || 0);
   const missions = Object.entries(store.get('missions') || {}).sort((a, b) => (b[1].ts || 0) - (a[1].ts || 0));
+  const finished = missions.filter(([, m]) => !m.hidden && (m.status === 'done' || m.status === 'failed'));
+  const active = missions.filter(([, m]) => !(m.status === 'done' || m.status === 'failed'));
   const storage = Object.entries(store.get('storage') || {});
   const party = Object.values(store.get('party') || {});
   const hist = Object.entries(store.get('history') || {}).sort().reverse();
@@ -61,6 +89,7 @@ export function renderGuild(main) {
   main.innerHTML = `
   <div class="hero"><img class="hdr" src="assets/banners/guilds.jpg" alt=""></div>
   <h1>${esc(g.name || 'Guild')}</h1>
+  <div class="guild-layout"><aside class="guild-side">${trackerHTML(finished)}</aside><div class="guild-main">
   <div class="card emblem">
     <div class="grid g2">
       <div class="win tight"><span class="who">Rank:</span> ${esc(r?.name || '')} (${esc(r?.alt || '')})<br><span class="who">Guild Points:</span> ${g.gp || 0}<br><span class="who">Poké:</span> ${(g.coffers || 0).toLocaleString()}<br><span class="who">Chapter:</span> ${g.chapter ?? '—'}</div>
@@ -69,7 +98,7 @@ export function renderGuild(main) {
   </div>
 
   <div class="section-title"><h2>Mission board</h2></div>
-  ${missions.length ? missions.map(([id, m]) => missionCard(id, m)).join('') : '<p class="muted">No missions posted yet.</p>'}
+  ${active.length ? active.map(([id, m]) => missionCard(id, m)).join('') : '<p class="muted">No open missions right now.</p>'}
 
   <div class="section-title"><h2>Shop</h2><span class="small muted">pays from the guild Poké</span></div>
   <div class="card" style="padding:6px 12px"><ul class="log" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><span class="grow">${ixLink(s.name)} <span class="small muted">${esc(s.kind || '')}</span></span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>
@@ -83,8 +112,9 @@ export function renderGuild(main) {
 
   <div class="section-title"><h2>Session history</h2></div>
   ${hist.length ? hist.map(([, h]) => `<div class="card"><h3 style="margin:0 0 4px">Session ${esc(h.n ?? '')}</h3><p class="small muted">${new Date(h.t).toLocaleDateString()}</p>${h.summary ? `<p>${esc(h.summary)}</p>` : ''}${h.rewards ? `<p class="small"><b>Rewards:</b> ${esc(h.rewards)}</p>` : ''}</div>`).join('') : '<p class="muted">No sessions recorded yet. The GM writes one at the end of each session.</p>'}
-  `;
+  </div></div>`;
 
+  bindTracker(main);
   $$('[data-take]', main).forEach((b) => b.onclick = () => { store.set(`missions/${b.dataset.take}/status`, 'taken'); store.pushLimited('log', { t: Date.now(), text: `Mission taken: ${(store.get('missions') || {})[b.dataset.take]?.title}` }); });
   $$('[data-buy]', main).forEach((b) => b.onclick = () => buy(b.dataset.buy));
   $$('[data-take-item]', main).forEach((b) => b.onclick = () => moveToBag(b.dataset.takeItem));
