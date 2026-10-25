@@ -1,14 +1,15 @@
-import { CONFIG } from './config.js?v=6ade85ba';
-import * as store from './store.js?v=6ade85ba';
-import * as sheet from './sheetdata.js?v=6ade85ba';
-import { $, $$, esc, uid } from './util.js?v=6ade85ba';
-import { closeModal, maxHp } from './ui.js?v=6ade85ba';
-import { renderJoin, renderPlay } from './play.js?v=6ade85ba';
-import { renderGM } from './gm.js?v=6ade85ba';
-import { renderGuild } from './guild.js?v=6ade85ba';
-import { renderRules } from './rulebook.js?v=6ade85ba';
-import { renderVault } from './vault.js?v=6ade85ba';
-import { renderGames } from './games.js?v=6ade85ba';
+import { CONFIG } from './config.js?v=6ade85fc';
+import * as store from './store.js?v=6ade85fc';
+import * as sheet from './sheetdata.js?v=6ade85fc';
+import { $, $$, esc, uid } from './util.js?v=6ade85fc';
+import { closeModal, maxHp } from './ui.js?v=6ade85fc';
+import { renderJoin, renderPlay } from './play.js?v=6ade85fc';
+import { renderGM } from './gm.js?v=6ade85fc';
+import { renderGuild } from './guild.js?v=6ade85fc';
+import { renderRules } from './rulebook.js?v=6ade85fc';
+import { renderVault } from './vault.js?v=6ade85fc';
+import { renderGames } from './games.js?v=6ade85fc';
+import { renderFriendZone } from './friendzone.js?v=6ade85fc';
 
 const main = $('#main');
 let current = '';
@@ -48,7 +49,7 @@ async function seedIfEmpty() {
 }
 
 const ROUTES = [
-  ['play', 'Play'], ['guild', 'Guild'], ['vault', 'Vault'], ['games', 'Games'], ['rules', 'Rulebook'], ['gm', 'GM'],
+  ['play', 'Play'], ['guild', 'Guild'], ['vault', 'Vault'], ['friends', 'Friend Zone'], ['games', 'Games'], ['rules', 'Rulebook'], ['gm', 'GM'],
 ];
 
 function navHTML(active) {
@@ -74,7 +75,7 @@ async function route() {
   current = page;
   $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : page);
   window.scrollTo(0, 0);
-  const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, vault: renderVault, games: renderGames, rules: renderRules }[page] || renderJoin;
+  const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, vault: renderVault, games: renderGames, friends: renderFriendZone, rules: renderRules }[page] || renderJoin;
   rerender = () => render(main, rest);
   await rerender();
   statusChip();
@@ -91,7 +92,7 @@ store.subscribe(() => {
     const a = document.activeElement;
     const typing = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT') && main.contains(a);
     if (document.querySelector('.sheet-bg')) return;   // a modal is open; it refreshes itself
-    if (!typing && ['join', 'play', 'gm', 'guild', 'vault'].includes(current)) rerender?.();
+    if (!typing && ['join', 'play', 'gm', 'guild', 'vault', 'friends'].includes(current)) rerender?.();
   });
 });
 
