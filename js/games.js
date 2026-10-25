@@ -1,10 +1,10 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import * as store from './store.js?v=6ade7aea';
-import { $, $$, esc, toast } from './util.js?v=6ade7aea';
-import { modal } from './ui.js?v=6ade7aea';
-import { merged, editContent } from './content-store.js?v=6ade7aea';
-import { logRoll, me } from './play.js?v=6ade7aea';
+import * as store from './store.js?v=6ade7c3b';
+import { $, $$, esc, toast } from './util.js?v=6ade7c3b';
+import { modal } from './ui.js?v=6ade7c3b';
+import { merged, editContent } from './content-store.js?v=6ade7c3b';
+import { logRoll, me } from './play.js?v=6ade7c3b';
 
 export const GAMES = [
   {
@@ -16,6 +16,22 @@ export const GAMES = [
       ['Little Luck', 1.75, ''], ['Pocket Change', 0.75, ''], ['Lucky Find', 1, ''], ['Big Payday', 0.75, ''], ['Jackpot', 0.5, ''],
       ['Guild Stash', 1, ''], ['Lucky Shopper', 1, ''], ["Guild Leader's Table", 1, ''], ['Double Trouble', 0.1, ''], ['Golden Paw', 0.1, ''],
       ['No luck', 1.75, ''],
+    ],
+  },
+  {
+    id: 'gemini-metronome', name: "Gemini's Metronome", host: 'Gemini (Cleffa)', only: 'Gemini', theme: 'stars',
+    intro: "Gemini has a special bond with the wheel. Whenever Gemini uses Metronome, spin this instead of a plain random move and see whether luck or chaos answers the wag of that tiny finger. (Starter prizes: the GM can change any of them.)",
+    cost: '', colors: ['#f7b6d2', '#7a5cc2', '#ffd56b', '#3b2a6b', '#9fd8f2', '#e06fa0'],
+    slices: [
+      ['Lucky Star', 1.5, 'Metronome works normally and Gemini adds 1 success to its roll'],
+      ['Double Wag', 1, 'Two random moves go off this turn'],
+      ['Jackpot Move', 0.5, 'Gemini picks any move seen this session'],
+      ['Wish Upon a Star', 1, 'One ally of Gemini’s choice heals 2 HP'],
+      ['Coin Shower', 0.75, 'The team finds 50 Poké'],
+      ['Wobbly Wag', 1.5, 'The random move hits a random Pokémon, maybe an ally'],
+      ['Moonlit Charm', 1, 'Every foe rolls Will or becomes Infatuated'],
+      ['Backfire', 1, 'Gemini becomes Confused'],
+      ['Just a Wave', 1.25, 'Nothing happens'],
     ],
   },
 ];
@@ -49,10 +65,16 @@ function drawWheel(cv, g, rot) {
     }
     a += da;
   });
+  // gold rim with pegs
+  x.beginPath(); x.arc(0, 0, R, 0, Math.PI * 2); x.lineWidth = Math.max(4, S / 45); x.strokeStyle = '#d9a83a'; x.stroke();
+  for (let k = 0; k < 24; k++) { const pa = (k / 24) * Math.PI * 2; x.beginPath(); x.arc(Math.cos(pa) * R, Math.sin(pa) * R, Math.max(2, S / 120), 0, Math.PI * 2); x.fillStyle = '#fff3c4'; x.fill(); }
   x.restore();
-  x.beginPath(); x.arc(S / 2, S / 2, S * .07, 0, Math.PI * 2); x.fillStyle = '#fffaf0'; x.fill(); x.strokeStyle = '#4a2f14'; x.lineWidth = 4; x.stroke();
+  const hub = x.createRadialGradient(S / 2 - S * .02, S / 2 - S * .02, 1, S / 2, S / 2, S * .08);
+  hub.addColorStop(0, '#fff8dc'); hub.addColorStop(1, '#d9a83a');
+  x.beginPath(); x.arc(S / 2, S / 2, S * .075, 0, Math.PI * 2); x.fillStyle = hub; x.fill(); x.strokeStyle = '#5a3a10'; x.lineWidth = Math.max(2, S / 120); x.stroke();
   // pointer at the right edge (3 o'clock)
-  x.beginPath(); x.moveTo(S - 2, S / 2 - 14); x.lineTo(S - 34, S / 2); x.lineTo(S - 2, S / 2 + 14); x.closePath(); x.fillStyle = '#4a2f14'; x.fill();
+  const ph = Math.max(10, S / 24);
+  x.beginPath(); x.moveTo(S - 1, S / 2 - ph); x.lineTo(S - ph * 2.6, S / 2); x.lineTo(S - 1, S / 2 + ph); x.closePath(); x.fillStyle = '#ffcf4a'; x.fill(); x.strokeStyle = '#5a3a10'; x.lineWidth = 2; x.stroke();
 }
 
 function pick(g) {
@@ -69,10 +91,13 @@ export function renderGames(main, [arg]) {
     main.innerHTML = `<div class="hero"><img class="hdr" src="assets/banners/items_orbs.jpg" alt=""></div>
       <div class="row" style="justify-content:space-between;margin-top:12px"><h1 style="margin:0">Gambling Games</h1>${gm ? '<button class="btn alt sm" id="add">+ Game</button>' : ''}</div>
       <p class="small muted">Games of chance around Gravity Falls. Spins show up in the table's roll log for everyone.</p>
-      <div class="grid g2">${list.map((g) => `<a class="card" href="#/games/${esc(g.id)}" style="margin:0;text-decoration:none;color:inherit">
-        <canvas class="mini-wheel" data-g="${esc(g.id)}" width="160" height="160"></canvas>
-        <h3 style="margin:8px 0 2px">${esc(g.name)}</h3><p class="small muted" style="margin:0">${esc(g.host ? 'Run by ' + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}</p></a>`).join('')}</div>`;
-    $$('[data-g]', main).forEach((cv) => drawWheel(cv, list.find((g) => g.id === cv.dataset.g), 0));
+      <div class="gamecards">${list.map((g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''}" href="#/games/${esc(g.id)}">
+        <canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>
+        <div class="gc-text"><h3>${esc(g.name)}</h3>
+          <p class="gc-host">${esc(g.host ? (g.only ? '' : 'Run by ') + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}${g.only ? ` · <b>${esc(g.only)} only</b>` : ''}</p>
+          <p class="gc-intro">${esc((g.intro || '').split('. ')[0].replace(/\.$/, ''))}.</p>
+          <span class="gc-play">Spin the wheel →</span></div></a>`).join('')}</div>`;
+    $$('[data-g]', main).forEach((cv) => drawWheel(cv, list.find((g) => g.id === cv.dataset.g), -Math.PI / 2));
     const a = $('#add', main);
     if (a) a.onclick = () => editContent('games', GAME_SCHEMA, null, { title: 'New game', onSave: () => renderGames(main, []) });
     return;
@@ -83,9 +108,9 @@ export function renderGames(main, [arg]) {
     <h1 style="margin:10px 0 4px">${esc(g.name)}</h1>
     <p>${esc(g.intro || '')}</p>
     ${g.cost ? `<p><span class="pill">Cost: ${esc(g.cost)}</span></p>` : ''}
-    <div class="wheel-wrap"><canvas id="wheel" width="680" height="680"></canvas></div>
-    <button class="btn block" id="spin" style="margin-top:12px">Spin the wheel</button>
-    <div class="result" id="res"></div>
+    <div class="wheel-panel ${g.theme === 'stars' ? 'stars' : ''}"><div class="wheel-wrap"><canvas id="wheel" width="680" height="680"></canvas></div>
+    <button class="btn block spinbtn" id="spin">Spin the wheel</button>
+    <div class="result" id="res"></div></div>
     <details class="card" style="margin-top:12px"><summary><b>Prizes and odds</b></summary>
       <table class="t"><tr><th>Slice</th><th>Chance</th><th>Prize</th></tr>${(() => { const t = g.slices.reduce((s, [, w]) => s + w, 0); return g.slices.map(([n, w, p]) => `<tr><td>${esc(n)}</td><td>${((w / t) * 100).toFixed(1)}%</td><td>${esc(p || 'GM decides')}</td></tr>`).join(''); })()}</table>
     </details>`;

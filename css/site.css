@@ -365,3 +365,26 @@ details.gs h4 { margin: 12px 0 4px; }
 .capbar { margin-top: 10px; text-align: left; }
 .capbar .bar { height: 10px; border-radius: 99px; background: var(--cream3); overflow: hidden; margin-top: 4px; }
 .capbar .bar i { display: block; height: 100%; background: var(--orange, #e07b24); }
+
+/* Games: casino cards */
+.gamecards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.gamecard { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 16px; text-decoration: none; color: #f8ecd2;
+  background: radial-gradient(circle at 25% 40%, #5a2f6e 0, #2c1838 60%, #1d1026 100%); border: 3px solid #d9a83a;
+  box-shadow: 0 4px 0 #6b4a12, 0 0 24px rgba(217, 168, 58, .25) inset; transition: transform .15s; }
+.gamecard:hover { transform: translateY(-2px); }
+.gamecard.stars { background: radial-gradient(circle at 25% 40%, #3b3a8a 0, #1f1d4d 60%, #120f2e 100%);
+  background-image: radial-gradient(#fff 1px, transparent 1.5px), radial-gradient(circle at 25% 40%, #3b3a8a 0, #1f1d4d 60%, #120f2e 100%); background-size: 38px 38px, auto; }
+.gamecard .mini-wheel { width: 132px; max-width: 132px; flex: none; margin: 0; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
+.gc-text h3 { margin: 0; color: #ffd56b; font-size: 22px; text-shadow: 0 2px 0 #000; }
+.gc-host { margin: 2px 0 6px; font-size: 14px; color: #e8d6f0; }
+.gc-intro { margin: 0 0 10px; font-size: 14px; line-height: 1.35; color: #f3e6d0; }
+.gc-play { display: inline-block; padding: 6px 12px; border-radius: 99px; background: #ffcf4a; color: #3a2408; font: 700 14px var(--pix); }
+.wheel-panel { padding: 16px; border-radius: 18px; border: 3px solid #d9a83a; background: radial-gradient(circle, #5a2f6e 0, #2c1838 65%, #1d1026 100%); }
+.wheel-panel.stars { background-image: radial-gradient(#fff 1px, transparent 1.5px), radial-gradient(circle, #3b3a8a 0, #1f1d4d 65%, #120f2e 100%); background-size: 38px 38px, auto; }
+.wheel-panel .wheel-wrap canvas { filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .55)); }
+.wheel-panel .spinbtn { margin-top: 14px; background: #ffcf4a; color: #3a2408; border-color: #8a5a12; }
+.wheel-panel .result { color: #fff3d6; text-align: center; }
+.wheel-panel .result .big { color: #ffd56b; }
+.gemini-wag { display: block; margin: 8px 0; padding: 10px 12px; border-radius: 12px; text-decoration: none; font-weight: 700; color: #fff;
+  background: linear-gradient(90deg, #7a5cc2, #e06fa0); box-shadow: 0 0 14px rgba(224, 111, 160, .5); }
+@media (max-width: 420px) { .gamecard .mini-wheel { width: 104px; } .gc-text h3 { font-size: 19px; } }

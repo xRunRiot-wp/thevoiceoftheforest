@@ -1,17 +1,17 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade7aea';
-import * as sheet from './sheetdata.js?v=6ade7aea';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade7aea';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade7aea';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade7aea';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade7aea';
-import { CONFIG } from './config.js?v=6ade7aea';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade7aea';
-import { merged, editContent } from './content-store.js?v=6ade7aea';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade7aea';
-import { guildName } from './guild.js?v=6ade7aea';
-import { homeHTML } from './sitepages.js?v=6ade7aea';
-import * as dice3d from './dice3d.js?v=6ade7aea';
+import * as store from './store.js?v=6ade7c3b';
+import * as sheet from './sheetdata.js?v=6ade7c3b';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade7c3b';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade7c3b';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade7c3b';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade7c3b';
+import { CONFIG } from './config.js?v=6ade7c3b';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade7c3b';
+import { merged, editContent } from './content-store.js?v=6ade7c3b';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade7c3b';
+import { guildName } from './guild.js?v=6ade7c3b';
+import { homeHTML } from './sitepages.js?v=6ade7c3b';
+import * as dice3d from './dice3d.js?v=6ade7c3b';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -313,6 +313,7 @@ function moveRoll(c, m) {
     <h2>${esc(m.name)}</h2>
     <div class="chips">${typeChip(m.type)}<span class="pill">${esc(m.cat)}</span>${m.power != null ? `<span class="pill">Power ${m.power}</span>` : ''}</div>
     ${m.effect ? `<p class="small" style="margin-top:8px" id="meff">${esc(m.effect)}</p>` : ''}
+    ${/metronome/i.test(m.name) && /gemini/i.test(c.nickname || '') ? `<a class="gemini-wag" href="#/games/gemini-metronome">✨ Gemini's special Metronome: spin the wheel to see what luck or chaos answers →</a>` : ''}
     <p class="small"><a href="#" data-ixname="Use a Move">How attacking works</a> · <a href="#" data-ixname="Damage">Damage</a> · <a href="#" data-ixname="Critical hit">Critical hits</a></p>
     <div class="card" style="margin-top:10px">
       <h3>1. Accuracy</h3>
