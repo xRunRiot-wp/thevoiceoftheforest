@@ -388,3 +388,13 @@ details.gs h4 { margin: 12px 0 4px; }
 .gemini-wag { display: block; margin: 8px 0; padding: 10px 12px; border-radius: 12px; text-decoration: none; font-weight: 700; color: #fff;
   background: linear-gradient(90deg, #7a5cc2, #e06fa0); box-shadow: 0 0 14px rgba(224, 111, 160, .5); }
 @media (max-width: 420px) { .gamecard .mini-wheel { width: 104px; } .gc-text h3 { font-size: 19px; } }
+.twist-toggle { display: flex; align-items: center; gap: 8px; justify-content: center; margin: 10px 0 0; color: #fff3d6; font-weight: 700; }
+.twist-toggle input { width: 20px; height: 20px; }
+.twist { margin: 12px auto 0; max-width: 520px; padding: 12px 14px; border-radius: 14px; text-align: left; color: #fff;
+  background: radial-gradient(circle at 20% 30%, #4b3fa0 0, #241f5c 70%); border: 2px solid #ffd56b; box-shadow: 0 0 18px rgba(255, 213, 107, .35); }
+.twist.bad { border-color: #ff6b81; box-shadow: 0 0 18px rgba(255, 107, 129, .35); }
+.twist.chaos { border-color: #9fd8f2; box-shadow: 0 0 18px rgba(159, 216, 242, .4); }
+.twist p { margin: 4px 0 0; }
+.twist-tag { display: inline-block; padding: 1px 7px; border-radius: 9px; font-size: 12px; font-weight: 700; white-space: nowrap; background: #ffd56b; color: #2b1d00; }
+.twist-tag.bad { background: #ff6b81; color: #fff; }
+.twist-tag.chaos { background: #9fd8f2; color: #10293a; }

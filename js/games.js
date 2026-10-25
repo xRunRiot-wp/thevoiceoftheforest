@@ -1,21 +1,50 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import * as store from './store.js?v=6ade7c3b';
-import { $, $$, esc, toast } from './util.js?v=6ade7c3b';
-import { modal } from './ui.js?v=6ade7c3b';
-import { merged, editContent } from './content-store.js?v=6ade7c3b';
-import { logRoll, me } from './play.js?v=6ade7c3b';
+import * as store from './store.js?v=6ade7f44';
+import { $, $$, esc, toast } from './util.js?v=6ade7f44';
+import { modal } from './ui.js?v=6ade7f44';
+import { merged, editContent } from './content-store.js?v=6ade7f44';
+import { logRoll, me } from './play.js?v=6ade7f44';
+import { ranks } from './rulebook.js?v=6ade7f44';
 
 export const GAMES = [
   {
     id: 'lucky-den', name: 'The Lucky Den', host: 'Chandelure',
     intro: 'The Lucky Den Gambling Corner. Pay the house, spin the wheel, and hope luck is on your side. (Chandelure does not approve of big winners.)',
-    cost: '', source: 'https://wheelofnames.com/v6z-9aj',
+    cost: '100 Poké', source: 'https://wheelofnames.com/v6z-9aj',
     colors: ['#3EA1B6', '#0E6B8C', '#133855', '#6B669E', '#BB90C8', '#EFD8EC'],
     slices: [
-      ['Little Luck', 1.75, ''], ['Pocket Change', 0.75, ''], ['Lucky Find', 1, ''], ['Big Payday', 0.75, ''], ['Jackpot', 0.5, ''],
-      ['Guild Stash', 1, ''], ['Lucky Shopper', 1, ''], ["Guild Leader's Table", 1, ''], ['Double Trouble', 0.1, ''], ['Golden Paw', 0.1, ''],
-      ['No luck', 1.75, ''],
+      ['Little Luck', 1.75, '25 Poké'], ['Pocket Change', 0.75, '50 Poké'], ['Lucky Find', 1, '100 Poké'], ['Big Payday', 0.75, '250 Poké'], ['Jackpot', 0.5, '500 Poké'],
+      ['Guild Stash', 1, '1 free E-Rank shop item'], ['Lucky Shopper', 1, '1 free shop item worth up to 150 Poké'], ["Guild Leader's Table", 1, 'Lunch with the Guild Leader'],
+      ['Double Trouble', 0.1, 'Spin again twice and keep both results'], ['Golden Paw', 0.1, '500 Poké + 1 free shop item + Lunch with the Guild Leader'],
+      ['No luck', 1.75, 'Nothing this time'],
+    ],
+    legendTitle: 'The Legend of Ludicolo: “The Ludicolo Incident”',
+    legend: `Nobody is completely sure how it happened.
+
+According to the official Guild ledger, Ludicolo entered the Lucky Den carrying exactly 12 Poké, half an Apple, and what witnesses described as “an unreasonable amount of confidence.”
+
+“THE RAIN PROVIDES!”
+
+By the time the Guild finally convinced him to stop spinning, Ludicolo had walked away with approximately: 1,750 Poké, two free items from Guild Supplies, an Apple he somehow convinced Maushold was part of the prize, three unused Lucky Den tokens, and lunch with the Guild Leader.
+
+Ludicolo still visits the Guild occasionally. Whenever he enters the storage room, Maushold hides the expensive merchandise.
+
+And Chandelure quietly turns the Lucky Den wheel so that the Golden Paw faces the wall.`,
+    // Gemini's bond with the wheel: when Gemini spins, the slice also brings a twist (good, bad or chaos).
+    special: 'Gemini',
+    twists: [
+      ['Little Luck', 'good', 'Star Glow: Gemini’s luck doubles. Take this prize twice.'],
+      ['Pocket Change', 'bad', 'Butterfingers: Gemini drops half of it on the way out.'],
+      ['Lucky Find', 'good', 'Sparkle Sense: Gemini also finds a random seed or berry.'],
+      ['Big Payday', 'bad', 'Show-off: Chandelure notices. Gemini’s next spin this session costs 200 Poké.'],
+      ['Jackpot', 'good', 'Wish Granted: the whole team gets +1 success on their next roll.'],
+      ['Guild Stash', 'good', 'Moonlit Bonus: Gemini takes one extra item from the stash.'],
+      ['Lucky Shopper', 'bad', 'Impulse Buy: it must be spent at the very next shop, no saving it.'],
+      ["Guild Leader's Table", 'good', 'Cute Charm: the guild leader owes Gemini a favour.'],
+      ['Double Trouble', 'chaos', 'Metronome Surge: spin Gemini’s Metronome wheel right now and apply that too.'],
+      ['Golden Paw', 'good', 'Golden Wag: spin again for free and keep both prizes.'],
+      ['No luck', 'chaos', 'Second Wag: spin again for free, but if it’s No luck again Gemini is Confused for the next fight.'],
     ],
   },
   {
@@ -36,17 +65,32 @@ export const GAMES = [
   },
 ];
 const GAME_SCHEMA = [['name', 'Game name'], ['host', 'Run by'], ['intro', 'About', 'area'], ['cost', 'Cost to play (e.g. 50 Poké)'],
-  ['slicesText', 'Slices — one per line: Name | weight | prize (weight 1 = normal, 0.5 = half as likely)', 'area'], ['colorsText', 'Colours (comma separated, optional)']];
+  ['slicesText', 'Slices — one per line: Name | weight | prize (weight 1 = normal, 0.5 = half as likely)', 'area'], ['colorsText', 'Colours (comma separated, optional)'], ['legendTitle', 'Story title (optional)'], ['legend', 'Story (optional)', 'area'],
+  ['special', 'Special character (gets twists when they spin, optional)'],
+  ['twistsText', 'Twists — one per line: Slice | good, bad or chaos | what happens', 'area']];
 
 const parse = (g) => {
   const slices = g.slicesText != null
     ? g.slicesText.split('\n').map((l) => l.split('|').map((x) => x.trim())).filter((x) => x[0]).map(([n, w, p]) => [n, Math.max(0.01, parseFloat(w) || 1), p || ''])
     : g.slices || [];
   const colors = g.colorsText ? g.colorsText.split(',').map((x) => x.trim()).filter(Boolean) : g.colors || ['#e07b24', '#4f9d4a', '#3a8fd8', '#9a6b3c', '#c9b8ff', '#d6a93a'];
-  return { ...g, slices, colors };
+  const twists = g.twistsText != null
+    ? g.twistsText.split('\n').map((l) => l.split('|').map((x) => x.trim())).filter((x) => x[0] && x[2]).map(([n, k, t]) => [n, /bad|dis/i.test(k) ? 'bad' : /chaos/i.test(k) ? 'chaos' : 'good', t])
+    : g.twists || [];
+  return { ...g, slices, colors, twists };
 };
 export const games = () => merged('games', GAMES).map(parse);
-const forEdit = (g) => ({ ...g, slicesText: g.slices.map(([n, w, p]) => `${n} | ${w}${p ? ' | ' + p : ''}`).join('\n'), colorsText: g.colors.join(', ') });
+const forEdit = (g) => ({ ...g, slicesText: g.slices.map(([n, w, p]) => `${n} | ${w}${p ? ' | ' + p : ''}`).join('\n'), colorsText: g.colors.join(', '),
+  twistsText: g.twists.map(([n, k, t]) => `${n} | ${k} | ${t}`).join('\n') });
+// Prizes that name a rank (e.g. "E-Rank shop item") use the spinner's own rank: Basic = E, Bronze = D, Silver = C ...
+const myRankLetter = () => {
+  const c = me(); if (!c?.rank) return '';
+  const r = ranks().find((x) => [x.name, x.alt].some((n) => n && n.toLowerCase() === c.rank.toLowerCase()));
+  return r && /^[A-Z]$/.test(r.missions || '') ? r.missions : '';
+};
+const rankPrize = (p) => { const L = myRankLetter(); return L ? p.replace(/\b[EDCBASX]-Rank\b/g, `${L}-Rank`) : p; };
+const TWIST = { good: ['✨', 'Advantage'], bad: ['💢', 'Drawback'], chaos: ['🌀', 'Chaos'] };
+const twistFor = (g, n) => g.twists.find(([s]) => s.toLowerCase() === n.toLowerCase());
 
 function textOn(hex) { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * .299 + ((n >> 8) & 255) * .587 + (n & 255) * .114) > 150 ? '#1b1b1b' : '#ffffff'; }
 
@@ -94,7 +138,7 @@ export function renderGames(main, [arg]) {
       <div class="gamecards">${list.map((g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''}" href="#/games/${esc(g.id)}">
         <canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>
         <div class="gc-text"><h3>${esc(g.name)}</h3>
-          <p class="gc-host">${esc(g.host ? (g.only ? '' : 'Run by ') + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}${g.only ? ` · <b>${esc(g.only)} only</b>` : ''}</p>
+          <p class="gc-host">${esc(g.host ? (g.only ? '' : 'Run by ') + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}${g.only ? ` · <b>${esc(g.only)} only</b>` : ''}${g.special && g.twists.length ? ` · <b>✨ ${esc(g.special)} twists</b>` : ''}</p>
           <p class="gc-intro">${esc((g.intro || '').split('. ')[0].replace(/\.$/, ''))}.</p>
           <span class="gc-play">Spin the wheel →</span></div></a>`).join('')}</div>`;
     $$('[data-g]', main).forEach((cv) => drawWheel(cv, list.find((g) => g.id === cv.dataset.g), -Math.PI / 2));
@@ -107,12 +151,15 @@ export function renderGames(main, [arg]) {
   main.innerHTML = `<div class="row" style="justify-content:space-between;margin-top:12px"><a class="btn alt sm" href="#/games">← Games</a>${gm ? '<button class="btn alt sm" id="ed">Edit</button>' : ''}</div>
     <h1 style="margin:10px 0 4px">${esc(g.name)}</h1>
     <p>${esc(g.intro || '')}</p>
-    ${g.cost ? `<p><span class="pill">Cost: ${esc(g.cost)}</span></p>` : ''}
+    ${g.cost || g.source ? `<p>${g.cost ? `<span class="pill">🪙 Cost: ${esc(g.cost)}</span> ` : ''}${g.source ? `<a class="small" href="${esc(g.source)}" target="_blank" rel="noopener">🍀 Original wheel</a>` : ''}</p>` : ''}
+    ${g.legend ? `<details class="card legend"><summary><b>📜 ${esc(g.legendTitle || 'The story')}</b></summary>${g.legend.split(/\n\s*\n/).map((x) => `<p>${esc(x.trim())}</p>`).join('')}</details>` : ''}
     <div class="wheel-panel ${g.theme === 'stars' ? 'stars' : ''}"><div class="wheel-wrap"><canvas id="wheel" width="680" height="680"></canvas></div>
+    ${g.special && g.twists.length ? `<label class="twist-toggle"><input type="checkbox" id="asSpecial" ${new RegExp(g.special, 'i').test(me()?.nickname || '') ? 'checked' : ''}> ✨ ${esc(g.special)} is spinning (special twists on)</label>` : ''}
     <button class="btn block spinbtn" id="spin">Spin the wheel</button>
     <div class="result" id="res"></div></div>
     <details class="card" style="margin-top:12px"><summary><b>Prizes and odds</b></summary>
-      <table class="t"><tr><th>Slice</th><th>Chance</th><th>Prize</th></tr>${(() => { const t = g.slices.reduce((s, [, w]) => s + w, 0); return g.slices.map(([n, w, p]) => `<tr><td>${esc(n)}</td><td>${((w / t) * 100).toFixed(1)}%</td><td>${esc(p || 'GM decides')}</td></tr>`).join(''); })()}</table>
+      <table class="t"><tr><th>Slice</th><th>Chance</th><th>Prize</th>${g.twists.length ? `<th>${esc(g.special || 'Special')}’s twist</th>` : ''}</tr>${(() => { const t = g.slices.reduce((s, [, w]) => s + w, 0); return g.slices.map(([n, w, p]) => { const tw = twistFor(g, n); return `<tr><td>${esc(n)}</td><td>${((w / t) * 100).toFixed(1)}%</td><td>${esc(rankPrize(p) || 'GM decides')}</td>${g.twists.length ? `<td>${tw ? `<span class="twist-tag ${tw[1]}">${TWIST[tw[1]][0]} ${TWIST[tw[1]][1]}</span> ${esc(tw[2])}` : ''}</td>` : ''}</tr>`; }).join(''); })()}</table>
+      ${g.slices.some(([, , p]) => /\b[EDCBASX]-Rank\b/.test(p || '')) ? `<p class="small muted">Shop ranks in the prizes match the rank of whoever is spinning${myRankLetter() ? ` (yours: ${myRankLetter()}-Rank)` : ''}.</p>` : ''}
     </details>`;
   const cv = $('#wheel', main);
   let rot = -Math.PI / 2; drawWheel(cv, g, rot);
@@ -134,10 +181,12 @@ export function renderGames(main, [arg]) {
       if (t < 1) requestAnimationFrame(step);
       else {
         spinning = false; rot %= Math.PI * 2;
-        const [n, , p] = g.slices[i];
-        $('#res', main).innerHTML = `<div class="big">${esc(n)}</div>${p ? `<p>${esc(p)}</p>` : '<p class="small muted">Your GM tells you what you won.</p>'}`;
+        const [n, , p0] = g.slices[i]; const p = rankPrize(p0 || '');
+        const tw = $('#asSpecial', main)?.checked ? twistFor(g, n) : null;
+        $('#res', main).innerHTML = `<div class="big">${esc(n)}</div>${p ? `<p>${esc(p)}</p>` : '<p class="small muted">Your GM tells you what you won.</p>'}`
+          + (tw ? `<div class="twist ${tw[1]}"><b>${TWIST[tw[1]][0]} ${esc(g.special)}’s ${TWIST[tw[1]][1]}</b><p>${esc(tw[2])}</p>${/Metronome wheel/i.test(tw[2]) ? '<a class="gemini-wag" href="#/games/gemini-metronome">Spin Gemini’s Metronome wheel →</a>' : ''}</div>` : '');
         const who = me()?.nickname || 'Someone';
-        logRoll(who, `${g.name} — spin`, null, n + (p ? ` (${p})` : ''), 'note');
+        logRoll(who, `${g.name} — spin`, null, n + (p ? ` (${p})` : '') + (tw ? ` · ${g.special}’s ${TWIST[tw[1]][1].toLowerCase()}: ${tw[2]}` : ''), 'note');
         toast(`${g.name}: ${n}`);
       }
     };
