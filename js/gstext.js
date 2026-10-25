@@ -1,10 +1,18 @@
-// Full text of the GM's Google Site pages (sites.google.com/view/dungeoncrawling), shown under
-// "From the campaign site" on the matching pages. Regenerate with gstext.py when her site changes.
+// Every page of the GM's Google Site (sites.google.com/view/dungeoncrawling): full text with her pictures in
+// their original places. Blocks: [h|p|li|img, value]. Rebuilt from work/dungeoncrawling/src by gstext2.py.
 export const GS_TEXT = {
 "guilds": [
 [
+"h",
+"Recruiting"
+],
+[
 "p",
 "Defeated Pokémon don’t always have to remain enemies. With the right approach, you may convince them to join your team through charm, intimidation, or persuasion. Your method, stats, and the Pokémon’s own will all matter—and your Guild Rank determines how much recruiting power your team can support. Treat potential recruits well, because loyalty is earned through what happens after the battle, too."
+],
+[
+"img",
+"assets/gs/guild_banner.jpg"
 ],
 [
 "h",
@@ -17,11 +25,23 @@ export const GS_TEXT = {
 ],
 "guilds_mission-ranks": [
 [
+"h",
+"Mission Ranks"
+],
+[
 "p",
 "Every mission is assigned a rank based on its danger, difficulty, distance, and expected rewards. Lower-ranked missions are safer and better suited for newer teams, while higher ranks may involve powerful enemies, dangerous environments, rare objectives, or major consequences. As your Guild Rank increases, your team gains access to tougher missions—and the greater rewards that come with them."
+],
+[
+"img",
+"assets/gs/mission_ranks.jpg"
 ]
 ],
 "guilds_mission-ranks_dungeon-missions": [
+[
+"h",
+"Dungeon Missions:"
+],
 [
 "p",
 "Mystery Dungeons are some of the most dangerous places in the world, and they play a major role in both the story and the work of the guilds—especially the Vanguard Guild, whose teams are often sent into the most hazardous areas. These shifting spaces are filled with powerful enemies, traps, hazards, scarce resources, and unpredictable floors where anything can happen. Pokémon go missing, become stranded, or faint in dungeons all the time, which is why rescue work there is so important."
@@ -29,9 +49,17 @@ export const GS_TEXT = {
 [
 "p",
 "A dungeon always carries the promise of great reward or great peril. Teams may uncover treasure, complete vital missions, save lives, and gain rare opportunities—but defeat comes at a cost. If your team is beaten, your bags are emptied, your progress may be lost, and you may be left to retreat, be abandoned, or wait for rescue. Entering a dungeon means accepting real risk, making careful decisions, and trusting your team to survive what lies ahead."
+],
+[
+"img",
+"assets/gs/dungeon_missions.jpg"
 ]
 ],
 "guilds_mission-ranks_non-dungeon-missions": [
+[
+"h",
+"Non-Dungeon Missions:"
+],
 [
 "p",
 "Non-dungeon missions are the backbone of the Gravity Falls Guild. While they may not carry the same immediate danger as a Mystery Dungeon, they are essential to keeping the guild functioning, strengthening the region, and shaping the story. These missions can involve gathering supplies, helping local Pokémon, investigating problems, escorting travelers, repairing damaged areas, delivering resources, solving community issues, or building relationships with important characters and groups."
@@ -43,9 +71,33 @@ export const GS_TEXT = {
 [
 "p",
 "Woodland teams are still welcome to enter Mystery Dungeons, but they should do so with extreme caution. Their greatest strength is often the work they do beyond the dungeon walls—keeping supplies stocked, helping the community, gathering intelligence, and making sure the guild base keeps running smoothly while the Vanguard pushes into more dangerous territory."
+],
+[
+"img",
+"assets/gs/non_dungeon_missions.jpg"
 ]
 ],
 "guilds_team-meanies": [
+[
+"h",
+"Team Meanies"
+],
+[
+"p",
+"Gengar"
+],
+[
+"p",
+"Ekans"
+],
+[
+"p",
+"Medicham"
+],
+[
+"img",
+"assets/gs/team_meanies.jpg"
+],
 [
 "h",
 "Long ago, Team Meanies—Gengar, Medicham, and Ekans—called themselves a rescue team, but heroism was never their true goal. They stole missions, manipulated vulnerable Pokémon, and spread fear in pursuit of wealth, influence, and power."
@@ -60,6 +112,26 @@ export const GS_TEXT = {
 ]
 ],
 "guilds_team-skull": [
+[
+"h",
+"Team Skull"
+],
+[
+"p",
+"Skuntank"
+],
+[
+"p",
+"Zubat"
+],
+[
+"p",
+"Koffing"
+],
+[
+"img",
+"assets/gs/team_skull.jpg"
+],
 [
 "p",
 "Led by Skuntank alongside Koffing and Zubat, Team Skull was a notorious exploration team known for bullying weaker Pokémon, stealing treasures, and taking credit for the work of others."
@@ -87,8 +159,28 @@ export const GS_TEXT = {
 "Humanity represents your connection to who you were before becoming a Pokémon. Giving in to primal instincts weakens that connection—and if your Humanity reaches zero, your human memories and sense of self may disappear forever."
 ],
 [
+"img",
+"assets/gs/home_1.jpg"
+],
+[
 "h",
 "What will you choose?"
+],
+[
+"img",
+"assets/gs/home_team.png"
+],
+[
+"img",
+"assets/gs/home_3.png"
+],
+[
+"img",
+"assets/gs/logo.png"
+],
+[
+"img",
+"assets/gs/home_5.png"
 ],
 [
 "h",
@@ -152,6 +244,10 @@ export const GS_TEXT = {
 ]
 ],
 "how-to-play": [
+[
+"h",
+"PokeRole Rulebook"
+],
 [
 "p",
 "Version 2.0"
@@ -313,26 +409,66 @@ export const GS_TEXT = {
 ],
 "how-to-play_advanced-mechanics_directing-teammates": [
 [
+"h",
+"Directing Teammates"
+],
+[
 "p",
 "Your teammates can act independently, but you can spend an action to give an ally or NPC a clear instruction. Directed teammates will follow your command as closely as they can. If you do not direct them, the GM decides how they act based on their Instinct level, personality, and the situation around them."
+],
+[
+"img",
+"assets/gs/how-to-play_advanced-mechanics_directing-teammates_1.png"
 ]
 ],
 "how-to-play_advanced-mechanics_evolution": [
 [
+"h",
+"Evolution"
+],
+[
 "p",
 "Evolution is a powerful turning point that can happen during an intense, life-saving moment or surge of energy. You may choose to accept or refuse the change, but evolving comes with permanent consequences: +1 Instinct, −1 Logic, and −1 Humanity. Evolution can make you stronger and unlock new possibilities, but it also pushes your character further from the human they once were."
+],
+[
+"img",
+"assets/gs/how-to-play_advanced-mechanics_evolution_1.png"
+],
+[
+"img",
+"assets/gs/how-to-play_advanced-mechanics_evolution_2.jpg"
 ]
 ],
 "how-to-play_advanced-mechanics_recruiting": [
 [
+"h",
+"Recruiting & Limitations"
+],
+[
 "p",
 "Recruiting lets you convince defeated Pokémon to join your team instead of simply leaving them behind. Your approach can rely on Cool/Beauty + Allure, Tough + Instinct + Intimidate, or Smart + Logic + Perform, opposed by the target’s will. Your guild rank limits how much recruiting power your team has, so stronger recruits may have to wait until your reputation grows. Loyalty also matters—helping allies recover and return safely can strengthen their bond with the team."
+],
+[
+"img",
+"assets/gs/how-to-play_advanced-mechanics_recruiting_1.jpg"
+],
+[
+"img",
+"assets/gs/how-to-play_advanced-mechanics_recruiting_2.jpg"
 ]
 ],
 "how-to-play_advanced-mechanics_training": [
 [
+"h",
+"Training"
+],
+[
 "p",
 "Training lets you strengthen the parts of your character that normal leveling cannot. Roll Instinct or Logic + Insight to earn Training Points (TP), then spend them to improve Logic, Instinct, Humanity, or Will, reduce Primal Points, or retrain your build. Every 25 TP raises one of these stats by 1, while 5 TP can be used to retrain attributes or adjust learned moves."
+],
+[
+"img",
+"assets/gs/how-to-play_advanced-mechanics_training_1.png"
 ]
 ],
 "how-to-play_beginner-mechanics": [
@@ -475,6 +611,10 @@ export const GS_TEXT = {
 ],
 "how-to-play_beginner-mechanics_combat-and-movement": [
 [
+"h",
+"Movement"
+],
+[
 "p",
 "Move through dungeons one action at a time, using your surroundings, positioning, and teamwork to your advantage. During combat, movement matters—where you stand can affect who you can reach, what you can avoid, and how safely your team can act."
 ],
@@ -485,9 +625,17 @@ export const GS_TEXT = {
 [
 "p",
 "Combat is turn-based and built around teamwork. On your turn, choose how to act, use Moves or items, reposition, assist allies, or direct teammates. Smart choices, good positioning, and knowing when to attack, defend, or support can make the difference between victory and a rescue gone wrong."
+],
+[
+"img",
+"assets/gs/how-to-play_beginner-mechanics_combat-and-movement_1.jpg"
 ]
 ],
 "how-to-play_beginner-mechanics_traps-and-hazards": [
+[
+"h",
+"Traps"
+],
 [
 "p",
 "Dungeons are dangerous even when no enemies are nearby. Traps and environmental hazards can slow your team, separate allies, trigger status effects, or force difficult choices. Stay alert, investigate suspicious areas, and decide whether to avoid, disarm, or risk what lies ahead."
@@ -499,6 +647,10 @@ export const GS_TEXT = {
 [
 "p",
 "Not every danger in a dungeon is a trap. Unstable terrain, falling debris, rushing water, fire, darkness, and other environmental threats can change how your team moves and fights. Pay attention to the environment, adapt quickly, and use your skills to survive whatever the dungeon throws at you."
+],
+[
+"img",
+"assets/gs/how-to-play_beginner-mechanics_traps-and-hazards_1.jpg"
 ]
 ],
 "how-to-play_new-character": [
@@ -601,6 +753,10 @@ export const GS_TEXT = {
 [
 "p",
 "Otherwise, print and fill out."
+],
+[
+"img",
+"assets/gs/new_character_sheet.jpg"
 ],
 [
 "h",
@@ -725,12 +881,100 @@ export const GS_TEXT = {
 [
 "p",
 "For PokeRole Version 2.0"
+],
+[
+"img",
+"assets/gs/new_character_sheet.jpg"
 ]
 ],
 "items": [
 [
+"h",
+"Items"
+],
+[
+"p",
+"Edible"
+],
+[
+"p",
+"Orbs"
+],
+[
+"p",
+"Wearables"
+],
+[
+"p",
+"Utility"
+],
+[
+"p",
+"Mundane"
+],
+[
+"p",
+"Common"
+],
+[
+"p",
+"Uncommon"
+],
+[
+"img",
+"assets/gs/items_edible.jpg"
+],
+[
+"p",
+"Edible"
+],
+[
+"p",
+"Seeds"
+],
+[
+"p",
+"Berries"
+],
+[
+"p",
+"Food"
+],
+[
+"img",
+"assets/gs/items_orbs.jpg"
+],
+[
+"p",
+"Orbs"
+],
+[
+"p",
+"Control"
+],
+[
+"p",
+"Movement"
+],
+[
+"p",
+"Exploration"
+],
+[
+"p",
+"Protection"
+],
+[
+"p",
+"Power"
+],
+[
 "p",
 "Emergency & Terrain"
+],
+[
+"img",
+"assets/gs/items_wearables.jpg"
 ],
 [
 "p",
@@ -755,6 +999,10 @@ export const GS_TEXT = {
 [
 "p",
 "Held Items"
+],
+[
+"img",
+"assets/gs/items_utility.jpg"
 ],
 [
 "p",
@@ -793,6 +1041,10 @@ export const GS_TEXT = {
 "Treasures"
 ],
 [
+"img",
+"assets/gs/items_edible_wide.jpg"
+],
+[
 "h",
 "Edible"
 ],
@@ -807,6 +1059,10 @@ export const GS_TEXT = {
 [
 "p",
 "Food: Travel provisions that keep teams nourished and energized throughout long dungeon expeditions."
+],
+[
+"img",
+"assets/gs/items_orbs_wide.jpg"
 ],
 [
 "h",
@@ -869,12 +1125,20 @@ export const GS_TEXT = {
 "Examples: Escape Orb, Fill-In Orb, Cleanse Orb, Weather Orbs"
 ],
 [
+"img",
+"assets/gs/items_wearables_wide.jpg"
+],
+[
 "h",
 "Wearables"
 ],
 [
 "p",
 "Wearable Items: Ribbons, scarves, bands, bows, belts, and necklaces provide ongoing benefits while equipped. Depending on the item, they may improve attributes, resist hazards, strengthen moves, support exploration, or protect the wearer from harmful effects."
+],
+[
+"img",
+"assets/gs/items_utility_wide.jpg"
 ],
 [
 "h",
@@ -886,6 +1150,10 @@ export const GS_TEXT = {
 ]
 ],
 "items_common": [
+[
+"h",
+"Seeds, Berries and Food"
+],
 [
 "p",
 "Quick Seed"
@@ -1021,9 +1289,17 @@ export const GS_TEXT = {
 [
 "p",
 "Gravelrock"
+],
+[
+"img",
+"assets/gs/card_common.jpg"
 ]
 ],
 "items_mundane": [
+[
+"h",
+"All Mundane Items"
+],
 [
 "p",
 "Small Craft Material"
@@ -1047,9 +1323,17 @@ export const GS_TEXT = {
 [
 "p",
 "Geo Pebble"
+],
+[
+"img",
+"assets/gs/card_mundane.jpg"
 ]
 ],
 "items_uncommon": [
+[
+"h",
+"Berries"
+],
 [
 "p",
 "Wiki Berry"
@@ -1161,9 +1445,17 @@ export const GS_TEXT = {
 [
 "p",
 "Useful Crafting Cache"
+],
+[
+"img",
+"assets/gs/card_uncommon.jpg"
 ]
 ],
 "meet-the-characters": [
+[
+"h",
+"Gemini"
+],
 [
 "p",
 "Gemini (Cleffa) is looking for a new guild and new friends! (after getting kicked out of there last one) Gemini is the kind of friend whos gonna get you in trouble but itll be fun!"
@@ -1171,6 +1463,10 @@ export const GS_TEXT = {
 [
 "p",
 "Cleffa loves any kind of games of chance and loves to be out at night beneath the stars!"
+],
+[
+"img",
+"assets/gs/cast_gemini.png"
 ],
 [
 "h",
@@ -1183,6 +1479,10 @@ export const GS_TEXT = {
 [
 "p",
 "His relaxed and sometimes oblivious behavior conceals a painful sense of failure. He continues to shape his desire to protect others—even if part of him doesn't understand why."
+],
+[
+"img",
+"assets/gs/cast_slakoth.jpg"
 ],
 [
 "h",
@@ -1213,6 +1513,10 @@ export const GS_TEXT = {
 "Motivation: Curiosity and the thrill of discovery."
 ],
 [
+"img",
+"assets/gs/cast_magnemite.jpg"
+],
+[
 "h",
 "Puff"
 ],
@@ -1233,6 +1537,10 @@ export const GS_TEXT = {
 "Puff is an unusually old Cottonee who floats through life stirring up harmless trouble and making others laugh. After Puff’s father chose their twin brother to inherit the family shop, Puff left home to find a place—and a purpose—of their own."
 ],
 [
+"img",
+"assets/gs/cast_puff.jpg"
+],
+[
 "h",
 "Rox"
 ],
@@ -1251,6 +1559,10 @@ export const GS_TEXT = {
 [
 "p",
 "Goal: Grow strong enough to protect others and build the welcoming dojo he once dreamed of creating."
+],
+[
+"img",
+"assets/gs/cast_rox.jpg"
 ],
 [
 "h",
@@ -1289,6 +1601,10 @@ export const GS_TEXT = {
 "Earning Diamond Rank through bravery, teamwork, and an exceptional rescue record"
 ],
 [
+"img",
+"assets/gs/cast_mimi_kippy.jpg"
+],
+[
 "h",
 "Felicia"
 ],
@@ -1307,6 +1623,10 @@ export const GS_TEXT = {
 [
 "p",
 "Felicia is a driven craftsperson with a sharp eye for unusual materials and the patience to turn scraps, relics, and rare finds into something meaningful. She is naturally curious about the world around her and tends to throw herself completely into a project once inspiration strikes."
+],
+[
+"img",
+"assets/gs/cast_felicia.jpg"
 ],
 [
 "h",
@@ -1339,12 +1659,28 @@ export const GS_TEXT = {
 [
 "p",
 "Motivation: Kindness, good company, and the belief that small acts of help can make someone’s life better."
+],
+[
+"img",
+"assets/gs/cast_rocky.jpg"
 ]
 ],
 "story-guild-rank-progression": [
 [
 "h",
+"Guild Progression"
+],
+[
+"img",
+"assets/gs/story_ranks.jpg"
+],
+[
+"h",
 "Story Progression"
+],
+[
+"img",
+"assets/gs/ch0_medal.jpg"
 ],
 [
 "p",
@@ -1371,6 +1707,10 @@ export const GS_TEXT = {
 "Basic Rank"
 ],
 [
+"img",
+"assets/gs/ch1_medal.jpg"
+],
+[
 "p",
 "1 Chapter 1 - Earthquake at Woodland Base"
 ],
@@ -1385,6 +1725,10 @@ export const GS_TEXT = {
 [
 "p",
 "Basic Rank"
+],
+[
+"img",
+"assets/gs/ch2_medal.jpg"
 ],
 [
 "p",
@@ -1407,6 +1751,10 @@ export const GS_TEXT = {
 "Promotion: Bronze at the end"
 ],
 [
+"img",
+"assets/gs/ch3_medal.jpg"
+],
+[
 "p",
 "3 Chapter 3 - Poisoned Waters at Crystal Lake"
 ],
@@ -1421,6 +1769,10 @@ export const GS_TEXT = {
 [
 "p",
 "Bronze Rank"
+],
+[
+"img",
+"assets/gs/ch4_medal.jpg"
 ],
 [
 "h",
@@ -1439,6 +1791,10 @@ export const GS_TEXT = {
 "Promotion: Silver at the end"
 ],
 [
+"img",
+"assets/gs/ch5_medal.jpg"
+],
+[
 "h",
 "Chapter 5"
 ],
@@ -1449,6 +1805,10 @@ export const GS_TEXT = {
 [
 "p",
 "Silver Rank"
+],
+[
+"img",
+"assets/gs/ch6_medal.jpg"
 ],
 [
 "h",
@@ -1467,6 +1827,10 @@ export const GS_TEXT = {
 "Promotion: Gold at the end"
 ],
 [
+"img",
+"assets/gs/ch7_medal.jpg"
+],
+[
 "h",
 "Chapter 7"
 ],
@@ -1477,6 +1841,10 @@ export const GS_TEXT = {
 [
 "p",
 "Gold Rank"
+],
+[
+"img",
+"assets/gs/ch8_medal.jpg"
 ],
 [
 "h",
@@ -1495,6 +1863,10 @@ export const GS_TEXT = {
 "Promotion: Diamond at the end"
 ],
 [
+"img",
+"assets/gs/ch9_medal.jpg"
+],
+[
 "h",
 "Chapter 9"
 ],
@@ -1505,6 +1877,10 @@ export const GS_TEXT = {
 [
 "p",
 "Diamond Rank"
+],
+[
+"img",
+"assets/gs/ch10_medal.jpg"
 ],
 [
 "h",
@@ -1535,6 +1911,10 @@ export const GS_TEXT = {
 [
 "p",
 "Every Pokémon across the known world heard something."
+],
+[
+"img",
+"assets/gs/ch0_scene.jpg"
 ],
 [
 "h",
@@ -1589,6 +1969,10 @@ export const GS_TEXT = {
 [
 "p",
 "A powerful earthquake strikes the Woodland Base, opening a burning fissure near the guild. Several Pokémon report seeing a massive shape moving beneath the ground shortly before the disaster. Because Groudon has appeared near previous earthquakes, the heroes are sent to investigate."
+],
+[
+"img",
+"assets/gs/ch1_scene.jpg"
 ],
 [
 "h",

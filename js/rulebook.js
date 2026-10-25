@@ -6,7 +6,7 @@ import { portrait } from './ui.js';
 import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js';
 import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js';
 import { merged, editContent } from './content-store.js';
-import { GS_TEXT } from './gstext.js';
+import { pageHTML, navHTML } from './sitepages.js';
 
 const gm = () => store.gmUnlocked();
 const editBtn = (attr) => (gm() ? `<button class="btn alt sm" ${attr}>Edit</button>` : '');
@@ -27,8 +27,9 @@ export const rivals = () => merged('rivals', GUILDS.rivals.map((r) => ({ ...r, m
 export async function renderRules(main, [sub, arg]) {
   const ix = await loadIndex();
   const L = (t) => linkify(t, ix);
-  // Full text of a page on the GM's Google Site, as a collapsible card
-  const gs = (key, title = 'From the campaign site', open = true, fromHeading = false) => {
+  // Link to the full copy of a page from the GM's Google Site
+  const gs = (key, title = 'From the campaign site') => `<a class="card linkcard" href="#/rules/site/${key}"><b>${esc(title.replace(/ — from the campaign site$/, ''))}</b><span>Read the full page from the campaign site, with all its pictures →</span></a>`;
+  const gsOld = (key, title = 'From the campaign site', open = true, fromHeading = false) => {
     let b = GS_TEXT[key] || [];
     if (fromHeading) { const i = b.findIndex((x) => x[0] === 'h'); if (i > 0) b = b.slice(i); }
     if (!b.length) return '';
@@ -44,14 +45,16 @@ export async function renderRules(main, [sub, arg]) {
   const RULE_GS = { 'new-character': 'how-to-play_new-character', combat: 'how-to-play_beginner-mechanics_combat-and-movement', traps: 'how-to-play_beginner-mechanics_traps-and-hazards', evolution: 'how-to-play_advanced-mechanics_evolution', training: 'how-to-play_advanced-mechanics_training', recruiting: 'how-to-play_advanced-mechanics_recruiting', directing: 'how-to-play_advanced-mechanics_directing-teammates' };
   const back = '<a class="btn alt sm" href="#/rules">← Rulebook</a>';
   const pages = {
-    '': hub, coverage, index: indexPage, r: rulePage, story, cast: castPage, ranks: ranksPage, rivals: rivalsPage, items: itemsPage, handouts, links, credits,
+    '': hub, site: sitePageView, coverage, index: indexPage, r: rulePage, story, cast: castPage, ranks: ranksPage, rivals: rivalsPage, items: itemsPage, handouts, links, credits,
   };
   (pages[sub || ''] || hub)();
 
   function hub() {
     main.innerHTML = `
-      <div class="hero"><img class="hdr" src="assets/headers/wigglytuff_guild.png" alt=""></div>
+      <div class="hero"><img class="hdr" src="assets/gs/items_utility_wide.jpg" alt=""></div>
       <h1>Rulebook</h1>
+      <div class="section-title"><h2>Your campaign site</h2></div>
+      <div class="card">${navHTML('')}</div>
       <div class="search"><input id="q" placeholder="Search rules, effects, moves, items…" autocomplete="off" aria-label="Search"></div>
       <div id="results"></div>
       <div class="section-title"><h2>Look things up</h2></div>
@@ -123,6 +126,10 @@ export async function renderRules(main, [sub, arg]) {
       ${r.art ? `<a class="handout" href="${esc(r.art)}" target="_blank" style="max-width:520px;margin-bottom:12px"><img src="${esc(r.art)}" alt="" loading="lazy" style="aspect-ratio:auto"><span>Tap to open full size</span></a>` : ''}
       ${r.img ? `<a class="handout" href="assets/handouts/${esc(r.img)}.jpg" target="_blank" style="max-width:520px"><img src="assets/handouts/${esc(r.img)}.jpg" alt="${esc(r.title)} handout" loading="lazy" style="aspect-ratio:auto"><span>GM handout — tap to open full size</span></a>` : ''}`;
     const e = $('#ed', main); if (e) e.onclick = () => editContent('rules', RULE_SCHEMA, r, { title: 'Edit ' + r.title, onSave: () => renderRules(main, [sub, arg]) });
+  }
+
+  function sitePageView() {
+    main.innerHTML = `${back}${pageHTML(arg || 'home', L)}`;
   }
 
   function story() {

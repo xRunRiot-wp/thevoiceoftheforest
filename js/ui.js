@@ -8,7 +8,17 @@ export function portraitFile(species) {
   return PORTRAITS.includes(k) ? `assets/portraits/${k}.png` : null;
 }
 
+// The GM's own character art (campaign site, Meet the Characters), by character name or species
+const ART = { gemini: 'cast_gemini.png', cleffa: 'cast_gemini.png', slakoth: 'cast_slakoth.jpg', magnemite: 'cast_magnemite.jpg', puff: 'cast_puff.jpg', cottonee: 'cast_puff.jpg',
+  rox: 'cast_rox.jpg', felicia: 'cast_felicia.jpg', rocky: 'cast_rocky.jpg', sudowoodo: 'cast_rocky.jpg', mimi: 'cast_mimi_kippy.jpg', kippy: 'cast_mimi_kippy.jpg', mimikippy: 'cast_mimi_kippy.jpg' };
+export function artFile(c) {
+  for (const v of [c?.nickname, c?.name, c?.pokemon, c?.species]) { const k = String(v || '').toLowerCase().replace(/[^a-z]/g, ''); if (ART[k]) return 'assets/gs/' + ART[k]; }
+  return null;
+}
+
 export function portrait(c, size = '') {
+  const art = c?.art || artFile(c);
+  if (art) return `<div class="portrait art ${size}"><img src="${esc(art)}" alt="${esc(c?.nickname || c?.name || '')}"></div>`;
   const f = c?.portrait ? `assets/portraits/${c.portrait}.png` : portraitFile(c?.pokemon || c?.species);
   const inner = f ? `<img src="${f}" alt="${esc(c?.pokemon || c?.species || '')}">` : `<div class="ph">${esc((c?.nickname || c?.name || '?')[0])}</div>`;
   return `<div class="portrait ${size}">${inner}</div>`;

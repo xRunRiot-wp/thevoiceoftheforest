@@ -524,7 +524,7 @@ function missionEditor(id, hiddenNew = false) {
 function lockScreen(main) {
   const exists = store.gmExists();
   main.innerHTML = `
-  <div class="hero"><img class="hdr" src="assets/headers/hidden_land_temporal_tower.png" alt=""></div>
+  <div class="hero"><img class="hdr" src="assets/gs/ch1_scene.jpg" alt=""></div>
   <div class="card" style="max-width:520px">
     <h1>${exists ? 'GM screen' : 'Become the GM'}</h1>
     <p>${exists ? 'Enter the GM passcode for table ' + esc(store.tableCode()) + '.' : 'Pick a GM passcode for table ' + esc(store.tableCode()) + '. Your notes, enemy sheets, hidden missions and loot are scrambled with it, so players never see them.'}</p>

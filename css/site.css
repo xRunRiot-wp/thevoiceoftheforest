@@ -248,3 +248,17 @@ details.gs h4 { margin: 12px 0 4px; }
 .wheel-wrap { max-width: 520px; margin: 0 auto; }
 .wheel-wrap canvas { width: 100%; height: auto; display: block; }
 .mini-wheel { width: 100%; max-width: 160px; height: auto; display: block; margin: 0 auto; }
+
+/* The GM's campaign site pages */
+.site-page img { max-width: 100%; height: auto; }
+.site-img { display: block; margin: 12px auto; max-width: 420px; }
+.site-img.wide { max-width: 100%; }
+.site-img img { width: 100%; height: auto; display: block; border-radius: 10px; }
+.site-nav, .site-nav ul { list-style: none; margin: 0; padding: 0; }
+.site-nav a { display: block; padding: 8px; border-radius: 8px; text-decoration: none; color: inherit; min-height: 40px; }
+.site-nav a.on { background: var(--orange, #e07b24); color: #fff; }
+.site-nav > li > a { font-weight: 700; }
+.linkcard { display: block; text-decoration: none; color: inherit; }
+.linkcard span { display: block; font-size: 14px; opacity: .75; margin-top: 2px; }
+.portrait.art { border-image: none; border: 3px solid var(--brown, #6b4423); border-radius: 12px; background: #fff; overflow: hidden; }
+.portrait.art img { object-fit: cover; image-rendering: auto; }

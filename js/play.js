@@ -8,6 +8,7 @@ import { myId, setMe, joined, setJoined, openTable } from './app.js';
 import { CONFIG } from './config.js';
 import { ixLink, wireRolls, linkify, loadIndex } from './effects.js';
 import { merged, editContent } from './content-store.js';
+import { blocksHTML } from './sitepages.js';
 import * as dice3d from './dice3d.js';
 
 export async function allMoves() {
@@ -24,9 +25,8 @@ export const me = () => party()[myId()] || null;
 export function renderJoin(main) {
   const p = Object.values(party()).filter((c) => !c.guest || c.guest.controller === 'player');
   main.innerHTML = `
-  <div class="hero"><img class="hdr" src="assets/headers/treasure_town.png" alt="">
-    <div class="over"><div class="win"><span class="who">Guildmaster Beautifly:</span> Welcome, explorer! Join your table to begin today's adventure.</div></div></div>
-  <div class="after-hero"></div>
+  <img class="art-wide" src="assets/gs/logo.png" alt="Voice of the Forest" style="margin-top:12px">
+  <div class="card emblem"><div class="win"><span class="who">Guildmaster Beautifly:</span> Welcome, explorer! Join your table to begin today's adventure.</div></div>
   <div class="card">
     <h2>Join a table</h2>
     <p class="small muted">Your GM gives you the table code. Pick your character and you're in.</p>
@@ -43,9 +43,9 @@ export function renderJoin(main) {
   </div>
   <div class="row" style="margin-top:14px"><a class="btn dark" href="#/gm">I'm the GM</a></div>
 
-  <img class="art-wide" src="assets/gs/logo.png" alt="${esc(INTRO.title)}" style="margin-top:18px">
-  <div class="card" style="text-align:center"><img src="assets/gs/home_team.png" alt="" style="width:min(240px,70%);border-radius:50%"></div>
-  <div class="card emblem"><div class="win">${INTRO.body.map((t) => esc(t)).join('<br><br>')}</div></div>
+  <div class="section-title"><h2>${esc(INTRO.title)}</h2></div>
+  <div class="card site-page">${blocksHTML('home', esc, { skipImgs: ['assets/gs/logo.png'] })}
+    <div class="toc" style="margin-top:12px"><a href="#/rules/site/meet-the-characters">Meet the Characters!</a><a href="#/rules/site/how-to-play">How To Play</a><a href="#/rules/site/story-guild-rank-progression">Story & Guild Rank Progression</a><a href="#/rules/site/guilds">Guilds</a><a href="#/rules/site/items">Items</a><a href="#/rules/site/how-to-play_new-character">New Character</a></div></div>
   <div class="section-title"><h2>Campaign links</h2></div>
   <div class="grid g2">${QUICK_LINKS.map((l) => `<a class="linkbtn" href="${l.href}" target="_blank" rel="noopener"><b>${esc(l.label)}</b><span>${esc(l.sub)}</span></a>`).join('')}</div>`;
 
