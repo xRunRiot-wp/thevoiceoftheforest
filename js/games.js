@@ -1,13 +1,14 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import * as store from './store.js?v=6ade84f2';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ade84f2';
-import { modal, portrait } from './ui.js?v=6ade84f2';
-import * as sheet from './sheetdata.js?v=6ade84f2';
-import { shop } from './guild.js?v=6ade84f2';
-import { merged, editContent } from './content-store.js?v=6ade84f2';
-import { logRoll, me, addTeamFx } from './play.js?v=6ade84f2';
-import { ranks } from './rulebook.js?v=6ade84f2';
+import * as store from './store.js?v=6ade8586';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ade8586';
+import { modal, portrait } from './ui.js?v=6ade8586';
+import * as sheet from './sheetdata.js?v=6ade8586';
+import { shop } from './guild.js?v=6ade8586';
+import { merged, editContent } from './content-store.js?v=6ade8586';
+import { logRoll, me, addTeamFx } from './play.js?v=6ade8586';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ade8586';
+import { ranks } from './rulebook.js?v=6ade8586';
 
 export const GAMES = [
   {
@@ -283,6 +284,7 @@ export function renderGames(main, [arg]) {
     $$('[data-lunch]', box).forEach((b) => b.onclick = () => {
       store.set('lunches/' + uid(), { who: c.id, when: b.dataset.lunch, session: sessN(), game: g.id, t: Date.now() });
       logRoll(c.nickname, `${g.name} — prize`, null, `Lunch with the Guild Leader: ${LUNCH[b.dataset.lunch]}`, 'note');
+      gmTodo(`Lunch with the Guild Leader for ${c.nickname}: ${LUNCH[b.dataset.lunch]}`);
       b.closest('.claim').outerHTML = `<p class="claim ok">🍽️ Lunch with the Guild Leader booked: <b>${esc(LUNCH[b.dataset.lunch])}</b>.</p>`;
       drawLunches();
     });
@@ -324,6 +326,7 @@ export function renderGames(main, [arg]) {
         + (tw ? `<div class="twist ${tw[1]}"><b>${TWIST[tw[1]][0]} ${esc(g.special)}’s ${TWIST[tw[1]][1]}</b><p>${esc(tw[2])}</p>${/Metronome wheel/i.test(tw[2]) ? '<a class="gemini-wag" href="#/games/gemini-metronome">Spin Gemini’s Metronome wheel →</a>' : ''}</div>` : '');
       const capNote = await payout(n, p, tw, (store.get('party') || {})[c.id] || c);
       logRoll(c.nickname, `${g.name} — spin`, null, (paid ? `paid ${paid} Poké · ` : '') + n + (p ? ` (${p})` : '') + (tw ? ` · ${g.special}’s ${TWIST[tw[1]][1].toLowerCase()}: ${tw[2]}` : '') + (capNote ? ` · capped by the ${Number(g.winCap).toLocaleString()} Poké session limit` : ''), 'note');
+      if (g.id === 'lucky-den') luckyReaction(c.nickname, n, p);
       toast(`${g.name}: ${n}`);
     };
     requestAnimationFrame(step);

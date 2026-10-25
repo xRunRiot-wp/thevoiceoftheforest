@@ -433,3 +433,16 @@ details.gs h4 { margin: 12px 0 4px; }
 .tfx-used { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 6px; }
 .tfx-used label { display: flex; align-items: center; gap: 5px; font-size: 14px; }
 .tfx-used input { width: 18px; height: 18px; }
+.chatter h2 { font-size: 22px; }
+.gmtodo { margin: 10px 0; padding: 8px 10px; border-radius: 10px; background: #fff4d6; border: 2px dashed #d9a83a; }
+.gmtodo .todo { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; }
+.gmtodo .todo input { width: 18px; height: 18px; margin-top: 2px; flex: none; }
+.gmtodo .todo.done span { text-decoration: line-through; opacity: .6; }
+.chatter .say { gap: 6px; margin: 8px 0; }
+.chatter .say select { max-width: 40%; }
+.chatter .say input { flex: 1; min-width: 0; }
+.chatter .feed { max-height: 420px; overflow-y: auto; }
+.chatter .line { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid rgba(90, 58, 16, .15); }
+.chatter .line.lucky { background: linear-gradient(90deg, rgba(255, 213, 107, .25), transparent); border-radius: 8px; padding-left: 6px; }
+.chatter .face { width: 40px; height: 40px; flex: none; border-radius: 50%; background: #f3e3c3; border: 2px solid #8a5a2b; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 22px; }
+.chatter .face img { width: 100%; height: 100%; object-fit: contain; }

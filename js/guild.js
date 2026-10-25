@@ -1,15 +1,16 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade84f2';
-import * as sheet from './sheetdata.js?v=6ade84f2';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade84f2';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade84f2';
-import { MISSION_GP } from './content.js?v=6ade84f2';
-import { ranks } from './rulebook.js?v=6ade84f2';
-import { merged, editContent } from './content-store.js?v=6ade84f2';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade84f2';
-import { myId } from './app.js?v=6ade84f2';
-import { lowAlertHTML } from './vault.js?v=6ade84f2';
-import { ixLink } from './effects.js?v=6ade84f2';
+import * as store from './store.js?v=6ade8586';
+import * as sheet from './sheetdata.js?v=6ade8586';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade8586';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade8586';
+import { MISSION_GP } from './content.js?v=6ade8586';
+import { ranks } from './rulebook.js?v=6ade8586';
+import { merged, editContent } from './content-store.js?v=6ade8586';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade8586';
+import { myId } from './app.js?v=6ade8586';
+import { lowAlertHTML } from './vault.js?v=6ade8586';
+import { ixLink } from './effects.js?v=6ade8586';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ade8586';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -89,6 +90,8 @@ export function finishMission(id, ok) {
   store.set(`missions/${id}/status`, ok ? 'done' : 'failed');
   store.pushLimited('log', { t: Date.now(), text: `Mission ${ok ? 'complete' : 'failed'}: ${m.title} (${delta > 0 ? '+' : ''}${delta} GP)` });
   toast(`${delta > 0 ? '+' : ''}${delta} Guild Points`);
+  if (ok) { guildSay('Guildmaster Beautifly', 'say', `Well done on “${m.title}”. The guild is proud of you.`); if (m.reward) gmTodo(`Hand out the reward for “${m.title}”: ${m.reward}`); }
+  else guildSay('Guildmaster Beautifly', 'say', `“${m.title}” didn’t go to plan. Rest up — we learn and we try again.`);
   // a big mission made of smaller ones completes itself when its last part is done
   if (ok && m.partOf) {
     const parent = Object.entries(store.get('missions') || {}).find(([, x]) => x.title?.toLowerCase() === m.partOf.toLowerCase());
@@ -120,6 +123,7 @@ export function renderGuild(main) {
   ${lowAlertHTML()}
   <div class="guildboxes">${GUILDS2.map(([k]) => guildBox(k)).join('')}</div>
   <div class="card coffers"><span class="pix">Shared guild coffers:</span> <b class="pix">${(g.coffers || 0).toLocaleString()} Poké</b></div>
+  ${chatterHTML()}
   <p class="small" style="margin:-4px 0 10px">${ixLink('Guild Points', 'How Guild Points work')} · <a href="#/rules/ranks">All ranks</a></p>
 
   <div class="section-title"><h2>Mission board</h2></div>
@@ -140,6 +144,8 @@ export function renderGuild(main) {
   </div></div>`;
 
   bindTracker(main);
+  bindChatter(main);
+  ambientTick();
   $$('[data-take]', main).forEach((b) => b.onclick = () => { store.set(`missions/${b.dataset.take}/status`, 'taken'); store.pushLimited('log', { t: Date.now(), text: `Mission taken: ${(store.get('missions') || {})[b.dataset.take]?.title}` }); });
   $$('[data-buy]', main).forEach((b) => b.onclick = () => buy(b.dataset.buy));
   $$('[data-view]', main).forEach((b) => b.onclick = () => viewCharacter(b.dataset.view));
