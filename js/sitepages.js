@@ -60,6 +60,17 @@ export function blocksHTML(key, L = esc, { skipImgs = [] } = {}) {
   return h;
 }
 
+// Home page: Humanity and Instinct side by side, then the team picture (no menu text, no Discord icon)
+export function homeHTML() {
+  const b = GS_TEXT.home || [];
+  const text = (label) => { const i = b.findIndex(([k, t]) => k === 'p' && t === label); return i >= 0 && b[i + 1] ? b[i + 1][1] : ''; };
+  const col = (title, img, body, ask) => `<div class="home-col"><h3>${esc(title)}</h3>
+    <a href="${img}" target="_blank" class="site-img wide"><img src="${img}" alt="${esc(title)}" loading="lazy"></a>
+    <p>${esc(body)}</p><h3>${esc(ask)}</h3></div>`;
+  return `<div class="home-row">${col('Your Humanity', 'assets/gs/home_1.jpg', text('Your Humanity:'), 'What will you choose?')}${col('Your Instinct', 'assets/gs/home_5.png', text('Your Instinct:'), 'Will it consume you?')}</div>
+    <a href="assets/gs/home_team.png" target="_blank" class="site-img"><img src="assets/gs/home_team.png" alt="" loading="lazy"></a>`;
+}
+
 export function navHTML(current) {
   const item = ([k, t, kids], depth) => `<li><a href="${href(k)}" class="${k === current ? 'on' : ''}" style="padding-left:${8 + depth * 14}px">${esc(t)}</a>${kids ? `<ul>${kids.map((x) => item(x, depth + 1)).join('')}</ul>` : ''}</li>`;
   return `<ul class="site-nav">${SITE_NAV.map((x) => item(x, 0)).join('')}</ul>`;

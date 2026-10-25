@@ -8,7 +8,7 @@ import { myId, setMe, joined, setJoined, openTable } from './app.js';
 import { CONFIG } from './config.js';
 import { ixLink, wireRolls, linkify, loadIndex } from './effects.js';
 import { merged, editContent } from './content-store.js';
-import { blocksHTML } from './sitepages.js';
+import { homeHTML } from './sitepages.js';
 import * as dice3d from './dice3d.js';
 
 export async function allMoves() {
@@ -44,7 +44,7 @@ export function renderJoin(main) {
   <div class="row" style="margin-top:14px"><a class="btn dark" href="#/gm">I'm the GM</a></div>
 
   <div class="section-title"><h2>${esc(INTRO.title)}</h2></div>
-  <div class="card site-page">${blocksHTML('home', esc, { skipImgs: ['assets/gs/logo.png'] })}
+  <div class="card site-page">${homeHTML()}
     <div class="toc" style="margin-top:12px"><a href="#/rules/site/meet-the-characters">Meet the Characters!</a><a href="#/rules/site/how-to-play">How To Play</a><a href="#/rules/site/story-guild-rank-progression">Story & Guild Rank Progression</a><a href="#/rules/site/guilds">Guilds</a><a href="#/rules/site/items">Items</a><a href="#/rules/site/how-to-play_new-character">New Character</a></div></div>
   <div class="section-title"><h2>Campaign links</h2></div>
   <div class="grid g2">${QUICK_LINKS.map((l) => `<a class="linkbtn" href="${l.href}" target="_blank" rel="noopener"><b>${esc(l.label)}</b><span>${esc(l.sub)}</span></a>`).join('')}</div>`;
