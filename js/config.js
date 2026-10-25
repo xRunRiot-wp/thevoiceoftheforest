@@ -2,6 +2,6 @@
 // one live game (e.g. 'https://dungeoncrawling-xxxx-default-rtdb.firebaseio.com'). Empty = each
 // device keeps its own save (use Export / Import to move it).
 export const CONFIG = {
-  firebaseDbUrl: '',
+  firebaseDbUrl: 'https://voiceoftheforest-e071c-default-rtdb.firebaseio.com',
   defaultTable: 'VOICE',
 };

@@ -137,7 +137,8 @@ export async function renderGM(main) {
     <h2>Table</h2>
     <p>Table code <b class="pix" style="font-size:20px">${esc(store.tableCode())}</b> — players open the site and enter this code.</p>
     <p class="small">${store.status.mode === 'shared' ? `Live sharing is on (${store.status.connected ? 'connected' : 'connecting…'}).` : 'Live sharing between devices isn\'t switched on yet, so this table lives on this device. Use Export to save it or move it to another device.'}</p>
-    <div class="row"><button class="btn alt" id="export">Export table</button><label class="btn alt">Import table<input type="file" id="import" accept=".json,application/json" hidden></label><button class="btn alt" id="resync">Reload party from spreadsheet</button></div>
+    <p class="small">Player link: <b>${esc(location.origin + location.pathname)}?t=${esc(store.tableCode())}</b></p>
+    <div class="row"><button class="btn alt" id="newcode">Move to a private code</button><button class="btn alt" id="export">Export table</button><label class="btn alt">Import table<input type="file" id="import" accept=".json,application/json" hidden></label><button class="btn alt" id="resync">Reload party from spreadsheet</button></div>
     <p class="small muted" style="margin-top:10px">The GM passcode scrambles GM-only data (notes, enemy sheets, hidden missions, loot). Anyone who knows the passcode can open the GM screen — don't reuse a real password.</p>
   </section>
 
@@ -357,6 +358,16 @@ function bindGM(main) {
   };
 
   // ---- table
+  s('#newcode').onclick = async () => {
+    const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
+    if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
+    const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
+    const { openTable } = await import('./app.js');
+    try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
+    await openTable(nc); store.importJSON(saved);
+    toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));
+    location.href = location.pathname + '?t=' + nc + '#/gm';
+  };
   s('#export').onclick = () => download(`table-${store.tableCode()}-${new Date().toISOString().slice(0, 10)}.json`, store.exportJSON());
   s('#import').onchange = async (e) => { const f = e.target.files[0]; if (!f) return; try { store.importJSON(await f.text()); toast('Table loaded'); } catch (err) { toast(err.message); } };
   s('#resync').onclick = async () => {
