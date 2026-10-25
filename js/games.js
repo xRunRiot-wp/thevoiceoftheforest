@@ -1,11 +1,13 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import * as store from './store.js?v=6ade8032';
-import { $, $$, esc, toast } from './util.js?v=6ade8032';
-import { modal } from './ui.js?v=6ade8032';
-import { merged, editContent } from './content-store.js?v=6ade8032';
-import { logRoll, me } from './play.js?v=6ade8032';
-import { ranks } from './rulebook.js?v=6ade8032';
+import * as store from './store.js?v=6ade8258';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ade8258';
+import { modal, portrait } from './ui.js?v=6ade8258';
+import * as sheet from './sheetdata.js?v=6ade8258';
+import { shop } from './guild.js?v=6ade8258';
+import { merged, editContent } from './content-store.js?v=6ade8258';
+import { logRoll, me } from './play.js?v=6ade8258';
+import { ranks } from './rulebook.js?v=6ade8258';
 
 export const GAMES = [
   {
@@ -83,12 +85,37 @@ export const games = () => merged('games', GAMES).map(parse);
 const forEdit = (g) => ({ ...g, slicesText: g.slices.map(([n, w, p]) => `${n} | ${w}${p ? ' | ' + p : ''}`).join('\n'), colorsText: g.colors.join(', '),
   twistsText: g.twists.map(([n, k, t]) => `${n} | ${k} | ${t}`).join('\n') });
 // Prizes that name a rank (e.g. "E-Rank shop item") use the spinner's own rank: Basic = E, Bronze = D, Silver = C ...
-const myRankLetter = () => {
-  const c = me(); if (!c?.rank) return '';
+// (Rankless characters count as E.)
+const rankLetter = (c) => {
+  if (!c?.rank) return '';
   const r = ranks().find((x) => [x.name, x.alt].some((n) => n && n.toLowerCase() === c.rank.toLowerCase()));
-  return r && /^[A-Z]$/.test(r.missions || '') ? r.missions : '';
+  return r ? (/^[A-Z]$/.test(r.missions || '') ? r.missions : 'E') : '';
 };
-const rankPrize = (p) => { const L = myRankLetter(); return L ? p.replace(/\b[EDCBASX]-Rank\b/g, `${L}-Rank`) : p; };
+const rankPrize = (p, c) => { const L = rankLetter(c); return L ? (p || '').replace(/\b[EDCBASX]-Rank\b/g, `${L}-Rank`) : p || ''; };
+
+// Free shop item choices. Which rarities a rank may take is a starter rule the GM can change:
+// E = the guild shop + Mundane, D adds Common, C Uncommon, B Rare, A and up Very Rare.
+const RARITIES = ['Mundane', 'Common', 'Uncommon', 'Rare', 'Very Rare'];
+const TIER_BY_RANK = { E: 0, D: 1, C: 2, B: 3, A: 4, S: 4, X: 4 };
+async function prizeChoices(prize, c) {
+  const t = await sheet.treasure().catch(() => []);
+  const seen = new Set(); const all = [];
+  for (const x of [...shop().map((s) => ({ name: s.name, price: num(s.price), tier: 0, note: s.kind || '' })),
+    ...t.map((x) => ({ name: x.name, price: num(x.price), tier: RARITIES.findIndex((r) => x.rarity.toLowerCase().startsWith(r.toLowerCase())), note: x.rarity }))]) {
+    if (x.tier < 0 || seen.has(x.name.toLowerCase())) continue; seen.add(x.name.toLowerCase()); all.push(x);
+  }
+  const upTo = prize.match(/up to\s*([\d,]+)\s*Poké/i);
+  const L = (prize.match(/\b([EDCBASX])-Rank\b/) || [])[1] || (upTo ? '' : rankLetter(c) || 'E');
+  return all.filter((x) => (!L || x.tier <= TIER_BY_RANK[L]) && (!upTo || (x.price > 0 && x.price <= num(upTo[1])))).sort((a, b) => a.price - b.price || a.name.localeCompare(b.name));
+}
+const itemCount = (prize) => [...prize.matchAll(/(\d+)\s+free\b[^+]*?item/gi)].reduce((s, m) => s + num(m[1], 1), 0);
+function giveItem(owner, name, qty = 1) {
+  const bag = store.get('bag') || {};
+  const same = Object.entries(bag).find(([, b]) => b.name.toLowerCase() === name.toLowerCase() && b.owner === owner);
+  if (same) store.set(`bag/${same[0]}/qty`, same[1].qty + qty); else store.set('bag/' + uid(), { name, qty, owner });
+}
+const givePoke = (id, amt) => store.update('party/' + id, (x) => ({ ...x, poke: num(x?.poke) + amt }));
+const LUNCH = { now: 'Now (this session)', soon: 'Soon (next session)', someday: 'Someday (any future session)' };
 // The special character's Poké winnings per session (GM's session number), checked against the game's winCap.
 const sessN = () => parseInt((store.get('session') || {}).n, 10) || 1;
 const winPath = (g) => `gamewins/${g.id}/s${sessN()}`;
@@ -163,19 +190,115 @@ export function renderGames(main, [arg]) {
     <p>${esc(g.intro || '')}</p>
     ${g.cost || g.source ? `<p>${g.cost ? `<span class="pill">🪙 Cost: ${esc(g.cost)}</span> ` : ''}${g.source ? `<a class="small" href="${esc(g.source)}" target="_blank" rel="noopener">🍀 Original wheel</a>` : ''}</p>` : ''}
     ${g.legend ? `<details class="card legend"><summary><b>📜 ${esc(g.legendTitle || 'The story')}</b></summary>${g.legend.split(/\n\s*\n/).map((x) => `<p>${esc(x.trim())}</p>`).join('')}</details>` : ''}
+    <div class="wheel-layout">
+    <aside class="spinners"><div class="sp-title">Who's spinning?</div><div id="splist"></div></aside>
     <div class="wheel-panel ${g.theme === 'stars' ? 'stars' : ''}"><div class="wheel-wrap"><canvas id="wheel" width="680" height="680"></canvas></div>
-    ${g.special && g.twists.length ? `<label class="twist-toggle"><input type="checkbox" id="asSpecial" ${new RegExp(g.special, 'i').test(me()?.nickname || '') ? 'checked' : ''}> ✨ ${esc(g.special)} is spinning (special twists on)</label>${g.winCap ? `<p class="small twist-cap" id="capline">${capLine(g)}</p>` : ''}` : ''}
+    ${g.special && g.twists.length ? `<label class="twist-toggle"><input type="checkbox" id="asSpecial"> ✨ ${esc(g.special)} is spinning (special twists on)</label>${g.winCap ? `<p class="small twist-cap" id="capline">${capLine(g)}</p>` : ''}` : ''}
     <button class="btn block spinbtn" id="spin">Spin the wheel</button>
-    <div class="result" id="res"></div></div>
-    <details class="card" style="margin-top:12px"><summary><b>Prizes and odds</b></summary>
-      <table class="t"><tr><th>Slice</th><th>Chance</th><th>Prize</th>${g.twists.length ? `<th>${esc(g.special || 'Special')}’s twist</th>` : ''}</tr>${(() => { const t = g.slices.reduce((s, [, w]) => s + w, 0); return g.slices.map(([n, w, p]) => { const tw = twistFor(g, n); return `<tr><td>${esc(n)}</td><td>${((w / t) * 100).toFixed(1)}%</td><td>${esc(rankPrize(p) || 'GM decides')}</td>${g.twists.length ? `<td>${tw ? `<span class="twist-tag ${tw[1]}">${TWIST[tw[1]][0]} ${TWIST[tw[1]][1]}</span> ${esc(tw[2])}` : ''}</td>` : ''}</tr>`; }).join(''); })()}</table>
-      ${g.slices.some(([, , p]) => /\b[EDCBASX]-Rank\b/.test(p || '')) ? `<p class="small muted">Shop ranks in the prizes match the rank of whoever is spinning${myRankLetter() ? ` (yours: ${myRankLetter()}-Rank)` : ''}.</p>` : ''}
-    </details>`;
+    <div class="result" id="res"></div><div id="claims"></div></div>
+    </div>
+    <div id="lunches"></div>
+    <details class="card" style="margin-top:12px"><summary><b>Prizes and odds</b></summary><div id="odds"></div></details>`;
+  const party = () => Object.values(store.get('party') || {}).filter((c) => !c.guest);
+  let spinner = me()?.id || '';
+  let free = 0;            // free spins owed to the spinner (Double Trouble, Golden Wag ...)
+  const costAmt = /\d/.test(g.cost || '') ? num(g.cost) : 0;
+  const who = () => (store.get('party') || {})[spinner] || null;
+  const nextCostPath = () => `gamenext/${g.id}/${spinner}`;
+  const spinCost = () => num(store.get(nextCostPath())) || costAmt;
+  const isSpecial = () => !!$('#asSpecial', main)?.checked;
+  const drawSpinners = () => {
+    $('#splist', main).innerHTML = party().map((c) => `<button class="sp ${c.id === spinner ? 'on' : ''}" data-sp="${c.id}">${portrait(c, 'sm')}<span><b>${esc(c.nickname)}</b><small>${num(c.poke).toLocaleString()} Poké${rankLetter(c) ? ' · ' + rankLetter(c) + '-Rank' : ''}</small></span></button>`).join('') || '<p class="small muted">No characters at this table yet.</p>';
+    $$('[data-sp]', main).forEach((b) => b.onclick = () => { spinner = b.dataset.sp; free = 0; $('#claims', main).innerHTML = ''; $('#res', main).innerHTML = ''; refreshSpinner(); });
+  };
+  const drawOdds = () => {
+    const c = who(); const t = g.slices.reduce((s, [, w]) => s + w, 0);
+    $('#odds', main).innerHTML = `<table class="t"><tr><th>Slice</th><th>Chance</th><th>Prize</th>${g.twists.length ? `<th>${esc(g.special || 'Special')}’s twist</th>` : ''}</tr>${g.slices.map(([n, w, p]) => { const tw = twistFor(g, n); return `<tr><td>${esc(n)}</td><td>${((w / t) * 100).toFixed(1)}%</td><td>${esc(rankPrize(p, c) || 'GM decides')}</td>${g.twists.length ? `<td>${tw ? `<span class="twist-tag ${tw[1]}">${TWIST[tw[1]][0]} ${TWIST[tw[1]][1]}</span> ${esc(tw[2])}` : ''}</td>` : ''}</tr>`; }).join('')}</table>
+      ${g.slices.some(([, , p]) => /\b[EDCBASX]-Rank\b/.test(p || '')) ? `<p class="small muted">Shop ranks in the prizes match the rank of whoever is spinning${rankLetter(c) ? ` (${esc(c.nickname)}: ${rankLetter(c)}-Rank)` : ''}. Free item lists: E-Rank = guild shop + Mundane items, D adds Common, C Uncommon, B Rare, A Very Rare.</p>` : ''}`;
+  };
+  const drawLunches = () => {
+    const L = Object.entries(store.get('lunches') || {}).filter(([, x]) => !x.done && x.game === g.id);
+    const P = store.get('party') || {};
+    $('#lunches', main).innerHTML = L.length ? `<div class="card lunches"><h3>🍽️ Lunch with the Guild Leader</h3>${L.map(([id, x]) => `<div class="row nowrap"><span class="grow"><b>${esc(P[x.who]?.nickname || 'Someone')}</b>: ${esc(LUNCH[x.when] || x.when)}<span class="small muted"> · won in session ${x.session}</span></span>${gm ? `<button class="btn alt sm" data-lunchdone="${id}">Done</button>` : ''}</div>`).join('')}</div>` : '';
+    $$('[data-lunchdone]', main).forEach((b) => b.onclick = () => { store.set(`lunches/${b.dataset.lunchdone}/done`, true); drawLunches(); });
+  };
+  const drawSpinBtn = () => {
+    const c = who();
+    $('#spin', main).textContent = free ? `Free spin (${free} left)` : costAmt && c ? `Spin the wheel · ${spinCost().toLocaleString()} Poké` : 'Spin the wheel';
+  };
+  const refreshSpinner = () => {
+    const c = who(); const sp = $('#asSpecial', main);
+    if (sp) sp.checked = !!(c && new RegExp(g.special, 'i').test(c.nickname || ''));
+    drawSpinners(); drawOdds(); drawSpinBtn();
+  };
+  refreshSpinner(); drawLunches();
+
+  // after a spin: pay out Poké, offer item pickers and the lunch choice
+  async function payout(n, p, tw, c) {
+    const box = $('#claims', main); const parts = [];
+    let poke = pokeIn(p, isSpecial() ? tw : null);
+    let capNote = '';
+    if (isSpecial() && g.winCap && poke) {
+      const cap = Number(g.winCap); const won = parseInt(store.get(winPath(g)), 10) || 0;
+      const got = Math.max(0, Math.min(poke, cap - won));
+      store.set(winPath(g), won + got);
+      if (got < poke) capNote = `<p class="twist-capped">🚫 Session limit: ${esc(g.special)} only gets <b>${got.toLocaleString()}</b> of the ${poke.toLocaleString()} Poké (max ${cap.toLocaleString()} a session).</p>`;
+      poke = got;
+      const cl = $('#capline', main); if (cl) cl.innerHTML = capLine(g);
+    }
+    if (poke) { givePoke(c.id, poke); parts.push(`<p class="claim ok">🪙 <b>+${poke.toLocaleString()} Poké</b> added to ${esc(c.nickname)}’s Poké.</p>`); }
+    if (tw && isSpecial()) {
+      if (/next spin this session costs ([\d,]+)/i.test(tw[2])) store.set(nextCostPath(), num(tw[2].match(/costs ([\d,]+)/i)[1]));
+      if (/seed or berry/i.test(tw[2])) {
+        const sb = shop().filter((s) => /seed|berry/i.test(s.kind || s.name)); const it = sb[Math.floor(Math.random() * sb.length)];
+        if (it) { giveItem(c.id, it.name); parts.push(`<p class="claim ok">🎒 <b>${esc(it.name)}</b> added to ${esc(c.nickname)}’s bag.</p>`); }
+      }
+      if (/spin again for free/i.test(tw[2])) free += 1;
+    }
+    if (/spin again twice/i.test(p)) free += 2;
+    let items = itemCount(p);
+    if (items && tw && isSpecial()) { if (/extra item/i.test(tw[2])) items += 1; if (/twice/i.test(tw[2])) items *= 2; }
+    let pickers = '';
+    for (let k = 0; k < items; k++) pickers += `<div class="claim pick" data-pick="${k}"><label class="f">Choose free item ${items > 1 ? k + 1 : ''}<select><option value="">Loading…</option></select></label><button class="btn sm">Put in bag</button></div>`;
+    const lunch = /lunch with the guild leader/i.test(p) ? `<div class="claim lunch"><b>🍽️ When is lunch with the Guild Leader?</b><div class="row">${Object.entries(LUNCH).map(([k, v]) => `<button class="btn alt sm" data-lunch="${k}">${esc(v)}</button>`).join('')}</div></div>` : '';
+    box.innerHTML = capNote + parts.join('') + pickers + lunch + (free ? `<p class="claim ok">🎟️ ${esc(c.nickname)} has <b>${free}</b> free spin${free > 1 ? 's' : ''} — tap the button above.</p>` : '');
+    drawSpinBtn(); drawSpinners();
+    if (items) {
+      const opts = await prizeChoices(p, c);
+      $$('[data-pick]', box).forEach((el) => {
+        el.querySelector('select').innerHTML = `<option value="">Pick an item…</option>${opts.map((o) => `<option value="${esc(o.name)}">${esc(o.name)}${o.price ? ` (${o.price.toLocaleString()} Poké)` : ''}${o.note ? ' · ' + esc(o.note) : ''}</option>`).join('')}`;
+        el.querySelector('button').onclick = () => {
+          const v = el.querySelector('select').value; if (!v) { toast('Pick an item first'); return; }
+          giveItem(c.id, v);
+          logRoll(c.nickname, `${g.name} — prize`, null, `${v} put in ${c.nickname}’s bag`, 'note');
+          el.outerHTML = `<p class="claim ok">🎒 <b>${esc(v)}</b> added to ${esc(c.nickname)}’s bag.</p>`;
+        };
+      });
+    }
+    $$('[data-lunch]', box).forEach((b) => b.onclick = () => {
+      store.set('lunches/' + uid(), { who: c.id, when: b.dataset.lunch, session: sessN(), game: g.id, t: Date.now() });
+      logRoll(c.nickname, `${g.name} — prize`, null, `Lunch with the Guild Leader: ${LUNCH[b.dataset.lunch]}`, 'note');
+      b.closest('.claim').outerHTML = `<p class="claim ok">🍽️ Lunch with the Guild Leader booked: <b>${esc(LUNCH[b.dataset.lunch])}</b>.</p>`;
+      drawLunches();
+    });
+    return capNote;
+  }
+
   const cv = $('#wheel', main);
   let rot = -Math.PI / 2; drawWheel(cv, g, rot);
   let spinning = false;
   $('#spin', main).onclick = () => {
-    if (spinning) return; spinning = true;
+    if (spinning) return;
+    const c = who();
+    if (!c) { toast('Tap who’s spinning first'); return; }
+    let paid = 0;
+    if (free) free -= 1;
+    else if (costAmt) {
+      paid = spinCost();
+      if (num(c.poke) < paid) { toast(`${c.nickname} needs ${paid.toLocaleString()} Poké to spin (has ${num(c.poke).toLocaleString()})`); return; }
+      givePoke(c.id, -paid); store.set(nextCostPath(), null);
+    }
+    spinning = true; drawSpinBtn(); drawSpinners();
     const i = pick(g);
     const total = g.slices.reduce((s, [, w]) => s + w, 0);
     const before = g.slices.slice(0, i).reduce((s, [, w]) => s + w, 0);
@@ -184,33 +307,19 @@ export function renderGames(main, [arg]) {
     const start = rot; const turns = 6 + Math.floor(Math.random() * 3);
     let target = -mid; while (target < start) target += Math.PI * 2; target += turns * Math.PI * 2;
     const T = 5200; const t0 = performance.now();
-    $('#res', main).innerHTML = '';
-    const step = (now) => {
+    $('#res', main).innerHTML = ''; $('#claims', main).innerHTML = '';
+    const step = async (now) => {
       const t = Math.min(1, (now - t0) / T); const e = 1 - Math.pow(1 - t, 4);
       rot = start + (target - start) * e; drawWheel(cv, g, rot);
-      if (t < 1) requestAnimationFrame(step);
-      else {
-        spinning = false; rot %= Math.PI * 2;
-        const [n, , p0] = g.slices[i]; const p = rankPrize(p0 || '');
-        const special = !!$('#asSpecial', main)?.checked;
-        const tw = special ? twistFor(g, n) : null;
-        // the special character can't win more than winCap Poké in one session
-        let capNote = '';
-        if (special && g.winCap) {
-          const cap = Number(g.winCap); const won = parseInt(store.get(winPath(g)), 10) || 0;
-          const prize = pokeIn(p, tw); const got = Math.max(0, Math.min(prize, cap - won));
-          if (prize) {
-            store.set(winPath(g), won + got);
-            capNote = got < prize ? `<p class="twist-capped">🚫 Session limit: ${esc(g.special)} only gets <b>${got.toLocaleString()}</b> of the ${prize.toLocaleString()} Poké (max ${cap.toLocaleString()} a session).</p>` : '';
-          }
-          const cl = $('#capline', main); if (cl) cl.innerHTML = capLine(g);
-        }
-        $('#res', main).innerHTML = `<div class="big">${esc(n)}</div>${p ? `<p>${esc(p)}</p>` : '<p class="small muted">Your GM tells you what you won.</p>'}`
-          + (tw ? `<div class="twist ${tw[1]}"><b>${TWIST[tw[1]][0]} ${esc(g.special)}’s ${TWIST[tw[1]][1]}</b><p>${esc(tw[2])}</p>${/Metronome wheel/i.test(tw[2]) ? '<a class="gemini-wag" href="#/games/gemini-metronome">Spin Gemini’s Metronome wheel →</a>' : ''}</div>` : '') + capNote;
-        const who = me()?.nickname || 'Someone';
-        logRoll(who, `${g.name} — spin`, null, n + (p ? ` (${p})` : '') + (tw ? ` · ${g.special}’s ${TWIST[tw[1]][1].toLowerCase()}: ${tw[2]}` : '') + (capNote ? ` · capped by the ${Number(g.winCap).toLocaleString()} Poké session limit` : ''), 'note');
-        toast(`${g.name}: ${n}`);
-      }
+      if (t < 1) { requestAnimationFrame(step); return; }
+      spinning = false; rot %= Math.PI * 2;
+      const [n, , p0] = g.slices[i]; const p = rankPrize(p0, c);
+      const tw = isSpecial() ? twistFor(g, n) : null;
+      $('#res', main).innerHTML = `<div class="big">${esc(n)}</div>${p ? `<p>${esc(p)}</p>` : '<p class="small muted">Your GM tells you what you won.</p>'}`
+        + (tw ? `<div class="twist ${tw[1]}"><b>${TWIST[tw[1]][0]} ${esc(g.special)}’s ${TWIST[tw[1]][1]}</b><p>${esc(tw[2])}</p>${/Metronome wheel/i.test(tw[2]) ? '<a class="gemini-wag" href="#/games/gemini-metronome">Spin Gemini’s Metronome wheel →</a>' : ''}</div>` : '');
+      const capNote = await payout(n, p, tw, (store.get('party') || {})[c.id] || c);
+      logRoll(c.nickname, `${g.name} — spin`, null, (paid ? `paid ${paid} Poké · ` : '') + n + (p ? ` (${p})` : '') + (tw ? ` · ${g.special}’s ${TWIST[tw[1]][1].toLowerCase()}: ${tw[2]}` : '') + (capNote ? ` · capped by the ${Number(g.winCap).toLocaleString()} Poké session limit` : ''), 'note');
+      toast(`${g.name}: ${n}`);
     };
     requestAnimationFrame(step);
   };

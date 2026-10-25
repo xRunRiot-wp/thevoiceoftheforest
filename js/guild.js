@@ -1,15 +1,15 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade8032';
-import * as sheet from './sheetdata.js?v=6ade8032';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade8032';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade8032';
-import { MISSION_GP } from './content.js?v=6ade8032';
-import { ranks } from './rulebook.js?v=6ade8032';
-import { merged, editContent } from './content-store.js?v=6ade8032';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade8032';
-import { myId } from './app.js?v=6ade8032';
-import { ledger, canWithdraw, recordWithdrawal, lowAlertHTML } from './vault.js?v=6ade8032';
-import { ixLink } from './effects.js?v=6ade8032';
+import * as store from './store.js?v=6ade8258';
+import * as sheet from './sheetdata.js?v=6ade8258';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade8258';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade8258';
+import { MISSION_GP } from './content.js?v=6ade8258';
+import { ranks } from './rulebook.js?v=6ade8258';
+import { merged, editContent } from './content-store.js?v=6ade8258';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade8258';
+import { myId } from './app.js?v=6ade8258';
+import { ledger, canWithdraw, recordWithdrawal, lowAlertHTML } from './vault.js?v=6ade8258';
+import { ixLink } from './effects.js?v=6ade8258';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -43,7 +43,7 @@ export function missionCard(id, m, { gm = false } = {}) {
   const gp = m.gp ?? MISSION_GP[m.rank] ?? 0;
   return `<div class="card mission ${esc(m.status || '')} ${m.hidden ? 'hidden' : ''}">
     <div class="row" style="justify-content:space-between"><span class="pill">${esc(m.rank)} Rank · ${gp} GP${m.guild === 'vanguard' ? ' · Vanguard' : ''}</span><span class="pill">${m.hidden ? 'GM only' : esc(m.status || 'open')}</span></div>
-    ${m.art ? `<a href="${esc(m.art)}" target="_blank"><img class="art-wide" src="${esc(m.art)}" alt="" loading="lazy" style="max-height:260px;object-fit:cover"></a>` : ''}
+    ${m.art ? `<span><img class="art-wide" src="${esc(m.art)}" alt="" loading="lazy" style="max-height:260px;object-fit:cover"></span>` : ''}
     <h3 style="margin:8px 0 4px">${esc(m.title)}</h3>
     ${m.client ? `<p class="small muted">Client: ${esc(m.client)}${m.place ? ' · ' + esc(m.place) : ''}</p>` : ''}
     ${m.details ? `<p class="small">${esc(m.details)}</p>` : ''}${m.reward ? `<p class="small"><b>Reward:</b> ${esc(m.reward)}</p>` : ''}
@@ -62,7 +62,6 @@ function trackerHTML(list) {
       <div class="trk-body">
         ${m.client ? `<p class="small muted">Client: ${esc(m.client)}${m.place ? ' · ' + esc(m.place) : ''}</p>` : ''}
         ${m.details ? `<p class="small">${esc(m.details)}</p>` : ''}${m.reward ? `<p class="small"><b>Reward:</b> ${esc(m.reward)}</p>` : ''}
-        ${m.art ? `<a class="small" href="${esc(m.art)}" target="_blank">Open picture</a>` : ''}
         <div class="trk-var"><b class="small">How it went (GM notes)</b>
           ${gm ? `<textarea rows="3" data-var="${id}" placeholder="Any changes from the posted mission: different twists, rewards, who went…">${esc(m.variation || '')}</textarea><button class="btn sm" data-varsave="${id}">Save notes</button>`
     : m.variation ? `<p class="small" style="white-space:pre-wrap">${esc(m.variation)}</p>` : '<p class="small muted">No notes yet.</p>'}</div>

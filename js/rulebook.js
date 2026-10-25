@@ -1,12 +1,12 @@
 // Rulebook: quick lookup from inside the game. Index of every effect/interaction, rules, story, cast, guild, items, handouts, links, credits.
-import * as store from './store.js?v=6ade8032';
-import * as sheet from './sheetdata.js?v=6ade8032';
-import { $, $$, esc } from './util.js?v=6ade8032';
-import { portrait } from './ui.js?v=6ade8032';
-import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ade8032';
-import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ade8032';
-import { merged, editContent } from './content-store.js?v=6ade8032';
-import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ade8032';
+import * as store from './store.js?v=6ade8258';
+import * as sheet from './sheetdata.js?v=6ade8258';
+import { $, $$, esc } from './util.js?v=6ade8258';
+import { portrait } from './ui.js?v=6ade8258';
+import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ade8258';
+import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ade8258';
+import { merged, editContent } from './content-store.js?v=6ade8258';
+import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ade8258';
 
 const gm = () => store.gmUnlocked();
 const editBtn = (attr) => (gm() ? `<button class="btn alt sm" ${attr}>Edit</button>` : '');
@@ -144,7 +144,7 @@ export async function renderRules(main, [sub, arg]) {
         ${c.opening ? `<p>${L(c.opening)}</p>` : ''}
         ${(c.recap || []).length ? `<h4>Last time…</h4><ul>${c.recap.map((t) => `<li>${L(t)}</li>`).join('')}</ul>` : ''}
         ${(c.events || []).length ? `<h4>What happened</h4><ul>${c.events.map((t) => `<li>${L(t)}</li>`).join('')}</ul>` : ''}
-        ${scene ? `<a href="${esc(scene)}" target="_blank"><img class="art-wide" src="${esc(scene)}" alt="" loading="lazy"></a>` : ''}
+        ${scene ? `<span><img class="art-wide" src="${esc(scene)}" alt="" loading="lazy"></span>` : ''}
         ${c.n === 0 ? gs('story-guild-rank-progression_chapter-0-the-voice-of-the-forest', 'Chapter page from the campaign site', false) : c.n === 1 ? gs('story-guild-rank-progression_chapter-1-earthquake-at-woodland-base', 'Chapter page from the campaign site', false) : ''}
       </div>`; }).join('')}
       <a class="handout" href="assets/gs/story_ranks.jpg" target="_blank" style="max-width:520px"><img src="assets/gs/story_ranks.jpg" alt="Story and guild rank progression" loading="lazy" style="aspect-ratio:auto"><span>Story & Guild Rank Progression — tap to open full size</span></a>`;
@@ -155,7 +155,7 @@ export async function renderRules(main, [sub, arg]) {
   function castPage() {
     main.innerHTML = `<div class="row" style="justify-content:space-between">${back}${addBtn('id="add"', '+ Character')}</div>
       <h1 style="margin-top:10px">Meet the Characters</h1>
-      <div class="grid g2">${cast().map((c) => `<div class="card">${c.art ? `<a href="${esc(c.art)}" target="_blank"><img class="cast-art" src="${esc(c.art)}" alt="${esc(c.name)}" loading="lazy"></a>` : ''}<div class="char-head">${portrait({ ...c, nickname: c.name })}${c.portrait2 ? portrait({ portrait: c.portrait2, nickname: c.name }) : ''}<div class="grow">
+      <div class="grid g2">${cast().map((c) => `<div class="card">${c.art ? `<span><img class="cast-art" src="${esc(c.art)}" alt="${esc(c.name)}" loading="lazy"></span>` : ''}<div class="char-head">${portrait({ ...c, nickname: c.name })}${c.portrait2 ? portrait({ portrait: c.portrait2, nickname: c.name }) : ''}<div class="grow">
         <div class="char-name">${esc(c.name)}</div><div class="char-sub">${esc(c.species || '')}${c.nature ? ' · ' + esc(c.nature) : ''}</div></div>${editBtn(`data-ed="${esc(c.id)}"`)}</div>
         <p style="margin-top:10px">${L(c.text)}</p></div>`).join('')}</div>
       ${gs('meet-the-characters', 'Full character bios from the campaign site', false)}`;
@@ -184,7 +184,7 @@ export async function renderRules(main, [sub, arg]) {
     main.innerHTML = `${back}<h1 style="margin-top:10px">World, guilds & NPCs</h1>
       ${card('The Gravity Falls Guild Charter', WORLD.charter)}
       <p class="small"><b>When we play:</b> ${esc(WORLD.schedule)}</p>
-      <a href="assets/discord/vanguard_woodland.jpg" target="_blank"><img class="art-wide" src="assets/discord/vanguard_woodland.jpg" alt="Vanguard Guild and Woodland Guild" loading="lazy"></a>
+      <span><img class="art-wide" src="assets/discord/vanguard_woodland.jpg" alt="Vanguard Guild and Woodland Guild" loading="lazy"></span>
       ${WORLD.guilds.map((g) => card('Welcome to the ' + g.name + '!', g.text)).join('')}
       <div class="section-title"><h2>Places</h2></div><div class="card"><ul>${WORLD.places.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>
       <div class="section-title"><h2>Camps & caretakers</h2></div>${WORLD.camps.map((c) => card(c.name, [c.text])).join('')}
@@ -196,7 +196,7 @@ export async function renderRules(main, [sub, arg]) {
       <h1 style="margin-top:10px">Guilds & Rival Teams</h1>
       <img class="art-wide" src="assets/gs/guild_banner.jpg" alt="The guild" loading="lazy">
       <div class="card">${GUILDS.intro.map((t) => `<p>${L(t)}</p>`).join('')}</div>
-      <a href="assets/gs/dungeon_missions.jpg" target="_blank"><img class="art-wide" src="assets/gs/dungeon_missions.jpg" alt="Dungeon and non-dungeon missions" loading="lazy"></a>
+      <span><img class="art-wide" src="assets/gs/dungeon_missions.jpg" alt="Dungeon and non-dungeon missions" loading="lazy"></span>
       ${gs('guilds', 'Guilds — from the campaign site')}${gs('guilds_mission-ranks', 'Mission ranks')}${gs('guilds_mission-ranks_dungeon-missions', 'Dungeon missions')}${gs('guilds_mission-ranks_non-dungeon-missions', 'Non-dungeon missions')}
       <div class="section-title"><h2>Rival teams</h2></div>
       ${rivals().map((r) => `<div class="card">${r.banner ? `<img class="art-wide" src="${esc(r.banner)}" alt="" loading="lazy">` : ''}<div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(r.name)}</h2>${editBtn(`data-ed="${esc(r.id)}"`)}</div>
@@ -220,7 +220,7 @@ export async function renderRules(main, [sub, arg]) {
   }
 
   async function coverage() {
-    const { shop } = await import('./guild.js?v=6ade8032');
+    const { shop } = await import('./guild.js?v=6ade8258');
     const [sm, sa, st, g] = await Promise.all([sheet.moves(), sheet.abilities(), sheet.treasure(), sheet.guild().catch(() => ({ chars: [] }))]);
     const party = Object.values(store.get('party') || {});
     const lootNames = [];

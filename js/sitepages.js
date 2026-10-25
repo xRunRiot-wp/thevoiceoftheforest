@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6ade8032';
-import { esc } from './util.js?v=6ade8032';
-import { LINKS, CAST } from './content.js?v=6ade8032';
+import { GS_TEXT } from './gstext.js?v=6ade8258';
+import { esc } from './util.js?v=6ade8258';
+import { LINKS, CAST } from './content.js?v=6ade8258';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -51,7 +51,7 @@ export function blocksHTML(key, L = esc, { skipImgs = [] } = {}) {
     if (k === 'img') {
       h += /home_3\./.test(t)
         ? `<a href="${LINKS.discord}" target="_blank" rel="noopener" class="btn alt sm" style="margin:6px 0"><img src="${t}" alt="" style="height:22px;vertical-align:middle;margin-right:6px">Join the Discord</a>`
-        : `<a href="${t}" target="_blank" class="site-img${big(t) ? ' wide' : ''}"><img src="${t}" alt="" loading="lazy"></a>`;
+        : `<span class="site-img${big(t) ? ' wide' : ''}"><img src="${t}" alt="" loading="lazy"></span>`;
     } else if (k === 'h') h += `<h3>${esc(t)}</h3>`;
     else if (k === 'li') h += `<li>${L(t)}</li>`;
     else h += `<p>${L(t)}</p>`;
@@ -65,10 +65,10 @@ export function homeHTML() {
   const b = GS_TEXT.home || [];
   const text = (label) => { const i = b.findIndex(([k, t]) => k === 'p' && t === label); return i >= 0 && b[i + 1] ? b[i + 1][1] : ''; };
   const col = (title, img, body, ask) => `<div class="home-col"><h3>${esc(title)}</h3>
-    <a href="${img}" target="_blank" class="site-img wide"><img src="${img}" alt="${esc(title)}" loading="lazy"></a>
+    <span class="site-img wide"><img src="${img}" alt="${esc(title)}" loading="lazy"></span>
     <p>${esc(body)}</p><h3>${esc(ask)}</h3></div>`;
   return `<div class="home-row">${col('Your Humanity', 'assets/gs/home_1.jpg', text('Your Humanity:'), 'What will you choose?')}${col('Your Instinct', 'assets/gs/home_5.png', text('Your Instinct:'), 'Will it consume you?')}</div>
-    <a href="assets/gs/home_team.png" target="_blank" class="site-img"><img src="assets/gs/home_team.png" alt="" loading="lazy"></a>`;
+    <span class="site-img"><img src="assets/gs/home_team.png" alt="" loading="lazy"></span>`;
 }
 
 // Rulebook hub: each section of her site as a picture tile in rows, its pages as buttons underneath
@@ -110,7 +110,7 @@ function messHallHTML() {
   };
   const seat = (p) => { const c = info(p.name); return `<details class="seat">
       <summary>${p.art ? `<img src="${esc(p.art)}" alt="" loading="lazy">` : ''}<span><b>${esc(p.name)}</b><small>${esc([c.species, c.nature].filter(Boolean).join(' · '))}</small></span></summary>
-      <div class="seat-body">${p.art ? `<a href="${esc(p.art)}" target="_blank"><img class="seat-art" src="${esc(p.art)}" alt="${esc(p.name)}" loading="lazy"></a>` : ''}${body(p)}</div></details>`; };
+      <div class="seat-body">${p.art ? `<span><img class="seat-art" src="${esc(p.art)}" alt="${esc(p.name)}" loading="lazy"></span>` : ''}${body(p)}</div></details>`; };
   return `<div class="messhall">
     <div class="mh-head"><img src="assets/banners/guilds.jpg" alt=""><div><h2>The Mess Hall</h2><p>The lanterns are lit and the day's missions are done. Everyone's back at the guild for supper. Tap a seat to hear their story.</p></div></div>
     ${tables.map(([t, ps]) => `<div class="mh-table"><h3>${esc(t)}</h3><div class="mh-board">${ps.map(seat).join('')}</div></div>`).join('')}
