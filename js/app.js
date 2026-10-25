@@ -66,7 +66,7 @@ function statusChip() {
 async function route() {
   closeModal();
   const [path, ...rest] = (location.hash.replace(/^#\/?/, '') || '').split('/');
-  let page = path || (joined() ? 'play' : 'join');
+  let page = path || 'join'; // the bare link always opens the home page; Play remembers your character
   if (page === 'play' && !joined()) page = 'join';
   current = page;
   $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : page);

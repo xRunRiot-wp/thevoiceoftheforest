@@ -33,6 +33,7 @@ export function renderJoin(main) {
     <div class="row nowrap"><input id="code" class="grow" value="${esc(store.tableCode())}" autocapitalize="characters" aria-label="Table code"><button class="btn" id="go">Open</button></div>
     ${store.status.mode === 'local' ? `<p class="small muted" style="margin-top:8px">Live sharing between phones isn't switched on yet, so this table saves on this device. Your GM can move it with Export / Import.</p>` : ''}
   </div>
+  ${joined() && me() ? `<a class="btn block" href="#/play" style="margin-top:12px">Continue as ${esc(me().nickname)}</a>` : ''}
   <div class="section-title"><h2>Who are you playing?</h2></div>
   <div class="grid g2">
     ${p.map((c) => `<button class="card row nowrap" style="text-align:left;cursor:pointer;margin:0" data-pick="${c.id}">
