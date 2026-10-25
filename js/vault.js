@@ -1,10 +1,10 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6ade79da';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade79da';
-import { GUILDS2, guildName } from './guild.js?v=6ade79da';
-import { addItem, me } from './play.js?v=6ade79da';
-import { ixLink } from './effects.js?v=6ade79da';
+import * as store from './store.js?v=6ade7a8d';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade7a8d';
+import { GUILDS2, guildName } from './guild.js?v=6ade7a8d';
+import { addItem, me } from './play.js?v=6ade7a8d';
+import { ixLink } from './effects.js?v=6ade7a8d';
 
 // One line in the guild's ledger. amt = Poké in (+) or out (-); item lines have no amt.
 export function ledger(guild, text, amt = null) {
@@ -21,6 +21,8 @@ export function renderVault(main) {
   const pin = lines.filter((l) => l.amt > 0).reduce((s, l) => s + l.amt, 0);
   const pout = lines.filter((l) => l.amt < 0).reduce((s, l) => s - l.amt, 0);
   const items = Object.entries(store.get('storage') || {}).filter(([, b]) => guildOfItem(b) === tab);
+  const used = items.reduce((s, [, b]) => s + num(b.qty), 0);   // one slot per item, like her storage sheet
+  const slots = num((store.get(tab === 'vanguard' ? 'vanguard' : 'guild') || {}).slots);
 
   main.innerHTML = `
   <div class="hero banner"><img class="hdr" src="assets/banners/items_treasure.jpg" alt=""></div>
@@ -36,8 +38,8 @@ export function renderVault(main) {
       <div class="card" style="padding:6px 12px">${lines.length ? `<ul class="log" style="max-height:420px">${lines.slice(0, 120).map((l) => `<li class="row nowrap"><span class="grow small">${esc(l.text)} <span class="muted">· ${timeAgo(l.t)}</span></span>${l.amt != null ? `<b class="pix ${l.amt < 0 ? 'neg' : 'pos'}">${l.amt > 0 ? '+' : ''}${l.amt}</b>` : ''}</li>`).join('')}</ul>` : '<p class="muted small">Nothing yet. Giving or taking Poké, shop buys, session rewards and storing items show up here by themselves.</p>'}</div>
     </div>
     <div>
-      <div class="section-title"><h2>Storage</h2><button class="btn alt sm" id="addstore">+ Item</button></div>
-      <div class="card" style="padding:6px 12px">${items.length ? `<ul class="log" style="max-height:none">${items.map(([id, b]) => `<li class="row nowrap"><span class="grow">${ixLink(b.name)} ×${b.qty}</span><button class="btn alt sm" data-take-item="${id}">To my bag</button></li>`).join('')}</ul>` : `<p class="muted small">The ${esc(guildName(tab))} storage is empty. Use <b>Store</b> on an item in a character's bag, or <b>+ Item</b>.</p>`}</div>
+      <div class="section-title"><h2>Storage</h2><span class="small">${used}${slots ? ` / ${slots} slots` : ' items'}</span><button class="btn alt sm" id="addstore">+ Item</button></div>
+      <div class="card" style="padding:6px 12px">${items.length ? `<ul class="log" style="max-height:none">${items.map(([id, b]) => `<li class="row nowrap"><span class="grow">${ixLink(b.name)} ×${b.qty}${b.kind ? ` <span class="small muted">${esc(b.kind)}</span>` : ''}</span><button class="btn alt sm" data-take-item="${id}">To my bag</button></li>`).join('')}</ul>` : `<p class="muted small">The ${esc(guildName(tab))} storage is empty. Use <b>Store</b> on an item in a character's bag, or <b>+ Item</b>.</p>`}</div>
     </div>
   </div>`;
 

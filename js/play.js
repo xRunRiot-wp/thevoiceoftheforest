@@ -1,17 +1,17 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade79da';
-import * as sheet from './sheetdata.js?v=6ade79da';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade79da';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade79da';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade79da';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade79da';
-import { CONFIG } from './config.js?v=6ade79da';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade79da';
-import { merged, editContent } from './content-store.js?v=6ade79da';
-import { ledger, stash } from './vault.js?v=6ade79da';
-import { guildName } from './guild.js?v=6ade79da';
-import { homeHTML } from './sitepages.js?v=6ade79da';
-import * as dice3d from './dice3d.js?v=6ade79da';
+import * as store from './store.js?v=6ade7a8d';
+import * as sheet from './sheetdata.js?v=6ade7a8d';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade7a8d';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade7a8d';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade7a8d';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade7a8d';
+import { CONFIG } from './config.js?v=6ade7a8d';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade7a8d';
+import { merged, editContent } from './content-store.js?v=6ade7a8d';
+import { ledger, stash } from './vault.js?v=6ade7a8d';
+import { guildName } from './guild.js?v=6ade7a8d';
+import { homeHTML } from './sitepages.js?v=6ade7a8d';
+import * as dice3d from './dice3d.js?v=6ade7a8d';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
