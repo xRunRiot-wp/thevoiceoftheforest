@@ -420,3 +420,8 @@ details.gs h4 { margin: 12px 0 4px; }
 .claim.pick .f { flex: 1 1 220px; margin: 0; }
 .claim .row { margin-top: 6px; flex-wrap: wrap; gap: 6px; }
 .lunches .row { padding: 4px 0; }
+.mprog { margin: 8px 0; padding: 8px 10px; border-radius: 10px; background: rgba(0, 0, 0, .05); }
+.mprog .bar { margin: 4px 0 6px; }
+.mparts { list-style: none; padding: 0; margin: 0; columns: 2; font-size: 14px; }
+.mparts li.done { opacity: .7; text-decoration: line-through; }
+@media (max-width: 520px) { .mparts { columns: 1; } }

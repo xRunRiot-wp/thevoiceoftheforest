@@ -1,15 +1,15 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade8258';
-import * as sheet from './sheetdata.js?v=6ade8258';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade8258';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade8258';
-import { MISSION_GP } from './content.js?v=6ade8258';
-import { ranks } from './rulebook.js?v=6ade8258';
-import { merged, editContent } from './content-store.js?v=6ade8258';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade8258';
-import { myId } from './app.js?v=6ade8258';
-import { ledger, canWithdraw, recordWithdrawal, lowAlertHTML } from './vault.js?v=6ade8258';
-import { ixLink } from './effects.js?v=6ade8258';
+import * as store from './store.js?v=6ade82f5';
+import * as sheet from './sheetdata.js?v=6ade82f5';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade82f5';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade82f5';
+import { MISSION_GP } from './content.js?v=6ade82f5';
+import { ranks } from './rulebook.js?v=6ade82f5';
+import { merged, editContent } from './content-store.js?v=6ade82f5';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade82f5';
+import { myId } from './app.js?v=6ade82f5';
+import { ledger, canWithdraw, recordWithdrawal, lowAlertHTML } from './vault.js?v=6ade82f5';
+import { ixLink } from './effects.js?v=6ade82f5';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -19,7 +19,7 @@ export const SHOP_DEFAULTS = [
 export const SHOP_SCHEMA = [['name', 'Item'], ['price', 'Price (Poké)', 'number'], ['kind', 'Kind'], ['stock', 'Stock (blank = unlimited)', 'number']];
 export const shop = () => merged('shop', SHOP_DEFAULTS);
 
-export const MISSION_SCHEMA = [['rank', 'Rank', 'select:E|D|C|B|A|S|X'], ['title', 'Title'], ['client', 'Client'], ['place', 'Where'], ['details', 'Details', 'area'], ['reward', 'Reward (items / Poké)'], ['gp', 'Guild Points (blank = by rank)', 'number'], ['status', 'Status', 'select:open|taken|done|failed'], ['guild', 'Guild (woodland or vanguard)', 'select:woodland|vanguard'], ['art', 'Picture link (optional)']];
+export const MISSION_SCHEMA = [['rank', 'Rank', 'select:E|D|C|B|A|S|X'], ['title', 'Title'], ['client', 'Client'], ['place', 'Where'], ['details', 'Details', 'area'], ['reward', 'Reward (items / Poké)'], ['gp', 'Guild Points (blank = by rank)', 'number'], ['status', 'Status', 'select:open|taken|done|failed'], ['guild', 'Guild (woodland or vanguard)', 'select:woodland|vanguard'], ['partOf', 'Part of (title of a bigger mission, optional)'], ['art', 'Picture link (optional)']];
 
 export const GUILDS2 = [['woodland', 'Woodland Base'], ['vanguard', 'Vanguard Guild']];
 export const guildPath = (k) => (k === 'vanguard' ? 'vanguard' : 'guild');
@@ -46,7 +46,11 @@ export function missionCard(id, m, { gm = false } = {}) {
     ${m.art ? `<span><img class="art-wide" src="${esc(m.art)}" alt="" loading="lazy" style="max-height:260px;object-fit:cover"></span>` : ''}
     <h3 style="margin:8px 0 4px">${esc(m.title)}</h3>
     ${m.client ? `<p class="small muted">Client: ${esc(m.client)}${m.place ? ' · ' + esc(m.place) : ''}</p>` : ''}
-    ${m.details ? `<p class="small">${esc(m.details)}</p>` : ''}${m.reward ? `<p class="small"><b>Reward:</b> ${esc(m.reward)}</p>` : ''}
+    ${m.details ? `<p class="small">${esc(m.details)}</p>` : ''}
+    ${(() => { const pr = missionParts(m); return pr ? `<div class="mprog"><div class="row nowrap" style="justify-content:space-between"><b class="small">Progress: ${pr.done} / ${pr.total} missions</b><span class="small">${Math.round((pr.done / pr.total) * 100)}%</span></div>
+      <div class="bar"><i style="width:${(pr.done / pr.total) * 100}%"></i></div>
+      <ul class="mparts">${pr.parts.map((x) => `<li class="${x.status === 'done' ? 'done' : ''}">${x.status === 'done' ? '✅' : '⬜'} ${esc(x.title)}</li>`).join('')}</ul>
+      <p class="small muted">Completes by itself when every part is done.</p></div>` : ''; })()}${m.reward ? `<p class="small"><b>Reward:</b> ${esc(m.reward)}</p>` : ''}
     <div class="row">${!gm && (m.status || 'open') === 'open' ? `<button class="btn sm" data-take="${id}">Take mission</button>` : ''}
     ${gm ? `<button class="btn alt sm" data-med="${id}">Edit</button>${m.hidden ? `<button class="btn sm" data-mreveal="${id}">Reveal</button>` : `<button class="btn good sm" data-mdone="${id}">Done</button><button class="btn bad sm" data-mfail="${id}">Failed</button><button class="btn alt sm" data-mcur="${id}">Set current</button>`}` : ''}</div>
   </div>`;
@@ -85,6 +89,18 @@ export function finishMission(id, ok) {
   store.set(`missions/${id}/status`, ok ? 'done' : 'failed');
   store.pushLimited('log', { t: Date.now(), text: `Mission ${ok ? 'complete' : 'failed'}: ${m.title} (${delta > 0 ? '+' : ''}${delta} GP)` });
   toast(`${delta > 0 ? '+' : ''}${delta} Guild Points`);
+  // a big mission made of smaller ones completes itself when its last part is done
+  if (ok && m.partOf) {
+    const parent = Object.entries(store.get('missions') || {}).find(([, x]) => x.title?.toLowerCase() === m.partOf.toLowerCase());
+    const pr = parent && missionParts(parent[1]);
+    if (pr && pr.done === pr.total && parent[1].status !== 'done') finishMission(parent[0], true);
+  }
+}
+
+// missions whose "Part of" names this mission: progress toward it
+export function missionParts(m) {
+  const parts = Object.values(store.get('missions') || {}).filter((x) => x.partOf && x.partOf.toLowerCase() === (m.title || '').toLowerCase());
+  return parts.length ? { total: parts.length, done: parts.filter((x) => x.status === 'done').length, parts } : null;
 }
 
 export function renderGuild(main) {
