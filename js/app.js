@@ -1,15 +1,15 @@
-import { CONFIG } from './config.js?v=6ade870c';
-import * as store from './store.js?v=6ade870c';
-import * as sheet from './sheetdata.js?v=6ade870c';
-import { $, $$, esc, uid } from './util.js?v=6ade870c';
-import { closeModal, maxHp } from './ui.js?v=6ade870c';
-import { renderJoin, renderPlay } from './play.js?v=6ade870c';
-import { renderGM } from './gm.js?v=6ade870c';
-import { renderGuild } from './guild.js?v=6ade870c';
-import { renderRules } from './rulebook.js?v=6ade870c';
-import { renderVault } from './vault.js?v=6ade870c';
-import { renderGames } from './games.js?v=6ade870c';
-import { renderFriendZone } from './friendzone.js?v=6ade870c';
+import { CONFIG } from './config.js?v=6ade87d3';
+import * as store from './store.js?v=6ade87d3';
+import * as sheet from './sheetdata.js?v=6ade87d3';
+import { $, $$, esc, uid } from './util.js?v=6ade87d3';
+import { closeModal, maxHp } from './ui.js?v=6ade87d3';
+import { renderJoin, renderPlay } from './play.js?v=6ade87d3';
+import { renderGM } from './gm.js?v=6ade87d3';
+import { renderGuild } from './guild.js?v=6ade87d3';
+import { renderRules } from './rulebook.js?v=6ade87d3';
+import { renderVault } from './vault.js?v=6ade87d3';
+import { renderGames } from './games.js?v=6ade87d3';
+import { renderFriendZone } from './friendzone.js?v=6ade87d3';
 
 const main = $('#main');
 let current = '';
@@ -52,7 +52,7 @@ async function seedIfEmpty() {
 }
 
 const ROUTES = [
-  ['play', 'Play'], ['guild', 'Guild'], ['vault', 'Vault'], ['friends', 'Friend Zone'], ['games', 'Games'], ['rules', 'Rulebook'], ['gm', 'GM'],
+  ['play', 'Play'], ['guild', 'Guild'], ['vault', 'Vault'], ['games', 'Games'], ['rules', 'Rulebook'], ['gm', 'GM'],
 ];
 
 function navHTML(active) {
@@ -76,7 +76,7 @@ async function route() {
   let page = path || 'join'; // the bare link always opens the home page; Play remembers your character
   if (page === 'play' && !joined()) page = 'join';
   current = page;
-  $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : page);
+  $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : page === 'friends' ? 'guild' : page);   // Friend Zone lives under Guild
   window.scrollTo(0, 0);
   const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, vault: renderVault, games: renderGames, friends: renderFriendZone, rules: renderRules }[page] || renderJoin;
   rerender = () => render(main, rest);

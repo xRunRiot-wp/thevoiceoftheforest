@@ -1,17 +1,17 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade870c';
-import * as sheet from './sheetdata.js?v=6ade870c';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade870c';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade870c';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade870c';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade870c';
-import { CONFIG } from './config.js?v=6ade870c';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade870c';
-import { merged, editContent } from './content-store.js?v=6ade870c';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade870c';
-import { guildName } from './guild.js?v=6ade870c';
-import { homeHTML } from './sitepages.js?v=6ade870c';
-import * as dice3d from './dice3d.js?v=6ade870c';
+import * as store from './store.js?v=6ade87d3';
+import * as sheet from './sheetdata.js?v=6ade87d3';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade87d3';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade87d3';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade87d3';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade87d3';
+import { CONFIG } from './config.js?v=6ade87d3';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade87d3';
+import { merged, editContent } from './content-store.js?v=6ade87d3';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade87d3';
+import { guildName } from './guild.js?v=6ade87d3';
+import { homeHTML } from './sitepages.js?v=6ade87d3';
+import * as dice3d from './dice3d.js?v=6ade87d3';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -219,7 +219,7 @@ function charCard(c) {
       <div class="char-name">${esc(c.nickname)}</div>
       <div class="workfor"><span class="small">Working for:</span>${[['woodland', 'Woodland Base'], ['vanguard', 'Vanguard Guild']].map(([k, n]) => `<button class="chip ${(c.guild || 'woodland') === k ? 'on' : ''}" data-setguild="${k}">${n}</button>`).join('')}</div>
       <div class="char-sub">${esc(c.pokemon)}${c.nature ? ' · ' + ixLink('Nature (personality)', c.nature) : ''}${c.rank ? ' · ' + ixLink(c.rank + ' Rank', c.rank) : ''}${c.instinctRank ? ' · ' + ixLink('Instinct', c.instinctRank) : ''}</div>
-      <div class="chips" style="margin-top:4px">${[c.type1, c.type2].filter(Boolean).map((t) => `<a href="#" class="chip type ty-${esc(t)}" data-ixname="Type effectiveness">${esc(t)}</a>`).join('')}${c.ability ? `<a href="#" class="pill" data-ixname="${esc(c.ability)}">${esc(c.ability)}</a>` : ''}</div>
+      <div class="chips" style="margin-top:4px">${[c.type1, c.type2].filter(Boolean).map((t) => `<a href="#" class="chip type ty-${esc(t)}" data-ixname="Type effectiveness">${esc(t)}</a>`).join('')}${c.ability ? `<a href="#" class="pill" data-ixname="${esc(c.ability)}">${esc(c.ability)}</a>` : ''}${badgeChip(c)}</div>
     </div></div>
     <div class="meter"><b>${ixLink('HP')}</b>${bar(c.hp, mx)}<span class="val">${c.hp}/${mx}</span></div>
     <div class="row" style="justify-content:flex-end"><div class="stepper"><button class="btn alt" data-hp="-1">−1</button><button class="btn alt" data-hp="1">+1</button><button class="btn alt" data-hp="full">Full</button></div></div>
@@ -258,15 +258,29 @@ function charCard(c) {
   </div>`;
 }
 
+// Guild badge: every character carries their guild's badge (bag item + chip by their name).
+const BADGE = { woodland: ['Woodland Guild Badge', 'assets/badges/woodland.png'], vanguard: ['Vanguard Guild Badge', 'assets/badges/vanguard.png'] };
+const badgeOf = (c) => BADGE[c.guild === 'vanguard' ? 'vanguard' : 'woodland'];
+const badgeChip = (c) => { const [n, img] = badgeOf(c); return `<span class="pill badge-chip" title="${esc(n)}"><img src="${img}" alt="">${esc(n.replace(' Badge', ''))}</span>`; };
+const badgeImg = (name) => Object.values(BADGE).find(([n]) => n === name)?.[1];
+export function ensureBadge(c) {
+  const [want] = badgeOf(c);
+  const mine = Object.entries(store.get('bag') || {}).filter(([, b]) => b.owner === c.id && badgeImg(b.name));
+  if (mine.length === 1 && mine[0][1].name === want) return;
+  mine.forEach(([id]) => store.set('bag/' + id, null));
+  store.set('bag/' + uid(), { name: want, qty: 1, owner: c.id, badge: true });
+}
+
 function bagList(c) {
   const bag = Object.entries(store.get('bag') || {}).filter(([, b]) => b.owner === c.id || b.owner === 'team');
   if (!bag.length) return '<p class="muted small">Empty. Items the team finds land here.</p>';
-  return `<ul class="log" style="max-height:none">${bag.map(([id, b]) => `<li class="row nowrap"><span class="grow"><a href="#" data-ixname="${esc(b.name)}"><b>${esc(b.name)}</b></a> ×${b.qty}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span>
-    <button class="btn alt sm" data-stash="${id}">Store</button><button class="btn sm" data-use="${id}">Use</button></li>`).join('')}</ul>`;
+  return `<ul class="log" style="max-height:none">${bag.map(([id, b]) => `<li class="row nowrap"><span class="grow">${badgeImg(b.name) ? `<img class="bag-badge" src="${badgeImg(b.name)}" alt="">` : ''}<a href="#" data-ixname="${esc(b.name)}"><b>${esc(b.name)}</b></a> ×${b.qty}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span>
+    ${badgeImg(b.name) ? '<span class="small muted">guild badge</span>' : `<button class="btn alt sm" data-stash="${id}">Store</button><button class="btn sm" data-use="${id}">Use</button>`}</li>`).join('')}</ul>`;
 }
 
 function bindCharCard(main, c) {
   const path = 'party/' + c.id;
+  ensureBadge(c);
   $$('[data-hp]', main).forEach((b) => b.onclick = () => store.update(path, (x) => { const mx = maxHp(x); x.hp = b.dataset.hp === 'full' ? mx : clamp((x.hp ?? mx) + num(b.dataset.hp), 0, mx); return x; }));
   $$('[data-will]', main).forEach((b) => b.onclick = () => store.update(path, (x) => { x.willCur = clamp((x.willCur ?? x.will) + num(b.dataset.will), 0, x.will || 0); return x; }));
   $('#primal', main).onclick = () => togglePrimal(c);

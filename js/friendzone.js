@@ -1,8 +1,8 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ade870c';
-import { $, $$, esc, toast } from './util.js?v=6ade870c';
-import { merged, editContent } from './content-store.js?v=6ade870c';
+import * as store from './store.js?v=6ade87d3';
+import { $, $$, esc, toast } from './util.js?v=6ade87d3';
+import { merged, editContent } from './content-store.js?v=6ade87d3';
 
 export const LOCATIONS = [
   {
@@ -32,6 +32,13 @@ const spots = (loc) => (loc.spotsText || '').split('\n').map((l) => l.split('|')
   .map(([name, desc, mons], i) => ({ i, key: name.replace(/^[^\w]*\d*\.?\s*/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-') || 's' + i, name, desc: desc || '', mons: (mons || '').split(',').map((x) => x.trim()).filter(Boolean) }));
 export const locations = () => merged('friendzone', LOCATIONS);
 
+// Friend Zone summary on the Guild page: one card per location, tap to open its camp.
+export function friendZoneSection() {
+  return `<div class="section-title"><h2>Friend Zone</h2><span class="small muted">where recruited Pokémon live</span></div>
+  <div class="fz-spots">${locations().map((l) => { const n = spots(l).reduce((s, x) => s + x.mons.length, 0) + Object.values(store.get('recruits/' + l.id) || {}).reduce((s, x) => s + Object.keys(x || {}).length, 0);
+    return `<a class="card fz-spot fz-link" href="#/friends/${esc(l.id)}"><h3 style="margin:0">${esc(l.icon || '📍')} ${esc(l.name)}</h3><p class="small">${esc((l.welcome || '').split('. ').slice(0, 2).join('. '))}</p><span class="small"><b>${spots(l).length}</b> spots · <b>${n}</b> residents</span><span class="btn alt sm">Open camp →</span></a>`; }).join('')}</div>`;
+}
+
 export function renderFriendZone(main, [arg]) {
   const gm = store.gmUnlocked();
   const list = locations();
@@ -39,7 +46,8 @@ export function renderFriendZone(main, [arg]) {
   if (!loc) { main.innerHTML = '<p>No locations yet.</p>'; return; }
   const recruits = store.get('recruits/' + loc.id) || {};
   main.innerHTML = `<div class="hero"><img class="hdr" src="assets/banners/guilds.jpg" alt=""></div>
-    <div class="row" style="justify-content:space-between;margin-top:12px"><h1 style="margin:0">Friend Zone</h1>${gm ? `<span class="row"><button class="btn alt sm" id="fzedit">Edit ${esc(loc.name)}</button><button class="btn alt sm" id="fzadd">+ Location</button></span>` : ''}</div>
+    <a class="btn alt sm" href="#/guild" style="margin-top:12px">← Guild</a>
+    <div class="row" style="justify-content:space-between;margin-top:8px"><h1 style="margin:0">Friend Zone</h1>${gm ? `<span class="row"><button class="btn alt sm" id="fzedit">Edit ${esc(loc.name)}</button><button class="btn alt sm" id="fzadd">+ Location</button></span>` : ''}</div>
     <p class="small muted">Where recruited Pokémon live. Each location has its own camp.</p>
     ${list.length > 1 ? `<div class="fz-tabs">${list.map((l) => `<a class="btn ${l.id === loc.id ? '' : 'alt'} sm" href="#/friends/${esc(l.id)}">${esc(l.icon || '📍')} ${esc(l.name)}</a>`).join('')}</div>` : ''}
     <div class="card fz-head"><h2 style="margin:0 0 6px">${esc(loc.icon || '📍')} ${esc(loc.name)}</h2>

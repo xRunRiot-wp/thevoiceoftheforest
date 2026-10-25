@@ -461,3 +461,7 @@ details.gs h4 { margin: 12px 0 4px; }
   .tabs::-webkit-scrollbar { display: none; }
   .tabs a { flex: 1 0 auto; white-space: nowrap; padding-left: 10px; padding-right: 10px; font-size: 16px; }
 }
+.fz-link { text-decoration: none; color: inherit; } .fz-link:hover { border-color: #4f9d4a; }
+.badge-chip { display: inline-flex; align-items: center; gap: 5px; padding-left: 3px; }
+.badge-chip img { width: 22px; height: 22px; border-radius: 50%; }
+.bag-badge { width: 22px; height: 22px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
