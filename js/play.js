@@ -25,7 +25,7 @@ export const me = () => party()[myId()] || null;
 export function renderJoin(main) {
   const p = Object.values(party()).filter((c) => !c.guest || c.guest.controller === 'player');
   main.innerHTML = `
-  <img class="art-wide" src="assets/gs/logo.png" alt="Voice of the Forest" style="margin-top:12px">
+  <div class="hero banner"><img class="hdr" src="assets/banners/home.jpg" alt="Voice of the Forest: A PokeRole Mystery Dungeon Campaign"></div>
   <div class="card emblem"><div class="win"><span class="who">Guildmaster Beautifly:</span> Welcome, explorer! Join your table to begin today's adventure.</div></div>
   <div class="card">
     <h2>Join a table</h2>

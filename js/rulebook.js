@@ -51,7 +51,7 @@ export async function renderRules(main, [sub, arg]) {
 
   function hub() {
     main.innerHTML = `
-      <div class="hero"><img class="hdr" src="assets/gs/items_utility_wide.jpg" alt=""></div>
+      <div class="hero"><img class="hdr" src="assets/banners/how_to_play.jpg" alt=""></div>
       <h1>Rulebook</h1>
       <div class="section-title"><h2>Your campaign site</h2></div>
       <div class="card">${navHTML('')}</div>

@@ -76,13 +76,20 @@ export function navHTML(current) {
   return `<ul class="site-nav">${SITE_NAV.map((x) => item(x, 0)).join('')}</ul>`;
 }
 
+// Her site's own page banners (the header picture on each Google Site page)
+const BANNERS = [['guilds_team-meanies', 'team_meanies'], ['guilds_team-skull', 'team_skull'], ['guilds_mission-ranks_', 'home'], ['guilds', 'guilds'],
+  ['how-to-play_new-character', 'new_character'], ['how-to-play', 'how_to_play'], ['items_', 'items_treasure'], ['items', 'items'],
+  ['story-guild-rank-progression_chapter-0', 'chapter_0'], ['story-guild-rank-progression_chapter-1', 'chapter_1'], ['', 'home']];
+export const bannerFor = (key) => `assets/banners/${BANNERS.find(([k]) => key.startsWith(k))[1]}.jpg`;
+
 export function pageHTML(key, L = esc) {
   const p = sitePage(key);
   if (!p) return '<p>That page is not on the campaign site.</p>';
   const parent = p.parent && sitePage(p.parent);
   const body = blocksHTML(key, L);
   const kids = p.kids.length ? `<div class="toc" style="margin-top:12px">${p.kids.map(([k, t]) => `<a href="${href(k)}">${esc(t)}</a>`).join('')}</div>` : '';
-  return `<p class="small muted" style="margin:10px 0 0">${parent ? `<a href="${href(parent.key)}">${esc(parent.title)}</a> › ` : ''}Campaign site</p>
+  return `<div class="hero banner"><img class="hdr" src="${bannerFor(key)}" alt=""></div>
+    <p class="small muted" style="margin:10px 0 0">${parent ? `<a href="${href(parent.key)}">${esc(parent.title)}</a> › ` : ''}Campaign site</p>
     <h1 style="margin-top:4px">${esc(p.title)}</h1>
     <div class="card site-page">${body || '<p class="muted">This page is a menu:</p>'}${kids}</div>
     <p class="small"><a href="https://sites.google.com/view/dungeoncrawling/${key.replace(/_/g, '/')}" target="_blank" rel="noopener">Open the original page</a></p>

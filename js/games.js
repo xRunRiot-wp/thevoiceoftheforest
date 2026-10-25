@@ -66,7 +66,7 @@ export function renderGames(main, [arg]) {
   const gm = store.gmUnlocked();
   const list = games();
   if (!arg) {
-    main.innerHTML = `<div class="hero"><img class="hdr" src="assets/gs/items_orbs_wide.jpg" alt=""></div>
+    main.innerHTML = `<div class="hero"><img class="hdr" src="assets/banners/items_orbs.jpg" alt=""></div>
       <div class="row" style="justify-content:space-between;margin-top:12px"><h1 style="margin:0">Gambling Games</h1>${gm ? '<button class="btn alt sm" id="add">+ Game</button>' : ''}</div>
       <p class="small muted">Games of chance around Gravity Falls. Spins show up in the table's roll log for everyone.</p>
       <div class="grid g2">${list.map((g) => `<a class="card" href="#/games/${esc(g.id)}" style="margin:0;text-decoration:none;color:inherit">

@@ -58,7 +58,7 @@ export function renderGuild(main) {
   const hist = Object.entries(store.get('history') || {}).sort().reverse();
 
   main.innerHTML = `
-  <div class="hero"><img class="hdr" src="assets/gs/guild_banner.jpg" alt=""></div>
+  <div class="hero"><img class="hdr" src="assets/banners/guilds.jpg" alt=""></div>
   <h1>${esc(g.name || 'Guild')}</h1>
   <div class="card emblem">
     <div class="grid g2">

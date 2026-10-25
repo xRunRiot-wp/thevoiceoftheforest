@@ -269,3 +269,7 @@ details.gs h4 { margin: 12px 0 4px; }
 .home-col .site-img { margin: 8px 0; }
 .home-col p { font-size: 15px; }
 @media (max-width: 420px) { .home-row { gap: 8px; } .home-col p { font-size: 13px; } .home-col h3 { font-size: 15px; } }
+
+/* Her Google Site banners: show the whole picture (titles are painted into them) */
+.hero.banner img.hdr { height: auto; aspect-ratio: 3 / 1; object-fit: cover; image-rendering: auto; }
+.hero.banner { margin-bottom: 14px; }
