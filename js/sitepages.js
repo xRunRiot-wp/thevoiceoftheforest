@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6ade796e';
-import { esc } from './util.js?v=6ade796e';
-import { LINKS } from './content.js?v=6ade796e';
+import { GS_TEXT } from './gstext.js?v=6ade79da';
+import { esc } from './util.js?v=6ade79da';
+import { LINKS, CAST } from './content.js?v=6ade79da';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -80,6 +80,43 @@ export function navTilesHTML() {
     ${kids ? `<div class="navtile-kids">${sub(kids).join('')}</div>` : ''}</div>`).join('')}</div>`;
 }
 
+// Meet the Characters as the guild mess hall at the end of a long day: everyone at the tables, each seat folds open
+// to their full bio from her site. Tables group who is known to be together; anyone new lands at "the rest of the hall".
+const HALL = [
+  ['Woodland Base rescue team', ['Gemini', 'Felicia', 'Rox']],
+  ['The rest of the hall', ['Slakoth', 'Magnemite', 'Puff', 'Rocky']],
+  ['Honored guests', ['Mimi & Kippy']],
+];
+function messHallHTML() {
+  const b = GS_TEXT['meet-the-characters'] || [];
+  const people = []; let cur = null;
+  for (const [k, t] of b) {
+    if (k === 'h') { cur = { name: t, blocks: [], art: '' }; people.push(cur); } else if (cur && k === 'img') cur.art = t; else if (cur) cur.blocks.push([k, t]);
+  }
+  const info = (n) => CAST.find((c) => c.name === n) || {};
+  const placed = new Set(HALL.flatMap(([, ns]) => ns));
+  const tables = HALL.map(([t, ns]) => [t, ns.map((n) => people.find((p) => p.name === n)).filter(Boolean)]);
+  const extra = people.filter((p) => !placed.has(p.name));
+  if (extra.length) tables[1][1].push(...extra);
+  const body = (p) => {
+    let h = ''; let ul = false;
+    for (const [k, t] of p.blocks) {
+      if (k === 'li' && !ul) { h += '<ul>'; ul = true; }
+      if (k !== 'li' && ul) { h += '</ul>'; ul = false; }
+      const m = k === 'p' && t.match(/^(Nature|Concept|Personality|Goal|Motivation):\s*(.*)$/s);
+      h += k === 'li' ? `<li>${esc(t)}</li>` : m ? `<p><b>${m[1]}:</b> ${esc(m[2])}</p>` : `<p>${esc(t)}</p>`;
+    }
+    return h + (ul ? '</ul>' : '');
+  };
+  const seat = (p) => { const c = info(p.name); return `<details class="seat">
+      <summary>${p.art ? `<img src="${esc(p.art)}" alt="" loading="lazy">` : ''}<span><b>${esc(p.name)}</b><small>${esc([c.species, c.nature].filter(Boolean).join(' · '))}</small></span></summary>
+      <div class="seat-body">${p.art ? `<a href="${esc(p.art)}" target="_blank"><img class="seat-art" src="${esc(p.art)}" alt="${esc(p.name)}" loading="lazy"></a>` : ''}${body(p)}</div></details>`; };
+  return `<div class="messhall">
+    <div class="mh-head"><img src="assets/banners/guilds.jpg" alt=""><div><h2>The Mess Hall</h2><p>The lanterns are lit and the day's missions are done. Everyone's back at the guild for supper. Tap a seat to hear their story.</p></div></div>
+    ${tables.map(([t, ps]) => `<div class="mh-table"><h3>${esc(t)}</h3><div class="mh-board">${ps.map(seat).join('')}</div></div>`).join('')}
+  </div>`;
+}
+
 export function navHTML(current) {
   const item = ([k, t, kids], depth) => `<li><a href="${href(k)}" class="${k === current ? 'on' : ''}" style="padding-left:${8 + depth * 14}px">${esc(t)}</a>${kids ? `<ul>${kids.map((x) => item(x, depth + 1)).join('')}</ul>` : ''}</li>`;
   return `<ul class="site-nav">${SITE_NAV.map((x) => item(x, 0)).join('')}</ul>`;
@@ -95,7 +132,7 @@ export function pageHTML(key, L = esc) {
   const p = sitePage(key);
   if (!p) return '<p>That page is not on the campaign site.</p>';
   const parent = p.parent && sitePage(p.parent);
-  const body = key === 'home' ? homeHTML() : blocksHTML(key, L);   // same layout as the site's home page
+  const body = key === 'home' ? homeHTML() : key === 'meet-the-characters' ? messHallHTML() : blocksHTML(key, L);   // same layout as the site's home page
   const kids = p.kids.length ? `<div class="toc" style="margin-top:12px">${p.kids.map(([k, t]) => `<a href="${href(k)}">${esc(t)}</a>`).join('')}</div>` : '';
   return `<div class="hero banner"><img class="hdr" src="${bannerFor(key)}" alt=""></div>
     <p class="small muted" style="margin:10px 0 0">${parent ? `<a href="${href(parent.key)}">${esc(parent.title)}</a> › ` : ''}Campaign site</p>

@@ -330,3 +330,30 @@ details.gs h4 { margin: 12px 0 4px; }
 .vault-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
 @media (min-width: 900px) { .vault-grid { grid-template-columns: 1fr 1fr; align-items: start; } }
 .log b.pos { color: var(--good); } .log b.neg { color: var(--bad); }
+
+/* Meet the Characters: the mess hall */
+.messhall { background: linear-gradient(#2a1a0e, #3b2414); border-radius: 14px; padding: 0 0 12px; color: #f6e7c8; overflow: hidden;
+  box-shadow: inset 0 0 60px rgba(255, 170, 60, .18); }
+.site-page:has(.messhall) { padding: 0; background: none; border: 0; }
+.mh-head { position: relative; }
+.mh-head img { display: block; width: 100%; aspect-ratio: 3 / 1; object-fit: cover; filter: brightness(.42) saturate(1.2) sepia(.55) hue-rotate(-10deg); }
+.mh-head div { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 16px; background: linear-gradient(transparent, rgba(30, 16, 6, .92)); }
+.mh-head h2 { margin: 0; color: #ffd67a; font-size: 26px; text-shadow: 0 2px 6px #000; }
+.mh-head p { margin: 4px 0 0; font-size: 15px; }
+.mh-table { margin: 16px 12px 0; }
+.mh-table h3 { margin: 0 0 6px 4px; color: #ffd67a; font-size: 17px; }
+.mh-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; padding: 14px 12px;
+  border-radius: 12px; border: 3px solid #4a2a12; align-items: start;
+  background: repeating-linear-gradient(90deg, #8a5a2e 0 46px, #7d5028 46px 48px, #93633a 48px 96px, #7d5028 96px 98px);
+  box-shadow: 0 6px 0 #3a200c, inset 0 0 30px rgba(255, 190, 90, .25); }
+.seat { background: #fff6e2; color: var(--brown); border-radius: 12px; border: 2px solid #e8c98f; box-shadow: 0 3px 0 rgba(0, 0, 0, .25); overflow: hidden; }
+.seat summary { display: flex; align-items: center; gap: 10px; padding: 8px; cursor: pointer; list-style: none; }
+.seat summary::-webkit-details-marker { display: none; }
+.seat summary::after { content: '▸'; margin-left: auto; font-size: 18px; }
+.seat[open] summary::after { content: '▾'; }
+.seat summary img { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; border: 3px solid #f0b955; flex: none; }
+.seat summary b { display: block; font: 700 18px var(--pix); }
+.seat summary small { display: block; color: var(--brown2); }
+.seat-body { padding: 0 12px 12px; font-size: 15px; }
+.seat-art { width: 100%; max-height: 240px; object-fit: contain; border-radius: 10px; margin-bottom: 8px; }
+.seat-body p { margin: 6px 0; }

@@ -1,10 +1,10 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6ade796e';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade796e';
-import { GUILDS2, guildName } from './guild.js?v=6ade796e';
-import { addItem, me } from './play.js?v=6ade796e';
-import { ixLink } from './effects.js?v=6ade796e';
+import * as store from './store.js?v=6ade79da';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade79da';
+import { GUILDS2, guildName } from './guild.js?v=6ade79da';
+import { addItem, me } from './play.js?v=6ade79da';
+import { ixLink } from './effects.js?v=6ade79da';
 
 // One line in the guild's ledger. amt = Poké in (+) or out (-); item lines have no amt.
 export function ledger(guild, text, amt = null) {
