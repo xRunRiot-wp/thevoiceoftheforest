@@ -357,3 +357,11 @@ details.gs h4 { margin: 12px 0 4px; }
 .seat-body { padding: 0 12px 12px; font-size: 15px; }
 .seat-art { width: 100%; max-height: 240px; object-fit: contain; border-radius: 10px; margin-bottom: 8px; }
 .seat-body p { margin: 6px 0; }
+
+/* Low coffers alert + withdrawal cap bar */
+.lowalert { background: #fde3dc; border: 2px solid var(--bad); color: #6b1a12; border-radius: 10px; padding: 10px 12px; margin: 0 0 12px; animation: lowpulse 2s ease-in-out infinite; }
+@keyframes lowpulse { 50% { box-shadow: 0 0 0 4px rgba(200, 60, 40, .25); } }
+@media (prefers-reduced-motion: reduce) { .lowalert { animation: none; } }
+.capbar { margin-top: 10px; text-align: left; }
+.capbar .bar { height: 10px; border-radius: 99px; background: var(--cream3); overflow: hidden; margin-top: 4px; }
+.capbar .bar i { display: block; height: 100%; background: var(--orange, #e07b24); }

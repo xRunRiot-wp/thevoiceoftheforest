@@ -1,17 +1,17 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade7a8d';
-import * as sheet from './sheetdata.js?v=6ade7a8d';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade7a8d';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade7a8d';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade7a8d';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade7a8d';
-import { CONFIG } from './config.js?v=6ade7a8d';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade7a8d';
-import { merged, editContent } from './content-store.js?v=6ade7a8d';
-import { ledger, stash } from './vault.js?v=6ade7a8d';
-import { guildName } from './guild.js?v=6ade7a8d';
-import { homeHTML } from './sitepages.js?v=6ade7a8d';
-import * as dice3d from './dice3d.js?v=6ade7a8d';
+import * as store from './store.js?v=6ade7aea';
+import * as sheet from './sheetdata.js?v=6ade7aea';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade7aea';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade7aea';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade7aea';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade7aea';
+import { CONFIG } from './config.js?v=6ade7aea';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade7aea';
+import { merged, editContent } from './content-store.js?v=6ade7aea';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade7aea';
+import { guildName } from './guild.js?v=6ade7aea';
+import { homeHTML } from './sitepages.js?v=6ade7aea';
+import * as dice3d from './dice3d.js?v=6ade7aea';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -169,11 +169,13 @@ function pokeMove(c, kind) {
   const mine = num((party()[c.id] || {}).poke); const gp = 'guild'; const coffers = num((store.get(gp) || {}).coffers);
   if ((kind === 'spend' || kind === 'give') && amt > mine) return toast(`${c.nickname} only has ${mine} Poké`);
   if (kind === 'take' && amt > coffers) return toast(`The guild only has ${coffers} Poké`);
+  if (kind === 'take' && !canWithdraw(c.guild, amt)) return;
   const sign = kind === 'add' || kind === 'take' ? 1 : -1;
   store.update('party/' + c.id, (x) => { x.poke = num(x.poke) + sign * amt; return x; });
   if (kind === 'give' || kind === 'take') store.update(gp, (g) => ({ ...g, coffers: num(g?.coffers) - sign * amt }));
   const verb = { add: 'got', spend: 'spent', give: 'gave the guild coffers', take: 'took from the guild coffers' }[kind];
   store.pushLimited('log', { t: Date.now(), text: `${c.nickname} ${verb} ${amt} Poké (now ${mine + sign * amt}).` });
+  if (kind === 'take') recordWithdrawal(c.guild, amt);
   if (kind === 'give' || kind === 'take') ledger(c.guild, `${c.nickname} ${kind === 'give' ? 'put in' : 'took out'} Poké`, kind === 'give' ? amt : -amt);
 }
 
@@ -209,6 +211,7 @@ function charCard(c) {
     <div class="row" style="margin-top:12px"><button class="btn" id="qroll">Quick roll</button><button class="btn alt" id="dskin">Dice skin</button><button class="btn alt" id="initroll">Initiative</button><button class="btn alt" id="primal">${st.includes('Primal State') ? 'Leave Primal' : 'Primal State'}</button></div>
 
     <div class="section-title"><h3>Poké bank</h3><span class="small muted">${esc(guildName(c.guild))} · shared coffers: ${num((store.get('guild') || {}).coffers).toLocaleString()}</span></div>
+    ${lowAlertHTML()}<p class="small muted" style="margin:0 0 6px">${(() => { const k = capInfo(c.guild); return `${esc(k.name)} can still take ${k.left.toLocaleString()} of ${k.cap.toLocaleString()} Poké this session.`; })()}</p>
     <div class="card pokebank"><div class="pix pokeamt">${num(c.poke).toLocaleString()} <span>Poké</span></div>
       <div class="row"><button class="btn sm" data-poke="add">+ Add</button><button class="btn alt sm" data-poke="spend">− Spend</button><button class="btn alt sm" data-poke="give">Give to guild</button><button class="btn alt sm" data-poke="take">Take from guild</button></div></div>
 

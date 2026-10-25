@@ -1,15 +1,15 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade7a8d';
-import * as sheet from './sheetdata.js?v=6ade7a8d';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade7a8d';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade7a8d';
-import { MISSION_GP } from './content.js?v=6ade7a8d';
-import { ranks } from './rulebook.js?v=6ade7a8d';
-import { merged, editContent } from './content-store.js?v=6ade7a8d';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade7a8d';
-import { myId } from './app.js?v=6ade7a8d';
-import { ledger } from './vault.js?v=6ade7a8d';
-import { ixLink } from './effects.js?v=6ade7a8d';
+import * as store from './store.js?v=6ade7aea';
+import * as sheet from './sheetdata.js?v=6ade7aea';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade7aea';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade7aea';
+import { MISSION_GP } from './content.js?v=6ade7aea';
+import { ranks } from './rulebook.js?v=6ade7aea';
+import { merged, editContent } from './content-store.js?v=6ade7aea';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade7aea';
+import { myId } from './app.js?v=6ade7aea';
+import { ledger, canWithdraw, recordWithdrawal, lowAlertHTML } from './vault.js?v=6ade7aea';
+import { ixLink } from './effects.js?v=6ade7aea';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -102,6 +102,7 @@ export function renderGuild(main) {
   <div class="hero"><img class="hdr" src="assets/banners/guilds.jpg" alt=""></div>
   <h1>${esc(g.name || 'Guild')}</h1>
   <div class="guild-layout"><aside class="guild-side">${trackerHTML(finished)}</aside><div class="guild-main">
+  ${lowAlertHTML()}
   <div class="guildboxes">${GUILDS2.map(([k]) => guildBox(k)).join('')}</div>
   <div class="card coffers"><span class="pix">Shared guild coffers:</span> <b class="pix">${(g.coffers || 0).toLocaleString()} Poké</b></div>
   <p class="small" style="margin:-4px 0 10px">${ixLink('Guild Points', 'How Guild Points work')} · <a href="#/rules/ranks">All ranks</a></p>
@@ -135,6 +136,8 @@ function buy(id) {
   const gpath = 'guild'; const g = store.get(gpath) || {};   // one shared coffer
   const price = num(s.price);
   if ((g.coffers || 0) < price) { toast('Not enough Poké'); return; }
+  const buyerG = (store.get('party') || {})[myId()]?.guild;
+  if (!canWithdraw(buyerG, price)) return;
   const party = Object.values(store.get('party') || {});
   const el = modal(`<h2>Buy ${esc(s.name)}</h2><p>${price} Poké from the shared guild coffers (has ${(g.coffers || 0).toLocaleString()}).</p>
     <label class="f">Who gets it<select id="ow"><option value="team">Team bag</option>${party.map((c) => `<option value="${c.id}" ${c.id === myId() ? 'selected' : ''}>${esc(c.nickname)}</option>`).join('')}</select></label>
@@ -149,6 +152,7 @@ function buy(id) {
     store.pushLimited('log', { t: Date.now(), text: `Bought ${s.name} for ${price} Poké.` });
     const buyer = (store.get('party') || {})[myId()];
     ledger(buyer?.guild, `${buyer?.nickname || 'Someone'} bought ${s.name}`, -price);
+    recordWithdrawal(buyer?.guild, price);
     closeModal(); toast('Bought ' + s.name);
   };
 }

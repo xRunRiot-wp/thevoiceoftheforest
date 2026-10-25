@@ -1,15 +1,15 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6ade7a8d';
-import * as sheet from './sheetdata.js?v=6ade7a8d';
-import { ledger } from './vault.js?v=6ade7a8d';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ade7a8d';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ade7a8d';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ade7a8d';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal } from './play.js?v=6ade7a8d';
-import { missionCard, finishMission, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ade7a8d';
-import { merged, editContent } from './content-store.js?v=6ade7a8d';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ade7a8d';
-import { CONFIG } from './config.js?v=6ade7a8d';
+import * as store from './store.js?v=6ade7aea';
+import * as sheet from './sheetdata.js?v=6ade7aea';
+import { ledger } from './vault.js?v=6ade7aea';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ade7aea';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ade7aea';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ade7aea';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal } from './play.js?v=6ade7aea';
+import { missionCard, finishMission, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ade7aea';
+import { merged, editContent } from './content-store.js?v=6ade7aea';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ade7aea';
+import { CONFIG } from './config.js?v=6ade7aea';
 
 const PORTRAIT_LIST = ['beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -130,10 +130,12 @@ export async function renderGM(main) {
     <h3 style="margin-top:14px">Woodland Base <span class="small muted">(Poké here = the coffers both guilds share)</span></h3>
     <div class="grid g2"><label class="f">Guild name<input id="gname" value="${esc(g.name || '')}"></label><label class="f">Team name<input id="gteam" value="${esc(g.team || '')}"></label>
       <label class="f">Guild Points<input id="ggp" type="number" inputmode="numeric" value="${g.gp || 0}"></label><label class="f">Poké<input id="gpoke" type="number" inputmode="numeric" value="${g.coffers || 0}"></label>
-      <label class="f">Current chapter<input id="gch" type="number" inputmode="numeric" value="${g.chapter ?? ''}"></label></div>
+      <label class="f">Current chapter<input id="gch" type="number" inputmode="numeric" value="${g.chapter ?? ''}"></label>
+      <label class="f">Withdrawal cap per session<input id="gcap" type="number" inputmode="numeric" value="${g.cap ?? 1000}"></label></div>
     <h3 style="margin-top:14px">Vanguard Guild</h3>
     <div class="grid g2"><label class="f">Guild Points<input id="vgp" type="number" inputmode="numeric" value="${V.gp || 0}"></label>
-      <label class="f">Current chapter<input id="vch" type="number" inputmode="numeric" value="${V.chapter ?? ''}"></label></div>
+      <label class="f">Current chapter<input id="vch" type="number" inputmode="numeric" value="${V.chapter ?? ''}"></label>
+      <label class="f">Withdrawal cap per session<input id="vcap" type="number" inputmode="numeric" value="${V.cap ?? 5000}"></label></div>
     <button class="btn sm" id="saveguild" style="margin-top:8px">Save guilds</button>
     <h3 style="margin-top:14px">Shop stock</h3>
     <ul class="log" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><span class="grow">${esc(s.name)} — ${num(s.price)} P${s.stock !== '' && s.stock != null ? ` · ${s.stock} left` : ''}</span><button class="btn alt sm" data-shop="${esc(s.id)}">Edit</button></li>`).join('')}</ul>
@@ -348,8 +350,8 @@ function bindGM(main) {
 
   // ---- notes, guild, shop, moves
   s('#savenotes').onclick = () => { store.gmSet('notes', s('#notes').value); toast('Notes saved'); };
-  s('#saveguild').onclick = () => { store.update('guild', (x) => ({ ...x, name: s('#gname').value.trim(), team: s('#gteam').value.trim(), gp: num(s('#ggp').value), coffers: num(s('#gpoke').value), chapter: s('#gch').value === '' ? null : num(s('#gch').value) }));
-    store.update('vanguard', (x) => ({ ...x, gp: num(s('#vgp').value), chapter: s('#vch').value === '' ? null : num(s('#vch').value) })); toast('Guilds saved'); };
+  s('#saveguild').onclick = () => { store.update('guild', (x) => ({ ...x, name: s('#gname').value.trim(), team: s('#gteam').value.trim(), gp: num(s('#ggp').value), coffers: num(s('#gpoke').value), chapter: s('#gch').value === '' ? null : num(s('#gch').value), cap: num(s('#gcap').value) }));
+    store.update('vanguard', (x) => ({ ...x, gp: num(s('#vgp').value), cap: num(s('#vcap').value), chapter: s('#vch').value === '' ? null : num(s('#vch').value) })); toast('Guilds saved'); };
   $$('[data-shop]', main).forEach((b) => b.onclick = () => editContent('shop', SHOP_SCHEMA, shop().find((x) => x.id === b.dataset.shop)));
   s('#addshop').onclick = () => editContent('shop', SHOP_SCHEMA, null, { title: 'New shop item' });
   sheet.moves().then((list) => { s('#mvlist').innerHTML = list.map((m) => `<option value="${esc(m.name)}">`).join(''); });
@@ -382,7 +384,7 @@ function bindGM(main) {
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6ade7a8d');
+    const { openTable } = await import('./app.js?v=6ade7aea');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));

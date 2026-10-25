@@ -1,15 +1,56 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6ade7a8d';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade7a8d';
-import { GUILDS2, guildName } from './guild.js?v=6ade7a8d';
-import { addItem, me } from './play.js?v=6ade7a8d';
-import { ixLink } from './effects.js?v=6ade7a8d';
+import * as store from './store.js?v=6ade7aea';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade7aea';
+import { GUILDS2, guildName } from './guild.js?v=6ade7aea';
+import { addItem, me } from './play.js?v=6ade7aea';
+import { ixLink } from './effects.js?v=6ade7aea';
 
 // One line in the guild's ledger. amt = Poké in (+) or out (-); item lines have no amt.
 export function ledger(guild, text, amt = null) {
   store.pushLimited('ledger', { t: Date.now(), guild: guild === 'vanguard' ? 'vanguard' : 'woodland', text, amt }, 400);
 }
+
+// ---- per-session withdrawal caps (Poké taken out of the shared coffers: Take from guild + shop buys)
+export const LOW_COFFERS = 5000;
+const DEFAULT_CAP = { woodland: 1000, vanguard: 5000 };
+const gkey = (g) => (g === 'vanguard' ? 'vanguard' : 'woodland');
+const sessN = () => num((store.get('session') || {}).n) || 1;
+export function capInfo(guild) {
+  const k = gkey(guild);
+  const cap = num((store.get(k === 'vanguard' ? 'vanguard' : 'guild') || {}).cap) || DEFAULT_CAP[k];
+  const used = num(store.get(`withdrawn/${k}/s${sessN()}`));
+  return { cap, used, left: Math.max(0, cap - used), name: guildName(k) };
+}
+// false (and a message) when this would go over the guild's cap for the session
+export function canWithdraw(guild, amt) {
+  const c = capInfo(guild);
+  if (amt <= c.left) return true;
+  toast(`${c.name} can only take ${c.left.toLocaleString()} more Poké this session (cap ${c.cap.toLocaleString()})`);
+  return false;
+}
+export function recordWithdrawal(guild, amt) {
+  const k = gkey(guild);
+  store.update(`withdrawn/${k}/s${sessN()}`, (v) => num(v) + amt);
+  checkCoffers();
+}
+// Coffers under 5,000: post the emergency mission once (until it is finished or removed)
+export function checkCoffers() {
+  const coffers = num((store.get('guild') || {}).coffers);
+  if (coffers >= LOW_COFFERS) return;
+  const open = Object.values(store.get('missions') || {}).some((m) => m.coffersEmergency && !['done', 'failed'].includes(m.status));
+  if (open) return;
+  store.set('missions/' + uid(), {
+    rank: 'D', title: 'Emergency Mission: Restore the Coffers', client: 'Guildmaster Beautifly', place: 'Gravity Falls Guild',
+    details: `The shared guild coffers have fallen below ${LOW_COFFERS.toLocaleString()} Poké. Supplies, repairs and rescues all depend on them. Take on paid work, sell spare finds, or recover lost treasure to refill the vault before the guild runs dry.`,
+    reward: 'Poké raised goes straight into the coffers', status: 'open', coffersEmergency: true, art: 'assets/banners/items_treasure.jpg', ts: Date.now(),
+  });
+  store.pushLimited('log', { t: Date.now(), text: `⚠ The guild coffers are below ${LOW_COFFERS.toLocaleString()} Poké. Emergency mission posted.` });
+}
+export const lowAlertHTML = () => {
+  const coffers = num((store.get('guild') || {}).coffers);
+  return coffers < LOW_COFFERS ? `<div class="lowalert"><b>⚠ The guild coffers are low: ${coffers.toLocaleString()} Poké.</b> Below ${LOW_COFFERS.toLocaleString()}, the emergency mission <a href="#/guild">Restore the Coffers</a> is on the board.</div>` : '';
+};
 
 const guildOfItem = (b) => (b.guild === 'vanguard' ? 'vanguard' : 'woodland');
 let tab = null;   // which guild is showing (stays while the page refreshes live)
@@ -27,13 +68,15 @@ export function renderVault(main) {
   main.innerHTML = `
   <div class="hero banner"><img class="hdr" src="assets/banners/items_treasure.jpg" alt=""></div>
   <h1>Storage & Poké</h1>
+  ${lowAlertHTML()}
   <div class="vtabs">${GUILDS2.map(([k, n]) => `<button class="vtab ${k === tab ? 'on' : ''}" data-vtab="${k}">${esc(n)}</button>`).join('')}</div>
 
   <div class="vault-grid">
     <div>
       <div class="section-title"><h2>Poké</h2></div>
       <div class="card pokebank"><div class="small muted">Shared guild coffers (both guilds)</div><div class="pix pokeamt">${num(g.coffers).toLocaleString()} <span>Poké</span></div>
-        <div class="grid g2 small"><div><b class="pix">+${pin.toLocaleString()}</b><br>${esc(guildName(tab))} put in</div><div><b class="pix">−${pout.toLocaleString()}</b><br>${esc(guildName(tab))} took out</div></div></div>
+        <div class="grid g2 small"><div><b class="pix">+${pin.toLocaleString()}</b><br>${esc(guildName(tab))} put in</div><div><b class="pix">−${pout.toLocaleString()}</b><br>${esc(guildName(tab))} took out</div></div>
+        ${(() => { const c = capInfo(tab); return `<div class="capbar"><div class="small">Withdrawn this session: <b>${c.used.toLocaleString()} / ${c.cap.toLocaleString()}</b> Poké</div>${'<div class="bar"><i style="width:' + Math.min(100, (c.used / c.cap) * 100) + '%"></i></div>'}</div>`; })()}</div>
       <div class="section-title"><h3>${esc(guildName(tab))} activity</h3></div>
       <div class="card" style="padding:6px 12px">${lines.length ? `<ul class="log" style="max-height:420px">${lines.slice(0, 120).map((l) => `<li class="row nowrap"><span class="grow small">${esc(l.text)} <span class="muted">· ${timeAgo(l.t)}</span></span>${l.amt != null ? `<b class="pix ${l.amt < 0 ? 'neg' : 'pos'}">${l.amt > 0 ? '+' : ''}${l.amt}</b>` : ''}</li>`).join('')}</ul>` : '<p class="muted small">Nothing yet. Giving or taking Poké, shop buys, session rewards and storing items show up here by themselves.</p>'}</div>
     </div>
