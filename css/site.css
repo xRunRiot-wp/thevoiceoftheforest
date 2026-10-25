@@ -311,3 +311,11 @@ details.gs h4 { margin: 12px 0 4px; }
 .trk-body { padding: 0 10px 10px; background: var(--paper); }
 .trk-var { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--cream3); }
 .trk-var textarea { width: 100%; margin: 4px 0; }
+
+/* Guild tab: Woodland Base + Vanguard Guild side by side */
+.guildboxes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 8px; }
+.guildbox { margin: 0; }
+.guildbox h3 { margin: 0 0 8px; color: var(--cream); text-shadow: 0 1px 0 #000; }
+.guildbox .nextrank { margin-top: 8px; background: var(--paper); border-radius: 10px; padding: 6px 10px; }
+
+.coffers { text-align: center; font-size: 18px; }

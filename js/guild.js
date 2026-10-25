@@ -1,14 +1,14 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade764a';
-import * as sheet from './sheetdata.js?v=6ade764a';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade764a';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade764a';
-import { MISSION_GP } from './content.js?v=6ade764a';
-import { ranks } from './rulebook.js?v=6ade764a';
-import { merged, editContent } from './content-store.js?v=6ade764a';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade764a';
-import { myId } from './app.js?v=6ade764a';
-import { ixLink } from './effects.js?v=6ade764a';
+import * as store from './store.js?v=6ade7841';
+import * as sheet from './sheetdata.js?v=6ade7841';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade7841';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade7841';
+import { MISSION_GP } from './content.js?v=6ade7841';
+import { ranks } from './rulebook.js?v=6ade7841';
+import { merged, editContent } from './content-store.js?v=6ade7841';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade7841';
+import { myId } from './app.js?v=6ade7841';
+import { ixLink } from './effects.js?v=6ade7841';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -18,7 +18,18 @@ export const SHOP_DEFAULTS = [
 export const SHOP_SCHEMA = [['name', 'Item'], ['price', 'Price (Poké)', 'number'], ['kind', 'Kind'], ['stock', 'Stock (blank = unlimited)', 'number']];
 export const shop = () => merged('shop', SHOP_DEFAULTS);
 
-export const MISSION_SCHEMA = [['rank', 'Rank', 'select:E|D|C|B|A|S|X'], ['title', 'Title'], ['client', 'Client'], ['place', 'Where'], ['details', 'Details', 'area'], ['reward', 'Reward (items / Poké)'], ['gp', 'Guild Points (blank = by rank)', 'number'], ['status', 'Status', 'select:open|taken|done|failed'], ['art', 'Picture link (optional)']];
+export const MISSION_SCHEMA = [['rank', 'Rank', 'select:E|D|C|B|A|S|X'], ['title', 'Title'], ['client', 'Client'], ['place', 'Where'], ['details', 'Details', 'area'], ['reward', 'Reward (items / Poké)'], ['gp', 'Guild Points (blank = by rank)', 'number'], ['status', 'Status', 'select:open|taken|done|failed'], ['guild', 'Guild (woodland or vanguard)', 'select:woodland|vanguard'], ['art', 'Picture link (optional)']];
+
+export const GUILDS2 = [['woodland', 'Woodland Base'], ['vanguard', 'Vanguard Guild']];
+export const guildPath = (k) => (k === 'vanguard' ? 'vanguard' : 'guild');
+export const guildName = (k) => (k === 'vanguard' ? 'Vanguard Guild' : 'Woodland Base');
+const guildBox = (k) => {
+  const g = store.get(guildPath(k)) || {}; const r = rankFor(g.gp || 0);
+  const nx = ranks().find((x) => x.gp != null && x.gp > (g.gp || 0));
+  return `<div class="card emblem guildbox"><h3>${esc(guildName(k))}</h3>
+    <div class="win tight"><span class="who">Rank:</span> ${esc(r?.name || '')} (${esc(r?.alt || '')})<br><span class="who">Guild Points:</span> ${g.gp || 0}<br><span class="who">Chapter:</span> ${g.chapter ?? '—'}</div>
+    <div class="small nextrank">Next rank: ${nx ? `${esc(nx.name)} at ${nx.gp} GP` : 'top of the ladder!'}</div></div>`;
+};
 
 export function rankFor(gp) {
   const list = ranks().filter((r) => r.gp != null);
@@ -30,7 +41,7 @@ export function rankFor(gp) {
 export function missionCard(id, m, { gm = false } = {}) {
   const gp = m.gp ?? MISSION_GP[m.rank] ?? 0;
   return `<div class="card mission ${esc(m.status || '')} ${m.hidden ? 'hidden' : ''}">
-    <div class="row" style="justify-content:space-between"><span class="pill">${esc(m.rank)} Rank · ${gp} GP</span><span class="pill">${m.hidden ? 'GM only' : esc(m.status || 'open')}</span></div>
+    <div class="row" style="justify-content:space-between"><span class="pill">${esc(m.rank)} Rank · ${gp} GP${m.guild === 'vanguard' ? ' · Vanguard' : ''}</span><span class="pill">${m.hidden ? 'GM only' : esc(m.status || 'open')}</span></div>
     ${m.art ? `<a href="${esc(m.art)}" target="_blank"><img class="art-wide" src="${esc(m.art)}" alt="" loading="lazy" style="max-height:260px;object-fit:cover"></a>` : ''}
     <h3 style="margin:8px 0 4px">${esc(m.title)}</h3>
     ${m.client ? `<p class="small muted">Client: ${esc(m.client)}${m.place ? ' · ' + esc(m.place) : ''}</p>` : ''}
@@ -69,8 +80,8 @@ function bindTracker(main) {
 export function finishMission(id, ok) {
   const m = (store.get('missions') || {})[id]; if (!m) return;
   const gp = m.gp ?? MISSION_GP[m.rank] ?? 0;
-  const delta = ok ? gp : (m.rank === 'X' ? -200 : -gp);
-  store.update('guild', (g) => ({ ...g, gp: (g?.gp || 0) + delta }));
+  const delta = ok ? gp : (m.rank === 'X' ? -200 : -gp);  // to the mission's own guild
+  store.update(guildPath(m.guild), (g) => ({ ...g, gp: (g?.gp || 0) + delta }));
   store.set(`missions/${id}/status`, ok ? 'done' : 'failed');
   store.pushLimited('log', { t: Date.now(), text: `Mission ${ok ? 'complete' : 'failed'}: ${m.title} (${delta > 0 ? '+' : ''}${delta} GP)` });
   toast(`${delta > 0 ? '+' : ''}${delta} Guild Points`);
@@ -90,12 +101,9 @@ export function renderGuild(main) {
   <div class="hero"><img class="hdr" src="assets/banners/guilds.jpg" alt=""></div>
   <h1>${esc(g.name || 'Guild')}</h1>
   <div class="guild-layout"><aside class="guild-side">${trackerHTML(finished)}</aside><div class="guild-main">
-  <div class="card emblem">
-    <div class="grid g2">
-      <div class="win tight"><span class="who">Rank:</span> ${esc(r?.name || '')} (${esc(r?.alt || '')})<br><span class="who">Guild Points:</span> ${g.gp || 0}<br><span class="who">Poké:</span> ${(g.coffers || 0).toLocaleString()}<br><span class="who">Chapter:</span> ${g.chapter ?? '—'}</div>
-      <div class="small" style="background:var(--paper);border-radius:10px;padding:10px">Next rank: ${(() => { const nx = ranks().find((x) => x.gp != null && x.gp > (g.gp || 0)); return nx ? `${esc(nx.name)} at ${nx.gp} GP — ${(nx.req || []).map(esc).join(' · ')}` : 'top of the ladder!'; })()}<br>${ixLink('Guild Points', 'How Guild Points work')} · <a href="#/rules/ranks">All ranks</a></div>
-    </div>
-  </div>
+  <div class="guildboxes">${GUILDS2.map(([k]) => guildBox(k)).join('')}</div>
+  <div class="card coffers"><span class="pix">Shared guild coffers:</span> <b class="pix">${(g.coffers || 0).toLocaleString()} Poké</b></div>
+  <p class="small" style="margin:-4px 0 10px">${ixLink('Guild Points', 'How Guild Points work')} · <a href="#/rules/ranks">All ranks</a></p>
 
   <div class="section-title"><h2>Mission board</h2></div>
   ${active.length ? active.map(([id, m]) => missionCard(id, m)).join('') : '<p class="muted">No open missions right now.</p>'}
@@ -107,7 +115,7 @@ export function renderGuild(main) {
   <div class="card" style="padding:6px 12px">${storage.length ? `<ul class="log" style="max-height:none">${storage.map(([id, b]) => `<li class="row nowrap"><span class="grow">${ixLink(b.name)} ×${b.qty}</span><button class="btn alt sm" data-take-item="${id}">To bag</button></li>`).join('')}</ul>` : '<p class="muted small">Storage is empty.</p>'}</div>
 
   <div class="section-title"><h2>Characters</h2><button class="btn alt sm" id="newchar">+ New character</button></div>
-  <div class="grid g2">${party.map((c) => `<button class="card row nowrap" style="text-align:left;cursor:pointer;margin:0" data-view="${c.id}">${portrait(c, 'sm')}<div class="grow"><div class="char-name" style="font-size:19px">${esc(c.nickname)}${c.id === myId() ? ' <span class="pill">you</span>' : ''}</div><div class="char-sub">${esc(c.pokemon)} · ${c.hp}/${maxHp(c)} HP · TP ${c.tp || 0} · ${num(c.poke).toLocaleString()} Poké</div></div></button>`).join('')}</div>
+  <div class="grid g2">${party.map((c) => `<button class="card row nowrap" style="text-align:left;cursor:pointer;margin:0" data-view="${c.id}">${portrait(c, 'sm')}<div class="grow"><div class="char-name" style="font-size:19px">${esc(c.nickname)}${c.id === myId() ? ' <span class="pill">you</span>' : ''}</div><div class="char-sub">${esc(c.pokemon)} · ${esc(guildName(c.guild))} · ${c.hp}/${maxHp(c)} HP · TP ${c.tp || 0} · ${num(c.poke).toLocaleString()} Poké</div></div></button>`).join('')}</div>
   <p class="small muted">Making a character? Fill in the <a href="https://forms.gle/GYmxXLQ7a3rcVRoH6" target="_blank" rel="noopener">Background Form</a> first, then read <a href="#/rules/r/new-character">New Character</a>.</p>
 
   <div class="section-title"><h2>Session history</h2></div>
@@ -125,16 +133,16 @@ export function renderGuild(main) {
 
 function buy(id) {
   const s = shop().find((x) => x.id === id); if (!s) return;
-  const g = store.get('guild') || {};
+  const gpath = 'guild'; const g = store.get(gpath) || {};   // one shared coffer
   const price = num(s.price);
   if ((g.coffers || 0) < price) { toast('Not enough Poké'); return; }
   const party = Object.values(store.get('party') || {});
-  const el = modal(`<h2>Buy ${esc(s.name)}</h2><p>${price} Poké from the guild (has ${(g.coffers || 0).toLocaleString()}).</p>
+  const el = modal(`<h2>Buy ${esc(s.name)}</h2><p>${price} Poké from the shared guild coffers (has ${(g.coffers || 0).toLocaleString()}).</p>
     <label class="f">Who gets it<select id="ow"><option value="team">Team bag</option>${party.map((c) => `<option value="${c.id}" ${c.id === myId() ? 'selected' : ''}>${esc(c.nickname)}</option>`).join('')}</select></label>
     <button class="btn block" id="ok" style="margin-top:10px">Buy</button>`);
   $('#ok', el).onclick = () => {
     const ow = $('#ow', el).value;
-    store.update('guild', (x) => ({ ...x, coffers: (x.coffers || 0) - price }));
+    store.update(gpath, (x) => ({ ...x, coffers: (x.coffers || 0) - price }));
     const bag = store.get('bag') || {};
     const same = Object.entries(bag).find(([, b]) => b.name === s.name && b.owner === ow);
     if (same) store.set(`bag/${same[0]}/qty`, same[1].qty + 1); else store.set('bag/' + uid(), { name: s.name, qty: 1, owner: ow });

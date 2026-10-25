@@ -1,15 +1,16 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade764a';
-import * as sheet from './sheetdata.js?v=6ade764a';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade764a';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade764a';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade764a';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade764a';
-import { CONFIG } from './config.js?v=6ade764a';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade764a';
-import { merged, editContent } from './content-store.js?v=6ade764a';
-import { homeHTML } from './sitepages.js?v=6ade764a';
-import * as dice3d from './dice3d.js?v=6ade764a';
+import * as store from './store.js?v=6ade7841';
+import * as sheet from './sheetdata.js?v=6ade7841';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade7841';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade7841';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade7841';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade7841';
+import { CONFIG } from './config.js?v=6ade7841';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade7841';
+import { merged, editContent } from './content-store.js?v=6ade7841';
+import { guildName } from './guild.js?v=6ade7841';
+import { homeHTML } from './sitepages.js?v=6ade7841';
+import * as dice3d from './dice3d.js?v=6ade7841';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -164,13 +165,13 @@ const POKE_ASK = { add: 'How much Poké does {n} get?', spend: 'How much Poké d
 function pokeMove(c, kind) {
   const amt = Math.floor(num(prompt(POKE_ASK[kind].replace('{n}', c.nickname), '')));
   if (amt <= 0) return;
-  const mine = num((party()[c.id] || {}).poke); const coffers = num((store.get('guild') || {}).coffers);
+  const mine = num((party()[c.id] || {}).poke); const gp = 'guild'; const coffers = num((store.get(gp) || {}).coffers);
   if ((kind === 'spend' || kind === 'give') && amt > mine) return toast(`${c.nickname} only has ${mine} Poké`);
   if (kind === 'take' && amt > coffers) return toast(`The guild only has ${coffers} Poké`);
   const sign = kind === 'add' || kind === 'take' ? 1 : -1;
   store.update('party/' + c.id, (x) => { x.poke = num(x.poke) + sign * amt; return x; });
-  if (kind === 'give' || kind === 'take') store.update('guild', (g) => ({ ...g, coffers: num(g?.coffers) - sign * amt }));
-  const verb = { add: 'got', spend: 'spent', give: 'gave the guild', take: 'took from the guild' }[kind];
+  if (kind === 'give' || kind === 'take') store.update(gp, (g) => ({ ...g, coffers: num(g?.coffers) - sign * amt }));
+  const verb = { add: 'got', spend: 'spent', give: 'gave the guild coffers', take: 'took from the guild coffers' }[kind];
   store.pushLimited('log', { t: Date.now(), text: `${c.nickname} ${verb} ${amt} Poké (now ${mine + sign * amt}).` });
 }
 
@@ -204,7 +205,7 @@ function charCard(c) {
 
     <div class="row" style="margin-top:12px"><button class="btn" id="qroll">Quick roll</button><button class="btn alt" id="dskin">Dice skin</button><button class="btn alt" id="initroll">Initiative</button><button class="btn alt" id="primal">${st.includes('Primal State') ? 'Leave Primal' : 'Primal State'}</button></div>
 
-    <div class="section-title"><h3>Poké bank</h3><span class="small muted">guild coffers: ${num((store.get('guild') || {}).coffers).toLocaleString()}</span></div>
+    <div class="section-title"><h3>Poké bank</h3><span class="small muted">${esc(guildName(c.guild))} · shared coffers: ${num((store.get('guild') || {}).coffers).toLocaleString()}</span></div>
     <div class="card pokebank"><div class="pix pokeamt">${num(c.poke).toLocaleString()} <span>Poké</span></div>
       <div class="row"><button class="btn sm" data-poke="add">+ Add</button><button class="btn alt sm" data-poke="spend">− Spend</button><button class="btn alt sm" data-poke="give">Give to guild</button><button class="btn alt sm" data-poke="take">Take from guild</button></div></div>
 
@@ -482,7 +483,7 @@ export function editCharacter(id, onCreated) {
     </div>
     <h4 style="margin-top:10px">Mystery Dungeon scores</h4>
     <div class="grid g4" style="grid-template-columns:repeat(2,1fr)">${FIELD('logic', 'Logic', c.logic, 'number')}${FIELD('instinct', 'Instinct', c.instinct, 'number')}${FIELD('humanity', 'Humanity', c.humanity, 'number')}${FIELD('primal', 'Primal points', c.primal, 'number')}
-      ${FIELD('baseHp', 'Base HP', c.baseHp, 'number')}${FIELD('will', 'Will', c.will, 'number')}${FIELD('tp', 'Training Points', c.tp, 'number')}${FIELD('poke', 'Poké', c.poke ?? 0, 'number')}${FIELD('hp', 'Current HP', c.hp ?? '', 'number')}</div>
+      ${FIELD('baseHp', 'Base HP', c.baseHp, 'number')}${FIELD('will', 'Will', c.will, 'number')}${FIELD('tp', 'Training Points', c.tp, 'number')}${FIELD('poke', 'Poké', c.poke ?? 0, 'number')}${SELECT('guild', 'Guild', c.guild || 'woodland', ['woodland', 'vanguard'])}${FIELD('hp', 'Current HP', c.hp ?? '', 'number')}</div>
     <h4 style="margin-top:10px">Attributes</h4><div class="grid" style="grid-template-columns:repeat(2,1fr)">${ATTRS.map((a) => FIELD(a, a, c[a] ?? 1, 'number')).join('')}</div>
     <h4 style="margin-top:10px">Skills</h4><div class="grid" style="grid-template-columns:repeat(2,1fr)">${SKILLS.map((a) => FIELD(a, a, c[a] ?? 0, 'number')).join('')}</div>
     <h4 style="margin-top:10px">Social</h4><div class="grid" style="grid-template-columns:repeat(2,1fr)">${SOCIAL.map((a) => FIELD(a, a === 'Clever' ? 'Smart/Clever' : a, c[a] ?? 1, 'number')).join('')}</div>
