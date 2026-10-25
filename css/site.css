@@ -398,3 +398,5 @@ details.gs h4 { margin: 12px 0 4px; }
 .twist-tag { display: inline-block; padding: 1px 7px; border-radius: 9px; font-size: 12px; font-weight: 700; white-space: nowrap; background: #ffd56b; color: #2b1d00; }
 .twist-tag.bad { background: #ff6b81; color: #fff; }
 .twist-tag.chaos { background: #9fd8f2; color: #10293a; }
+.twist-cap { text-align: center; color: #fff3d6; margin: 6px 0 0; }
+.twist-capped { margin: 10px auto 0; max-width: 520px; padding: 8px 12px; border-radius: 12px; background: rgba(255, 107, 129, .18); border: 1px solid #ff6b81; color: #fff; }

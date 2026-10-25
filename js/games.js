@@ -1,11 +1,11 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import * as store from './store.js?v=6ade7f44';
-import { $, $$, esc, toast } from './util.js?v=6ade7f44';
-import { modal } from './ui.js?v=6ade7f44';
-import { merged, editContent } from './content-store.js?v=6ade7f44';
-import { logRoll, me } from './play.js?v=6ade7f44';
-import { ranks } from './rulebook.js?v=6ade7f44';
+import * as store from './store.js?v=6ade8032';
+import { $, $$, esc, toast } from './util.js?v=6ade8032';
+import { modal } from './ui.js?v=6ade8032';
+import { merged, editContent } from './content-store.js?v=6ade8032';
+import { logRoll, me } from './play.js?v=6ade8032';
+import { ranks } from './rulebook.js?v=6ade8032';
 
 export const GAMES = [
   {
@@ -32,7 +32,7 @@ Ludicolo still visits the Guild occasionally. Whenever he enters the storage roo
 
 And Chandelure quietly turns the Lucky Den wheel so that the Golden Paw faces the wall.`,
     // Gemini's bond with the wheel: when Gemini spins, the slice also brings a twist (good, bad or chaos).
-    special: 'Gemini',
+    special: 'Gemini', winCap: 1000,
     twists: [
       ['Little Luck', 'good', 'Star Glow: Gemini’s luck doubles. Take this prize twice.'],
       ['Pocket Change', 'bad', 'Butterfingers: Gemini drops half of it on the way out.'],
@@ -66,7 +66,7 @@ And Chandelure quietly turns the Lucky Den wheel so that the Golden Paw faces th
 ];
 const GAME_SCHEMA = [['name', 'Game name'], ['host', 'Run by'], ['intro', 'About', 'area'], ['cost', 'Cost to play (e.g. 50 Poké)'],
   ['slicesText', 'Slices — one per line: Name | weight | prize (weight 1 = normal, 0.5 = half as likely)', 'area'], ['colorsText', 'Colours (comma separated, optional)'], ['legendTitle', 'Story title (optional)'], ['legend', 'Story (optional)', 'area'],
-  ['special', 'Special character (gets twists when they spin, optional)'],
+  ['special', 'Special character (gets twists when they spin, optional)'], ['winCap', 'Most Poké the special character can win per session (blank = no limit)', 'number'],
   ['twistsText', 'Twists — one per line: Slice | good, bad or chaos | what happens', 'area']];
 
 const parse = (g) => {
@@ -89,6 +89,16 @@ const myRankLetter = () => {
   return r && /^[A-Z]$/.test(r.missions || '') ? r.missions : '';
 };
 const rankPrize = (p) => { const L = myRankLetter(); return L ? p.replace(/\b[EDCBASX]-Rank\b/g, `${L}-Rank`) : p; };
+// The special character's Poké winnings per session (GM's session number), checked against the game's winCap.
+const sessN = () => parseInt((store.get('session') || {}).n, 10) || 1;
+const winPath = (g) => `gamewins/${g.id}/s${sessN()}`;
+const pokeIn = (text, tw) => {
+  let v = [...(text || '').matchAll(/([\d,]+)\s*Poké/g)].reduce((s, m) => s + (parseInt(m[1].replace(/,/g, ''), 10) || 0), 0);
+  if (tw && /twice/i.test(tw[2])) v *= 2;
+  if (tw && /half/i.test(tw[2])) v = Math.floor(v / 2);
+  return v;
+};
+const capLine = (g) => { const won = parseInt(store.get(winPath(g)), 10) || 0; return `${esc(g.special)} has won <b>${won.toLocaleString()} / ${Number(g.winCap).toLocaleString()}</b> Poké this session.`; };
 const TWIST = { good: ['✨', 'Advantage'], bad: ['💢', 'Drawback'], chaos: ['🌀', 'Chaos'] };
 const twistFor = (g, n) => g.twists.find(([s]) => s.toLowerCase() === n.toLowerCase());
 
@@ -154,7 +164,7 @@ export function renderGames(main, [arg]) {
     ${g.cost || g.source ? `<p>${g.cost ? `<span class="pill">🪙 Cost: ${esc(g.cost)}</span> ` : ''}${g.source ? `<a class="small" href="${esc(g.source)}" target="_blank" rel="noopener">🍀 Original wheel</a>` : ''}</p>` : ''}
     ${g.legend ? `<details class="card legend"><summary><b>📜 ${esc(g.legendTitle || 'The story')}</b></summary>${g.legend.split(/\n\s*\n/).map((x) => `<p>${esc(x.trim())}</p>`).join('')}</details>` : ''}
     <div class="wheel-panel ${g.theme === 'stars' ? 'stars' : ''}"><div class="wheel-wrap"><canvas id="wheel" width="680" height="680"></canvas></div>
-    ${g.special && g.twists.length ? `<label class="twist-toggle"><input type="checkbox" id="asSpecial" ${new RegExp(g.special, 'i').test(me()?.nickname || '') ? 'checked' : ''}> ✨ ${esc(g.special)} is spinning (special twists on)</label>` : ''}
+    ${g.special && g.twists.length ? `<label class="twist-toggle"><input type="checkbox" id="asSpecial" ${new RegExp(g.special, 'i').test(me()?.nickname || '') ? 'checked' : ''}> ✨ ${esc(g.special)} is spinning (special twists on)</label>${g.winCap ? `<p class="small twist-cap" id="capline">${capLine(g)}</p>` : ''}` : ''}
     <button class="btn block spinbtn" id="spin">Spin the wheel</button>
     <div class="result" id="res"></div></div>
     <details class="card" style="margin-top:12px"><summary><b>Prizes and odds</b></summary>
@@ -182,11 +192,23 @@ export function renderGames(main, [arg]) {
       else {
         spinning = false; rot %= Math.PI * 2;
         const [n, , p0] = g.slices[i]; const p = rankPrize(p0 || '');
-        const tw = $('#asSpecial', main)?.checked ? twistFor(g, n) : null;
+        const special = !!$('#asSpecial', main)?.checked;
+        const tw = special ? twistFor(g, n) : null;
+        // the special character can't win more than winCap Poké in one session
+        let capNote = '';
+        if (special && g.winCap) {
+          const cap = Number(g.winCap); const won = parseInt(store.get(winPath(g)), 10) || 0;
+          const prize = pokeIn(p, tw); const got = Math.max(0, Math.min(prize, cap - won));
+          if (prize) {
+            store.set(winPath(g), won + got);
+            capNote = got < prize ? `<p class="twist-capped">🚫 Session limit: ${esc(g.special)} only gets <b>${got.toLocaleString()}</b> of the ${prize.toLocaleString()} Poké (max ${cap.toLocaleString()} a session).</p>` : '';
+          }
+          const cl = $('#capline', main); if (cl) cl.innerHTML = capLine(g);
+        }
         $('#res', main).innerHTML = `<div class="big">${esc(n)}</div>${p ? `<p>${esc(p)}</p>` : '<p class="small muted">Your GM tells you what you won.</p>'}`
-          + (tw ? `<div class="twist ${tw[1]}"><b>${TWIST[tw[1]][0]} ${esc(g.special)}’s ${TWIST[tw[1]][1]}</b><p>${esc(tw[2])}</p>${/Metronome wheel/i.test(tw[2]) ? '<a class="gemini-wag" href="#/games/gemini-metronome">Spin Gemini’s Metronome wheel →</a>' : ''}</div>` : '');
+          + (tw ? `<div class="twist ${tw[1]}"><b>${TWIST[tw[1]][0]} ${esc(g.special)}’s ${TWIST[tw[1]][1]}</b><p>${esc(tw[2])}</p>${/Metronome wheel/i.test(tw[2]) ? '<a class="gemini-wag" href="#/games/gemini-metronome">Spin Gemini’s Metronome wheel →</a>' : ''}</div>` : '') + capNote;
         const who = me()?.nickname || 'Someone';
-        logRoll(who, `${g.name} — spin`, null, n + (p ? ` (${p})` : '') + (tw ? ` · ${g.special}’s ${TWIST[tw[1]][1].toLowerCase()}: ${tw[2]}` : ''), 'note');
+        logRoll(who, `${g.name} — spin`, null, n + (p ? ` (${p})` : '') + (tw ? ` · ${g.special}’s ${TWIST[tw[1]][1].toLowerCase()}: ${tw[2]}` : '') + (capNote ? ` · capped by the ${Number(g.winCap).toLocaleString()} Poké session limit` : ''), 'note');
         toast(`${g.name}: ${n}`);
       }
     };
