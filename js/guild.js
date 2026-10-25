@@ -1,14 +1,14 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js';
-import * as sheet from './sheetdata.js';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js';
-import { portrait, modal, closeModal, maxHp } from './ui.js';
-import { MISSION_GP } from './content.js';
-import { ranks } from './rulebook.js';
-import { merged, editContent } from './content-store.js';
-import { editCharacter, viewCharacter, addItem } from './play.js';
-import { myId } from './app.js';
-import { ixLink } from './effects.js';
+import * as store from './store.js?v=6ade7365';
+import * as sheet from './sheetdata.js?v=6ade7365';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade7365';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade7365';
+import { MISSION_GP } from './content.js?v=6ade7365';
+import { ranks } from './rulebook.js?v=6ade7365';
+import { merged, editContent } from './content-store.js?v=6ade7365';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade7365';
+import { myId } from './app.js?v=6ade7365';
+import { ixLink } from './effects.js?v=6ade7365';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],

@@ -1,13 +1,13 @@
-import { CONFIG } from './config.js';
-import * as store from './store.js';
-import * as sheet from './sheetdata.js';
-import { $, $$, esc, uid } from './util.js';
-import { closeModal, maxHp } from './ui.js';
-import { renderJoin, renderPlay } from './play.js';
-import { renderGM } from './gm.js';
-import { renderGuild } from './guild.js';
-import { renderRules } from './rulebook.js';
-import { renderGames } from './games.js';
+import { CONFIG } from './config.js?v=6ade7365';
+import * as store from './store.js?v=6ade7365';
+import * as sheet from './sheetdata.js?v=6ade7365';
+import { $, $$, esc, uid } from './util.js?v=6ade7365';
+import { closeModal, maxHp } from './ui.js?v=6ade7365';
+import { renderJoin, renderPlay } from './play.js?v=6ade7365';
+import { renderGM } from './gm.js?v=6ade7365';
+import { renderGuild } from './guild.js?v=6ade7365';
+import { renderRules } from './rulebook.js?v=6ade7365';
+import { renderGames } from './games.js?v=6ade7365';
 
 const main = $('#main');
 let current = '';
