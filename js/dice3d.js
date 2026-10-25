@@ -1,8 +1,8 @@
 // 3D dice: every d6 roll on this device plays as tumbling dice over the screen, then shows the result.
 // Results always come from the site's own roller; the animation just lands each die on its value.
 // Skins are per device (each player picks their own) and saved in this browser.
-import { $, $$, esc } from './util.js?v=6ade836b';
-import { modal } from './ui.js?v=6ade836b';
+import { $, $$, esc } from './util.js?v=6ade84c9';
+import { modal } from './ui.js?v=6ade84c9';
 
 const THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 const KEY = 'dc.dice';
@@ -71,6 +71,30 @@ export function drawFace(v, s, size = 128) {
   return c;
 }
 
+// A 1x1x1 box with rounded edges and corners (radius r): a finely split box whose points are
+// pulled onto a smaller box plus a sphere of radius r. Keeps the box's six face materials.
+function roundedBox(THREE, r, seg) {
+  const geo = new THREE.BoxGeometry(1, 1, 1, seg, seg, seg);
+  const pos = geo.attributes.position; const nor = geo.attributes.normal;
+  const h = 0.5 - r; const p = new THREE.Vector3(); const inner = new THREE.Vector3();
+  // squeeze the grid so one step covers the flat middle and the rest sit in the rounded band
+  const k = seg / 2;
+  const remap = (c) => { const j = Math.round((Math.abs(c) / 0.5) * k); return Math.sign(c) * (j === 0 ? 0 : h + r * ((j - 1) / (k - 1))); };
+  for (let i = 0; i < pos.count; i++) {
+    p.fromBufferAttribute(pos, i);
+    p.set(remap(p.x), remap(p.y), remap(p.z));
+    inner.set(Math.max(-h, Math.min(h, p.x)), Math.max(-h, Math.min(h, p.y)), Math.max(-h, Math.min(h, p.z)));
+    const n = p.sub(inner).normalize();
+    nor.setXYZ(i, n.x, n.y, n.z);
+    pos.setXYZ(i, inner.x + n.x * r, inner.y + n.y * r, inner.z + n.z * r);
+  }
+  // move the texture with the squeezed grid so the face picture keeps its size
+  const uv = geo.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, remap(uv.getX(i) - 0.5) + 0.5, remap(uv.getY(i) - 0.5) + 0.5);
+  pos.needsUpdate = true; nor.needsUpdate = true; uv.needsUpdate = true;
+  return geo;
+}
+
 // ---------------------------------------------------------------- the roll
 // Box face order in three.js: +x, -x, +y, -y, +z, -z. Opposite faces add to 7.
 const FACE_VALUES = [3, 4, 1, 6, 2, 5];
@@ -108,7 +132,7 @@ export async function show(values, { kind = 'pool', sides = 6 } = {}) {
 
   const look = { gem: { transparent: true, opacity: .82, roughness: .08, metalness: .1 }, metal: { roughness: .25, metalness: .75 }, wood: { roughness: .85 } }[s.style] || { roughness: .45 };
   const mats = FACE_VALUES.map((v) => { const t = new THREE.CanvasTexture(drawFace(v, s)); t.anisotropy = 4; return new THREE.MeshStandardMaterial({ map: t, ...look }); });
-  const geo = new THREE.BoxGeometry(1, 1, 1);
+  const geo = roundedBox(THREE, 0.14, 10);
   const up = new THREE.Vector3(0, 1, 0);
   const objs = dice.map((v, i) => {
     const mesh = new THREE.Mesh(geo, mats.map((m) => m.clone())); mesh.castShadow = true; scene.add(mesh);
