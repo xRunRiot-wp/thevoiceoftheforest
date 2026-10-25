@@ -41,7 +41,8 @@ export function renderJoin(main) {
   </div>
   <div class="row" style="margin-top:14px"><a class="btn dark" href="#/gm">I'm the GM</a></div>
 
-  <div class="section-title"><h2>${esc(INTRO.title)}</h2></div>
+  <img class="art-wide" src="assets/gs/logo.png" alt="${esc(INTRO.title)}" style="margin-top:18px">
+  <div class="card" style="text-align:center"><img src="assets/gs/home_team.png" alt="" style="width:min(240px,70%);border-radius:50%"></div>
   <div class="card emblem"><div class="win">${INTRO.body.map((t) => esc(t)).join('<br><br>')}</div></div>
   <div class="section-title"><h2>Campaign links</h2></div>
   <div class="grid g2">${QUICK_LINKS.map((l) => `<a class="linkbtn" href="${l.href}" target="_blank" rel="noopener"><b>${esc(l.label)}</b><span>${esc(l.sub)}</span></a>`).join('')}</div>`;

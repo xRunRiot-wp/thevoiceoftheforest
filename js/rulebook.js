@@ -3,19 +3,20 @@ import * as store from './store.js';
 import * as sheet from './sheetdata.js';
 import { $, $$, esc } from './util.js';
 import { portrait } from './ui.js';
-import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, ITEM_PAGES, ITEM_KINDS, GARMENTS, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js';
+import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js';
 import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js';
 import { merged, editContent } from './content-store.js';
+import { GS_TEXT } from './gstext.js';
 
 const gm = () => store.gmUnlocked();
 const editBtn = (attr) => (gm() ? `<button class="btn alt sm" ${attr}>Edit</button>` : '');
 const addBtn = (attr, label = '+ Add') => (gm() ? `<button class="btn alt sm" ${attr}>${label}</button>` : '');
 
-export const RULE_SCHEMA = [['title', 'Title'], ['body', 'Paragraphs', 'lines'], ['list', 'Bullet points', 'lines'], ['img', 'Handout image name (optional)']];
-export const CHAPTER_SCHEMA = [['n', 'Chapter number', 'number'], ['title', 'Title'], ['quote', 'Quote'], ['rank', 'Rank'], ['promo', 'Promotion'], ['status', 'Status', 'select:|in progress|complete'], ['opening', 'Opening text', 'area'], ['recap', 'Last time… (one per line)', 'lines'], ['events', 'What happened (one per line)', 'lines']];
-export const CAST_SCHEMA = [['name', 'Name'], ['species', 'Species'], ['portrait', 'Portrait file (e.g. cleffa)'], ['nature', 'Nature'], ['text', 'About', 'area']];
+export const RULE_SCHEMA = [['title', 'Title'], ['body', 'Paragraphs', 'lines'], ['list', 'Bullet points', 'lines'], ['img', 'Handout image name (optional)'], ['art', 'Extra picture (path or link, optional)']];
+export const CHAPTER_SCHEMA = [['n', 'Chapter number', 'number'], ['title', 'Title'], ['quote', 'Quote'], ['rank', 'Rank'], ['promo', 'Promotion'], ['status', 'Status', 'select:|in progress|complete'], ['art', 'Chapter medallion (path or link, optional)'], ['scene', 'Chapter picture (path or link, optional)'], ['opening', 'Opening text', 'area'], ['recap', 'Last time… (one per line)', 'lines'], ['events', 'What happened (one per line)', 'lines']];
+export const CAST_SCHEMA = [['name', 'Name'], ['species', 'Species'], ['portrait', 'Portrait file (e.g. cleffa)'], ['art', 'Character art (path or link, optional)'], ['nature', 'Nature'], ['text', 'About', 'area']];
 export const RANK_SCHEMA = [['n', 'Order', 'number'], ['name', 'Name'], ['alt', 'Also called'], ['gp', 'Guild Points needed', 'number'], ['req', 'Requirements', 'lines'], ['rewards', 'Rewards', 'lines'], ['missions', 'Missions unlocked'], ['recruit', 'Recruiting Power', 'number']];
-export const RIVAL_SCHEMA = [['name', 'Team name'], ['members', 'Members (Pokémon)', 'list'], ['text', 'About', 'lines']];
+export const RIVAL_SCHEMA = [['name', 'Team name'], ['banner', 'Banner picture (path or link, optional)'], ['members', 'Members (Pokémon)', 'list'], ['text', 'About', 'lines']];
 
 export const rules = () => merged('rules', RULES);
 export const chapters = () => merged('chapters', CHAPTERS, (c) => 'ch' + c.n).sort((a, b) => (a.n ?? 99) - (b.n ?? 99));
@@ -26,6 +27,21 @@ export const rivals = () => merged('rivals', GUILDS.rivals.map((r) => ({ ...r, m
 export async function renderRules(main, [sub, arg]) {
   const ix = await loadIndex();
   const L = (t) => linkify(t, ix);
+  // Full text of a page on the GM's Google Site, as a collapsible card
+  const gs = (key, title = 'From the campaign site', open = true, fromHeading = false) => {
+    let b = GS_TEXT[key] || [];
+    if (fromHeading) { const i = b.findIndex((x) => x[0] === 'h'); if (i > 0) b = b.slice(i); }
+    if (!b.length) return '';
+    let h = '', ul = false;
+    for (const [k, t] of b) {
+      if (k === 'li' && !ul) { h += '<ul>'; ul = true; }
+      if (k !== 'li' && ul) { h += '</ul>'; ul = false; }
+      h += k === 'h' ? `<h4>${esc(t)}</h4>` : k === 'li' ? `<li>${L(t)}</li>` : `<p>${L(t)}</p>`;
+    }
+    if (ul) h += '</ul>';
+    return `<details class="card gs"${open ? ' open' : ''}><summary>${esc(title)}</summary>${h}</details>`;
+  };
+  const RULE_GS = { 'new-character': 'how-to-play_new-character', combat: 'how-to-play_beginner-mechanics_combat-and-movement', traps: 'how-to-play_beginner-mechanics_traps-and-hazards', evolution: 'how-to-play_advanced-mechanics_evolution', training: 'how-to-play_advanced-mechanics_training', recruiting: 'how-to-play_advanced-mechanics_recruiting', directing: 'how-to-play_advanced-mechanics_directing-teammates' };
   const back = '<a class="btn alt sm" href="#/rules">← Rulebook</a>';
   const pages = {
     '': hub, coverage, index: indexPage, r: rulePage, story, cast: castPage, ranks: ranksPage, rivals: rivalsPage, items: itemsPage, handouts, links, credits,
@@ -103,6 +119,8 @@ export async function renderRules(main, [sub, arg]) {
     main.innerHTML = `<div class="row" style="justify-content:space-between">${back}${editBtn('id="ed"')}</div>
       <h1 style="margin-top:10px">${esc(r.title)}</h1>
       <div class="card">${(r.body || []).map((p) => `<p>${L(p)}</p>`).join('')}${(r.list || []).length ? `<ul>${r.list.map((p) => `<li>${L(p)}</li>`).join('')}</ul>` : ''}</div>
+      ${RULE_GS[r.id] ? gs(RULE_GS[r.id]) : ''}
+      ${r.art ? `<a class="handout" href="${esc(r.art)}" target="_blank" style="max-width:520px;margin-bottom:12px"><img src="${esc(r.art)}" alt="" loading="lazy" style="aspect-ratio:auto"><span>Tap to open full size</span></a>` : ''}
       ${r.img ? `<a class="handout" href="assets/handouts/${esc(r.img)}.jpg" target="_blank" style="max-width:520px"><img src="assets/handouts/${esc(r.img)}.jpg" alt="${esc(r.title)} handout" loading="lazy" style="aspect-ratio:auto"><span>GM handout — tap to open full size</span></a>` : ''}`;
     const e = $('#ed', main); if (e) e.onclick = () => editContent('rules', RULE_SCHEMA, r, { title: 'Edit ' + r.title, onSave: () => renderRules(main, [sub, arg]) });
   }
@@ -112,14 +130,17 @@ export async function renderRules(main, [sub, arg]) {
     main.innerHTML = `<div class="row" style="justify-content:space-between">${back}${addBtn('id="addch"', '+ Chapter')}</div>
       <h1 style="margin-top:10px">Story & Guild Rank Progression</h1>
       <div class="card emblem"><div class="win">${esc(INTRO.humanity)}<br><br>${esc(INTRO.instinct)}</div></div>
-      ${chapters().map((c) => `<div class="card">
-        <div class="row" style="justify-content:space-between"><h2 style="margin:0">Chapter ${c.n} — ${esc(c.title)}</h2>${editBtn(`data-ed="${esc(c.id)}"`)}</div>
+      ${chapters().map((c) => { const medal = c.art || (c.n >= 0 && c.n <= 10 ? `assets/gs/ch${c.n}_medal.jpg` : ''); const scene = c.scene || (c.n === 0 || c.n === 1 ? `assets/gs/ch${c.n}_scene.jpg` : ''); return `<div class="card">
+        <div class="row nowrap" style="justify-content:space-between">${medal ? `<img class="medal" src="${esc(medal)}" alt="" loading="lazy">` : ''}<h2 style="margin:0" class="grow">Chapter ${c.n} — ${esc(c.title)}</h2>${editBtn(`data-ed="${esc(c.id)}"`)}</div>
         <p class="muted"><i>“${esc(c.quote || '')}”</i></p>
         <p class="small"><span class="pill">${esc(c.rank || '')}</span> ${c.promo ? `<span class="pill">Promotion: ${esc(c.promo)}</span>` : ''} ${c.status ? `<span class="pill">${esc(c.status)}</span>` : ''} ${g.chapter === c.n ? '<span class="pill" style="background:var(--orange);color:#fff">current</span>' : ''}</p>
         ${c.opening ? `<p>${L(c.opening)}</p>` : ''}
         ${(c.recap || []).length ? `<h4>Last time…</h4><ul>${c.recap.map((t) => `<li>${L(t)}</li>`).join('')}</ul>` : ''}
         ${(c.events || []).length ? `<h4>What happened</h4><ul>${c.events.map((t) => `<li>${L(t)}</li>`).join('')}</ul>` : ''}
-      </div>`).join('')}`;
+        ${scene ? `<a href="${esc(scene)}" target="_blank"><img class="art-wide" src="${esc(scene)}" alt="" loading="lazy"></a>` : ''}
+        ${c.n === 0 ? gs('story-guild-rank-progression_chapter-0-the-voice-of-the-forest', 'Chapter page from the campaign site', false) : c.n === 1 ? gs('story-guild-rank-progression_chapter-1-earthquake-at-woodland-base', 'Chapter page from the campaign site', false) : ''}
+      </div>`; }).join('')}
+      <a class="handout" href="assets/gs/story_ranks.jpg" target="_blank" style="max-width:520px"><img src="assets/gs/story_ranks.jpg" alt="Story and guild rank progression" loading="lazy" style="aspect-ratio:auto"><span>Story & Guild Rank Progression — tap to open full size</span></a>`;
     $$('[data-ed]', main).forEach((b) => b.onclick = () => editContent('chapters', CHAPTER_SCHEMA, chapters().find((c) => c.id === b.dataset.ed), { onSave: () => renderRules(main, [sub]) }));
     const a = $('#addch', main); if (a) a.onclick = () => editContent('chapters', CHAPTER_SCHEMA, null, { title: 'New chapter', onSave: () => renderRules(main, [sub]) });
   }
@@ -127,9 +148,10 @@ export async function renderRules(main, [sub, arg]) {
   function castPage() {
     main.innerHTML = `<div class="row" style="justify-content:space-between">${back}${addBtn('id="add"', '+ Character')}</div>
       <h1 style="margin-top:10px">Meet the Characters</h1>
-      <div class="grid g2">${cast().map((c) => `<div class="card"><div class="char-head">${portrait({ ...c, nickname: c.name })}${c.portrait2 ? portrait({ portrait: c.portrait2, nickname: c.name }) : ''}<div class="grow">
+      <div class="grid g2">${cast().map((c) => `<div class="card">${c.art ? `<a href="${esc(c.art)}" target="_blank"><img class="cast-art" src="${esc(c.art)}" alt="${esc(c.name)}" loading="lazy"></a>` : ''}<div class="char-head">${portrait({ ...c, nickname: c.name })}${c.portrait2 ? portrait({ portrait: c.portrait2, nickname: c.name }) : ''}<div class="grow">
         <div class="char-name">${esc(c.name)}</div><div class="char-sub">${esc(c.species || '')}${c.nature ? ' · ' + esc(c.nature) : ''}</div></div>${editBtn(`data-ed="${esc(c.id)}"`)}</div>
-        <p style="margin-top:10px">${L(c.text)}</p></div>`).join('')}</div>`;
+        <p style="margin-top:10px">${L(c.text)}</p></div>`).join('')}</div>
+      ${gs('meet-the-characters', 'Full character bios from the campaign site', false)}`;
     $$('[data-ed]', main).forEach((b) => b.onclick = () => editContent('cast', CAST_SCHEMA, cast().find((c) => c.id === b.dataset.ed), { onSave: () => renderRules(main, [sub]) }));
     const a = $('#add', main); if (a) a.onclick = () => editContent('cast', CAST_SCHEMA, null, { title: 'New character', onSave: () => renderRules(main, [sub]) });
   }
@@ -144,7 +166,8 @@ export async function renderRules(main, [sub, arg]) {
         <p class="small"><span class="pill">Missions: ${esc(r.missions || '—')}</span> <span class="pill">Recruiting power: ${r.recruit === Infinity || r.recruit == null ? 'unlimited' : r.recruit}</span></p></div></div></div>`).join('')}
       <div class="card"><h3>Mission failure & losses</h3><ul>${FAILURE_RULES.map((t) => `<li>${L(t)}</li>`).join('')}</ul></div>
       <div class="card"><h3>Mission types</h3>${Object.entries(MISSION_TYPES).map(([k, list]) => `<h4>${k} Rank ${MISSION_GP[k] ? `(${MISSION_GP[k]} GP)` : '(special rewards)'}</h4><ul class="small">${list.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>`).join('')}</div>
-      <img src="assets/handouts/guild_rank.jpg" alt="Guild ranks handout" style="border-radius:10px;max-width:520px;width:100%" loading="lazy">`;
+      <img src="assets/handouts/guild_rank.jpg" alt="Guild ranks handout" style="border-radius:10px;max-width:520px;width:100%" loading="lazy">
+      <div class="grid g2" style="margin-top:12px"><a class="handout" href="assets/gs/story_ranks.jpg" target="_blank"><img src="assets/gs/story_ranks.jpg" alt="" loading="lazy" style="aspect-ratio:auto"><span>Story & rank progression</span></a><a class="handout" href="assets/gs/mission_ranks.jpg" target="_blank"><img src="assets/gs/mission_ranks.jpg" alt="" loading="lazy" style="aspect-ratio:auto"><span>Missions, items & garments</span></a></div>`;
     $$('[data-ed]', main).forEach((b) => b.onclick = () => editContent('ranks', RANK_SCHEMA, ranks().find((c) => c.id === b.dataset.ed), { onSave: () => renderRules(main, [sub]) }));
     const a = $('#add', main); if (a) a.onclick = () => editContent('ranks', RANK_SCHEMA, null, { title: 'New rank', onSave: () => renderRules(main, [sub]) });
   }
@@ -152,19 +175,26 @@ export async function renderRules(main, [sub, arg]) {
   function rivalsPage() {
     main.innerHTML = `<div class="row" style="justify-content:space-between">${back}${addBtn('id="add"', '+ Team')}</div>
       <h1 style="margin-top:10px">Guilds & Rival Teams</h1>
+      <img class="art-wide" src="assets/gs/guild_banner.jpg" alt="The guild" loading="lazy">
       <div class="card">${GUILDS.intro.map((t) => `<p>${L(t)}</p>`).join('')}</div>
-      ${rivals().map((r) => `<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(r.name)}</h2>${editBtn(`data-ed="${esc(r.id)}"`)}</div>
+      <a href="assets/gs/dungeon_missions.jpg" target="_blank"><img class="art-wide" src="assets/gs/dungeon_missions.jpg" alt="Dungeon and non-dungeon missions" loading="lazy"></a>
+      ${gs('guilds', 'Guilds — from the campaign site')}${gs('guilds_mission-ranks', 'Mission ranks')}${gs('guilds_mission-ranks_dungeon-missions', 'Dungeon missions')}${gs('guilds_mission-ranks_non-dungeon-missions', 'Non-dungeon missions')}
+      <div class="section-title"><h2>Rival teams</h2></div>
+      ${rivals().map((r) => `<div class="card">${r.banner ? `<img class="art-wide" src="${esc(r.banner)}" alt="" loading="lazy">` : ''}<div class="row" style="justify-content:space-between"><h2 style="margin:0">${esc(r.name)}</h2>${editBtn(`data-ed="${esc(r.id)}"`)}</div>
         <div class="row" style="margin:10px 0">${(r.members || []).map((m) => `<div style="text-align:center">${portrait({ pokemon: m, nickname: m }, 'sm')}<div class="small">${esc(m)}</div></div>`).join('')}</div>
-        ${(r.text || []).map((t) => `<p>${L(t)}</p>`).join('')}</div>`).join('')}`;
+        ${(r.text || []).map((t) => `<p>${L(t)}</p>`).join('')}
+        ${r.name === 'Team Meanies' ? gs('guilds_team-meanies', 'Full story from the campaign site', false) : r.name === 'Team Skull' ? gs('guilds_team-skull', 'Full story from the campaign site', false) : ''}</div>`).join('')}`;
     $$('[data-ed]', main).forEach((b) => b.onclick = () => editContent('rivals', RIVAL_SCHEMA, rivals().find((c) => c.id === b.dataset.ed), { onSave: () => renderRules(main, [sub]) }));
     const a = $('#add', main); if (a) a.onclick = () => editContent('rivals', RIVAL_SCHEMA, null, { title: 'New team', onSave: () => renderRules(main, [sub]) });
   }
 
   async function itemsPage() {
     main.innerHTML = `${back}<h1 style="margin-top:10px">Items</h1>
-      <div class="card">${ITEM_KINDS.map(([k, t]) => `<h4>${esc(k)}</h4><p class="small">${L(t)}</p>`).join('')}</div>
+      <div class="grid g2">${ITEM_ART.map(([k, s, f]) => `<div class="card" style="margin:0"><img class="art-sq" src="${f}" alt="${esc(k)}" loading="lazy"><h3 style="margin:8px 0 2px">${esc(k)}</h3><p class="small muted" style="margin:0">${esc(s)}</p></div>`).join('')}</div>
+      <div class="card" style="margin-top:12px">${ITEM_KINDS.map(([k, t]) => `<h4>${esc(k)}</h4><p class="small">${L(t)}</p>`).join('')}</div>
       <div class="card"><h3>${linkify('Garments', ix)}</h3><table class="t"><tr><th>Garment</th><th>Rarity</th><th>Effect</th></tr>${GARMENTS.map(([n, r, e]) => `<tr><td>${linkify(n, ix)}</td><td><span class="pill r-${r.split(' ')[0]}">${r}</span></td><td>${esc(e)}</td></tr>`).join('')}</table></div>
-      <div class="card"><h3>Items by rarity</h3>${Object.entries(ITEM_PAGES).map(([r, list]) => `<h4><span class="pill r-${r}">${r}</span></h4><p class="small">${list.map((n) => (ix.byName.get(n.toLowerCase()) ? `<a href="#" class="ix" data-ixname="${esc(n)}">${esc(n)}</a>` : esc(n))).join(', ')}</p>`).join('')}</div>
+      <div class="card"><h3>Items by rarity</h3>${Object.entries(ITEM_PAGES).map(([r, list]) => `<h4 class="row nowrap">${RARITY_ART[r] ? `<img class="rarity-card" src="${RARITY_ART[r]}" alt="" loading="lazy">` : ''}<span class="pill r-${r}">${r}</span></h4><p class="small">${list.map((n) => (ix.byName.get(n.toLowerCase()) ? `<a href="#" class="ix" data-ixname="${esc(n)}">${esc(n)}</a>` : esc(n))).join(', ')}</p>`).join('')}</div>
+      ${gs('items', 'Item types — from the campaign site', true, true)}${gs('items_mundane', 'Mundane items (full list)', false)}${gs('items_common', 'Common items (full list)', false)}${gs('items_uncommon', 'Uncommon items (full list)', false)}
       <div class="card"><h3>Shop list</h3><p class="small muted">From the campaign spreadsheet (Treasure Inventory) — ${sheet.source.treasure === 'live' ? 'live' : 'saved copy'}.</p><div class="scroll-x" id="shop">Loading…</div></div>`;
     const t = await sheet.treasure();
     $('#shop', main).innerHTML = `<table class="t"><tr><th>Item</th><th>Kind</th><th>Rarity</th><th>Price</th></tr>${t.map((x) => `<tr><td><a href="#" class="ix" data-ixname="${esc(x.name)}">${esc(x.name)}</a></td><td>${esc(x.kind)}</td><td><span class="pill r-${esc(x.rarity.split(/[ —]/)[0])}">${esc(x.rarity)}</span></td><td>${esc(x.price)}</td></tr>`).join('')}</table>`;
@@ -217,7 +247,7 @@ export async function renderRules(main, [sub, arg]) {
 
   function credits() {
     main.innerHTML = `${back}<h1 style="margin-top:10px">Credits</h1>
-      <div class="card"><h3>The campaign</h3><p>Story, handouts, guides, spreadsheet and campaign site by the GM of <i>Voice of the Forest</i>.</p></div>
+      <div class="card"><h3>The campaign</h3><p>Story, handouts, guides, spreadsheet and campaign site by the GM of <i>Voice of the Forest</i>. The character art, chapter medallions, item and guild art, banners and infographics come from the GM's own campaign site (<a href="https://sites.google.com/view/dungeoncrawling/home" target="_blank" rel="noopener">Voice of the Forest Google Site</a>); character art belongs to its original artists.</p></div>
       <div class="card"><h3>Game rules</h3><p><b>PokéRole 2.0</b> core rulebook by the PokéRole team. <b>PokéRole Mystery Dungeon Unofficial v2.0</b> supplement — created by LatiusAuro; original rules development Ruben, Aleida, Mikel; additional rules LatiusAuro, Rockington. Page numbers in the Index point to these books.</p></div>
       <div class="card"><h3>Game art</h3>
         <p>Every game graphic on this site comes from <b>Pokémon Mystery Dungeon: Explorers of Time / Darkness / Sky</b> (Nintendo DS) and the original Rescue Team era, as ripped and shared by fans:</p>

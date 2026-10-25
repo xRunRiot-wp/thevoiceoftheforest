@@ -130,7 +130,7 @@ export const INSTINCT = [
 
 // Rules pages. Each: id, title, img (handout), body paragraphs, optional list
 export const RULES = [
-  { id: 'new-character', title: 'New Character', body: [
+  { id: 'new-character', title: 'New Character', art: 'assets/gs/new_character_sheet.jpg', body: [
       'Every rescue team begins somewhere. Before entering the world of PokéRole Mystery Dungeon, you’ll create the human you were, determine the Pokémon you’ve become, and prepare your character for play.',
       '1. Create your character concept with the Background Form (personality, history, motivations, goals, important memories). Focus on who your character is first.',
       '2. Build your character sheet. Your character must live primarily on land, be Starter rank and non-legendary. Record Attributes and Social Attributes, Skills, Nature, Pokémon information, Moves and Abilities, and other starting statistics. Use the Rulebook for stat distributions.',
@@ -222,6 +222,7 @@ export const HANDOUTS = [
   ['guild_rank', 'Guild Ranks & Rewards'], ['missions_items', 'Missions, Items & Garments'], ['humanity', 'Humanity'], ['instinct', 'Instinct'],
   ['evolving', 'Evolving'], ['training', 'Training'], ['recruiting', 'Recruiting'], ['recruiting_limits', 'Recruiting & Guild Rank'],
   ['traps', 'Traps & Hazards'], ['dungeon_village_missions', 'Dungeon & Non-Dungeon Missions'],
+  ['story_ranks', 'Story & Guild Rank Progression'], ['mission_ranks', 'Missions, Items & Garments (site)'], 
 ];
 
 export const GUILDS = {
@@ -231,11 +232,11 @@ export const GUILDS = {
     'Every mission is assigned a rank based on danger, difficulty, distance and expected rewards. As your Guild Rank increases, your team gains access to tougher missions—and greater rewards.',
   ],
   rivals: [
-    { name: 'Team Meanies', members: [['Gengar', 'gengar'], ['Ekans', 'ekans'], ['Medicham', 'medicham']], text: [
+    { name: 'Team Meanies', banner: 'assets/gs/team_meanies.jpg', members: [['Gengar', 'gengar'], ['Ekans', 'ekans'], ['Medicham', 'medicham']], text: [
       'Long ago, Team Meanies—Gengar, Medicham, and Ekans—called themselves a rescue team, but heroism was never their true goal. They stole missions, manipulated vulnerable Pokémon, and spread fear in pursuit of wealth, influence, and power.',
       'They became bitter rivals of Pikachu and Squirtle, and Gengar twisted the legend of the Ninetales curse to drive them from Pokémon Square. Their schemes were exposed and the group faded from prominence—but rumors claim they may be active once again.',
     ] },
-    { name: 'Team Skull', members: [['Skuntank', 'skuntank'], ['Zubat', 'zubat'], ['Koffing', 'koffing']], text: [
+    { name: 'Team Skull', banner: 'assets/gs/team_skull.jpg', members: [['Skuntank', 'skuntank'], ['Zubat', 'zubat'], ['Koffing', 'koffing']], text: [
       'Led by Skuntank alongside Koffing and Zubat, Team Skull was a notorious exploration team known for bullying weaker Pokémon, stealing treasures, and taking credit for the work of others.',
       'They were fierce rivals of Kippy and Mimi, yet years later risked themselves to help them reach the Hidden Land—even if Skuntank refused to admit he cared. They now spend their days helping where they can at Gravity Falls. Not many seem to know their past...',
     ] },
@@ -244,14 +245,14 @@ export const GUILDS = {
 
 // Meet the Characters (Google Site). portrait = file in assets/portraits (original game portraits only)
 export const CAST = [
-  { name: 'Gemini', species: 'Cleffa', portrait: 'cleffa', text: 'Gemini is looking for a new guild and new friends (after getting kicked out of their last one). The kind of friend who’s gonna get you in trouble—but it’ll be fun! Loves games of chance and being out at night beneath the stars.' },
-  { name: 'Slakoth', species: 'Slakoth', portrait: 'slakoth', text: 'A quiet dungeon guide with no memories from before he was found injured outside a mystery dungeon one year ago. Business is slow, but he’s earned a reputation for calmly navigating dangerous places. Most customers find him snoozing on the sign outside the Miltankshake Shack well after closing. His relaxed, sometimes oblivious behavior conceals a painful sense of failure.' },
-  { name: 'Magnemite', species: 'Magnemite', portrait: 'magnemite', nature: 'Jolly', text: 'Fantasy engineer and young inventor—goofy, creative and logical. Approaches every problem as something that can be solved with gears, tools, and a sufficiently strange idea. His inventions almost work. Goal: invent something genuinely cool.' },
-  { name: 'Puff', species: 'Cottonee', nature: 'Quirky', text: 'An unusually old Cottonee who floats through life stirring up harmless trouble and making others laugh. After Puff’s father chose their twin to inherit the family shop, Puff left home to find a place—and a purpose—of their own.' },
-  { name: 'Rox', species: '', nature: 'Modest', text: 'An energetic adventurer who believes every small problem is the beginning of an important mission. Humble, quiet and kind. Travels from community to community helping Pokémon in need and leaves simple stone markers behind. Goal: grow strong enough to protect others and build the welcoming dojo he once dreamed of.' },
-  { name: 'Felicia', species: '', nature: 'Bold', text: 'Metalwork artisan—focused, determined, curious, and intensely motivated once something captures her interest. Has a sharp eye for unusual materials and the patience to turn scraps, relics and rare finds into something meaningful.' },
-  { name: 'Rocky', species: 'Sudowoodo', portrait: 'sudowoodo', nature: 'Mild', text: 'A calm, dependable wanderer who creates stone art and keeps getting drawn into adventures through small acts of kindness. He doesn’t remember his past, but balancing stones makes him feel strangely at home. Goal: help protect the peaceful community he’s come to consider home.' },
-  { name: 'Mimi & Kippy', species: 'Pikachu & Mudkip', portrait: 'pikachu', portrait2: 'mudkip', text: 'A hardy Pikachu and their loyal Mudkip partner rose from rookie explorers to one of the guild’s celebrated Diamond Rank teams (Team Pika Pals). They recovered stolen Time Gears, survived the future’s paralyzed world, reached Temporal Tower and helped prevent time from collapsing.' },
+  { name: 'Gemini', art: 'assets/gs/cast_gemini.png', species: 'Cleffa', portrait: 'cleffa', text: 'Gemini is looking for a new guild and new friends (after getting kicked out of their last one). The kind of friend who’s gonna get you in trouble—but it’ll be fun! Loves games of chance and being out at night beneath the stars.' },
+  { name: 'Slakoth', art: 'assets/gs/cast_slakoth.jpg', species: 'Slakoth', portrait: 'slakoth', text: 'A quiet dungeon guide with no memories from before he was found injured outside a mystery dungeon one year ago. Business is slow, but he’s earned a reputation for calmly navigating dangerous places. Most customers find him snoozing on the sign outside the Miltankshake Shack well after closing. His relaxed, sometimes oblivious behavior conceals a painful sense of failure.' },
+  { name: 'Magnemite', art: 'assets/gs/cast_magnemite.jpg', species: 'Magnemite', portrait: 'magnemite', nature: 'Jolly', text: 'Fantasy engineer and young inventor—goofy, creative and logical. Approaches every problem as something that can be solved with gears, tools, and a sufficiently strange idea. His inventions almost work. Goal: invent something genuinely cool.' },
+  { name: 'Puff', art: 'assets/gs/cast_puff.jpg', species: 'Cottonee', nature: 'Quirky', text: 'An unusually old Cottonee who floats through life stirring up harmless trouble and making others laugh. After Puff’s father chose their twin to inherit the family shop, Puff left home to find a place—and a purpose—of their own.' },
+  { name: 'Rox', art: 'assets/gs/cast_rox.jpg', species: '', nature: 'Modest', text: 'An energetic adventurer who believes every small problem is the beginning of an important mission. Humble, quiet and kind. Travels from community to community helping Pokémon in need and leaves simple stone markers behind. Goal: grow strong enough to protect others and build the welcoming dojo he once dreamed of.' },
+  { name: 'Felicia', art: 'assets/gs/cast_felicia.jpg', species: '', nature: 'Bold', text: 'Metalwork artisan—focused, determined, curious, and intensely motivated once something captures her interest. Has a sharp eye for unusual materials and the patience to turn scraps, relics and rare finds into something meaningful.' },
+  { name: 'Rocky', art: 'assets/gs/cast_rocky.jpg', species: 'Sudowoodo', portrait: 'sudowoodo', nature: 'Mild', text: 'A calm, dependable wanderer who creates stone art and keeps getting drawn into adventures through small acts of kindness. He doesn’t remember his past, but balancing stones makes him feel strangely at home. Goal: help protect the peaceful community he’s come to consider home.' },
+  { name: 'Mimi & Kippy', art: 'assets/gs/cast_mimi_kippy.jpg', species: 'Pikachu & Mudkip', portrait: 'pikachu', portrait2: 'mudkip', text: 'A hardy Pikachu and their loyal Mudkip partner rose from rookie explorers to one of the guild’s celebrated Diamond Rank teams (Team Pika Pals). They recovered stolen Time Gears, survived the future’s paralyzed world, reached Temporal Tower and helped prevent time from collapsing.' },
 ];
 
 // Item reference from the Google Site item pages (rarity tiers) + item category blurbs
@@ -263,6 +264,15 @@ export const ITEM_PAGES = {
     'Via Seed', 'Decoy Seed', 'Violent Seed', 'Vile Seed', 'Doom Seed', 'Joy Seed', 'Hunger Seed', 'Heal Seed', 'Encourage Seed',
     'Weighted Projectile Pouch', 'Silver Spike', 'Uncommon Held Item (GM rolls)', 'Uncommon Garment (GM rolls)', 'Useful Crafting Cache'],
 };
+
+// Item category art from the GM's Google Site (Items page)
+export const ITEM_ART = [
+  ['Edible', 'Seeds · Berries · Food', 'assets/gs/items_edible.jpg'],
+  ['Orbs', 'Control · Movement · Exploration · Protection · Power · Emergency & Terrain', 'assets/gs/items_orbs.jpg'],
+  ['Wearables', 'Bands · Scarves · Bows · Ribbons · Held Items', 'assets/gs/items_wearables.jpg'],
+  ['Utility', 'Poké · Projectiles · Tools · Materials · Keys · Maps · Storage gear · Valuables · Treasures', 'assets/gs/items_utility.jpg'],
+];
+export const RARITY_ART = { Mundane: 'assets/gs/card_mundane.jpg', Common: 'assets/gs/card_common.jpg', Uncommon: 'assets/gs/card_uncommon.jpg' };
 
 export const ITEM_KINDS = [
   ['Seeds', 'Single-use items that create powerful tactical effects, such as awakening abilities, altering conditions, escaping danger, or gaining an advantage in battle.'],
