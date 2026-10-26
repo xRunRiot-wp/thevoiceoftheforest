@@ -1,10 +1,10 @@
 // Character hotbar in the top banner: money, guild points & rank, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6adea672';
-import { $, esc, num } from './util.js?v=6adea672';
-import { modal } from './ui.js?v=6adea672';
-import { rankFor, guildPath, guildName } from './guild.js?v=6adea672';
-import { weatherChipHTML, showWeather } from './weather.js?v=6adea672';
+import * as store from './store.js?v=6adea6e2';
+import { $, esc, num } from './util.js?v=6adea6e2';
+import { modal } from './ui.js?v=6adea6e2';
+import { rankFor, guildPath, guildName } from './guild.js?v=6adea6e2';
+import { weatherChipHTML, showWeather } from './weather.js?v=6adea6e2';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };

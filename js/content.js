@@ -443,7 +443,7 @@ export const WORLD = {
     { name: 'Blossom Meadow, Glasswater Camps and Relicwatch', text: 'Other camps across the region. Every camp has a Psychic Link post.' },
   ],
   npcs: [
-    { name: 'Guildmaster Beautifly', text: 'Leads the guild. Once cheerful, now serious; her husband vanished in the forest collapse seven years ago and she is still searching for him.' },
+    { name: 'Guildmaster Beautifly', text: 'Leads the guild (he/him). The young guild members call him “Mr. Fly.” Once cheerful, now serious; he is married to his husband, who vanished in the forest collapse seven years ago, and he is still searching for him.' },
     { name: 'Beedrill', text: 'Champion rank, Mild nature. The guild’s den mother.' },
     { name: 'Scolipede', text: 'Champion rank, Naughty nature. Part of Beautifly’s earlier story.' },
     { name: 'Diglett', text: 'Pro rank, Jolly nature. Curt but knowledgeable.' },

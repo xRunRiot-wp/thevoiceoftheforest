@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6adea672';
-import { $, $$, esc, toast } from './util.js?v=6adea672';
+import * as store from './store.js?v=6adea6e2';
+import { $, $$, esc, toast } from './util.js?v=6adea6e2';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 export const RESIDENTS = {
@@ -29,6 +29,7 @@ const AMBIENT = [
   ['Guildmaster Beautifly', 'say', 'Every fissure in this forest is a question. I intend to have answers before the next storm.'],
   ['Guildmaster Beautifly', 'do', 'circles the mission board twice, straightens a crooked notice, and flutters off toward the Great Canopy.'],
   ['Guildmaster Beautifly', 'say', 'Rescuers, remember: a rescue that brings everyone home is worth more than any treasure.'],
+  ['Guildmaster Beautifly', 'do', 'hears the youngest recruits whisper “Mr. Fly!” as he passes, and lets himself smile for just a moment.'],
   ['Chandelure', 'say', 'The Lucky Den is open. Please lose responsibly.'],
   ['Chandelure', 'do', 'polishes the Lucky Den wheel and, very quietly, turns the Golden Paw toward the wall.'],
   ['Chandelure', 'say', 'Cave safety is not optional. Lanterns lit, ropes checked, and nobody touches the glowing rocks.'],
