@@ -1,20 +1,20 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade9d46';
-import * as sheet from './sheetdata.js?v=6ade9d46';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9d46';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9d46';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9d46';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9d46';
-import { CONFIG } from './config.js?v=6ade9d46';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9d46';
-import { merged, editContent } from './content-store.js?v=6ade9d46';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9d46';
-import { guildName } from './guild.js?v=6ade9d46';
-import { homeHTML } from './sitepages.js?v=6ade9d46';
-import { chatterLatestHTML } from './chatter.js?v=6ade9d46';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6ade9d46';
-import { locations, spots } from './friendzone.js?v=6ade9d46';
-import * as dice3d from './dice3d.js?v=6ade9d46';
+import * as store from './store.js?v=6ade9dc5';
+import * as sheet from './sheetdata.js?v=6ade9dc5';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9dc5';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9dc5';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9dc5';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9dc5';
+import { CONFIG } from './config.js?v=6ade9dc5';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9dc5';
+import { merged, editContent } from './content-store.js?v=6ade9dc5';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9dc5';
+import { guildName } from './guild.js?v=6ade9dc5';
+import { homeHTML } from './sitepages.js?v=6ade9dc5';
+import { chatterLatestHTML } from './chatter.js?v=6ade9dc5';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6ade9dc5';
+import { locations, spots } from './friendzone.js?v=6ade9dc5';
+import * as dice3d from './dice3d.js?v=6ade9dc5';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -281,6 +281,7 @@ const badgeChip = (c) => { const [n, img] = badgeOf(c); return `<span class="pil
 const badgeImg = (name) => Object.values(BADGE).find(([n]) => n === name)?.[1];
 export function ensureBadge(c) {
   const [want] = badgeOf(c);
+  if (!Object.values(store.get('bag') || {}).some((b) => b.owner === c.id && b.name === 'World Map')) store.set('bag/' + uid(), { name: 'World Map', qty: 1, owner: c.id, key: true });
   const mine = Object.entries(store.get('bag') || {}).filter(([, b]) => b.owner === c.id && badgeImg(b.name));
   if (mine.length === 1 && mine[0][1].name === want) return;
   mine.forEach(([id]) => store.set('bag/' + id, null));
@@ -291,7 +292,7 @@ function bagList(c) {
   const bag = Object.entries(store.get('bag') || {}).filter(([, b]) => b.owner === c.id || b.owner === 'team');
   if (!bag.length) return '<p class="muted small">Empty. Items the team finds land here.</p>';
   return `<ul class="log" style="max-height:none">${bag.map(([id, b]) => `<li class="row nowrap"><span class="grow">${badgeImg(b.name) ? `<img class="bag-badge" src="${badgeImg(b.name)}" alt="">` : ''}<a href="#" data-ixname="${esc(b.name)}"><b>${esc(b.name)}</b></a> ×${b.qty}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span>
-    ${badgeImg(b.name) ? '<span class="small muted">guild badge</span>' : `<button class="btn alt sm" data-stash="${id}">Store</button><button class="btn sm" data-use="${id}">Use</button>`}</li>`).join('')}</ul>`;
+    ${badgeImg(b.name) ? '<span class="small muted">guild badge</span>' : b.key ? '<span class="small muted">key item</span>' : `<button class="btn alt sm" data-stash="${id}">Store</button><button class="btn sm" data-use="${id}">Use</button>`}</li>`).join('')}</ul>`;
 }
 
 function bindCharCard(main, c) {
