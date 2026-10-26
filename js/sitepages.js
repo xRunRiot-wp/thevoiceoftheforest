@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6adeae35';
-import { esc } from './util.js?v=6adeae35';
-import { LINKS, CAST } from './content.js?v=6adeae35';
+import { GS_TEXT } from './gstext.js?v=6adeaf5e';
+import { esc } from './util.js?v=6adeaf5e';
+import { LINKS, CAST } from './content.js?v=6adeaf5e';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -74,7 +74,8 @@ export function homeHTML() {
 // Rulebook hub: each section of her site as a picture tile in rows, its pages as buttons underneath
 const TILE_ART = { 'meet-the-characters': 'assets/gs/home_team.png', 'story-guild-rank-progression': 'assets/banners/chapter_0.jpg' };
 export function navTilesHTML() {
-  const sub = (kids) => kids.flatMap(([k, t, g]) => [`<a href="${href(k)}">${esc(t)}</a>`, ...(g ? sub(g) : [])]);
+  // only a section's own pages here; their sub-pages show when that page is opened
+  const sub = (kids) => kids.map(([k, t]) => `<a href="${href(k)}">${esc(t)}</a>`);
   return `<div class="navtiles">${SITE_NAV.map(([k, t, kids]) => `<div class="navtile">
     <a class="navtile-head" href="${href(k)}"><img src="${TILE_ART[k] || bannerFor(k)}" alt="" loading="lazy"><span>${esc(t)}</span></a>
     ${kids ? `<div class="navtile-kids">${sub(kids).join('')}</div>` : ''}</div>`).join('')}</div>`;
@@ -133,11 +134,13 @@ export function pageHTML(key, L = esc) {
   if (!p) return '<p>That page is not on the campaign site.</p>';
   const parent = p.parent && sitePage(p.parent);
   const body = key === 'home' ? homeHTML() : key === 'meet-the-characters' ? messHallHTML() : blocksHTML(key, L);   // same layout as the site's home page
-  const kids = p.kids.length ? `<div class="toc" style="margin-top:12px">${p.kids.map(([k, t]) => `<a href="${href(k)}">${esc(t)}</a>`).join('')}</div>` : '';
+  // sub-pages as picture cards with a short preview, so a menu page shows what is inside
+  const peek = (k) => { const t = (GS_TEXT[k] || []).find(([kind, x]) => kind === 'p' && x.length > 40); return t ? (t[1].length > 150 ? t[1].slice(0, 150).replace(/\s+\S*$/, '') + '…' : t[1]) : ''; };
+  const kids = p.kids.length ? `<div class="subcards">${p.kids.map(([k, t]) => `<a class="subcard" href="${href(k)}"><img src="${TILE_ART[k] || ((GS_TEXT[k] || []).find(([kind, x]) => kind === 'img' && !/home_3\./.test(x)) || [])[1] || bannerFor(k)}" alt="" loading="lazy"><b>${esc(t)}</b>${peek(k) ? `<span>${esc(peek(k))}</span>` : ''}<em>Read more ›</em></a>`).join('')}</div>` : '';
   return `<div class="hero banner"><img class="hdr" src="${bannerFor(key)}" alt=""></div>
     <p class="small muted" style="margin:10px 0 0">${parent ? `<a href="${href(parent.key)}">${esc(parent.title)}</a> › ` : ''}Campaign site</p>
     <h1 style="margin-top:4px">${esc(p.title)}</h1>
-    <div class="card site-page">${body || '<p class="muted">This page is a menu:</p>'}${kids}</div>
+    <div class="card site-page">${body || ''}${kids}</div>
     <p class="small"><a href="https://sites.google.com/view/dungeoncrawling/${key.replace(/_/g, '/')}" target="_blank" rel="noopener">Open the original page</a></p>
     <details class="card"><summary><b>All campaign site pages</b></summary>${navHTML(key)}</details>`;
 }

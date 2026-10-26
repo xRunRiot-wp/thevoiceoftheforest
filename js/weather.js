@@ -1,10 +1,10 @@
 // Region weather: changes every 6 hours (12 AM, 6 AM, 12 PM, 6 PM Eastern) and a 1d100 sky roll each day.
-// A roll of 100 is a legendary event for the whole day: a huge fissure (Groudon) or a tsunami (Kyogre).
+// A roll of 100 is a disaster for the whole day: a huge fissure or a tsunami. Players never see who causes them (GM screen only).
 // Every device works out the same weather from the table code and the time, so nothing has to be saved;
 // the GM can still force a weather. Rules are PokéRole 2.0's weather (p.55-57).
-import * as store from './store.js?v=6adeae35';
-import { esc } from './util.js?v=6adeae35';
-import { modal } from './ui.js?v=6adeae35';
+import * as store from './store.js?v=6adeaf5e';
+import { esc } from './util.js?v=6adeaf5e';
+import { modal } from './ui.js?v=6adeaf5e';
 
 export const WEATHERS = {
   clear: { name: 'Clear skies', icon: '☀️', w: 30, text: 'No weather effects.' },
@@ -21,17 +21,17 @@ export const WEATHERS = {
     text: '1 damage at the end of each Round to everyone not Rock, Ground or Steel. Rock types +1 Special Defense.' },
   hail: { name: 'Hail', icon: '🌨️', w: 4, ix: 'Hail Weather', kw: /\bhail|\bsnow/i, hurt: ['Ice'], perk: { Ice: '+1 Defense' },
     text: '1 damage at the end of each Round to everyone not Ice-type. Ice types +1 Defense.' },
-  // legendary events (only from a 100 on the daily roll, or the GM)
+  // disaster weather (only from a 100 on the daily roll, or the GM)
   harsh: { name: 'Harsh Sunlight', icon: '🌋', ix: 'Harsh Sunlight Weather', kw: /harsh sunlight|\bsun(ny)?\b|sunlight|sun-/i, boost: { Fire: '+1 damage die' }, cut: { Water: 'fail' },
     text: 'Fire moves +1 damage die. Water moves FAIL. +2 dice to Burn chance rolls. No one can be Frozen. Other weather can’t start.' },
   typhoon: { name: 'Typhoon', icon: '🌊', ix: 'Typhoon Weather', kw: /typhoon|\brain/i, boost: { Water: '+1 damage die' }, cut: { Fire: 'fail' },
     text: 'Water moves +1 damage die. Fire moves FAIL. No one can be Burned. Other weather can’t start.' },
 };
 export const EVENTS = {
-  fissure: { name: 'A huge fissure!', icon: '🌋', weather: 'harsh', who: 'Groudon',
-    text: 'The ground splits open across the region and searing heat pours out of the earth. Groudon stirs… Harsh Sunlight for the whole day.' },
-  tsunami: { name: 'A tsunami!', icon: '🌊', weather: 'typhoon', who: 'Kyogre',
-    text: 'A wall of water crashes in from the sea and the sky opens up. Kyogre stirs… Typhoon weather for the whole day.' },
+  fissure: { name: 'A huge fissure!', icon: '🌋', weather: 'harsh',
+    text: 'The ground splits open across the region and searing heat pours out of the earth. Something vast stirs deep below… Harsh Sunlight for the whole day.' },
+  tsunami: { name: 'A tsunami!', icon: '🌊', weather: 'typhoon',
+    text: 'A wall of water crashes in from the sea and the sky opens up. Something vast stirs out at sea… Typhoon weather for the whole day.' },
 };
 
 const BLOCK = 6;   // hours per weather
@@ -87,7 +87,7 @@ export function showWeather() {
     ${ev ? `<div class="wx-event"><b>${ev.icon} ${esc(ev.name)}</b><p>${esc(ev.text)}</p></div>` : ''}
     <p>${esc(w.text)}</p>
     <p class="small"><b>Changes at:</b> ${timeOf(cw.next)}${cw.gm ? ' (set by the GM)' : ''}. The weather changes every 6 hours.</p>
-    <p class="small"><b>Today’s sky roll (1d100):</b> ${cw.daily.roll}${cw.daily.roll === 100 ? ' — a legendary event!' : '. On a 100, a huge fissure (Groudon) or a tsunami (Kyogre) hits for the day.'}</p>
+    <p class="small"><b>Today’s sky roll (1d100):</b> ${cw.daily.roll}${cw.daily.roll === 100 ? ' — a disaster strikes!' : '. On a 100, a huge fissure or a tsunami hits for the day.'}</p>
     <p class="small muted">Your Play sheet shows which of your moves and abilities the weather changes.</p>`);
 }
 
