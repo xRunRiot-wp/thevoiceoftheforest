@@ -497,3 +497,14 @@ details.gs h4 { margin: 12px 0 4px; }
 .tri.pair .pcol { display: flex; flex-direction: column; gap: 4px; background: none; border: 0; padding: 0; }
 .tri.pair .pcol .stepper { display: flex; gap: 4px; justify-content: center; }
 .tri.pair .pcol .stepper .btn { flex: 1; }
+
+.fz-mini { padding: 4px 12px; }
+.fz-row { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px dashed var(--cream3); text-decoration: none; color: inherit; }
+.fz-row:first-child { border-top: 0; }
+.fz-net details { margin-top: 8px; border-top: 1px dashed var(--cream3); padding-top: 6px; }
+.fz-net summary { cursor: pointer; min-height: 32px; }
+.fz-net p { margin: 6px 0; }
+.fz-travel { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 15px; }
+.fz-travel th, .fz-travel td { text-align: left; padding: 5px 4px; border-bottom: 1px solid var(--cream3); }
+.fz-loyal { font-size: 18px; letter-spacing: 2px; }
+.fz-mons .pill.recruit small { opacity: .75; }
