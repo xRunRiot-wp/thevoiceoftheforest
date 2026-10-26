@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adfde76';
-import * as sheet from './sheetdata.js?v=6adfde76';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfde76';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfde76';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfde76';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfde76';
-import { CONFIG } from './config.js?v=6adfde76';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfde76';
-import { merged, editContent } from './content-store.js?v=6adfde76';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfde76';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfde76';
-import { homeHTML } from './sitepages.js?v=6adfde76';
-import { pinsOf, showMap } from './hotbar.js?v=6adfde76';
-import { chatterLatestHTML } from './chatter.js?v=6adfde76';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfde76';
-import { locations, spots } from './friendzone.js?v=6adfde76';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfde76';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfde76';
-import { find } from './effects.js?v=6adfde76';
-import * as dice3d from './dice3d.js?v=6adfde76';
+import * as store from './store.js?v=6adfe019';
+import * as sheet from './sheetdata.js?v=6adfe019';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfe019';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfe019';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfe019';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfe019';
+import { CONFIG } from './config.js?v=6adfe019';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfe019';
+import { merged, editContent } from './content-store.js?v=6adfe019';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfe019';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfe019';
+import { homeHTML } from './sitepages.js?v=6adfe019';
+import { pinsOf, showMap } from './hotbar.js?v=6adfe019';
+import { chatterLatestHTML } from './chatter.js?v=6adfe019';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfe019';
+import { locations, spots } from './friendzone.js?v=6adfe019';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfe019';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfe019';
+import { find } from './effects.js?v=6adfe019';
+import * as dice3d from './dice3d.js?v=6adfe019';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -854,7 +854,12 @@ export function editCharacter(id, onCreated) {
     if (c.willCur == null || c.willCur > c.will) c.willCur = c.will;
     const gEl = $('#isguest', sheetEl);
     if (gEl) c.guest = gEl.checked ? { leaves: $('#gleave', sheetEl).value, controller: $('#gctl', sheetEl).value, since: c.guest?.since || Date.now() } : null;
-    store.set('party/' + nid, c);
+    if (isNew) store.set('party/' + nid, c);
+    else {
+      // Only the editor's own fields go onto the live sheet, so status/HP/boosts changed meanwhile aren't undone.
+      const keys = [...$$('[data-k]', sheetEl).map((el) => el.dataset.k), 'lineT', ...(gEl ? ['guest'] : [])];
+      store.update('party/' + nid, (x) => { x = x || {}; keys.forEach((k) => { if (k in c) x[k] = c[k]; }); x.hp = clamp(x.hp ?? maxHp(x), 0, maxHp(x)); if (x.willCur == null || x.willCur > x.will) x.willCur = x.will; return x; });
+    }
     closeModal();
     if (isNew) onCreated?.(nid);
   };

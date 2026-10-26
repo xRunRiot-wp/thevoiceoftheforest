@@ -2,8 +2,8 @@
 // Saved on this device; when a Firebase Realtime Database URL is set in config.js the same
 // tree is shared live with everyone at the table (REST + server-sent events, no SDK).
 // GM-only data is encrypted with the GM passcode before it is stored anywhere.
-import { CONFIG } from './config.js?v=6adfde76';
-import { uid } from './util.js?v=6adfde76';
+import { CONFIG } from './config.js?v=6adfe019';
+import { uid } from './util.js?v=6adfe019';
 
 const LS = 'dc.table.';
 const listeners = new Set();
@@ -41,7 +41,30 @@ export function set(path, value) {
     fetch(dbUrl('updated'), { method: 'PUT', body: JSON.stringify(tree.updated) }).catch(() => {});
   }
 }
-export const update = (path, fn) => set(path, fn(structuredClone(get(path) ?? null)));
+// update() saves only the fields that changed (a PATCH), so two devices editing the same character
+// (HP on one, status on another) can't put back each other's old values.
+const plain = (v) => v && typeof v === 'object' && !Array.isArray(v);
+function diffInto(a, b, pre, out) {
+  for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    if (plain(a[k]) && plain(b[k])) diffInto(a[k], b[k], pre + k + '/', out);
+    else if (JSON.stringify(a[k] ?? null) !== JSON.stringify(b[k] ?? null)) out[pre + k] = b[k] ?? null;
+  }
+  return out;
+}
+export function update(path, fn) {
+  const before = get(path) ?? null;
+  const after = fn(structuredClone(before));
+  if (!plain(before) || !plain(after)) return set(path, after);
+  const diff = diffInto(before, after, '', {});
+  if (!Object.keys(diff).length) return;
+  tree = setIn(tree, path.split('/').filter(Boolean), after);
+  tree.updated = Date.now();
+  persist(); emit(); bc?.postMessage({ code, path, value: after });
+  if (status.mode === 'shared') {
+    fetch(dbUrl(path), { method: 'PATCH', body: JSON.stringify(diff) }).catch(() => { status.error = 'Could not save to the shared table — check your connection.'; emit(); });
+    fetch(dbUrl('updated'), { method: 'PUT', body: JSON.stringify(tree.updated) }).catch(() => {});
+  }
+}
 
 // Time-ordered id so log/roll entries sort naturally.
 export const tid = () => Date.now().toString(36).padStart(9, '0') + uid().slice(0, 4);
