@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adfe019';
-import * as sheet from './sheetdata.js?v=6adfe019';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfe019';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfe019';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfe019';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfe019';
-import { CONFIG } from './config.js?v=6adfe019';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfe019';
-import { merged, editContent } from './content-store.js?v=6adfe019';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfe019';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfe019';
-import { homeHTML } from './sitepages.js?v=6adfe019';
-import { pinsOf, showMap } from './hotbar.js?v=6adfe019';
-import { chatterLatestHTML } from './chatter.js?v=6adfe019';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfe019';
-import { locations, spots } from './friendzone.js?v=6adfe019';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfe019';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfe019';
-import { find } from './effects.js?v=6adfe019';
-import * as dice3d from './dice3d.js?v=6adfe019';
+import * as store from './store.js?v=6adfe1bf';
+import * as sheet from './sheetdata.js?v=6adfe1bf';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfe1bf';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfe1bf';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfe1bf';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfe1bf';
+import { CONFIG } from './config.js?v=6adfe1bf';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfe1bf';
+import { merged, editContent } from './content-store.js?v=6adfe1bf';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfe1bf';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfe1bf';
+import { homeHTML } from './sitepages.js?v=6adfe1bf';
+import { pinsOf, showMap } from './hotbar.js?v=6adfe1bf';
+import { chatterLatestHTML } from './chatter.js?v=6adfe1bf';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfe1bf';
+import { locations, spots } from './friendzone.js?v=6adfe1bf';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfe1bf';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfe1bf';
+import { find } from './effects.js?v=6adfe1bf';
+import * as dice3d from './dice3d.js?v=6adfe1bf';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -246,12 +246,17 @@ export function orderList(order, turn, gmView) {
 export function partyStrip(meId) {
   const p = Object.values(party());
   if (!p.length) return '<p class="muted">No characters yet.</p>';
-  return `<div class="party">${p.map((x) => {
+  // split by the guild each character last picked (daily "who are you working for?")
+  const card = (x) => {
     const mx = maxHp(x);
     return `<button class="pm ${x.id === meId ? 'me' : ''}" data-viewchar="${x.id}" style="text-align:left;cursor:pointer">
       <div class="row nowrap">${portrait(x, 'xs')}<div class="grow"><div class="nm">${esc(x.nickname)}</div><div class="small muted">${x.guest ? '<span class="pill" style="font-size:11px">Guest</span> ' : ''}${x.hp}/${mx} HP</div></div></div>
       ${bar(x.hp, mx)}<div class="st">${esc((x.status || []).join(', '))}</div></button>`;
-  }).join('')}</div>`;
+  };
+  return ['woodland', 'vanguard'].map((g) => {
+    const list = p.filter((x) => (x.guild === 'vanguard' ? 'vanguard' : 'woodland') === g);
+    return list.length ? `<div class="party-group pg-${g}"><h4 class="pg-h">${g === 'vanguard' ? '🛡️' : '🌳'} ${esc(guildName(g))} <small class="muted">${list.length}</small></h4><div class="party">${list.map(card).join('')}</div></div>` : '';
+  }).join('');
 }
 
 export function diceLog(limit = 30) {

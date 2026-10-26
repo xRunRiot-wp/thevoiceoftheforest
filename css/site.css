@@ -968,3 +968,31 @@ a.fact:hover { border-color: var(--orange); }
 .pack-list li:last-child { border-bottom: 0; }
 .pack-list .grow { flex: 1; min-width: 0; }
 .pack-list img { width: 22px; height: 22px; }
+
+/* Training Gym */
+.shop-shorts { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.gym-who { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.gym-today { padding: 10px 14px; border-radius: 12px; background: #2f8f4e; color: #fff; font-weight: 700; text-align: center; }
+.gym-today.rested { background: #6d5a8c; }
+.gym-today small { font-weight: 400; opacity: .85; }
+.gym-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin: 10px 0; }
+.gym-card { background: var(--paper); border: 2px solid var(--cream3); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.gym-card.loved { border-color: #e889b5; background: linear-gradient(180deg, #fff0f6, var(--paper)); }
+.gym-card.hated { border-color: #b8452f; background: linear-gradient(180deg, #fbe9e4, var(--paper)); }
+.gym-card .small { margin: 0; flex: 1; }
+.gym-top { display: flex; gap: 10px; align-items: center; }
+.gym-top b { display: block; font: 700 17px var(--pix); color: var(--brown); }
+.gym-top small { color: var(--muted); }
+.gym-ic { font-size: 28px; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: var(--cream2); flex: none; }
+.gym-tag { font-size: 12px; font-weight: 700; white-space: nowrap; }
+.gym-bar { display: flex; align-items: center; gap: 4px; }
+.gym-bar i { flex: 1; height: 12px; border-radius: 6px; background: var(--cream2); border: 1px solid var(--cream3); }
+.gym-bar i.on { background: linear-gradient(180deg, #f2b33d, #d9822b); border-color: #b8661f; }
+.gym-bar span { font-size: 12px; font-weight: 700; min-width: 30px; text-align: right; }
+
+/* Party split by guild */
+.party-group { margin-bottom: 8px; }
+.pg-h { margin: 6px 0 4px; font-size: 15px; }
+.pg-h small { font-family: var(--sans); font-size: 12px; margin-left: 4px; }
+.pg-vanguard .pg-h { color: #2f5aa8; }
+.pg-woodland .pg-h { color: #2f7a3e; }

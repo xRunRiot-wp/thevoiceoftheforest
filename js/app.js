@@ -1,19 +1,20 @@
-import { CONFIG } from './config.js?v=6adfe019';
-import * as store from './store.js?v=6adfe019';
-import * as sheet from './sheetdata.js?v=6adfe019';
-import { $, $$, esc, uid } from './util.js?v=6adfe019';
-import { closeModal, maxHp } from './ui.js?v=6adfe019';
-import { renderJoin, renderPlay } from './play.js?v=6adfe019';
-import { renderGM } from './gm.js?v=6adfe019';
-import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6adfe019';
-import { renderRules } from './rulebook.js?v=6adfe019';
-import { renderVault } from './vault.js?v=6adfe019';
-import { renderGames } from './games.js?v=6adfe019';
-import { updateHotbar } from './hotbar.js?v=6adfe019';
-import { applyTheme, openSettings } from './theme.js?v=6adfe019';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6adfe019';
-import { resolveFortunes } from './fortune.js?v=6adfe019';
-import { renderFriendZone } from './friendzone.js?v=6adfe019';
+import { CONFIG } from './config.js?v=6adfe1bf';
+import * as store from './store.js?v=6adfe1bf';
+import * as sheet from './sheetdata.js?v=6adfe1bf';
+import { $, $$, esc, uid } from './util.js?v=6adfe1bf';
+import { closeModal, maxHp } from './ui.js?v=6adfe1bf';
+import { renderJoin, renderPlay } from './play.js?v=6adfe1bf';
+import { renderGM } from './gm.js?v=6adfe1bf';
+import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6adfe1bf';
+import { renderRules } from './rulebook.js?v=6adfe1bf';
+import { renderVault } from './vault.js?v=6adfe1bf';
+import { renderGames } from './games.js?v=6adfe1bf';
+import { updateHotbar } from './hotbar.js?v=6adfe1bf';
+import { applyTheme, openSettings } from './theme.js?v=6adfe1bf';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6adfe1bf';
+import { resolveFortunes } from './fortune.js?v=6adfe1bf';
+import { renderFriendZone } from './friendzone.js?v=6adfe1bf';
+import { renderGym } from './gym.js?v=6adfe1bf';
 
 const main = $('#main');
 let current = '';
@@ -99,9 +100,9 @@ async function route() {
   let page = path || 'join'; // the bare link always opens the home page; Play remembers your character
   if (page === 'play' && !joined()) page = 'join';
   current = page;
-  $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : ['friends', 'merchant', 'shop'].includes(page) ? 'guild' : page);   // Friend Zone lives under Guild
+  $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : ['friends', 'merchant', 'shop', 'gym'].includes(page) ? 'guild' : page);   // Friend Zone lives under Guild
   window.scrollTo(0, 0);
-  const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, merchant: renderMerchant, shop: renderShop, vault: renderVault, games: renderGames, friends: renderFriendZone, rules: renderRules }[page] || renderJoin;
+  const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, merchant: renderMerchant, shop: renderShop, gym: renderGym, vault: renderVault, games: renderGames, friends: renderFriendZone, rules: renderRules }[page] || renderJoin;
   rerender = () => render(main, rest);
   await rerender();
   statusChip(); updateHotbar();
@@ -109,7 +110,7 @@ async function route() {
 
 // Re-render the live pages when the table changes, without losing typing focus.
 let pending = false, stale = false;
-const LIVE = ['join', 'play', 'gm', 'guild', 'merchant', 'shop', 'vault', 'friends'];
+const LIVE = ['join', 'play', 'gm', 'guild', 'merchant', 'shop', 'gym', 'vault', 'friends'];
 store.subscribe(() => {
   statusChip(); updateHotbar();
   if (pending) return;
