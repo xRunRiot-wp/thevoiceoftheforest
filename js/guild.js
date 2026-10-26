@@ -1,17 +1,17 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade9ecd';
-import * as sheet from './sheetdata.js?v=6ade9ecd';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade9ecd';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade9ecd';
-import { MISSION_GP } from './content.js?v=6ade9ecd';
-import { ranks } from './rulebook.js?v=6ade9ecd';
-import { merged, editContent } from './content-store.js?v=6ade9ecd';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade9ecd';
-import { myId } from './app.js?v=6ade9ecd';
-import { lowAlertHTML } from './vault.js?v=6ade9ecd';
-import { friendZoneSection } from './friendzone.js?v=6ade9ecd';
-import { ixLink } from './effects.js?v=6ade9ecd';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ade9ecd';
+import * as store from './store.js?v=6ade9f8d';
+import * as sheet from './sheetdata.js?v=6ade9f8d';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade9f8d';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade9f8d';
+import { MISSION_GP } from './content.js?v=6ade9f8d';
+import { ranks } from './rulebook.js?v=6ade9f8d';
+import { merged, editContent } from './content-store.js?v=6ade9f8d';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade9f8d';
+import { myId } from './app.js?v=6ade9f8d';
+import { lowAlertHTML } from './vault.js?v=6ade9f8d';
+import { friendZoneSection } from './friendzone.js?v=6ade9f8d';
+import { ixLink } from './effects.js?v=6ade9f8d';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ade9f8d';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],

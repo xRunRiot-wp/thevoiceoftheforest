@@ -1,21 +1,21 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade9ecd';
-import * as sheet from './sheetdata.js?v=6ade9ecd';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9ecd';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9ecd';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9ecd';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9ecd';
-import { CONFIG } from './config.js?v=6ade9ecd';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9ecd';
-import { merged, editContent } from './content-store.js?v=6ade9ecd';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9ecd';
-import { guildName } from './guild.js?v=6ade9ecd';
-import { homeHTML } from './sitepages.js?v=6ade9ecd';
-import { pinsOf, showMap } from './hotbar.js?v=6ade9ecd';
-import { chatterLatestHTML } from './chatter.js?v=6ade9ecd';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6ade9ecd';
-import { locations, spots } from './friendzone.js?v=6ade9ecd';
-import * as dice3d from './dice3d.js?v=6ade9ecd';
+import * as store from './store.js?v=6ade9f8d';
+import * as sheet from './sheetdata.js?v=6ade9f8d';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9f8d';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9f8d';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9f8d';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9f8d';
+import { CONFIG } from './config.js?v=6ade9f8d';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9f8d';
+import { merged, editContent } from './content-store.js?v=6ade9f8d';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9f8d';
+import { guildName } from './guild.js?v=6ade9f8d';
+import { homeHTML } from './sitepages.js?v=6ade9f8d';
+import { pinsOf, showMap } from './hotbar.js?v=6ade9f8d';
+import { chatterLatestHTML } from './chatter.js?v=6ade9f8d';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6ade9f8d';
+import { locations, spots } from './friendzone.js?v=6ade9f8d';
+import * as dice3d from './dice3d.js?v=6ade9f8d';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -280,7 +280,14 @@ const BADGE = { woodland: ['Woodland Guild Badge', 'assets/badges/woodland.png']
 const badgeOf = (c) => BADGE[c.guild === 'vanguard' ? 'vanguard' : 'woodland'];
 const badgeChip = (c) => { const [n, img] = badgeOf(c); return `<span class="pill badge-chip" title="${esc(n)}"><img src="${img}" alt="">${esc(n.replace(' Badge', ''))}</span>`; };
 const badgeImg = (name) => Object.values(BADGE).find(([n]) => n === name)?.[1];
+// Aura Bow: every character wears the bow matching their nature (applied automatically)
+const AURA_BOW = { Modest: 'Blue', Hardy: 'Brown', Lax: 'Brown', Lonely: 'Cobalt', Serious: 'Cobalt', Naughty: 'Fuchsia', Gentle: 'Green', Relaxed: 'Green',
+  Impish: 'Lime', Naive: 'Lime', Docile: 'Minty', Mild: 'Minty', Adamant: 'Orange', Rash: 'Orange', Bashful: 'Pink', Quirky: 'Purple', Sassy: 'Purple',
+  Brave: 'Red', Timid: 'Silver', Calm: 'Sky Blue', Quiet: 'Violet', Bold: 'Viridian', Careful: 'Viridian', Hasty: 'Yellow', Jolly: 'Yellow' };
+export const auraBow = (c) => { const k = Object.keys(AURA_BOW).find((n) => n.toLowerCase() === String(c?.nature || '').trim().toLowerCase()); return k ? AURA_BOW[k] + ' Bow' : ''; };
+
 export function ensureBadge(c) {
+  if (!c.garments && auraBow(c)) store.set('party/' + c.id + '/garments', auraBow(c));
   const [want] = badgeOf(c);
   if (!Object.values(store.get('bag') || {}).some((b) => b.owner === c.id && b.name === 'World Map')) store.set('bag/' + uid(), { name: 'World Map', qty: 1, owner: c.id, key: true });
   const mine = Object.entries(store.get('bag') || {}).filter(([, b]) => b.owner === c.id && badgeImg(b.name));
