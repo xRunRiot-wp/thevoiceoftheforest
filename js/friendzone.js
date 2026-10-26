@@ -1,8 +1,8 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ade9afe';
-import { $, $$, esc, toast } from './util.js?v=6ade9afe';
-import { merged, editContent } from './content-store.js?v=6ade9afe';
+import * as store from './store.js?v=6ade9b6e';
+import { $, $$, esc, toast } from './util.js?v=6ade9b6e';
+import { merged, editContent } from './content-store.js?v=6ade9b6e';
 
 export const LOCATIONS = [
   {
@@ -28,7 +28,7 @@ const SCHEMA = [['name', 'Location'], ['icon', 'Icon (emoji)'], ['welcome', 'Wel
   ['awning', 'Central awning', 'area'], ['caretaker', 'Caretaker', 'area'], ['sentinel', 'Sentinel'], ['relay', 'Relay station', 'area'],
   ['spotsText', 'Spots — one per line: Name | description | Pokémon living there (comma separated)', 'area']];
 
-const spots = (loc) => (loc.spotsText || '').split('\n').map((l) => l.split('|').map((x) => x.trim())).filter((x) => x[0])
+export const spots = (loc) => (loc.spotsText || '').split('\n').map((l) => l.split('|').map((x) => x.trim())).filter((x) => x[0])
   .map(([name, desc, mons], i) => ({ i, key: name.replace(/^[^\w]*\d*\.?\s*/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-') || 's' + i, name, desc: desc || '', mons: (mons || '').split(',').map((x) => x.trim()).filter(Boolean) }));
 export const locations = () => merged('friendzone', LOCATIONS);
 
@@ -45,6 +45,7 @@ export function renderFriendZone(main, [arg]) {
   const loc = list.find((l) => l.id === arg) || list[0];
   if (!loc) { main.innerHTML = '<p>No locations yet.</p>'; return; }
   const recruits = store.get('recruits/' + loc.id) || {};
+  const sleepers = Object.values(store.get('party') || {}).filter((c) => !c.guest && c.sleep && c.sleep.startsWith(loc.id + '|'));
   main.innerHTML = `<div class="hero"><img class="hdr" src="assets/banners/guilds.jpg" alt=""></div>
     <a class="btn alt sm" href="#/guild" style="margin-top:12px">← Guild</a>
     <div class="row" style="justify-content:space-between;margin-top:8px"><h1 style="margin:0">Friend Zone</h1>${gm ? `<span class="row"><button class="btn alt sm" id="fzedit">Edit ${esc(loc.name)}</button><button class="btn alt sm" id="fzadd">+ Location</button></span>` : ''}</div>
@@ -54,7 +55,7 @@ export function renderFriendZone(main, [arg]) {
       ${loc.welcome ? `<p>${esc(loc.welcome)}</p>` : ''}${loc.theme ? `<p class="small"><b>Theme:</b> ${esc(loc.theme)}</p>` : ''}</div>
     <div class="fz-spots">${spots(loc).map((s) => { const extra = Object.entries(recruits[s.key] || {});
       return `<div class="card fz-spot"><h3 style="margin:0 0 4px">${esc(s.name)}</h3>${s.desc ? `<p class="small">${esc(s.desc)}</p>` : ''}
-        <div class="fz-mons">${s.mons.map((m) => `<span class="pill">${esc(m)}</span>`).join('')}${extra.map(([id, r]) => `<span class="pill recruit">${esc(r.name)}${gm ? ` <button class="x" data-unrecruit="${esc(s.key)}/${id}" aria-label="Remove">×</button>` : ''}</span>`).join('')}${!s.mons.length && !extra.length ? '<span class="small muted">Nobody lives here yet.</span>' : ''}</div>
+        <div class="fz-mons">${s.mons.map((m) => `<span class="pill">${esc(m)}</span>`).join('')}${extra.map(([id, r]) => `<span class="pill recruit">${esc(r.name)}${gm ? ` <button class="x" data-unrecruit="${esc(s.key)}/${id}" aria-label="Remove">×</button>` : ''}</span>`).join('')}${sleepers.filter((c) => c.sleep === loc.id + '|' + s.key).map((c) => `<span class="pill sleeper">💤 ${esc(c.nickname)}</span>`).join('')}${!s.mons.length && !extra.length && !sleepers.some((c) => c.sleep === loc.id + '|' + s.key) ? '<span class="small muted">Nobody lives here yet.</span>' : ''}</div>
         <button class="btn alt sm" data-recruit="${esc(s.key)}">+ Recruit here</button></div>`; }).join('')}</div>
     <div class="card fz-staff">
       ${loc.awning ? `<p><b>⛺ Central awning:</b> ${esc(loc.awning)}</p>` : ''}${loc.caretaker ? `<p><b>🐝 Caretaker:</b> ${esc(loc.caretaker)}</p>` : ''}

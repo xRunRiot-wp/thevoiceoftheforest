@@ -1,15 +1,15 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6ade9afe';
-import * as sheet from './sheetdata.js?v=6ade9afe';
-import { ledger } from './vault.js?v=6ade9afe';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ade9afe';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ade9afe';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ade9afe';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal } from './play.js?v=6ade9afe';
-import { missionCard, finishMission, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ade9afe';
-import { merged, editContent } from './content-store.js?v=6ade9afe';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ade9afe';
-import { CONFIG } from './config.js?v=6ade9afe';
+import * as store from './store.js?v=6ade9b6e';
+import * as sheet from './sheetdata.js?v=6ade9b6e';
+import { ledger } from './vault.js?v=6ade9b6e';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ade9b6e';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ade9b6e';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ade9b6e';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal } from './play.js?v=6ade9b6e';
+import { missionCard, finishMission, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ade9b6e';
+import { merged, editContent } from './content-store.js?v=6ade9b6e';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ade9b6e';
+import { CONFIG } from './config.js?v=6ade9b6e';
 
 const PORTRAIT_LIST = ['beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -353,7 +353,7 @@ function bindGM(main) {
     const rewards = [gp ? `+${gp} GP` : '', poke ? `+${poke} Poké` : '', ...tpLines].filter(Boolean).join(', ');
     store.pushLimited('history', { n: sess2.n || 1, t: Date.now(), summary: s('#esum').value.trim(), rewards }, 200);
     dropGuests('session'); dropGuests('mission'); dropGuests('floor');
-    store.set('session', { ...sess2, n: (sess2.n || 1) + 1, dungeon: '', floor: 0, hunger: 0 });
+    store.set('session', { ...sess2, n: (sess2.n || 1) + 1, dungeon: '', floor: 0, hunger: 0, sleepAsk: Date.now() });   // players pick where they sleep
     store.set('combat', { active: false, round: 0, turn: 0, list: {} });
     store.pushLimited('log', { t: Date.now(), text: `Session ${sess2.n || 1} finished. ${rewards}` });
     toast('Session saved');
@@ -395,7 +395,7 @@ function bindGM(main) {
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6ade9afe');
+    const { openTable } = await import('./app.js?v=6ade9b6e');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));

@@ -1,17 +1,18 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade9afe';
-import * as sheet from './sheetdata.js?v=6ade9afe';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9afe';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9afe';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9afe';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9afe';
-import { CONFIG } from './config.js?v=6ade9afe';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9afe';
-import { merged, editContent } from './content-store.js?v=6ade9afe';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9afe';
-import { guildName } from './guild.js?v=6ade9afe';
-import { homeHTML } from './sitepages.js?v=6ade9afe';
-import * as dice3d from './dice3d.js?v=6ade9afe';
+import * as store from './store.js?v=6ade9b6e';
+import * as sheet from './sheetdata.js?v=6ade9b6e';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9b6e';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9b6e';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9b6e';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9b6e';
+import { CONFIG } from './config.js?v=6ade9b6e';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9b6e';
+import { merged, editContent } from './content-store.js?v=6ade9b6e';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9b6e';
+import { guildName } from './guild.js?v=6ade9b6e';
+import { homeHTML } from './sitepages.js?v=6ade9b6e';
+import { locations, spots } from './friendzone.js?v=6ade9b6e';
+import * as dice3d from './dice3d.js?v=6ade9b6e';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -246,6 +247,7 @@ function charCard(c) {
     <div class="card pokebank"><div class="pix pokeamt">${num(c.poke).toLocaleString()} <span>Poké</span></div>
       <div class="row"><button class="btn sm" data-poke="add">+ Add</button><button class="btn alt sm" data-poke="spend">− Spend</button><button class="btn alt sm" data-poke="give">Give to guild</button><button class="btn alt sm" data-poke="take">Take from guild</button></div></div>
 
+    ${sleepHTML(c)}
     <div class="section-title"><h3>Bag</h3><button class="btn alt sm" id="additem">+ Item</button></div>
     ${bagList(c)}
 
@@ -256,6 +258,14 @@ function charCard(c) {
     </details>
     <div class="row" style="margin-top:12px"><button class="btn alt sm" id="editme">Edit character</button><a class="btn alt sm" href="#/join">Switch character</a></div>
   </div>`;
+}
+
+// Sleeping spot: players pick where they sleep (Friend Zone spots). The GM's end of session asks everyone again.
+function sleepHTML(c) {
+  const ask = num(store.get('session/sleepAsk')) > num(c.sleepT);
+  const opts = locations().map((l) => `<optgroup label="${esc(l.name)}">${spots(l).map((s) => `<option value="${esc(l.id + '|' + s.key)}" ${c.sleep === l.id + '|' + s.key ? 'selected' : ''}>${esc(s.name.replace(/^[^\w]*\d*\.?\s*/, ''))}</option>`).join('')}</optgroup>`).join('');
+  return `<div class="sleep ${ask ? 'ask' : ''}">${ask ? '<b>🌙 Time to rest! Where is your character sleeping tonight?</b>' : '<b>🛏️ Sleeping spot</b>'}
+    <div class="row nowrap"><select id="sleepsel"><option value="">Choose a spot…</option>${opts}</select>${c.sleep ? '<a class="btn alt sm" href="#/friends/' + esc(c.sleep.split('|')[0]) + '">Friend Zone</a>' : ''}</div></div>`;
 }
 
 // Guild badge: every character carries their guild's badge (bag item + chip by their name).
@@ -281,6 +291,14 @@ function bagList(c) {
 function bindCharCard(main, c) {
   const path = 'party/' + c.id;
   ensureBadge(c);
+  const ss = $('#sleepsel', main);
+  if (ss) ss.onchange = () => {
+    if (!ss.value) return;
+    store.update(path, (x) => ({ ...x, sleep: ss.value, sleepT: Date.now() }));
+    const [lid, key] = ss.value.split('|'); const l = locations().find((x) => x.id === lid); const sp = l && spots(l).find((x) => x.key === key);
+    store.pushLimited('log', { t: Date.now(), text: `${c.nickname} is sleeping at ${sp ? sp.name.replace(/^[^\w]*\d*\.?\s*/, '') : 'camp'}${l ? ' (' + l.name + ')' : ''}.` });
+    toast('Sleeping spot saved');
+  };
   $$('[data-hp]', main).forEach((b) => b.onclick = () => store.update(path, (x) => { const mx = maxHp(x); x.hp = b.dataset.hp === 'full' ? mx : clamp((x.hp ?? mx) + num(b.dataset.hp), 0, mx); return x; }));
   $$('[data-will]', main).forEach((b) => b.onclick = () => store.update(path, (x) => { x.willCur = clamp((x.willCur ?? x.will) + num(b.dataset.will), 0, x.will || 0); return x; }));
   $('#primal', main).onclick = () => togglePrimal(c);
