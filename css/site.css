@@ -901,3 +901,13 @@ a.fact:hover { border-color: var(--orange); }
 .wf-ask { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 .wf-ask .vtab { min-height: 64px; font-size: 17px; }
 @media (max-width: 560px) { .wf-ask { grid-template-columns: 1fr; } }
+
+/* start-of-day reminder of Poké and bag, under the guild question */
+.pack { margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: var(--paper); border: 2px solid var(--cream3); }
+.pack h3 { margin: 0 0 6px; font-size: 17px; }
+.pack-poke { font-size: 17px; margin-bottom: 6px; }
+.pack-list { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow: auto; }
+.pack-list li { display: flex; align-items: center; gap: 6px; padding: 5px 2px; border-bottom: 1px dashed var(--cream3); }
+.pack-list li:last-child { border-bottom: 0; }
+.pack-list .grow { flex: 1; min-width: 0; }
+.pack-list img { width: 22px; height: 22px; }

@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adf47b3';
-import * as sheet from './sheetdata.js?v=6adf47b3';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adf47b3';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adf47b3';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adf47b3';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adf47b3';
-import { CONFIG } from './config.js?v=6adf47b3';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adf47b3';
-import { merged, editContent } from './content-store.js?v=6adf47b3';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adf47b3';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adf47b3';
-import { homeHTML } from './sitepages.js?v=6adf47b3';
-import { pinsOf, showMap } from './hotbar.js?v=6adf47b3';
-import { chatterLatestHTML } from './chatter.js?v=6adf47b3';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adf47b3';
-import { locations, spots } from './friendzone.js?v=6adf47b3';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adf47b3';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adf47b3';
-import { find } from './effects.js?v=6adf47b3';
-import * as dice3d from './dice3d.js?v=6adf47b3';
+import * as store from './store.js?v=6adf4863';
+import * as sheet from './sheetdata.js?v=6adf4863';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adf4863';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adf4863';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adf4863';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adf4863';
+import { CONFIG } from './config.js?v=6adf4863';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adf4863';
+import { merged, editContent } from './content-store.js?v=6adf4863';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adf4863';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adf4863';
+import { homeHTML } from './sitepages.js?v=6adf4863';
+import { pinsOf, showMap } from './hotbar.js?v=6adf4863';
+import { chatterLatestHTML } from './chatter.js?v=6adf4863';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adf4863';
+import { locations, spots } from './friendzone.js?v=6adf4863';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adf4863';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adf4863';
+import { find } from './effects.js?v=6adf4863';
+import * as dice3d from './dice3d.js?v=6adf4863';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -125,6 +125,15 @@ function missionBanner(sess, mission, combat, c, myTurn) {
 // ---------------------------------------------------------------- play screen
 // First time a player opens their character each day (Eastern time) or each live session: who are you working for?
 const easternDay = (t) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(t));
+// what they're carrying, so they remember at the start of the day: Poké + bag (their own items, then the team's)
+function packHTML(c) {
+  const bag = Object.values(store.get('bag') || {}).filter((b) => b.owner === c.id || b.owner === 'team').sort((a, b) => (a.owner === 'team') - (b.owner === 'team'));
+  return `<div class="pack"><h3>🎒 What you're carrying</h3>
+    <div class="pack-poke">💰 <b>${num(c.poke).toLocaleString()}</b> Poké</div>
+    ${bag.length ? `<ul class="pack-list">${bag.map((b) => `<li>${isBadge(b.name) ? badgeIcon(b.name) : ''}<span class="grow">${esc(b.name)}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span><b>×${num(b.qty) || 1}</b></li>`).join('')}</ul>` : '<p class="small muted">Your bag is empty.</p>'}
+    ${c.held || c.garments ? `<p class="small" style="margin:6px 0 0">✋ Held: <b>${esc(c.held || '—')}</b> · 🎀 Garment: <b>${esc(c.garments || '—')}</b></p>` : ''}</div>`;
+}
+
 function askGuildToday(c) {
   if (!c || c.guest || document.querySelector('.sheet-bg')) return;
   const asked = num(c.guildAskT);
@@ -134,7 +143,10 @@ function askGuildToday(c) {
   const cur = c.guild === 'vanguard' ? 'vanguard' : 'woodland';
   const el = modal(`<h2>Welcome back, ${esc(c.nickname)}!</h2><p>Who are you working for today?</p>
     <div class="vtabs wf-tabs wf-ask">${[['woodland', '🌳 Woodland Base'], ['vanguard', '🛡️ Vanguard Guild']].map(([k, n]) => `<button class="vtab ${cur === k ? 'on' : ''}" data-askguild="${k}" style="${guildTint(k)}">${n}</button>`).join('')}</div>
-    <p class="small muted" style="margin-top:10px">You can switch any time with <b>Working for</b> on your sheet.</p>`);
+    <p class="small muted" style="margin-top:10px">You can switch any time with <b>Working for</b> on your sheet.</p>
+    ${packHTML(c)}`);
+  // keep the bag/Poké list current while the box is open (the table may still be loading)
+  const off = store.subscribe(() => { const pk = $('.pack', el); const now = party()[c.id]; if (!pk || !now) { off(); return; } pk.outerHTML = packHTML(now); });
   $$('[data-askguild]', el).forEach((b) => b.onclick = () => {
     const k = b.dataset.askguild;
     if (k !== cur) store.set(`party/${c.id}/guild`, k);
