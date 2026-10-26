@@ -1,5 +1,5 @@
 // Shared bits of UI: modal sheet, portraits, bars, dice faces.
-import { esc } from './util.js?v=6adeb7ac';
+import { esc } from './util.js?v=6adeb938';
 
 const PORTRAITS = ['beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 
@@ -45,7 +45,7 @@ export function modal(html, onMount) {
   bg.addEventListener('click', (e) => { if (e.target === bg || e.target.closest('[data-close]')) closeModal(); });
   document.body.appendChild(bg);
   document.body.style.overflow = 'hidden';
-  modalClose = () => { bg.remove(); document.body.style.overflow = ''; modalClose = null; };
+  modalClose = () => { bg.remove(); document.body.style.overflow = ''; modalClose = null; window.dispatchEvent(new Event('modalclosed')); };
   onMount?.(bg.querySelector('.sheet'));
   return bg.querySelector('.sheet');
 }

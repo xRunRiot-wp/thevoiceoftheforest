@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adeb7ac';
-import * as sheet from './sheetdata.js?v=6adeb7ac';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb7ac';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb7ac';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb7ac';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb7ac';
-import { CONFIG } from './config.js?v=6adeb7ac';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb7ac';
-import { merged, editContent } from './content-store.js?v=6adeb7ac';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb7ac';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb7ac';
-import { homeHTML } from './sitepages.js?v=6adeb7ac';
-import { pinsOf, showMap } from './hotbar.js?v=6adeb7ac';
-import { chatterLatestHTML } from './chatter.js?v=6adeb7ac';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb7ac';
-import { locations, spots } from './friendzone.js?v=6adeb7ac';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb7ac';
-import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adeb7ac';
-import { find } from './effects.js?v=6adeb7ac';
-import * as dice3d from './dice3d.js?v=6adeb7ac';
+import * as store from './store.js?v=6adeb938';
+import * as sheet from './sheetdata.js?v=6adeb938';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb938';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb938';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb938';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb938';
+import { CONFIG } from './config.js?v=6adeb938';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb938';
+import { merged, editContent } from './content-store.js?v=6adeb938';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb938';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb938';
+import { homeHTML } from './sitepages.js?v=6adeb938';
+import { pinsOf, showMap } from './hotbar.js?v=6adeb938';
+import { chatterLatestHTML } from './chatter.js?v=6adeb938';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb938';
+import { locations, spots } from './friendzone.js?v=6adeb938';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb938';
+import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adeb938';
+import { find } from './effects.js?v=6adeb938';
+import * as dice3d from './dice3d.js?v=6adeb938';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -36,7 +36,6 @@ export function renderJoin(main) {
   main.innerHTML = `
   <div class="hero banner"><img class="hdr" src="assets/banners/home.jpg" alt="Voice of the Forest: A PokeRole Mystery Dungeon Campaign"></div>
   ${chatterLatestHTML(3)}
-  <details class="card"><summary><b>Watch the player trailer</b></summary><video src="assets/discord/player_trailer.mp4" controls playsinline preload="none" style="width:100%;border-radius:10px;margin-top:8px"></video></details>
   <div class="card emblem"><div class="win"><span class="who">Guildmaster Beautifly:</span> ${store.get('session/live') ? "Welcome, explorer! The game is live. Join your table to begin today's adventure." : 'Welcome, explorer! No game is running right now. Look around, and come back when your GM goes live.'}</div></div>
   ${store.status.mode === 'local' ? `<p class="small muted" style="margin-top:8px">Live sharing between phones isn't switched on yet, so this table saves on this device. Your GM can move it with Export / Import.</p>` : ''}
   ${joined() && me() ? `<a class="btn block" href="#/play" style="margin-top:12px">Continue as ${esc(me().nickname)}</a>` : ''}
@@ -48,6 +47,7 @@ export function renderJoin(main) {
     <button class="card" style="cursor:pointer;margin:0;text-align:left" id="watch"><div class="char-name" style="font-size:20px">Just watching</div><div class="char-sub">See the table without a character</div></button>
   </div>
   <div class="row" style="margin-top:14px"><a class="btn dark" href="#/gm">I'm the GM</a></div>
+  <details class="card" style="margin-top:14px"><summary><b>Watch the player trailer</b></summary><video src="assets/discord/player_trailer.mp4" controls playsinline preload="none" style="width:100%;border-radius:10px;margin-top:8px"></video></details>
 
   <div class="section-title"><h2>${esc(INTRO.title)}</h2></div>
   <div class="card site-page">${homeHTML()}

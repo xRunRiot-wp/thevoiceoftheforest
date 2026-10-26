@@ -1,18 +1,18 @@
-import { CONFIG } from './config.js?v=6adeb7ac';
-import * as store from './store.js?v=6adeb7ac';
-import * as sheet from './sheetdata.js?v=6adeb7ac';
-import { $, $$, esc, uid } from './util.js?v=6adeb7ac';
-import { closeModal, maxHp } from './ui.js?v=6adeb7ac';
-import { renderJoin, renderPlay } from './play.js?v=6adeb7ac';
-import { renderGM } from './gm.js?v=6adeb7ac';
-import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6adeb7ac';
-import { renderRules } from './rulebook.js?v=6adeb7ac';
-import { renderVault } from './vault.js?v=6adeb7ac';
-import { renderGames } from './games.js?v=6adeb7ac';
-import { updateHotbar } from './hotbar.js?v=6adeb7ac';
-import { applyTheme, openSettings } from './theme.js?v=6adeb7ac';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6adeb7ac';
-import { renderFriendZone } from './friendzone.js?v=6adeb7ac';
+import { CONFIG } from './config.js?v=6adeb938';
+import * as store from './store.js?v=6adeb938';
+import * as sheet from './sheetdata.js?v=6adeb938';
+import { $, $$, esc, uid } from './util.js?v=6adeb938';
+import { closeModal, maxHp } from './ui.js?v=6adeb938';
+import { renderJoin, renderPlay } from './play.js?v=6adeb938';
+import { renderGM } from './gm.js?v=6adeb938';
+import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6adeb938';
+import { renderRules } from './rulebook.js?v=6adeb938';
+import { renderVault } from './vault.js?v=6adeb938';
+import { renderGames } from './games.js?v=6adeb938';
+import { updateHotbar } from './hotbar.js?v=6adeb938';
+import { applyTheme, openSettings } from './theme.js?v=6adeb938';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6adeb938';
+import { renderFriendZone } from './friendzone.js?v=6adeb938';
 
 const main = $('#main');
 let current = '';
@@ -107,7 +107,8 @@ async function route() {
 }
 
 // Re-render the live pages when the table changes, without losing typing focus.
-let pending = false;
+let pending = false, stale = false;
+const LIVE = ['join', 'play', 'gm', 'guild', 'merchant', 'shop', 'vault', 'friends'];
 store.subscribe(() => {
   statusChip(); updateHotbar();
   if (pending) return;
@@ -116,10 +117,12 @@ store.subscribe(() => {
     pending = false;
     const a = document.activeElement;
     const typing = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT') && main.contains(a);
-    if (document.querySelector('.sheet-bg')) return;   // a modal is open; it refreshes itself
-    if (!typing && ['join', 'play', 'gm', 'guild', 'merchant', 'shop', 'vault', 'friends'].includes(current)) rerender?.();
+    if (document.querySelector('.sheet-bg')) { stale = true; return; }   // a modal is open; catch up when it closes
+    if (!typing && LIVE.includes(current)) rerender?.();
   });
 });
+// changes made inside a popup (e.g. picking a status) show on the page as soon as it closes
+window.addEventListener('modalclosed', () => { if (stale && !document.querySelector('.sheet-bg')) { stale = false; if (LIVE.includes(current)) rerender?.(); } });
 
 window.addEventListener('hashchange', route);
 
