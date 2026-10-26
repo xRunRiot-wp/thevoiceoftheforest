@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6adea706';
-import { $, $$, esc, toast } from './util.js?v=6adea706';
+import * as store from './store.js?v=6adea7c6';
+import { $, $$, esc, toast } from './util.js?v=6adea7c6';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 export const RESIDENTS = {
@@ -19,6 +19,7 @@ export const RESIDENTS = {
   Rocky: { icon: '🗿', img: 'assets/portraits/sudowoodo.png' },
   'Mimi & Kippy': { icon: '⚡', img: 'assets/portraits/pikachu.png' },
   'Weather Watch': { icon: '🌦️' },
+  Golett: { icon: '🏺' },
   Gemini: { icon: '🌟', img: 'assets/portraits/cleffa.png' },
   Slakoth: { icon: '💤', img: 'assets/portraits/slakoth.png' },
   Ludicolo: { icon: '🌧️' },
@@ -61,6 +62,28 @@ const AMBIENT = [
   ['Slakoth', 'say', 'Mm… dungeon tours… tomorrow. Probably.'],
   ['Ludicolo', 'say', 'THE RAIN PROVIDES! …Is the Lucky Den open?'],
   ['Ludicolo', 'do', 'wanders into storage. Maushold immediately hides the expensive merchandise.'],
+  // The New Adventurers (Gemini, Rox, Felicia, Puff, Golett)
+  ['Gemini', 'say', 'New plan: we name our team something cool. Team Lucky Stars? Team Trouble? …Team Lucky Trouble.'],
+  ['Gemini', 'do', 'signs the New Adventurers book with a big pink heart, then adds a second heart just in case.'],
+  ['Gemini', 'say', 'Getting kicked out of my last guild was the BEST thing that ever happened to me. Don’t tell them I said that.'],
+  ['Rox', 'do', 'polishes a brand-new pair of sunglasses, puts them on, and nods at nobody in particular.'],
+  ['Rox', 'say', 'Every place we help gets a stone marker. Woodland Base is going to need a lot of stones.'],
+  ['Rox', 'do', 'quietly fixes a wobbly bench outside the mess hall and walks off before anyone can say thank you.'],
+  ['Felicia', 'do', 'hammers a dent out of a lantern hook with three precise taps, then admires her work a little too long.'],
+  ['Felicia', 'say', 'That old relic from the ruins? It’s not broken. It’s waiting for someone patient enough to listen to it.'],
+  ['Felicia', 'do', 'sketches a design for a better storage latch on the back of a mission notice.'],
+  ['Puff', 'say', 'I am VERY old, which means I am VERY wise. Ask me anything. …Not that.'],
+  ['Puff', 'do', 'floats into the mess hall on a breeze and lands perfectly in the last empty seat.'],
+  ['Puff', 'say', 'I left the family shop to find my own place. I think I might have floated into it.'],
+  ['Golett', 'do', 'stands perfectly still at the edge of camp for an hour, then politely waves at a passing Pidgey.'],
+  ['Golett', 'say', '…Golett is happy to be here. Golett will carry the heavy boxes.'],
+  ['Golett', 'do', 'practices Shadow Punch on a hay bale. The bale has stopped being a bale.'],
+  ['Golett', 'say', 'Golett does not need to eat. Golett will still sit at the table, because the table is nice.'],
+  ['Felicia', 'do', 'is trying to convince Golett to let her study its seams. Golett is considering it very, very slowly.'],
+  ['Gemini', 'do', 'drags Rox, Felicia, Puff and Golett into a group hug in front of the mission board. Only Golett doesn’t wobble.'],
+  ['Puff', 'do', 'has convinced Gemini that clouds are just Cottonee who got too big. Rox is pretending not to believe it.'],
+  ['Rox', 'say', 'Gemini, Felicia, Puff, Golett: the New Adventurers book has room for more names. Let’s earn the next page.'],
+  ['Golett', 'do', 'carries Puff across the river so their cotton stays dry. Puff narrates the whole trip like an epic voyage.'],
 ];
 
 // Reactions to a Lucky Den spin, by slice. {who} = the spinner, {prize} = what they got.
@@ -73,6 +96,7 @@ const LUCKY = {
   double: [['Chandelure', 'say', 'Double Trouble. For {who}. Of course it is.'], ['Gemini', 'say', 'Spin it again! Spin it AGAIN!']],
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const ADVENTURERS = new Set(['gemini', 'rox', 'felicia', 'puff', 'golett']);
 const players = () => new Set(Object.values(store.get('party') || {}).map((c) => (c.nickname || '').toLowerCase()));
 const fill = (t, vars) => t.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
 
@@ -97,7 +121,7 @@ export function ambientTick() {
   if (Date.now() - last < 40 * 60e3) return;
   const pl = players();
   const recent = new Set(Object.values(store.get('chatter') || {}).slice(-8).map((x) => x.text));
-  const pool = AMBIENT.filter(([w, , t]) => !pl.has(w.toLowerCase()) && !recent.has(t));
+  const pool = AMBIENT.filter(([w, , t]) => (ADVENTURERS.has(w.toLowerCase()) || !pl.has(w.toLowerCase())) && !recent.has(t));
   const [w, k, t] = pick(pool.length ? pool : AMBIENT);
   store.set('chatterLast', Date.now());
   guildSay(w, k, t);
