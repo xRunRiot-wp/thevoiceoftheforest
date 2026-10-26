@@ -807,6 +807,7 @@ details.gs h4 { margin: 12px 0 4px; }
 .mind-tile.instinct { background: linear-gradient(135deg, #b4472a, #6e2416); border-color: #e99a4c; }
 .mind.defs { margin: 0 0 4px; }
 .vitals.in-col { margin: 0 0 10px; }
+.mv-col .conds { margin-bottom: 12px; }
 .react-row { margin: 8px 0 4px; }
 .boost-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 6px; }
 .boost-chip { padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: 14px; color: #fff; }
