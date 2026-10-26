@@ -642,3 +642,13 @@ details.gs h4 { margin: 12px 0 4px; }
 .subcard span { font-size: 14px; padding: 0 12px; opacity: .85; }
 .subcard em { font-style: normal; font-weight: 700; color: var(--orange-d); padding: 0 12px; margin-top: auto; }
 .ft-full::after { display: none; }
+
+/* Guild sidebar: Guild Shop + Travelling Merchant shortcuts, side by side */
+.shop-shorts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.shop-short { display: flex; flex-direction: column; gap: 2px; padding: 6px 6px 8px; border-radius: 12px; text-decoration: none; color: var(--ink); text-align: center;
+  background: var(--paper); border: 2px solid var(--brown2); box-shadow: 0 3px 0 var(--brown3); }
+.shop-short:hover { background: var(--cream2); }
+.shop-short img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; margin-bottom: 4px; }
+.shop-short b { font: 700 14px var(--pix); color: var(--brown); line-height: 1.2; }
+.shop-short small { color: var(--muted); font-size: 12px; line-height: 1.25; }
+.merch-page .section-title { margin-top: 10px; }

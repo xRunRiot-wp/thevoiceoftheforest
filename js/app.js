@@ -1,18 +1,18 @@
-import { CONFIG } from './config.js?v=6adeb1f3';
-import * as store from './store.js?v=6adeb1f3';
-import * as sheet from './sheetdata.js?v=6adeb1f3';
-import { $, $$, esc, uid } from './util.js?v=6adeb1f3';
-import { closeModal, maxHp } from './ui.js?v=6adeb1f3';
-import { renderJoin, renderPlay } from './play.js?v=6adeb1f3';
-import { renderGM } from './gm.js?v=6adeb1f3';
-import { renderGuild } from './guild.js?v=6adeb1f3';
-import { renderRules } from './rulebook.js?v=6adeb1f3';
-import { renderVault } from './vault.js?v=6adeb1f3';
-import { renderGames } from './games.js?v=6adeb1f3';
-import { updateHotbar } from './hotbar.js?v=6adeb1f3';
-import { applyTheme, openSettings } from './theme.js?v=6adeb1f3';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6adeb1f3';
-import { renderFriendZone } from './friendzone.js?v=6adeb1f3';
+import { CONFIG } from './config.js?v=6adeb30d';
+import * as store from './store.js?v=6adeb30d';
+import * as sheet from './sheetdata.js?v=6adeb30d';
+import { $, $$, esc, uid } from './util.js?v=6adeb30d';
+import { closeModal, maxHp } from './ui.js?v=6adeb30d';
+import { renderJoin, renderPlay } from './play.js?v=6adeb30d';
+import { renderGM } from './gm.js?v=6adeb30d';
+import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6adeb30d';
+import { renderRules } from './rulebook.js?v=6adeb30d';
+import { renderVault } from './vault.js?v=6adeb30d';
+import { renderGames } from './games.js?v=6adeb30d';
+import { updateHotbar } from './hotbar.js?v=6adeb30d';
+import { applyTheme, openSettings } from './theme.js?v=6adeb30d';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6adeb30d';
+import { renderFriendZone } from './friendzone.js?v=6adeb30d';
 
 const main = $('#main');
 let current = '';
@@ -82,9 +82,9 @@ async function route() {
   let page = path || 'join'; // the bare link always opens the home page; Play remembers your character
   if (page === 'play' && !joined()) page = 'join';
   current = page;
-  $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : page === 'friends' ? 'guild' : page);   // Friend Zone lives under Guild
+  $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : ['friends', 'merchant', 'shop'].includes(page) ? 'guild' : page);   // Friend Zone lives under Guild
   window.scrollTo(0, 0);
-  const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, vault: renderVault, games: renderGames, friends: renderFriendZone, rules: renderRules }[page] || renderJoin;
+  const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, merchant: renderMerchant, shop: renderShop, vault: renderVault, games: renderGames, friends: renderFriendZone, rules: renderRules }[page] || renderJoin;
   rerender = () => render(main, rest);
   await rerender();
   statusChip(); updateHotbar();
@@ -101,7 +101,7 @@ store.subscribe(() => {
     const a = document.activeElement;
     const typing = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT') && main.contains(a);
     if (document.querySelector('.sheet-bg')) return;   // a modal is open; it refreshes itself
-    if (!typing && ['join', 'play', 'gm', 'guild', 'vault', 'friends'].includes(current)) rerender?.();
+    if (!typing && ['join', 'play', 'gm', 'guild', 'merchant', 'shop', 'vault', 'friends'].includes(current)) rerender?.();
   });
 });
 

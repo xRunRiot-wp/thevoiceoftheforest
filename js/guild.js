@@ -1,18 +1,18 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6adeb1f3';
-import * as sheet from './sheetdata.js?v=6adeb1f3';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adeb1f3';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adeb1f3';
-import { MISSION_GP } from './content.js?v=6adeb1f3';
-import { ranks } from './rulebook.js?v=6adeb1f3';
-import { merged, editContent } from './content-store.js?v=6adeb1f3';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6adeb1f3';
-import { myId } from './app.js?v=6adeb1f3';
-import { lowAlertHTML } from './vault.js?v=6adeb1f3';
-import { friendZoneSection } from './friendzone.js?v=6adeb1f3';
-import { ixLink } from './effects.js?v=6adeb1f3';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adeb1f3';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6adeb1f3';
+import * as store from './store.js?v=6adeb30d';
+import * as sheet from './sheetdata.js?v=6adeb30d';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adeb30d';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adeb30d';
+import { MISSION_GP } from './content.js?v=6adeb30d';
+import { ranks } from './rulebook.js?v=6adeb30d';
+import { merged, editContent } from './content-store.js?v=6adeb30d';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6adeb30d';
+import { myId } from './app.js?v=6adeb30d';
+import { lowAlertHTML } from './vault.js?v=6adeb30d';
+import { friendZoneSection } from './friendzone.js?v=6adeb30d';
+import { ixLink } from './effects.js?v=6adeb30d';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adeb30d';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6adeb30d';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -112,6 +112,28 @@ export function missionParts(m) {
   return parts.length ? { total: parts.length, done: parts.filter((x) => x.status === 'done').length, parts } : null;
 }
 
+// Shortcuts above Completed missions: the guild shop and the merchant each have their own page (#/shop, #/merchant)
+// so the Guild page stays lighter.
+function shopShortcuts() {
+  const m = store.get('merchant') || {};
+  const tile = (href, img, title, sub) => `<a class="shop-short" href="${href}"><img src="${img}" alt="" loading="lazy"><b>${title}</b><small>${sub}</small></a>`;
+  return `<div class="shop-shorts">${tile('#/shop', 'assets/banners/items.jpg', '🐭 Guild Shop', 'Maushold & Chandelure')}${tile('#/merchant', 'assets/merchant/caravan.jpg', '🛒 Travelling Merchant', m.away ? 'No table today' : `${esc(m.brother || 'Slash')} is at ${esc(m.place || 'Woodland Base')}`)}</div>`;
+}
+
+export function renderShop(main) {
+  main.innerHTML = `<div class="row" style="margin-top:12px"><a class="btn alt sm" href="#/guild">← Guild</a></div>
+  <div class="hero banner"><img class="hdr" src="assets/banners/items.jpg" alt=""></div>
+  <div class="section-title"><h2>🐭 Maushold & Chandelure’s Shop</h2><span class="small muted">paid from the character’s own Poké</span></div>
+  <div class="card" style="padding:6px 12px"><ul class="log" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><span class="grow">${ixLink(s.name)}</span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>`;
+  $$('[data-buy]', main).forEach((b) => b.onclick = () => buy(b.dataset.buy));
+}
+
+export function renderMerchant(main) {
+  main.innerHTML = `<div class="row" style="margin-top:12px"><a class="btn alt sm" href="#/guild">← Guild</a></div>
+  <div class="merch-page">${merchantHTML()}</div>`;
+  bindMerchant(main);
+}
+
 export function renderGuild(main) {
   const g = store.get('guild') || {};
   const r = rankFor(g.gp || 0);
@@ -125,7 +147,7 @@ export function renderGuild(main) {
   main.innerHTML = `
   <div class="hero"><img class="hdr" src="assets/banners/guilds.jpg" alt=""></div>
   <h1>${esc(g.name || 'Guild')}</h1>
-  <div class="guild-layout"><aside class="guild-side">${trackerHTML(finished)}${friendZoneSection()}</aside><div class="guild-main">
+  <div class="guild-layout"><aside class="guild-side">${shopShortcuts()}${trackerHTML(finished)}${friendZoneSection()}</aside><div class="guild-main">
   ${lowAlertHTML()}
   <div class="guildboxes">${GUILDS2.map(([k]) => guildBox(k)).join('')}</div>
   <div class="card coffers"><span class="pix">Shared guild coffers:</span> <b class="pix">${(g.coffers || 0).toLocaleString()} Poké</b></div>
@@ -135,11 +157,6 @@ export function renderGuild(main) {
   <div class="section-title"><h2>Mission board</h2></div>
   ${active.length ? active.map(([id, m]) => missionCard(id, m)).join('') : '<p class="muted">No open missions right now.</p>'}
 
-
-  <div class="section-title"><h2>🐭 Maushold & Chandelure’s Shop</h2><span class="small muted">paid from the character’s own Poké</span></div>
-  <div class="card" style="padding:6px 12px"><ul class="log" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><span class="grow">${ixLink(s.name)}</span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>
-
-  ${merchantHTML()}
 
   <div class="section-title"><h2>Storage</h2><a class="btn alt sm" href="#/vault">Open Storage & Poké</a></div>
   <p class="small muted">Each guild's storage and Poké activity is on the <a href="#/vault">Vault</a> tab (${storage.length} item${storage.length === 1 ? '' : 's'} stored).</p>
@@ -154,10 +171,8 @@ export function renderGuild(main) {
 
   bindTracker(main);
   bindChatter(main);
-  bindMerchant(main);
   ambientTick();
   $$('[data-take]', main).forEach((b) => b.onclick = () => { store.set(`missions/${b.dataset.take}/status`, 'taken'); store.pushLimited('log', { t: Date.now(), text: `Mission taken: ${(store.get('missions') || {})[b.dataset.take]?.title}` }); });
-  $$('[data-buy]', main).forEach((b) => b.onclick = () => buy(b.dataset.buy));
   $$('[data-view]', main).forEach((b) => b.onclick = () => viewCharacter(b.dataset.view));
   $('#newchar', main).onclick = () => editCharacter(null);
 }
