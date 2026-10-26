@@ -1,23 +1,23 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adeb518';
-import * as sheet from './sheetdata.js?v=6adeb518';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb518';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb518';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb518';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb518';
-import { CONFIG } from './config.js?v=6adeb518';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb518';
-import { merged, editContent } from './content-store.js?v=6adeb518';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb518';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb518';
-import { homeHTML } from './sitepages.js?v=6adeb518';
-import { pinsOf, showMap } from './hotbar.js?v=6adeb518';
-import { chatterLatestHTML } from './chatter.js?v=6adeb518';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb518';
-import { locations, spots } from './friendzone.js?v=6adeb518';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb518';
-import { find } from './effects.js?v=6adeb518';
-import * as dice3d from './dice3d.js?v=6adeb518';
+import * as store from './store.js?v=6adeb598';
+import * as sheet from './sheetdata.js?v=6adeb598';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb598';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb598';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb598';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb598';
+import { CONFIG } from './config.js?v=6adeb598';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb598';
+import { merged, editContent } from './content-store.js?v=6adeb598';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb598';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb598';
+import { homeHTML } from './sitepages.js?v=6adeb598';
+import { pinsOf, showMap } from './hotbar.js?v=6adeb598';
+import { chatterLatestHTML } from './chatter.js?v=6adeb598';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb598';
+import { locations, spots } from './friendzone.js?v=6adeb598';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb598';
+import { find } from './effects.js?v=6adeb598';
+import * as dice3d from './dice3d.js?v=6adeb598';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -282,7 +282,8 @@ function charCard(c) {
       <a href="#" data-ixname="Instinct" class="ixbox"><b>${c.instinct ?? 0}</b><span>Instinct</span></a><a href="#" data-ixname="Logic" class="ixbox"><b>${c.logic ?? 0}</b><span>Logic</span></a>
     </div>
     <div class="section-title" style="margin-top:12px"><h4 style="margin:0">Status</h4><button class="btn alt sm" id="stedit">Change</button></div>
-    <div class="chips">${st.length ? st.map((s) => `<a href="#" class="chip on" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a>`).join('') : '<span class="small muted">Healthy</span>'}</div>
+    <div class="conds">${st.length ? st.map((s) => { const [ic, col] = COND_LOOK[s] || ['⚠️', '#8a5d33']; return `<div class="cond" style="--cc:${col}"><div class="cond-head"><span class="cond-ic">${ic}</span><a href="#" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a><span class="cond-dur" data-cdur="${esc(STATUS_IX[s] || s)}"></span></div><div class="cond-body" data-cond="${esc(STATUS_IX[s] || s)}"><p class="small muted">Loading what to do…</p></div></div>`; }).join('')
+      : '<div class="cond healthy"><div class="cond-head"><span class="cond-ic">✨</span><b>Healthy</b></div><p class="small" style="margin:4px 0 0">No conditions. Ready for adventure!</p></div>'}</div>
     ${c.id === myId() || store.gmUnlocked() ? memoryHTML(c) : ''}
 
     <div class="section-title"><h3>Moves</h3><span class="small muted">tap to roll</span></div>
@@ -311,6 +312,11 @@ function charCard(c) {
     <div class="row" style="margin-top:12px"><button class="btn alt sm" id="editme">Edit character</button><a class="btn alt sm" href="#/join">Switch character</a></div>
   </div>`;
 }
+
+// Look of each status condition on the sheet: [icon, colour]
+const COND_LOOK = { Burn: ['🔥', '#d8561f'], Poison: ['☠️', '#8e3fa0'], 'Badly Poisoned': ['☠️', '#5f1f78'], Paralysis: ['⚡', '#c9a10c'], Frozen: ['❄️', '#3b9fc9'],
+  Sleep: ['💤', '#3d4f9a'], Confused: ['💫', '#c2508f'], Flinch: ['😖', '#9a6a3a'], Infatuated: ['💗', '#d6467a'], Blocked: ['🛡️', '#6a6f80'],
+  Disabled: ['🚫', '#8a3030'], 'Primal State': ['🔴', '#b3202a'], Fainted: ['😵', '#555a66'] };
 
 // Sleeping spot: players pick where they sleep (Friend Zone spots). The GM's end of session asks everyone again.
 function sleepHTML(c) {
@@ -422,6 +428,13 @@ function bindCharCard(main, c) {
     });
     $$('[data-meff]', main).forEach((p) => { const m = idx.get(p.dataset.meff.toLowerCase()); p.innerHTML = m?.effect ? linkify(m.effect, ix, m.name) : (m ? 'No added effect.' : ''); });
     $$('[data-move]', main).forEach((b) => b.onclick = () => moveRoll(c, idx.get(c.moves[+b.dataset.move].toLowerCase()) || { name: c.moves[+b.dataset.move], type: '', cat: 'Status', acc: [], power: null, effect: '' }));
+    // each status condition: what it does, what to roll, and what cures it (from the Index)
+    $$('[data-cond]', main).forEach((el) => {
+      const e = find(ix, el.dataset.cond); if (!e) { el.innerHTML = '<p class="small">Ask your GM what this does.</p>'; return; }
+      const row = (k, label, t) => (t ? `<div class="cond-row ${k}"><b>${label}</b><span>${linkify(t, ix)}</span></div>` : '');
+      el.innerHTML = row('does', 'What happens', e.outcome) + row('todo', 'What to do', /can.t be resisted/i.test(e.roll || '') ? (e.removal ? 'You can’t roll your way out of this one. Use one of the cures below, or wait it out.' : 'You can’t roll your way out of this one. Wait it out.') : e.roll) + row('cure', 'Cures', e.removal);
+      const d = $(`[data-cdur="${CSS.escape(el.dataset.cond)}"]`, main); if (d && e.duration) d.textContent = '⏳ ' + e.duration;
+    });
     const wxEl = $('#wxcard', main);
     if (wxEl) {
       const w = WEATHERS[currentWeather().key]; const ab = c.ability && find(ix, c.ability);
