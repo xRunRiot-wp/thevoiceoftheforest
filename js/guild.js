@@ -1,17 +1,17 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade87d3';
-import * as sheet from './sheetdata.js?v=6ade87d3';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade87d3';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade87d3';
-import { MISSION_GP } from './content.js?v=6ade87d3';
-import { ranks } from './rulebook.js?v=6ade87d3';
-import { merged, editContent } from './content-store.js?v=6ade87d3';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade87d3';
-import { myId } from './app.js?v=6ade87d3';
-import { lowAlertHTML } from './vault.js?v=6ade87d3';
-import { friendZoneSection } from './friendzone.js?v=6ade87d3';
-import { ixLink } from './effects.js?v=6ade87d3';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ade87d3';
+import * as store from './store.js?v=6ade9afe';
+import * as sheet from './sheetdata.js?v=6ade9afe';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade9afe';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade9afe';
+import { MISSION_GP } from './content.js?v=6ade9afe';
+import { ranks } from './rulebook.js?v=6ade9afe';
+import { merged, editContent } from './content-store.js?v=6ade9afe';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade9afe';
+import { myId } from './app.js?v=6ade9afe';
+import { lowAlertHTML } from './vault.js?v=6ade9afe';
+import { friendZoneSection } from './friendzone.js?v=6ade9afe';
+import { ixLink } from './effects.js?v=6ade9afe';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ade9afe';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -86,7 +86,11 @@ function bindTracker(main) {
 export function finishMission(id, ok) {
   const m = (store.get('missions') || {})[id]; if (!m) return;
   const gp = m.gp ?? MISSION_GP[m.rank] ?? 0;
-  const delta = ok ? gp : (m.rank === 'X' ? -200 : -gp);  // to the mission's own guild
+  const pointsFor = (good) => (good ? gp : (m.rank === 'X' ? -200 : -gp));
+  const was = m.status === 'done' || m.status === 'failed' ? m.status : '';
+  if (was === (ok ? 'done' : 'failed')) { toast(`Already ${was === 'done' ? 'completed' : 'failed'}: no points changed`); return; }
+  // switching a finished mission (failed <-> done) takes back the points it gave before
+  const delta = pointsFor(ok) - (was ? pointsFor(was === 'done') : 0);   // to the mission's own guild
   store.update(guildPath(m.guild), (g) => ({ ...g, gp: (g?.gp || 0) + delta }));
   store.set(`missions/${id}/status`, ok ? 'done' : 'failed');
   store.pushLimited('log', { t: Date.now(), text: `Mission ${ok ? 'complete' : 'failed'}: ${m.title} (${delta > 0 ? '+' : ''}${delta} GP)` });
