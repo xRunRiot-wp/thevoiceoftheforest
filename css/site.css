@@ -481,6 +481,7 @@ details.gs h4 { margin: 12px 0 4px; }
 .badge-chip { display: inline-flex; align-items: center; gap: 5px; padding-left: 3px; }
 .badge-chip img { width: 22px; height: 22px; border-radius: 50%; }
 .bag-badge { width: 22px; height: 22px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
+.badge-emo { font-size: 16px; line-height: 1; margin-right: 4px; }
 .sleep { margin: 12px 0 4px; padding: 8px 10px; border-radius: 10px; background: rgba(59, 42, 107, .08); border: 1px solid rgba(59, 42, 107, .25); }
 .sleep.ask { background: linear-gradient(135deg, #2b2360, #1f3a5a); color: #fff3d6; border: 2px solid #ffd56b; }
 .sleep .row { gap: 6px; margin-top: 6px; }

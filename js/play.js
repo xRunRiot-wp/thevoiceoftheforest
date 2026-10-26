@@ -1,23 +1,23 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adea836';
-import * as sheet from './sheetdata.js?v=6adea836';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adea836';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adea836';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adea836';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adea836';
-import { CONFIG } from './config.js?v=6adea836';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adea836';
-import { merged, editContent } from './content-store.js?v=6adea836';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adea836';
-import { guildName, missionParts } from './guild.js?v=6adea836';
-import { homeHTML } from './sitepages.js?v=6adea836';
-import { pinsOf, showMap } from './hotbar.js?v=6adea836';
-import { chatterLatestHTML } from './chatter.js?v=6adea836';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adea836';
-import { locations, spots } from './friendzone.js?v=6adea836';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adea836';
-import { find } from './effects.js?v=6adea836';
-import * as dice3d from './dice3d.js?v=6adea836';
+import * as store from './store.js?v=6adea8cc';
+import * as sheet from './sheetdata.js?v=6adea8cc';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adea8cc';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adea8cc';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adea8cc';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adea8cc';
+import { CONFIG } from './config.js?v=6adea8cc';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adea8cc';
+import { merged, editContent } from './content-store.js?v=6adea8cc';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adea8cc';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adea8cc';
+import { homeHTML } from './sitepages.js?v=6adea8cc';
+import { pinsOf, showMap } from './hotbar.js?v=6adea8cc';
+import { chatterLatestHTML } from './chatter.js?v=6adea8cc';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adea8cc';
+import { locations, spots } from './friendzone.js?v=6adea8cc';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adea8cc';
+import { find } from './effects.js?v=6adea8cc';
+import * as dice3d from './dice3d.js?v=6adea8cc';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -318,11 +318,18 @@ function sleepHTML(c) {
     <div class="row nowrap"><select id="sleepsel"><option value="">Choose a spot…</option>${opts}</select>${c.sleep ? '<a class="btn alt sm" href="#/friends/' + esc(c.sleep.split('|')[0]) + '">Friend Zone</a>' : ''}</div></div>`;
 }
 
-// Guild badge: every character carries their guild's badge (bag item + chip by their name).
-const BADGE = { woodland: ['Woodland Guild Badge', 'assets/badges/woodland.png'], vanguard: ['Vanguard Guild Badge', 'assets/badges/vanguard.png'] };
-const badgeOf = (c) => BADGE[c.guild === 'vanguard' ? 'vanguard' : 'woodland'];
-const badgeChip = (c) => { const [n, img] = badgeOf(c); return `<span class="pill badge-chip" title="${esc(n)}"><img src="${img}" alt="">${esc(n.replace(' Badge', ''))}</span>`; };
-const badgeImg = (name) => Object.values(BADGE).find(([n]) => n === name)?.[1];
+// Guild Rank badge: every character carries the badge of their guild's current rank (bag item + chip by their name).
+// Pictures go in assets/badges/rank_<key>.png; until a picture is added (RANK_PICS), the rank's emoji is shown.
+const RANK_BADGE = { 'Basic Rank': ['🌱', 'basic'], 'Bronze Rank': ['🥉', 'bronze'], 'Silver Rank': ['🥈', 'silver'], 'Gold Rank': ['🥇', 'gold'], 'Diamond Rank': ['💎', 'diamond'], 'Lucario Rank': ['💫', 'lucario'] };
+const RANK_PICS = new Set([]);
+const badgeOf = (c) => {
+  const r = rankFor(num((store.get(guildPath(c.guild)) || {}).gp)) || { name: 'Basic Rank', alt: 'Beginner' };
+  const [emo, key] = RANK_BADGE[r.name] || RANK_BADGE['Basic Rank'];
+  return [`${r.name} Badge`, emo, RANK_PICS.has(key) ? `assets/badges/rank_${key}.png` : '', r.alt];
+};
+const badgeIcon = (name) => { const r = RANK_BADGE[name.replace(/ Badge$/, '')]; if (!r) return ''; return RANK_PICS.has(r[1]) ? `<img class="bag-badge" src="assets/badges/rank_${r[1]}.png" alt="">` : `<span class="badge-emo">${r[0]}</span>`; };
+const badgeChip = (c) => { const [n, emo, img, alt] = badgeOf(c); return `<span class="pill badge-chip" title="${esc(n)}">${img ? `<img src="${img}" alt="">` : `<span class="badge-emo">${emo}</span>`}${esc(n.replace(' Badge', ''))}${alt ? ` (${esc(alt)})` : ''}</span>`; };
+const isBadge = (name) => / (Rank|Guild) Badge$/.test(name || '');
 // Aura Bow: every character wears the bow matching their nature (applied automatically)
 const AURA_BOW = { Modest: 'Blue', Hardy: 'Brown', Lax: 'Brown', Lonely: 'Cobalt', Serious: 'Cobalt', Naughty: 'Fuchsia', Gentle: 'Green', Relaxed: 'Green',
   Impish: 'Lime', Naive: 'Lime', Docile: 'Minty', Mild: 'Minty', Adamant: 'Orange', Rash: 'Orange', Bashful: 'Pink', Quirky: 'Purple', Sassy: 'Purple',
@@ -333,7 +340,7 @@ export function ensureBadge(c) {
   if (!c.garments && auraBow(c)) store.set('party/' + c.id + '/garments', auraBow(c));
   const [want] = badgeOf(c);
   if (!Object.values(store.get('bag') || {}).some((b) => b.owner === c.id && b.name === 'World Map')) store.set('bag/' + uid(), { name: 'World Map', qty: 1, owner: c.id, key: true });
-  const mine = Object.entries(store.get('bag') || {}).filter(([, b]) => b.owner === c.id && badgeImg(b.name));
+  const mine = Object.entries(store.get('bag') || {}).filter(([, b]) => b.owner === c.id && isBadge(b.name));
   if (mine.length === 1 && mine[0][1].name === want) return;
   mine.forEach(([id]) => store.set('bag/' + id, null));
   store.set('bag/' + uid(), { name: want, qty: 1, owner: c.id, badge: true });
@@ -342,8 +349,8 @@ export function ensureBadge(c) {
 function bagList(c) {
   const bag = Object.entries(store.get('bag') || {}).filter(([, b]) => b.owner === c.id || b.owner === 'team');
   if (!bag.length) return '<p class="muted small">Empty. Items the team finds land here.</p>';
-  return `<ul class="log" style="max-height:none">${bag.map(([id, b]) => `<li class="row nowrap"><span class="grow">${badgeImg(b.name) ? `<img class="bag-badge" src="${badgeImg(b.name)}" alt="">` : ''}${b.name === 'World Map' ? `<a href="#" data-showmap="1"><b>🗺️ World Map</b></a>` : `<a href="#" data-ixname="${esc(b.name)}"><b>${esc(b.name)}</b></a>`} ×${b.qty}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span>
-    ${b.name === 'World Map' || badgeImg(b.name) ? '' : `<button class="btn alt sm pinbtn ${pinsOf(c).includes(b.name) ? 'on' : ''}" data-pin="${esc(b.name)}" title="Pin to the top bar">📌</button>`}${badgeImg(b.name) ? '<span class="small muted">guild badge</span>' : b.key ? '<span class="small muted">key item</span>' : `<button class="btn alt sm" data-stash="${id}">Store</button><button class="btn sm" data-use="${id}">Use</button>`}</li>`).join('')}</ul>`;
+  return `<ul class="log" style="max-height:none">${bag.map(([id, b]) => `<li class="row nowrap"><span class="grow">${isBadge(b.name) ? badgeIcon(b.name) : ''}${b.name === 'World Map' ? `<a href="#" data-showmap="1"><b>🗺️ World Map</b></a>` : `<a href="#" data-ixname="${esc(b.name)}"><b>${esc(b.name)}</b></a>`} ×${b.qty}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span>
+    ${b.name === 'World Map' || isBadge(b.name) ? '' : `<button class="btn alt sm pinbtn ${pinsOf(c).includes(b.name) ? 'on' : ''}" data-pin="${esc(b.name)}" title="Pin to the top bar">📌</button>`}${isBadge(b.name) ? '<span class="small muted">rank badge</span>' : b.key ? '<span class="small muted">key item</span>' : `<button class="btn alt sm" data-stash="${id}">Store</button><button class="btn sm" data-use="${id}">Use</button>`}</li>`).join('')}</ul>`;
 }
 
 function bindCharCard(main, c) {

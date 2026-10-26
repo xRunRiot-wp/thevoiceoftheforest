@@ -1,14 +1,14 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import * as store from './store.js?v=6adea836';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6adea836';
-import { modal, portrait } from './ui.js?v=6adea836';
-import * as sheet from './sheetdata.js?v=6adea836';
-import { shop } from './guild.js?v=6adea836';
-import { merged, editContent } from './content-store.js?v=6adea836';
-import { logRoll, me, addTeamFx } from './play.js?v=6adea836';
-import { luckyReaction, gmTodo } from './chatter.js?v=6adea836';
-import { ranks } from './rulebook.js?v=6adea836';
+import * as store from './store.js?v=6adea8cc';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6adea8cc';
+import { modal, portrait } from './ui.js?v=6adea8cc';
+import * as sheet from './sheetdata.js?v=6adea8cc';
+import { shop } from './guild.js?v=6adea8cc';
+import { merged, editContent } from './content-store.js?v=6adea8cc';
+import { logRoll, me, addTeamFx } from './play.js?v=6adea8cc';
+import { luckyReaction, gmTodo } from './chatter.js?v=6adea8cc';
+import { ranks } from './rulebook.js?v=6adea8cc';
 
 export const GAMES = [
   {
