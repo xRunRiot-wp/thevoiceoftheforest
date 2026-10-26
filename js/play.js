@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adf422c';
-import * as sheet from './sheetdata.js?v=6adf422c';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adf422c';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adf422c';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adf422c';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adf422c';
-import { CONFIG } from './config.js?v=6adf422c';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adf422c';
-import { merged, editContent } from './content-store.js?v=6adf422c';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adf422c';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adf422c';
-import { homeHTML } from './sitepages.js?v=6adf422c';
-import { pinsOf, showMap } from './hotbar.js?v=6adf422c';
-import { chatterLatestHTML } from './chatter.js?v=6adf422c';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adf422c';
-import { locations, spots } from './friendzone.js?v=6adf422c';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adf422c';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adf422c';
-import { find } from './effects.js?v=6adf422c';
-import * as dice3d from './dice3d.js?v=6adf422c';
+import * as store from './store.js?v=6adf453d';
+import * as sheet from './sheetdata.js?v=6adf453d';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adf453d';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adf453d';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adf453d';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adf453d';
+import { CONFIG } from './config.js?v=6adf453d';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adf453d';
+import { merged, editContent } from './content-store.js?v=6adf453d';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adf453d';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adf453d';
+import { homeHTML } from './sitepages.js?v=6adf453d';
+import { pinsOf, showMap } from './hotbar.js?v=6adf453d';
+import { chatterLatestHTML } from './chatter.js?v=6adf453d';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adf453d';
+import { locations, spots } from './friendzone.js?v=6adf453d';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adf453d';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adf453d';
+import { find } from './effects.js?v=6adf453d';
+import * as dice3d from './dice3d.js?v=6adf453d';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -31,6 +31,38 @@ const party = () => store.get('party') || {};
 export const me = () => party()[myId()] || null;
 
 // ---------------------------------------------------------------- join
+// Mess hall seating: each character's speech bubble is their own line or the last thing they did, whichever is newer.
+// (Player characters never get words put in their mouths: no line and nothing done yet = just resting.)
+function lastWord(c) {
+  const name = String(c.nickname || '');
+  const did = [];
+  const roll = Object.values(store.get('rolls') || {}).filter((r) => r.by === name).sort((a, b) => b.t - a.t)[0];
+  if (roll) {
+    const label = String(roll.label || '').replace(/\s*\(.*\)\s*$/, '');
+    did.push({ t: roll.t, text: roll.kind === 'note' ? (label.includes(' — ') ? 'played ' + label.split(' — ')[0] : label) : 'rolled ' + label });
+  }
+  const log = Object.values(store.get('log') || {}).filter((l) => String(l.text || '').startsWith(name + ' ')).sort((a, b) => b.t - a.t)[0];
+  if (log) did.push({ t: log.t, text: log.text.slice(name.length + 1).replace(/\.$/, '') });
+  const act = did.sort((a, b) => b.t - a.t)[0];
+  if (c.line && (!act || num(c.lineT) >= act.t)) return `<span class="mh-say">“${esc(c.line)}”</span>`;
+  if (act) return `<span class="mh-did">${esc(act.text)}</span><small>${esc(timeAgo(act.t))}</small>`;
+  return '<span class="mh-did">resting after a long day</span>';
+}
+
+// seats on the benches of her "Mess Hall - Empty" picture: [left %, top % of the seat's base]
+const MESS_SPOTS = [[36, 59], [53, 60], [19, 61], [63, 86], [60, 43], [86, 50], [27, 45], [80, 70]];
+function messSeatsHTML(p) {
+  const seat = (c, i) => { const at = MESS_SPOTS[i]; return `<button class="mh-seat${at ? '' : ' extra'}" data-pick="${c.id}" ${at ? `style="--x:${at[0]}%;--y:${at[1]}%"` : ''}><span class="mh-bubble">${lastWord(c)}</span>
+      ${portrait(c, 'sm')}<span class="mh-plate"><b>${esc(c.nickname)}</b><small>${esc(c.pokemon)}${c.rank ? ' · ' + esc(c.rank) : ''}</small></span></button>`; };
+  return `<div class="mh-pick">
+    <div class="mh-pick-head"><h2>Who are you playing?</h2><p>Supper's on after a long day. Pick your seat.</p></div>
+    <div class="mh-scene"><img src="assets/banners/messhall.jpg" alt="The guild mess hall"><div class="mh-spots">${p.slice(0, MESS_SPOTS.length).map(seat).join('') || '<p class="mh-empty">The hall is empty. Pull up a chair!</p>'}</div></div>
+    ${p.length > MESS_SPOTS.length ? `<div class="mh-more">${p.slice(MESS_SPOTS.length).map((c, i) => seat(c, MESS_SPOTS.length + i)).join('')}</div>` : ''}
+    <div class="mh-door"><button class="mh-chair" id="newchar">🪑 Pull up a chair<small>New character</small></button><button class="mh-chair" id="watch">👀 Just watching<small>See the table without a character</small></button></div>
+    <p class="mh-table-note">Table ${esc(store.tableCode())} · change it with the <b>Table</b> box at the top</p>
+  </div>`;
+}
+
 export function renderJoin(main) {
   const p = Object.values(party()).filter((c) => !c.guest || c.guest.controller === 'player');
   main.innerHTML = `
@@ -39,13 +71,7 @@ export function renderJoin(main) {
   <div class="card emblem"><div class="win"><span class="who">Guildmaster Beautifly:</span> ${store.get('session/live') ? "Welcome, explorer! The game is live. Join your table to begin today's adventure." : 'Welcome, explorer! No game is running right now. Look around, and come back when your GM goes live.'}</div></div>
   ${store.status.mode === 'local' ? `<p class="small muted" style="margin-top:8px">Live sharing between phones isn't switched on yet, so this table saves on this device. Your GM can move it with Export / Import.</p>` : ''}
   ${joined() && me() ? `<a class="btn block" href="#/play" style="margin-top:12px">Continue as ${esc(me().nickname)}</a>` : ''}
-  <div class="section-title"><h2>Who are you playing?</h2><span class="small muted">Table ${esc(store.tableCode())} · change it with the <b>Table</b> box at the top</span></div>
-  <div class="grid g2">
-    ${p.map((c) => `<button class="card row nowrap" style="text-align:left;cursor:pointer;margin:0" data-pick="${c.id}">
-        ${portrait(c, 'sm')}<div class="grow"><div class="char-name" style="font-size:20px">${esc(c.nickname)}</div><div class="char-sub">${esc(c.pokemon)} · ${esc(c.rank || '')}</div></div></button>`).join('')}
-    <button class="card" style="cursor:pointer;margin:0;text-align:left" id="newchar"><div class="char-name" style="font-size:20px">+ New character</div><div class="char-sub">Make your Pokémon (follows the New Character rules)</div></button>
-    <button class="card" style="cursor:pointer;margin:0;text-align:left" id="watch"><div class="char-name" style="font-size:20px">Just watching</div><div class="char-sub">See the table without a character</div></button>
-  </div>
+  ${messSeatsHTML(p)}
   <div class="row" style="margin-top:14px"><a class="btn dark" href="#/gm">I'm the GM</a></div>
   <details class="card" style="margin-top:14px"><summary><b>Watch the player trailer</b></summary><video src="assets/discord/player_trailer.mp4" controls playsinline preload="none" style="width:100%;border-radius:10px;margin-top:8px"></video></details>
 
@@ -696,6 +722,7 @@ export function editCharacter(id, onCreated) {
     <h4 style="margin-top:10px">Social</h4><div class="grid" style="grid-template-columns:repeat(2,1fr)">${SOCIAL.map((a) => FIELD(a, a === 'Clever' ? 'Smart/Clever' : a, c[a] ?? 1, 'number')).join('')}</div>
     <h4 style="margin-top:10px">Moves (one per line)</h4><textarea data-k="moves" rows="5">${esc((c.moves || []).join('\n'))}</textarea>
     <div class="grid g2" style="margin-top:8px">${FIELD('held', 'Held item', c.held)}${FIELD('garments', 'Garments', c.garments)}${FIELD('player', 'Player', c.player)}</div>
+    ${FIELD('line', 'Mess hall line (your speech bubble on the Play screen)', c.line, 'text', 'maxlength="120" placeholder="e.g. Pass the Oran Berries!"')}
     <label class="f" style="margin-top:8px">Notes<textarea data-k="notes">${esc(c.notes || '')}</textarea></label>
     ${store.gmUnlocked() ? `<div class="card" style="margin-top:10px"><h4>${ixLink('Guest party member', 'Guest')} (temporary party member)</h4>
       <label class="check"><input type="checkbox" id="isguest" ${c.guest ? 'checked' : ''}> This is a guest / escort / NPC helper</label>
@@ -710,6 +737,7 @@ export function editCharacter(id, onCreated) {
       else c[k] = el.value.trim();
     });
     if (!c.nickname) { toast('Give your character a name'); return; }
+    if ((c.line || '') !== ((id && party()[id]?.line) || '')) c.lineT = Date.now();
     const nid = id || uid();
     c.id = nid;
     if (c.hp == null) c.hp = maxHp(c);
