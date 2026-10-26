@@ -2,9 +2,9 @@
 // A roll of 100 is a legendary event for the whole day: a huge fissure (Groudon) or a tsunami (Kyogre).
 // Every device works out the same weather from the table code and the time, so nothing has to be saved;
 // the GM can still force a weather. Rules are PokéRole 2.0's weather (p.55-57).
-import * as store from './store.js?v=6adea991';
-import { esc } from './util.js?v=6adea991';
-import { modal } from './ui.js?v=6adea991';
+import * as store from './store.js?v=6adea9f8';
+import { esc } from './util.js?v=6adea9f8';
+import { modal } from './ui.js?v=6adea9f8';
 
 export const WEATHERS = {
   clear: { name: 'Clear skies', icon: '☀️', w: 30, text: 'No weather effects.' },
@@ -67,6 +67,14 @@ export function currentWeather(t = Date.now()) {
 }
 
 const timeOf = (t) => new Date(t).toLocaleString([], { ...(t - Date.now() > 12 * 3600e3 ? { weekday: 'short' } : {}), hour: 'numeric', minute: '2-digit' });
+
+// header chip next to the table's live / not live chip (shown to everyone, with or without a character)
+export function updateWeatherChip() {
+  const el = document.getElementById('wxchip'); if (!el) return;
+  const cw = currentWeather(); const w = WEATHERS[cw.key];
+  el.innerHTML = `<button class="chip-status chip-wx ${cw.event ? 'legend' : ''}" title="Weather until ${timeOf(cw.next)}">${w.icon} ${esc(w.name)}</button>`;
+  el.firstChild.onclick = showWeather;
+}
 
 export function weatherChipHTML() {
   const cw = currentWeather(); const w = WEATHERS[cw.key];

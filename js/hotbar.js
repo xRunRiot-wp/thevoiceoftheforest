@@ -1,10 +1,9 @@
 // Character hotbar in the top banner: money, guild points & rank, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6adea991';
-import { $, esc, num } from './util.js?v=6adea991';
-import { modal } from './ui.js?v=6adea991';
-import { rankFor, guildPath, guildName } from './guild.js?v=6adea991';
-import { weatherChipHTML, showWeather } from './weather.js?v=6adea991';
+import * as store from './store.js?v=6adea9f8';
+import { $, esc, num } from './util.js?v=6adea9f8';
+import { modal } from './ui.js?v=6adea9f8';
+import { rankFor, guildPath, guildName } from './guild.js?v=6adea9f8';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -32,7 +31,6 @@ function hotbarHTML(c) {
   const bag = Object.values(store.get('bag') || {}).filter((b) => b.owner === c.id || b.owner === 'team');
   const pins = pinsOf(c).map((n) => { const qty = bag.filter((b) => b.name === n).reduce((s, b) => s + num(b.qty), 0); return `<a href="#" class="hb hb-pin ${qty ? '' : 'gone'}" data-ixname="${esc(n)}">📌 ${esc(n)}${qty > 1 ? ' ×' + qty : ''}</a>`; }).join('');
   return `<a class="hb hb-me" href="#/play"><b>${esc(c.nickname)}</b></a>
-    ${weatherChipHTML()}
     <span class="hb" title="Poké">💰 ${num(c.poke).toLocaleString()}</span>
     <span class="hb" title="${esc(guildName(c.guild))}">🏅 ${gp} GP · ${esc(rank)}</span>
     <span class="hb" title="Training Points">🎓 ${num(c.tp)} TP</span>
@@ -50,6 +48,5 @@ export function updateHotbar() {
   el.hidden = false;
   el.innerHTML = hotbarHTML(c);
   $('#hbmap', el).onclick = showMap;
-  $('#hbwx', el).onclick = showWeather;
   $('#hbgarb', el).onclick = () => showGarment(c);
 }

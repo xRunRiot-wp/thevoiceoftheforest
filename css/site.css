@@ -28,8 +28,15 @@ p { margin: 0 0 .8em; }
 
 /* ---------- top bar */
 .top { position: sticky; top: 0; z-index: 20; background: var(--brown); color: var(--cream); box-shadow: 0 2px 0 var(--ink); }
-.top-in { display: flex; align-items: center; gap: 8px; max-width: 1100px; margin: 0 auto; padding: 8px 12px; }
-.brand { font-family: var(--pix); font-size: 20px; font-weight: 700; color: var(--gold); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+.top-in { display: grid; grid-template-columns: 1fr; justify-items: center; gap: 6px; max-width: 1100px; margin: 0 auto; padding: 8px 12px; }
+.top-chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; align-items: center; }
+@media (min-width: 760px) { .top-in { grid-template-columns: 1fr auto 1fr; } .top-in::before { content: ''; } .top-chips { justify-self: end; justify-content: flex-end; } }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--pix); font-size: 26px; font-weight: 700; color: var(--gold); text-decoration: none; white-space: nowrap; letter-spacing: .5px; text-shadow: 0 2px 0 var(--ink); }
+.brand .orn { font-family: var(--pix); font-size: 18px; color: var(--gold); opacity: .85; }
+.brand .orn.flip { transform: scaleX(-1); display: inline-block; }
+@media (max-width: 380px) { .brand { font-size: 22px; gap: 6px; } .brand .orn { font-size: 20px; } }
+.chip-wx { cursor: pointer; border: 0; }
+.chip-wx.legend { background: #b8322a; color: #fff; animation: pulse 1.4s infinite; }
 .chip-status { font-family: var(--pix); font-size: 13px; padding: 3px 8px; border-radius: 99px; background: var(--brown2); color: var(--cream); white-space: nowrap; }
 .chip-status.live { background: var(--good); }
 .tabs { display: flex; max-width: 1100px; margin: 0 auto; }
