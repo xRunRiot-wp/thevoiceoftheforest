@@ -1,17 +1,17 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6adea0eb';
-import * as sheet from './sheetdata.js?v=6adea0eb';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adea0eb';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adea0eb';
-import { MISSION_GP } from './content.js?v=6adea0eb';
-import { ranks } from './rulebook.js?v=6adea0eb';
-import { merged, editContent } from './content-store.js?v=6adea0eb';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6adea0eb';
-import { myId } from './app.js?v=6adea0eb';
-import { lowAlertHTML } from './vault.js?v=6adea0eb';
-import { friendZoneSection } from './friendzone.js?v=6adea0eb';
-import { ixLink } from './effects.js?v=6adea0eb';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adea0eb';
+import * as store from './store.js?v=6adea139';
+import * as sheet from './sheetdata.js?v=6adea139';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adea139';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adea139';
+import { MISSION_GP } from './content.js?v=6adea139';
+import { ranks } from './rulebook.js?v=6adea139';
+import { merged, editContent } from './content-store.js?v=6adea139';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6adea139';
+import { myId } from './app.js?v=6adea139';
+import { lowAlertHTML } from './vault.js?v=6adea139';
+import { friendZoneSection } from './friendzone.js?v=6adea139';
+import { ixLink } from './effects.js?v=6adea139';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adea139';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -64,7 +64,7 @@ function trackerHTML(list) {
   const gm = store.gmUnlocked();
   return `<div class="tracker"><h2>Completed missions</h2>
     ${list.length ? list.map(([id, m]) => `<details class="trk ${esc(m.status)}" data-trk="${id}" ${openTrack.has(id) ? 'open' : ''}>
-      <summary>${m.art ? `<img src="${esc(m.art)}" alt="" loading="lazy">` : '<span class="trk-noart"></span>'}<span class="grow"><b>${esc(m.title)}</b><span class="small">${esc(m.rank)} Rank · ${m.status === 'failed' ? 'failed' : 'completed'}</span></span></summary>
+      <summary>${m.art ? `<img src="${esc(m.art)}" alt="" loading="lazy">` : '<span class="trk-noart"></span>'}<span class="grow"><b>${esc(m.title)}</b><span class="small">${esc(m.rank)} Rank · ${m.status === 'failed' ? '❌ failed' : '✅ completed'}</span></span></summary>
       <div class="trk-body">
         ${m.client ? `<p class="small muted">Client: ${esc(m.client)}${m.place ? ' · ' + esc(m.place) : ''}</p>` : ''}
         ${m.details ? `<p class="small">${esc(m.details)}</p>` : ''}${m.reward ? `<p class="small"><b>Reward:</b> ${esc(m.reward)}</p>` : ''}
