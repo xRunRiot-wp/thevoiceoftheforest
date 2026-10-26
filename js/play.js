@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adfd393';
-import * as sheet from './sheetdata.js?v=6adfd393';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfd393';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfd393';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfd393';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfd393';
-import { CONFIG } from './config.js?v=6adfd393';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfd393';
-import { merged, editContent } from './content-store.js?v=6adfd393';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfd393';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfd393';
-import { homeHTML } from './sitepages.js?v=6adfd393';
-import { pinsOf, showMap } from './hotbar.js?v=6adfd393';
-import { chatterLatestHTML } from './chatter.js?v=6adfd393';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfd393';
-import { locations, spots } from './friendzone.js?v=6adfd393';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfd393';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfd393';
-import { find } from './effects.js?v=6adfd393';
-import * as dice3d from './dice3d.js?v=6adfd393';
+import * as store from './store.js?v=6adfd543';
+import * as sheet from './sheetdata.js?v=6adfd543';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfd543';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfd543';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfd543';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfd543';
+import { CONFIG } from './config.js?v=6adfd543';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfd543';
+import { merged, editContent } from './content-store.js?v=6adfd543';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfd543';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfd543';
+import { homeHTML } from './sitepages.js?v=6adfd543';
+import { pinsOf, showMap } from './hotbar.js?v=6adfd543';
+import { chatterLatestHTML } from './chatter.js?v=6adfd543';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfd543';
+import { locations, spots } from './friendzone.js?v=6adfd543';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfd543';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfd543';
+import { find } from './effects.js?v=6adfd543';
+import * as dice3d from './dice3d.js?v=6adfd543';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -50,7 +50,7 @@ function lastWord(c) {
 }
 
 // seats on the benches of her "Mess Hall - Empty" picture: [left %, top % of the seat's base]
-const MESS_SPOTS = [[36, 59], [53, 60], [19, 61], [63, 86], [60, 43], [86, 50], [27, 45], [80, 70]];
+const MESS_SPOTS = [[14, 47], [38, 47], [62, 47], [86, 47], [14, 85], [38, 85], [62, 85], [86, 85]];   // two rows of benches, spaced so no bubble hides behind a neighbour
 function messSeatsHTML(p) {
   const seat = (c, i) => { const at = MESS_SPOTS[i]; return `<button class="mh-seat${at ? '' : ' extra'}" data-pick="${c.id}" ${at ? `style="--x:${at[0]}%;--y:${at[1]}%"` : ''}><span class="mh-bubble">${lastWord(c)}</span>
       ${portrait(c, 'sm')}<span class="mh-plate"><b>${esc(c.nickname)}</b><small>${esc(c.pokemon)}${c.rank ? ' · ' + esc(c.rank) : ''}</small></span></button>`; };
