@@ -1,21 +1,21 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade9f8d';
-import * as sheet from './sheetdata.js?v=6ade9f8d';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9f8d';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9f8d';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9f8d';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9f8d';
-import { CONFIG } from './config.js?v=6ade9f8d';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9f8d';
-import { merged, editContent } from './content-store.js?v=6ade9f8d';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9f8d';
-import { guildName } from './guild.js?v=6ade9f8d';
-import { homeHTML } from './sitepages.js?v=6ade9f8d';
-import { pinsOf, showMap } from './hotbar.js?v=6ade9f8d';
-import { chatterLatestHTML } from './chatter.js?v=6ade9f8d';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6ade9f8d';
-import { locations, spots } from './friendzone.js?v=6ade9f8d';
-import * as dice3d from './dice3d.js?v=6ade9f8d';
+import * as store from './store.js?v=6ade9fe5';
+import * as sheet from './sheetdata.js?v=6ade9fe5';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9fe5';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9fe5';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9fe5';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9fe5';
+import { CONFIG } from './config.js?v=6ade9fe5';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9fe5';
+import { merged, editContent } from './content-store.js?v=6ade9fe5';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9fe5';
+import { guildName } from './guild.js?v=6ade9fe5';
+import { homeHTML } from './sitepages.js?v=6ade9fe5';
+import { pinsOf, showMap } from './hotbar.js?v=6ade9fe5';
+import { chatterLatestHTML } from './chatter.js?v=6ade9fe5';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6ade9fe5';
+import { locations, spots } from './friendzone.js?v=6ade9fe5';
+import * as dice3d from './dice3d.js?v=6ade9fe5';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -231,11 +231,13 @@ function charCard(c) {
     <div class="row" style="justify-content:flex-end"><div class="stepper"><button class="btn alt" data-hp="-1">−1</button><button class="btn alt" data-hp="1">+1</button><button class="btn alt" data-hp="full">Full</button></div></div>
     <div class="meter"><b>${ixLink('Will points', 'Will')}</b>${bar(c.willCur, c.will, 'will')}<span class="val">${c.willCur ?? 0}/${c.will}</span></div>
     <div class="row" style="justify-content:flex-end"><div class="stepper"><button class="btn alt" data-will="-1">Spend</button><button class="btn alt" data-will="1">+1</button></div></div>
-    <div class="tri" style="margin-top:10px">
-      <a href="#" data-ixname="Humanity" class="ixbox"><b>${c.humanity ?? 0}</b><span>Humanity</span></a><a href="#" data-ixname="Instinct" class="ixbox"><b>${c.instinct ?? 0}</b><span>Instinct</span></a>
-      <a href="#" data-ixname="Logic" class="ixbox"><b>${c.logic ?? 0}</b><span>Logic</span></a><a href="#" data-ixname="Primal points" class="ixbox"><b>${c.primal ?? 0}</b><span>Primal</span></a>
+    <div class="tri pair" style="margin-top:10px">
+      <div class="pcol"><a href="#" data-ixname="Humanity" class="ixbox"><b>${c.humanity ?? 0}</b><span>Humanity</span></a><div class="stepper"><button class="btn alt sm" data-hum="-1">−1</button><button class="btn alt sm" data-hum="1">+1</button></div></div>
+      <div class="pcol"><a href="#" data-ixname="Primal points" class="ixbox"><b>${c.primal ?? 0}</b><span>Primal</span></a><div class="stepper"><button class="btn alt sm" data-primalpt="-1">−1</button><button class="btn alt sm" data-primalpt="1">+1</button></div></div>
     </div>
-    <div class="row" style="justify-content:flex-end;margin-top:6px"><span class="small muted" style="margin-right:auto">Primal Score</span><div class="stepper"><button class="btn alt" data-primalpt="-1">−1</button><button class="btn alt" data-primalpt="1">+1</button></div></div>
+    <div class="tri pair" style="margin-top:6px">
+      <a href="#" data-ixname="Instinct" class="ixbox"><b>${c.instinct ?? 0}</b><span>Instinct</span></a><a href="#" data-ixname="Logic" class="ixbox"><b>${c.logic ?? 0}</b><span>Logic</span></a>
+    </div>
     <div class="section-title" style="margin-top:12px"><h4 style="margin:0">Status</h4><button class="btn alt sm" id="stedit">Change</button></div>
     <div class="chips">${st.length ? st.map((s) => `<a href="#" class="chip on" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a>`).join('') : '<span class="small muted">Healthy</span>'}</div>
     ${c.id === myId() || store.gmUnlocked() ? memoryHTML(c) : ''}
@@ -316,6 +318,7 @@ function bindCharCard(main, c) {
   });
   bindZeroHp(main, c, togglePrimal);
   if (num(c.hp) > 0 && c.zeroAnswered) store.set(path + '/zeroAnswered', null);   // back above 0: ask again next time
+  $$('[data-hum]', main).forEach((b) => b.onclick = () => store.update(path, (x) => ({ ...x, humanity: Math.max(0, Math.min(5, num(x.humanity) + num(b.dataset.hum))) })));
   $$('[data-primalpt]', main).forEach((b) => b.onclick = () => store.update(path, (x) => ({ ...x, primal: Math.max(0, num(x.primal) + num(b.dataset.primalpt)) })));
   const ss = $('#sleepsel', main);
   if (ss) ss.onchange = () => {

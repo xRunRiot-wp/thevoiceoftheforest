@@ -493,3 +493,7 @@ details.gs h4 { margin: 12px 0 4px; }
 .hotbar .hb-pin.muted { opacity: .7; font-style: italic; }
 .pinbtn { opacity: .45; } .pinbtn.on { opacity: 1; background: #e6e0ff; }
 .worldmap { width: 100%; border-radius: 10px; display: block; }
+.tri.pair { grid-template-columns: 1fr 1fr; }
+.tri.pair .pcol { display: flex; flex-direction: column; gap: 4px; background: none; border: 0; padding: 0; }
+.tri.pair .pcol .stepper { display: flex; gap: 4px; justify-content: center; }
+.tri.pair .pcol .stepper .btn { flex: 1; }
