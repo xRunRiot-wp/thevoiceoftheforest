@@ -1,21 +1,21 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adea270';
-import * as sheet from './sheetdata.js?v=6adea270';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adea270';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adea270';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adea270';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adea270';
-import { CONFIG } from './config.js?v=6adea270';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adea270';
-import { merged, editContent } from './content-store.js?v=6adea270';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adea270';
-import { guildName } from './guild.js?v=6adea270';
-import { homeHTML } from './sitepages.js?v=6adea270';
-import { pinsOf, showMap } from './hotbar.js?v=6adea270';
-import { chatterLatestHTML } from './chatter.js?v=6adea270';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6adea270';
-import { locations, spots } from './friendzone.js?v=6adea270';
-import * as dice3d from './dice3d.js?v=6adea270';
+import * as store from './store.js?v=6adea3eb';
+import * as sheet from './sheetdata.js?v=6adea3eb';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adea3eb';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adea3eb';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adea3eb';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adea3eb';
+import { CONFIG } from './config.js?v=6adea3eb';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adea3eb';
+import { merged, editContent } from './content-store.js?v=6adea3eb';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adea3eb';
+import { guildName, missionParts } from './guild.js?v=6adea3eb';
+import { homeHTML } from './sitepages.js?v=6adea3eb';
+import { pinsOf, showMap } from './hotbar.js?v=6adea3eb';
+import { chatterLatestHTML } from './chatter.js?v=6adea3eb';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6adea3eb';
+import { locations, spots } from './friendzone.js?v=6adea3eb';
+import * as dice3d from './dice3d.js?v=6adea3eb';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -63,6 +63,41 @@ export function renderJoin(main) {
   $('#newchar', main).onclick = () => editCharacter(null, (id) => { setMe(id); setJoined(true); location.hash = '#/play'; });
 }
 
+// Main mission banner: progress bar, the parts checklist and "what to do next" reminders.
+function missionBanner(sess, mission, combat, c, myTurn) {
+  const parts = mission ? missionParts(mission) : null;
+  const open = parts ? parts.parts.filter((x) => x.status !== 'done' && x.status !== 'failed') : [];
+  const taken = parts ? open.filter((x) => x.status === 'taken') : [];
+  const pct = (a, b) => Math.round((a / Math.max(1, b)) * 100);
+  const floor = sess.floor || 1;
+  const steps = [];
+  if (sess.next) steps.push(['📣', esc(sess.next)]);
+  if (myTurn) steps.push(['⚔️', 'It’s your turn: pick a move or action on your sheet.']);
+  else if (combat.active) steps.push(['⚔️', 'Battle! Watch the <b>Turn order</b> below and plan your move.']);
+  if (c && num(c.hp ?? maxHp(c)) <= maxHp(c) / 3) steps.push(['❤️', 'Your HP is low: eat an Oran Berry or ask a teammate for help.']);
+  if (sess.dungeon) {
+    if (num(sess.hunger) >= 3) steps.push(['🍎', 'The team is getting hungry: eat an Apple soon.']);
+    if (!combat.active) steps.push(sess.floors && floor >= sess.floors ? ['🏁', 'Last floor! Find what you came for, then head home.'] : ['🪜', 'Explore the floor and find the stairs down.']);
+  } else if (!mission) steps.push(['📋', 'Pick a mission on the <a href="#/guild">Guild</a> mission board.']);
+  else {
+    if (taken.length) steps.push(['🎯', `Current job: <b>${esc(taken[0].title)}</b>${taken[0].place ? ' at ' + esc(taken[0].place) : ''}.`]);
+    else if (open.length) steps.push(['📋', `Choose the next job on the <a href="#/guild">Mission board</a>: ${open.slice(0, 3).map((x) => `<b>${esc(x.title)}</b>`).join(', ')}${open.length > 3 ? '…' : ''}`]);
+    steps.push(['🎒', 'Before you leave: check your bag and Poké, and visit the shops.']);
+  }
+  const done = parts ? parts.done : 0;
+  return `<div class="session mb">
+    <div class="row nowrap" style="justify-content:space-between;align-items:flex-start">
+      <div class="grow"><span class="mb-kicker">${mission ? 'Main mission' : 'No mission yet'}</span><b>${mission ? esc(mission.title) : 'Visit the Guild'}</b></div>
+      ${mission ? `<span class="mb-rank">${esc(mission.rank)}</span>` : ''}</div>
+    ${parts ? `<div class="mb-prog"><div class="row nowrap" style="justify-content:space-between"><span class="small">Mission progress</span><span class="small"><b>${done} / ${parts.total}</b> jobs</span></div>
+      <div class="mb-bar"><i style="width:${pct(done, parts.total)}%"></i></div>
+      <div class="mb-parts">${parts.parts.map((x) => `<span class="mb-part ${esc(x.status || 'open')}" title="${esc(x.title)}">${x.status === 'done' ? '✅' : x.status === 'failed' ? '❌' : x.status === 'taken' ? '🎯' : '⬜'} ${esc(x.title)}</span>`).join('')}</div></div>` : ''}
+    ${sess.dungeon ? `<div class="mb-prog"><div class="row nowrap" style="justify-content:space-between"><span class="small">🏔️ ${esc(sess.dungeon)}</span><span class="small"><b>Floor ${floor}${sess.floors ? ' / ' + sess.floors : ''}</b>${combat.active ? ` · Battle, round ${combat.round || 1}` : ''}</span></div>
+      ${sess.floors ? `<div class="mb-bar floor"><i style="width:${pct(floor, sess.floors)}%"></i></div>` : ''}</div>` : ''}
+    ${steps.length ? `<div class="mb-next"><span class="mb-kicker">What to do next</span><ul>${steps.slice(0, 4).map(([i, t]) => `<li><span>${i}</span><span>${t}</span></li>`).join('')}</ul></div>` : ''}
+  </div>`;
+}
+
 // ---------------------------------------------------------------- play screen
 export function renderPlay(main) {
   const c = me();
@@ -78,10 +113,7 @@ export function renderPlay(main) {
 
   main.innerHTML = `
   ${myTurn ? `<div class="yourturn">Your turn, ${esc(c.nickname)}!</div>` : ''}
-  <div class="session">
-    <div class="row" style="justify-content:space-between"><b>${mission ? esc(mission.title) : 'No mission picked yet'}</b><span class="small">${mission ? esc(mission.rank) + ' Rank' : ''}</span></div>
-    <div class="small">${sess.dungeon ? esc(sess.dungeon) + (sess.floors ? ` · Floor ${sess.floor || 1} of ${sess.floors}` : sess.floor ? ` · Floor ${sess.floor}` : '') : 'Not in a dungeon'}${combat.active ? ` · Battle, round ${combat.round || 1}` : ''}</div>
-  </div>
+  ${missionBanner(sess, mission, combat, c, myTurn)}
   ${lastReveal && Date.now() - lastReveal.t < 6 * 3600e3 ? `<div class="row nowrap" style="align-items:flex-start;margin-bottom:12px">${lastReveal.portrait ? `<div class="portrait sm"><img src="assets/portraits/${esc(lastReveal.portrait)}.png" alt=""></div>` : ''}<div class="win grow"><span class="who">${esc(lastReveal.title || 'GM')}:</span> ${esc(lastReveal.text)}</div></div>` : ''}
 
   ${teamFxHTML()}
