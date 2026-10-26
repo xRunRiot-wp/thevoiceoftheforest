@@ -1,18 +1,18 @@
-import { CONFIG } from './config.js?v=6adeb987';
-import * as store from './store.js?v=6adeb987';
-import * as sheet from './sheetdata.js?v=6adeb987';
-import { $, $$, esc, uid } from './util.js?v=6adeb987';
-import { closeModal, maxHp } from './ui.js?v=6adeb987';
-import { renderJoin, renderPlay } from './play.js?v=6adeb987';
-import { renderGM } from './gm.js?v=6adeb987';
-import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6adeb987';
-import { renderRules } from './rulebook.js?v=6adeb987';
-import { renderVault } from './vault.js?v=6adeb987';
-import { renderGames } from './games.js?v=6adeb987';
-import { updateHotbar } from './hotbar.js?v=6adeb987';
-import { applyTheme, openSettings } from './theme.js?v=6adeb987';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6adeb987';
-import { renderFriendZone } from './friendzone.js?v=6adeb987';
+import { CONFIG } from './config.js?v=6adeb9d4';
+import * as store from './store.js?v=6adeb9d4';
+import * as sheet from './sheetdata.js?v=6adeb9d4';
+import { $, $$, esc, uid } from './util.js?v=6adeb9d4';
+import { closeModal, maxHp } from './ui.js?v=6adeb9d4';
+import { renderJoin, renderPlay } from './play.js?v=6adeb9d4';
+import { renderGM } from './gm.js?v=6adeb9d4';
+import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6adeb9d4';
+import { renderRules } from './rulebook.js?v=6adeb9d4';
+import { renderVault } from './vault.js?v=6adeb9d4';
+import { renderGames } from './games.js?v=6adeb9d4';
+import { updateHotbar } from './hotbar.js?v=6adeb9d4';
+import { applyTheme, openSettings } from './theme.js?v=6adeb9d4';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6adeb9d4';
+import { renderFriendZone } from './friendzone.js?v=6adeb9d4';
 
 const main = $('#main');
 let current = '';
@@ -123,6 +123,8 @@ store.subscribe(() => {
 });
 // changes made inside a popup (e.g. picking a status) show on the page as soon as it closes
 window.addEventListener('modalclosed', () => { if (stale && !document.querySelector('.sheet-bg')) { stale = false; if (LIVE.includes(current)) rerender?.(); } });
+// a popup can ask for the page behind it to update right away (e.g. ticking a status on or off)
+window.addEventListener('refreshpage', () => { stale = false; if (LIVE.includes(current)) rerender?.(); });
 
 window.addEventListener('hashchange', route);
 
