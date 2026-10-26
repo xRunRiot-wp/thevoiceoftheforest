@@ -470,7 +470,7 @@ function moveRoll(c, m) {
     <h2>${esc(m.name)}</h2>
     <div class="chips">${typeChip(m.type)}<span class="pill">${esc(m.cat)}</span>${m.power != null ? `<span class="pill">Power ${m.power}</span>` : ''}</div>
     ${m.effect ? `<p class="small" style="margin-top:8px" id="meff">${esc(m.effect)}</p>` : ''}
-    ${/metronome/i.test(m.name) && /gemini/i.test(c.nickname || '') ? `<a class="gemini-wag" href="#/games/gemini-metronome">✨ Gemini's special Metronome: spin the wheel to see what luck or chaos answers →</a>` : ''}
+    ${/metronome/i.test(m.name) ? `<a class="gemini-wag" href="#/games/gemini-metronome">✨ Gemini's Metronome wheel: spin it to see what luck or chaos answers →</a>` : ''}
     <p class="small"><a href="#" data-ixname="Use a Move">How attacking works</a> · <a href="#" data-ixname="Damage">Damage</a> · <a href="#" data-ixname="Critical hit">Critical hits</a></p>
     <div class="card" style="margin-top:10px">
       <h3>1. Accuracy</h3>
