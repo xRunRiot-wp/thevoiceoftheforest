@@ -970,7 +970,10 @@ a.fact:hover { border-color: var(--orange); }
 .pack-list img { width: 22px; height: 22px; }
 
 /* Training Gym */
-.shop-shorts { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+/* Shop + Merchant stay side by side; the gym tile runs full width under them */
+.shop-short.gym-short { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 10px; text-align: left; }
+.shop-short.gym-short img { width: 96px; aspect-ratio: 16 / 9; margin: 0; flex: none; }
+.shop-short.gym-short span { display: flex; flex-direction: column; }
 .gym-who { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .gym-today { padding: 10px 14px; border-radius: 12px; background: #2f8f4e; color: #fff; font-weight: 700; text-align: center; }
 .gym-today.rested { background: #6d5a8c; }

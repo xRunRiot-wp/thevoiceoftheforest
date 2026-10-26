@@ -1,19 +1,19 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6adfe1bf';
-import * as sheet from './sheetdata.js?v=6adfe1bf';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adfe1bf';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adfe1bf';
-import { MISSION_GP } from './content.js?v=6adfe1bf';
-import { ranks } from './rulebook.js?v=6adfe1bf';
-import { merged, editContent } from './content-store.js?v=6adfe1bf';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6adfe1bf';
-import { myId } from './app.js?v=6adfe1bf';
-import { lowAlertHTML } from './vault.js?v=6adfe1bf';
-import { friendZoneSection } from './friendzone.js?v=6adfe1bf';
-import { ixLink } from './effects.js?v=6adfe1bf';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adfe1bf';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6adfe1bf';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6adfe1bf';
+import * as store from './store.js?v=6adfe58b';
+import * as sheet from './sheetdata.js?v=6adfe58b';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adfe58b';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adfe58b';
+import { MISSION_GP } from './content.js?v=6adfe58b';
+import { ranks } from './rulebook.js?v=6adfe58b';
+import { merged, editContent } from './content-store.js?v=6adfe58b';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6adfe58b';
+import { myId } from './app.js?v=6adfe58b';
+import { lowAlertHTML } from './vault.js?v=6adfe58b';
+import { friendZoneSection } from './friendzone.js?v=6adfe58b';
+import { ixLink } from './effects.js?v=6adfe58b';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adfe58b';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6adfe58b';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6adfe58b';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -150,7 +150,7 @@ export function missionParts(m) {
 function shopShortcuts() {
   const m = store.get('merchant') || {};
   const tile = (href, img, title, sub) => `<a class="shop-short" href="${href}"><img src="${img}" alt="" loading="lazy"><b>${title}</b><small>${sub}</small></a>`;
-  return `<div class="shop-shorts">${tile('#/shop', 'assets/banners/items.jpg', '🐭 Guild Shop', 'Maushold & Chandelure')}${tile('#/merchant', 'assets/merchant/caravan.jpg', '🛒 Travelling Merchant', m.away ? 'No table today' : `${esc(m.brother || 'Slash')} is at ${esc(m.place || 'Woodland Base')}`)}${tile('#/gym', 'assets/headers/wigglytuff_guild.png', '🏋️ Training Gym', 'One drill a day for Training Points')}</div>`;
+  return `<div class="shop-shorts">${tile('#/shop', 'assets/banners/items.jpg', '🐭 Guild Shop', 'Maushold & Chandelure')}${tile('#/merchant', 'assets/merchant/caravan.jpg', '🛒 Travelling Merchant', m.away ? 'No table today' : `${esc(m.brother || 'Slash')} is at ${esc(m.place || 'Woodland Base')}`)}<a class="shop-short gym-short" href="#/gym"><img src="assets/headers/wigglytuff_guild.png" alt="" loading="lazy"><span><b>🏋️ Training Gym</b><small>One drill a day for Training Points</small></span></a></div>`;
 }
 
 export function renderShop(main) {
