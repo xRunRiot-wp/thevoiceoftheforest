@@ -1,9 +1,9 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6adeb6fb';
-import { $, $$, esc, toast } from './util.js?v=6adeb6fb';
-import { modal, closeModal } from './ui.js?v=6adeb6fb';
-import { merged, editContent } from './content-store.js?v=6adeb6fb';
+import * as store from './store.js?v=6adeb75d';
+import { $, $$, esc, toast } from './util.js?v=6adeb75d';
+import { modal, closeModal } from './ui.js?v=6adeb75d';
+import { merged, editContent } from './content-store.js?v=6adeb75d';
 
 export const LOCATIONS = [
   {

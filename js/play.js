@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adeb6fb';
-import * as sheet from './sheetdata.js?v=6adeb6fb';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb6fb';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb6fb';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb6fb';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb6fb';
-import { CONFIG } from './config.js?v=6adeb6fb';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb6fb';
-import { merged, editContent } from './content-store.js?v=6adeb6fb';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb6fb';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb6fb';
-import { homeHTML } from './sitepages.js?v=6adeb6fb';
-import { pinsOf, showMap } from './hotbar.js?v=6adeb6fb';
-import { chatterLatestHTML } from './chatter.js?v=6adeb6fb';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb6fb';
-import { locations, spots } from './friendzone.js?v=6adeb6fb';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb6fb';
-import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adeb6fb';
-import { find } from './effects.js?v=6adeb6fb';
-import * as dice3d from './dice3d.js?v=6adeb6fb';
+import * as store from './store.js?v=6adeb75d';
+import * as sheet from './sheetdata.js?v=6adeb75d';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb75d';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb75d';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb75d';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb75d';
+import { CONFIG } from './config.js?v=6adeb75d';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb75d';
+import { merged, editContent } from './content-store.js?v=6adeb75d';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb75d';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb75d';
+import { homeHTML } from './sitepages.js?v=6adeb75d';
+import { pinsOf, showMap } from './hotbar.js?v=6adeb75d';
+import { chatterLatestHTML } from './chatter.js?v=6adeb75d';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb75d';
+import { locations, spots } from './friendzone.js?v=6adeb75d';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb75d';
+import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adeb75d';
+import { find } from './effects.js?v=6adeb75d';
+import * as dice3d from './dice3d.js?v=6adeb75d';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -38,14 +38,9 @@ export function renderJoin(main) {
   ${chatterLatestHTML(3)}
   <details class="card"><summary><b>Watch the player trailer</b></summary><video src="assets/discord/player_trailer.mp4" controls playsinline preload="none" style="width:100%;border-radius:10px;margin-top:8px"></video></details>
   <div class="card emblem"><div class="win"><span class="who">Guildmaster Beautifly:</span> ${store.get('session/live') ? "Welcome, explorer! The game is live. Join your table to begin today's adventure." : 'Welcome, explorer! No game is running right now. Look around, and come back when your GM goes live.'}</div></div>
-  <div class="card">
-    <h2>Join a table</h2>
-    <p class="small muted">Your GM gives you the table code. Pick your character and you're in.</p>
-    <div class="row nowrap"><input id="code" class="grow" value="${esc(store.tableCode())}" autocapitalize="characters" aria-label="Table code"><button class="btn" id="go">Open</button></div>
-    ${store.status.mode === 'local' ? `<p class="small muted" style="margin-top:8px">Live sharing between phones isn't switched on yet, so this table saves on this device. Your GM can move it with Export / Import.</p>` : ''}
-  </div>
+  ${store.status.mode === 'local' ? `<p class="small muted" style="margin-top:8px">Live sharing between phones isn't switched on yet, so this table saves on this device. Your GM can move it with Export / Import.</p>` : ''}
   ${joined() && me() ? `<a class="btn block" href="#/play" style="margin-top:12px">Continue as ${esc(me().nickname)}</a>` : ''}
-  <div class="section-title"><h2>Who are you playing?</h2></div>
+  <div class="section-title"><h2>Who are you playing?</h2><span class="small muted">Table ${esc(store.tableCode())} · change it with the <b>Table</b> box at the top</span></div>
   <div class="grid g2">
     ${p.map((c) => `<button class="card row nowrap" style="text-align:left;cursor:pointer;margin:0" data-pick="${c.id}">
         ${portrait(c, 'sm')}<div class="grow"><div class="char-name" style="font-size:20px">${esc(c.nickname)}</div><div class="char-sub">${esc(c.pokemon)} · ${esc(c.rank || '')}</div></div></button>`).join('')}
@@ -60,7 +55,7 @@ export function renderJoin(main) {
   <div class="section-title"><h2>Campaign links</h2></div>
   <div class="grid g2">${QUICK_LINKS.map((l) => `<a class="linkbtn" href="${l.href}" target="_blank" rel="noopener"><b>${esc(l.label)}</b><span>${esc(l.sub)}</span></a>`).join('')}</div>`;
 
-  $('#go', main).onclick = async () => { await openTable($('#code', main).value); renderJoin(main); toast('Table ' + store.tableCode() + ' opened'); };
+
   $$('[data-pick]', main).forEach((b) => b.onclick = () => { setMe(b.dataset.pick); setJoined(true); location.hash = '#/play'; });
   $('#watch', main).onclick = () => { setMe(''); setJoined(true); location.hash = '#/play'; };
   $('#newchar', main).onclick = () => editCharacter(null, (id) => { setMe(id); setJoined(true); location.hash = '#/play'; });

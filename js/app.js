@@ -1,18 +1,18 @@
-import { CONFIG } from './config.js?v=6adeb6fb';
-import * as store from './store.js?v=6adeb6fb';
-import * as sheet from './sheetdata.js?v=6adeb6fb';
-import { $, $$, esc, uid } from './util.js?v=6adeb6fb';
-import { closeModal, maxHp } from './ui.js?v=6adeb6fb';
-import { renderJoin, renderPlay } from './play.js?v=6adeb6fb';
-import { renderGM } from './gm.js?v=6adeb6fb';
-import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6adeb6fb';
-import { renderRules } from './rulebook.js?v=6adeb6fb';
-import { renderVault } from './vault.js?v=6adeb6fb';
-import { renderGames } from './games.js?v=6adeb6fb';
-import { updateHotbar } from './hotbar.js?v=6adeb6fb';
-import { applyTheme, openSettings } from './theme.js?v=6adeb6fb';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6adeb6fb';
-import { renderFriendZone } from './friendzone.js?v=6adeb6fb';
+import { CONFIG } from './config.js?v=6adeb75d';
+import * as store from './store.js?v=6adeb75d';
+import * as sheet from './sheetdata.js?v=6adeb75d';
+import { $, $$, esc, uid } from './util.js?v=6adeb75d';
+import { closeModal, maxHp } from './ui.js?v=6adeb75d';
+import { renderJoin, renderPlay } from './play.js?v=6adeb75d';
+import { renderGM } from './gm.js?v=6adeb75d';
+import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6adeb75d';
+import { renderRules } from './rulebook.js?v=6adeb75d';
+import { renderVault } from './vault.js?v=6adeb75d';
+import { renderGames } from './games.js?v=6adeb75d';
+import { updateHotbar } from './hotbar.js?v=6adeb75d';
+import { applyTheme, openSettings } from './theme.js?v=6adeb75d';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6adeb75d';
+import { renderFriendZone } from './friendzone.js?v=6adeb75d';
 
 const main = $('#main');
 let current = '';
@@ -65,6 +65,22 @@ function navHTML(active) {
 function statusChip() {
   applyTheme();
   const sc = $('#setchip'); if (sc && !sc.onclick) sc.onclick = openSettings;
+  // header "join a table" box: type a code, press Join (or Enter); opens that table and asks who you're playing
+  const tj = $('#tjoin');
+  if (tj && !tj.onsubmit) {
+    const inp = $('#tjcode');
+    inp.value = store.tableCode();
+    tj.onsubmit = async (e) => {
+      e.preventDefault(); inp.blur();
+      const code = inp.value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
+      if (!code) { inp.value = store.tableCode(); return; }
+      if (code === store.tableCode()) { location.hash = joined() ? '#/play' : '#/'; return; }
+      await openTable(code);
+      const u = new URL(location.href); u.searchParams.set('t', store.tableCode()); u.hash = '#/'; history.replaceState(null, '', u);
+      inp.value = store.tableCode(); route();
+    };
+  }
+  else if ($('#tjcode') && document.activeElement !== $('#tjcode')) $('#tjcode').value = store.tableCode();
   updateWeatherChip();
   const s = store.status;
   const el = $('#tablechip');
