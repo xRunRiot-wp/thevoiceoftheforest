@@ -1,11 +1,11 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6adea0bb';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adea0bb';
-import { GUILDS2, guildName } from './guild.js?v=6adea0bb';
-import { addItem, me } from './play.js?v=6adea0bb';
-import { ixLink } from './effects.js?v=6adea0bb';
-import { gmTodo } from './chatter.js?v=6adea0bb';
+import * as store from './store.js?v=6adea0eb';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adea0eb';
+import { GUILDS2, guildName } from './guild.js?v=6adea0eb';
+import { addItem, me } from './play.js?v=6adea0eb';
+import { ixLink } from './effects.js?v=6adea0eb';
+import { gmTodo } from './chatter.js?v=6adea0eb';
 
 // One line in the guild's ledger. amt = Poké in (+) or out (-); item lines have no amt.
 export function ledger(guild, text, amt = null) {
@@ -64,7 +64,7 @@ export function renderVault(main) {
   const pin = lines.filter((l) => l.amt > 0).reduce((s, l) => s + l.amt, 0);
   const pout = lines.filter((l) => l.amt < 0).reduce((s, l) => s - l.amt, 0);
   const items = Object.entries(store.get('storage') || {}).filter(([, b]) => guildOfItem(b) === tab);
-  const used = items.reduce((s, [, b]) => s + (/orb$/i.test(b.name) ? num(b.qty) : 1), 0);   // like her storage sheet: a stack takes one slot, each Orb its own
+  const used = items.reduce((s, [, b]) => s + (/orb$/i.test(b.name) ? num(b.qty) : 1), 0);   // like her storage sheet: a stack takes one slot, each Orb its own
   const gstore = store.get(tab === 'vanguard' ? 'vanguard' : 'guild') || {};
   const slots = num(gstore.slots);
 
