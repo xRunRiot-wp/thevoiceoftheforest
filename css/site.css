@@ -258,10 +258,13 @@ details.gs[open] > summary { margin-bottom: 8px; }
 details.gs h4 { margin: 12px 0 4px; }
 
 /* Role-play action buttons */
-.actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-.actbtn { text-align: left; padding: 10px 12px; border-radius: 10px; border: 2px solid var(--line); background: var(--paper); cursor: pointer; min-height: 56px; font: inherit; color: inherit; }
-.actbtn b { display: block; }
+.actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+/* every action tile has the same three lines: name, attribute + skill, dice */
+.actbtn { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 10px; border: 2px solid var(--line); background: var(--paper); cursor: pointer; min-height: 56px; font: inherit; color: inherit; min-width: 0; }
+.actbtn b, .actbtn span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.actbtn b { font-size: 15px; }
 .actbtn span { font-size: 12px; opacity: .75; }
+.actbtn .actdice { font-weight: 700; opacity: .9; }
 .actbtn:active { transform: translateY(1px); }
 /* 3D dice overlay */
 .dice3d { position: fixed; inset: 0; z-index: 9999; background: rgba(20, 12, 4, .18); transition: opacity .25s; cursor: pointer; }
@@ -658,3 +661,22 @@ details.gs h4 { margin: 12px 0 4px; }
 .qty-pick input { width: 90px; text-align: center; font: 700 22px var(--pix); padding: 6px; }
 .qty-pick .btn:not(.sm) { min-width: 48px; font-size: 22px; }
 .mc-qty { color: #ffd67a; font-size: 18px; }
+
+/* Sleeping spot as a night-sky card, matching the weather fortune card */
+.sleep.dream { margin: 12px 0 4px; padding: 14px 14px 12px; border: 2px solid var(--ft-gold); color: #f3e9ff;
+  background: radial-gradient(circle at 50% 28%, rgba(120, 150, 255, .3), transparent 55%),
+    radial-gradient(1px 1px at 15% 22%, #fff, transparent), radial-gradient(1px 1px at 78% 15%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 66% 72%, #ffe9a8, transparent), radial-gradient(1px 1px at 25% 84%, #fff, transparent),
+    radial-gradient(1px 1px at 88% 60%, #fff, transparent), linear-gradient(160deg, #1b2350, #0f1530 60%, #1c1a48); }
+.dream-orb { background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .55), rgba(140, 170, 255, .35) 40%, rgba(30, 40, 110, .75) 75%);
+  box-shadow: 0 0 18px rgba(150, 180, 255, .7), inset 0 -6px 12px rgba(0, 10, 50, .5); }
+.dream .ft-say { color: #c9d4ff; }
+.dream-desc { font-size: 14px; line-height: 1.45; margin: 4px auto 6px; max-width: 32em; color: #e6e9ff; }
+.dream-near { font-size: 13px; margin: 0 0 6px; color: #c9d4ff; }
+.dream-pick { gap: 8px; margin-top: 8px; justify-content: center; align-items: center; }
+.dream-pick select { flex: 1; min-width: 0; max-width: 260px; background: rgba(10, 14, 40, .6); color: #fff; border: 1px solid var(--ft-gold); border-radius: 99px; padding: 6px 12px; }
+.dream-pick select option, .dream-pick select optgroup { color: #222; background: #fff; }
+.dream-pick .ft-more { margin-top: 0; text-decoration: none; white-space: nowrap; }
+.sleep.dream.ask { animation: dreamglow 2.4s ease-in-out infinite; }
+@keyframes dreamglow { 50% { box-shadow: inset 0 0 0 5px #160c2c, 0 0 0 4px rgba(255, 213, 107, .45), 0 6px 18px rgba(30, 10, 60, .35); } }
+@media (prefers-reduced-motion: reduce) { .sleep.dream.ask { animation: none; } }

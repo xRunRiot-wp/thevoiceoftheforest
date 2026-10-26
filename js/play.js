@@ -1,23 +1,23 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adeb436';
-import * as sheet from './sheetdata.js?v=6adeb436';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb436';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb436';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb436';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb436';
-import { CONFIG } from './config.js?v=6adeb436';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb436';
-import { merged, editContent } from './content-store.js?v=6adeb436';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb436';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb436';
-import { homeHTML } from './sitepages.js?v=6adeb436';
-import { pinsOf, showMap } from './hotbar.js?v=6adeb436';
-import { chatterLatestHTML } from './chatter.js?v=6adeb436';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb436';
-import { locations, spots } from './friendzone.js?v=6adeb436';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb436';
-import { find } from './effects.js?v=6adeb436';
-import * as dice3d from './dice3d.js?v=6adeb436';
+import * as store from './store.js?v=6adeb518';
+import * as sheet from './sheetdata.js?v=6adeb518';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb518';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb518';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb518';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb518';
+import { CONFIG } from './config.js?v=6adeb518';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb518';
+import { merged, editContent } from './content-store.js?v=6adeb518';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb518';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb518';
+import { homeHTML } from './sitepages.js?v=6adeb518';
+import { pinsOf, showMap } from './hotbar.js?v=6adeb518';
+import { chatterLatestHTML } from './chatter.js?v=6adeb518';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb518';
+import { locations, spots } from './friendzone.js?v=6adeb518';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb518';
+import { find } from './effects.js?v=6adeb518';
+import * as dice3d from './dice3d.js?v=6adeb518';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -291,7 +291,7 @@ function charCard(c) {
 
     <div class="section-title"><h3>Actions</h3><span class="small muted">tap to roll${store.gmUnlocked() ? ' · <a href="#" id="edact">edit</a>' : ''}</span></div>
     <h4 class="actgroup">🎲 Quick rolls</h4><div class="row"><button class="btn" id="qroll">Quick roll</button><button class="btn alt" id="initroll">Initiative</button></div>
-    ${ACTION_GROUPS.map(([g, label]) => { const list = actions().filter((a) => actionGroup(a) === g); return list.length ? `<h4 class="actgroup">${label}</h4><div class="actions">${list.map((a) => `<button class="actbtn" data-act="${esc(a.id)}"><b>${esc(a.name)}</b><span>${esc(a.attr)} + ${esc(a.skill)} · ${statVal(c, a.attr) + statVal(c, a.skill)} ${statVal(c, a.attr) + statVal(c, a.skill) === 1 ? "die" : "dice"}</span></button>`).join('')}</div>` : ''; }).join('')}
+    ${ACTION_GROUPS.map(([g, label]) => { const list = actions().filter((a) => actionGroup(a) === g); return list.length ? `<h4 class="actgroup">${label}</h4><div class="actions">${list.map((a) => `<button class="actbtn" data-act="${esc(a.id)}"><b>${esc(a.name)}</b><span>${esc(a.attr)} + ${esc(a.skill)}</span><span class="actdice">${statVal(c, a.attr) + statVal(c, a.skill)} ${statVal(c, a.attr) + statVal(c, a.skill) === 1 ? "die" : "dice"}</span></button>`).join('')}</div>` : ''; }).join('')}
 
 
     <div class="section-title"><h3>Poké bank</h3><span class="small muted">${esc(guildName(c.guild))} · shared coffers: ${num((store.get('guild') || {}).coffers).toLocaleString()}</span></div>
@@ -316,8 +316,16 @@ function charCard(c) {
 function sleepHTML(c) {
   const ask = num(store.get('session/sleepAsk')) > num(c.sleepT);
   const opts = locations().map((l) => `<optgroup label="${esc(l.name)}">${spots(l).map((s) => `<option value="${esc(l.id + '|' + s.key)}" ${c.sleep === l.id + '|' + s.key ? 'selected' : ''}>${esc(s.name.replace(/^[^\w]*\d*\.?\s*/, ''))}</option>`).join('')}</optgroup>`).join('');
-  return `<div class="sleep ${ask ? 'ask' : ''}">${ask ? '<b>🌙 Time to rest! Where is your character sleeping tonight?</b>' : '<b>🛏️ Sleeping spot</b>'}
-    <div class="row nowrap"><select id="sleepsel"><option value="">Choose a spot…</option>${opts}</select>${c.sleep ? '<a class="btn alt sm" href="#/friends/' + esc(c.sleep.split('|')[0]) + '">Friend Zone</a>' : ''}</div></div>`;
+  // the chosen spot, shown like a night-sky card to match the weather card beside it
+  const [lid, skey] = (c.sleep || '').split('|');
+  const loc = locations().find((l) => l.id === lid); const spot = loc && spots(loc).find((x) => x.key === skey);
+  const icon = (spot?.name.match(/^\p{Extended_Pictographic}/u) || [])[0] || loc?.icon || '🌙';
+  return `<div class="sleep fortune dream ${ask ? 'ask' : ''}"><div class="ft-top">✦ ${ask ? 'Time to rest!' : 'Sleeping Spot'} ✦</div>
+    <div class="ft-orb dream-orb" aria-hidden="true">${spot ? icon : '🌙'}</div>
+    ${spot ? `<div class="ft-name">${esc(spot.name.replace(/^[^\w]*\d*\.?\s*/, ''))}</div><div class="ft-say">resting at ${esc(loc.name)}</div>
+      ${spot.desc ? `<p class="dream-desc">${esc(spot.desc)}</p>` : ''}${spot.mons.length ? `<p class="dream-near">💤 Sleeping nearby: ${esc(spot.mons.join(', '))}</p>` : ''}`
+      : `<div class="ft-say">${ask ? 'Where is your character sleeping tonight?' : 'No bed picked yet. Where will you rest?'}</div>`}
+    <div class="row nowrap dream-pick"><select id="sleepsel" aria-label="Sleeping spot"><option value="">Choose a spot…</option>${opts}</select>${c.sleep ? '<a class="ft-more" href="#/friends/' + esc(lid) + '">Friend Zone ›</a>' : ''}</div></div>`;
 }
 
 // Guild Rank badge: every character carries the badge of their guild's current rank (bag item + chip by their name).
