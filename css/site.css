@@ -482,3 +482,4 @@ details.gs h4 { margin: 12px 0 4px; }
 .mem-actions { gap: 6px; }
 .mem-actions input { flex: 1; min-width: 0; }
 .memory textarea { width: 100%; }
+.chatter-mini { display: block; text-decoration: none; color: inherit; margin-top: 12px; } .chatter-mini .line:first-of-type { border-top: 0; }
