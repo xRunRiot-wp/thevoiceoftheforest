@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6adea7c6';
-import { $, $$, esc, toast } from './util.js?v=6adea7c6';
+import * as store from './store.js?v=6adea836';
+import { $, $$, esc, toast } from './util.js?v=6adea836';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 export const RESIDENTS = {
@@ -19,7 +19,7 @@ export const RESIDENTS = {
   Rocky: { icon: '🗿', img: 'assets/portraits/sudowoodo.png' },
   'Mimi & Kippy': { icon: '⚡', img: 'assets/portraits/pikachu.png' },
   'Weather Watch': { icon: '🌦️' },
-  Golett: { icon: '🏺' },
+  Golett: { icon: '🐢' },   // Ground/Ghost, Adamant, he/him; clay reshaped to look like a Squirtle; loves food but has no mouth
   Gemini: { icon: '🌟', img: 'assets/portraits/cleffa.png' },
   Slakoth: { icon: '💤', img: 'assets/portraits/slakoth.png' },
   Ludicolo: { icon: '🌧️' },
@@ -75,15 +75,18 @@ const AMBIENT = [
   ['Puff', 'say', 'I am VERY old, which means I am VERY wise. Ask me anything. …Not that.'],
   ['Puff', 'do', 'floats into the mess hall on a breeze and lands perfectly in the last empty seat.'],
   ['Puff', 'say', 'I left the family shop to find my own place. I think I might have floated into it.'],
-  ['Golett', 'do', 'stands perfectly still at the edge of camp for an hour, then politely waves at a passing Pidgey.'],
-  ['Golett', 'say', '…Golett is happy to be here. Golett will carry the heavy boxes.'],
-  ['Golett', 'do', 'practices Shadow Punch on a hay bale. The bale has stopped being a bale.'],
-  ['Golett', 'say', 'Golett does not need to eat. Golett will still sit at the table, because the table is nice.'],
-  ['Felicia', 'do', 'is trying to convince Golett to let her study its seams. Golett is considering it very, very slowly.'],
+  ['Golett', 'do', 'has reshaped his clay to look like a Squirtle again. From far away it almost works. Up close, the shell is a little lumpy.'],
+  ['Golett', 'say', 'The disguise is perfect. Ludicolo will see a “Squirtle” and leave Woodland Base for good. …Why is everyone laughing?'],
+  ['Golett', 'do', 'sits at the mess hall table and stares at a bowl of berry stew with great longing. No mouth. Still worth smelling.'],
+  ['Golett', 'say', 'Beedrill made pie today. Golett cannot eat pie. Golett would like a slice anyway, to hold.'],
+  ['Golett', 'do', 'practices Shadow Punch on a hay bale with stubborn, Adamant focus. The bale has stopped being a bale.'],
+  ['Golett', 'do', 'leaps out from behind the storage shed in his Squirtle shape. Ludicolo yells “A SQUIRTLE!”… and asks him to dance.'],
+  ['Felicia', 'do', 'offers to smooth out the lumps in Golett’s Squirtle disguise. Golett refuses. The lumps are part of the plan.'],
   ['Gemini', 'do', 'drags Rox, Felicia, Puff and Golett into a group hug in front of the mission board. Only Golett doesn’t wobble.'],
   ['Puff', 'do', 'has convinced Gemini that clouds are just Cottonee who got too big. Rox is pretending not to believe it.'],
   ['Rox', 'say', 'Gemini, Felicia, Puff, Golett: the New Adventurers book has room for more names. Let’s earn the next page.'],
   ['Golett', 'do', 'carries Puff across the river so their cotton stays dry. Puff narrates the whole trip like an epic voyage.'],
+  ['Gemini', 'do', 'saves Golett the best Apple at supper so he can hold it and smell it. Golett carries it around all evening.'],
 ];
 
 // Reactions to a Lucky Den spin, by slice. {who} = the spinner, {prize} = what they got.
