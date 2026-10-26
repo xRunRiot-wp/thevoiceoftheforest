@@ -1,14 +1,14 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import * as store from './store.js?v=6adeb19c';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6adeb19c';
-import { modal, portrait } from './ui.js?v=6adeb19c';
-import * as sheet from './sheetdata.js?v=6adeb19c';
-import { shop } from './guild.js?v=6adeb19c';
-import { merged, editContent } from './content-store.js?v=6adeb19c';
-import { logRoll, me, addTeamFx } from './play.js?v=6adeb19c';
-import { luckyReaction, gmTodo } from './chatter.js?v=6adeb19c';
-import { ranks } from './rulebook.js?v=6adeb19c';
+import * as store from './store.js?v=6adeb1f3';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6adeb1f3';
+import { modal, portrait } from './ui.js?v=6adeb1f3';
+import * as sheet from './sheetdata.js?v=6adeb1f3';
+import { shop } from './guild.js?v=6adeb1f3';
+import { merged, editContent } from './content-store.js?v=6adeb1f3';
+import { logRoll, me, addTeamFx } from './play.js?v=6adeb1f3';
+import { luckyReaction, gmTodo } from './chatter.js?v=6adeb1f3';
+import { ranks } from './rulebook.js?v=6adeb1f3';
 
 export const GAMES = [
   {
@@ -51,7 +51,7 @@ And Chandelure quietly turns the Lucky Den wheel so that the Golden Paw faces th
     ],
   },
   {
-    id: 'gemini-metronome', name: "Gemini's Metronome", host: 'Gemini (Cleffa)', only: 'Gemini', theme: 'stars',
+    id: 'gemini-metronome', name: "Gemini's Metronome", host: 'Gemini (Cleffa)', only: 'Metronome users', needsMove: 'Metronome', theme: 'stars',
     intro: "Gemini has a special bond with the wheel. Whenever Gemini uses Metronome, spin this instead of a plain random move and see whether luck or chaos answers the wag of that tiny finger. (Starter prizes: the GM can change any of them.)",
     cost: '', colors: ['#f7b6d2', '#7a5cc2', '#ffd56b', '#3b2a6b', '#9fd8f2', '#e06fa0'],
     slices: [
@@ -200,8 +200,12 @@ export function renderGames(main, [arg]) {
     </div>
     <div id="lunches"></div>
     <details class="card" style="margin-top:12px"><summary><b>Prizes and odds</b></summary><div id="odds"></div></details>`;
-  const party = () => Object.values(store.get('party') || {}).filter((c) => !c.guest);
-  let spinner = me()?.id || '';
+  // some wheels are only for characters who know a certain move (Gemini's Metronome wheel: Metronome)
+  const needMove = g.needsMove || (g.id === 'gemini-metronome' ? 'Metronome' : '');
+  const loose = (t) => String(t).toLowerCase().replace(/[^a-z]/g, '').replace(/[aeiou]/g, '');   // sheets misspell it ("Metranome")
+  const canSpin = (c) => !needMove || (c.moves || []).some((m) => loose(m) === loose(needMove));
+  const party = () => Object.values(store.get('party') || {}).filter((c) => !c.guest && canSpin(c));
+  let spinner = me() && canSpin(me()) ? me().id : '';
   let free = 0;            // free spins owed to the spinner (Double Trouble, Golden Wag ...)
   const costAmt = /\d/.test(g.cost || '') ? num(g.cost) : 0;
   const who = () => (store.get('party') || {})[spinner] || null;
@@ -209,7 +213,7 @@ export function renderGames(main, [arg]) {
   const spinCost = () => num(store.get(nextCostPath())) || costAmt;
   const isSpecial = () => !!$('#asSpecial', main)?.checked;
   const drawSpinners = () => {
-    $('#splist', main).innerHTML = party().map((c) => `<button class="sp ${c.id === spinner ? 'on' : ''}" data-sp="${c.id}">${portrait(c, 'sm')}<span><b>${esc(c.nickname)}</b><small>${num(c.poke).toLocaleString()} Poké${rankLetter(c) ? ' · ' + rankLetter(c) + '-Rank' : ''}</small></span></button>`).join('') || '<p class="small muted">No characters at this table yet.</p>';
+    $('#splist', main).innerHTML = party().map((c) => `<button class="sp ${c.id === spinner ? 'on' : ''}" data-sp="${c.id}">${portrait(c, 'sm')}<span><b>${esc(c.nickname)}</b><small>${num(c.poke).toLocaleString()} Poké${rankLetter(c) ? ' · ' + rankLetter(c) + '-Rank' : ''}</small></span></button>`).join('') || `<p class="small muted">${needMove ? `Only characters who know ${esc(needMove)} can spin this wheel.` : 'No characters at this table yet.'}</p>`;
     $$('[data-sp]', main).forEach((b) => b.onclick = () => { spinner = b.dataset.sp; free = 0; $('#claims', main).innerHTML = ''; $('#res', main).innerHTML = ''; refreshSpinner(); });
   };
   const drawOdds = () => {
@@ -298,6 +302,7 @@ export function renderGames(main, [arg]) {
     if (spinning) return;
     const c = who();
     if (!c) { toast('Tap who’s spinning first'); return; }
+    if (!canSpin(c)) { toast(`Only characters who know ${needMove} can spin this wheel`); return; }
     let paid = 0;
     if (free) free -= 1;
     else if (costAmt) {
