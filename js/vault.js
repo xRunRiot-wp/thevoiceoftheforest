@@ -1,13 +1,13 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6adebb98';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adebb98';
-import { GUILDS2, guildName } from './guild.js?v=6adebb98';
-import { addItem, me } from './play.js?v=6adebb98';
-import { ixLink } from './effects.js?v=6adebb98';
-import { gmTodo } from './chatter.js?v=6adebb98';
-import { palette } from './theme.js?v=6adebb98';
-import { modal, closeModal } from './ui.js?v=6adebb98';
+import * as store from './store.js?v=6adebc4e';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adebc4e';
+import { GUILDS2, guildName } from './guild.js?v=6adebc4e';
+import { addItem, me } from './play.js?v=6adebc4e';
+import { ixLink } from './effects.js?v=6adebc4e';
+import { gmTodo } from './chatter.js?v=6adebc4e';
+import { palette } from './theme.js?v=6adebc4e';
+import { modal, closeModal } from './ui.js?v=6adebc4e';
 
 // Each guild's own colours on this page, so players can tell at a glance whose storage they're looking at.
 const GUILD_TINT = { woodland: '#4f8a2e', vanguard: '#2f5fb8' };

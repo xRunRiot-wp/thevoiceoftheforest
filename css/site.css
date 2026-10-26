@@ -799,3 +799,16 @@ details.gs h4 { margin: 12px 0 4px; }
 .char-stats { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 2px; }
 .char-stats span { white-space: nowrap; }
 .portrait.art img { object-position: center; }
+
+/* Play sheet Instinct / Logic: bold dark tiles so they stand apart from the pastel HP/Will/Humanity/Primal cards */
+.mind { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.mind-tile { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; text-decoration: none; color: #fff; border: 2px solid; box-shadow: 0 3px 0 rgba(0, 0, 0, .25); transition: transform .15s; }
+.mind-tile:hover { transform: translateY(-2px); }
+.mind-tile.instinct { background: linear-gradient(135deg, #b4472a, #6e2416); border-color: #e99a4c; }
+.mind-tile.logic { background: linear-gradient(135deg, #2f5aa8, #1b2f63); border-color: #8fb4ff; }
+.m-ic { width: 40px; height: 40px; flex: none; display: grid; place-items: center; font-size: 22px; border-radius: 50%; background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .3); }
+.m-txt { display: flex; flex-direction: column; min-width: 0; }
+.m-lab { font: 700 16px var(--pix); letter-spacing: .04em; }
+.m-txt small { font-size: 12px; opacity: .85; }
+.m-num { margin-left: auto; font: 700 32px var(--pix); text-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
+@media (max-width: 420px) { .mind-tile { padding: 8px 10px; gap: 8px; } .m-ic { width: 32px; height: 32px; font-size: 18px; } .m-num { font-size: 26px; } }
