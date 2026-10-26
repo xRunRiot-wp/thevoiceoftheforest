@@ -999,3 +999,5 @@ a.fact:hover { border-color: var(--orange); }
 .pg-h small { font-family: var(--sans); font-size: 12px; margin-left: 4px; }
 .pg-vanguard .pg-h { color: #2f5aa8; }
 .pg-woodland .pg-h { color: #2f7a3e; }
+.hotbar .hb-link { text-decoration: none; cursor: pointer; }
+.hotbar .hb-link:hover { filter: brightness(1.15); }
