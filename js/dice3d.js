@@ -1,8 +1,8 @@
 // 3D dice: every d6 roll on this device plays as tumbling dice over the screen, then shows the result.
 // Results always come from the site's own roller; the animation just lands each die on its value.
 // Skins are per device (each player picks their own) and saved in this browser.
-import { $, $$, esc } from './util.js?v=6adeaadc';
-import { modal } from './ui.js?v=6adeaadc';
+import { $, $$, esc } from './util.js?v=6adeab60';
+import { modal } from './ui.js?v=6adeab60';
 
 const THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 const KEY = 'dc.dice';
@@ -25,7 +25,11 @@ const STYLES = [['solid', 'Solid'], ['pokeball', 'Poké Ball band'], ['marble', 
 export function skin() {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { /* private mode */ }
-  return { on: true, preset: 'classic', ...PRESETS.classic, numbers: false, ...s };
+  const out = { on: true, preset: 'classic', ...PRESETS.classic, numbers: false, ...s };
+  // dice sets are unlocked per player (theme.js sets window.diceAllowed); a locked set falls back to Classic
+  const ok = window.diceAllowed;
+  if (ok && !ok.has(out.preset in PRESETS ? out.preset : 'custom')) return { ...out, preset: 'classic', ...PRESETS.classic };
+  return out;
 }
 function saveSkin(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* ignore */ } }
 
@@ -185,14 +189,16 @@ export function skinPicker() {
   const el = modal(`<h2>Your dice</h2>
     <p class="small muted">Pick how your dice look. This is saved on this device, so everyone at the table can have their own.</p>
     <label class="check"><input type="checkbox" id="on" ${s.on ? 'checked' : ''}> Show 3D dice when I roll</label>
-    <div class="dice-presets">${Object.entries(PRESETS).map(([k, p]) => `<button class="dp ${s.preset === k ? 'sel' : ''}" data-p="${k}"><img src="${preview({ ...s, ...p })}" alt=""><span>${esc(p.name)}</span></button>`).join('')}</div>
-    <h3 style="margin-top:12px">Make your own</h3>
+    <div class="dice-presets">${Object.entries(PRESETS).map(([k, p]) => { const lock = window.diceAllowed && !window.diceAllowed.has(k); return `<button class="dp ${s.preset === k ? 'sel' : ''} ${lock ? 'locked' : ''}" data-p="${k}" ${lock ? 'disabled title="A GM reward"' : ''}><img src="${preview({ ...s, ...p })}" alt=""><span>${lock ? '🔒 ' : ''}${esc(p.name)}</span></button>`; }).join('')}</div>
+    <p class="small muted">🔒 sets are rewards the GM can hand out.</p>
+    <h3 style="margin-top:12px">Make your own${window.diceAllowed && !window.diceAllowed.has('custom') ? ' 🔒' : ''}</h3>
+    ${window.diceAllowed && !window.diceAllowed.has('custom') ? '<p class="small muted">Custom dice colours are a GM reward.</p><div hidden>' : '<div>'}
     <div class="grid g2">
       <label class="f">Dice colour<input type="color" id="body" value="${s.body}"></label>
       <label class="f">Pip colour<input type="color" id="pip" value="${s.pip}"></label>
       <label class="f">Finish<select id="style">${STYLES.map(([k, l]) => `<option value="${k}" ${s.style === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
       <label class="f">Faces<select id="num"><option value="0" ${s.numbers ? '' : 'selected'}>Pips</option><option value="1" ${s.numbers ? 'selected' : ''}>Numbers</option></select></label>
-    </div>
+    </div></div>
     <div class="row" style="margin-top:10px;align-items:center"><img id="pv" src="${preview(s)}" alt="" style="width:64px;height:64px;border-radius:8px"><button class="btn" id="test">Test roll</button></div>`);
   const refresh = () => { saveSkin(s); $('#pv', el).src = preview(s); $$('[data-p]', el).forEach((b) => b.classList.toggle('sel', b.dataset.p === s.preset)); };
   $('#on', el).onchange = (e) => { s.on = e.target.checked; refresh(); };

@@ -1,9 +1,9 @@
 // Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
 // and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
-import * as store from './store.js?v=6adeaadc';
-import { $, $$, esc, toast } from './util.js?v=6adeaadc';
-import { modal } from './ui.js?v=6adeaadc';
-import { skinPicker } from './dice3d.js?v=6adeaadc';
+import * as store from './store.js?v=6adeab60';
+import { $, $$, esc, toast } from './util.js?v=6adeab60';
+import { modal } from './ui.js?v=6adeab60';
+import { skinPicker } from './dice3d.js?v=6adeab60';
 
 export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
   Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',
@@ -41,7 +41,17 @@ export function unlocked(c = me()) {
   return ['woodland', ...new Set([...own, ...gifts])].filter((k) => THEMES[k]);
 }
 
+// Dice sets: everyone starts with Classic and Poké Ball, plus the set matching their type; the GM gives out the rest
+// (and "custom" = making your own colours) as rewards (party/<id>/dice).
+const TYPE_DICE = { Grass: 'leaf', Bug: 'leaf', Fire: 'ember', Water: 'water', Ice: 'water', Dark: 'night', Ghost: 'night', Steel: 'gold', Ground: 'oak', Rock: 'oak' };
+export const DICE_REWARDS = { greatball: 'Great Ball dice', ultraball: 'Ultra Ball dice', leaf: 'Leaf dice', ember: 'Ember dice', water: 'Water dice', night: 'Night dice', gold: 'Gold dice', oak: 'Oak dice', custom: 'Make-your-own dice colours' };
+export function diceUnlocked(c = me()) {
+  const own = c ? [c.type1, c.type2].map((t) => TYPE_DICE[t]).filter(Boolean) : [];
+  return new Set(['classic', 'pokeball', ...own, ...(c && Array.isArray(c.dice) ? c.dice : [])]);
+}
+
 export function applyTheme() {
+  window.diceAllowed = store.gmUnlocked() ? null : diceUnlocked();
   let k = 'woodland'; try { k = localStorage.getItem(KEY()) || 'woodland'; } catch { /* default */ }
   if (!unlocked().includes(k)) k = 'woodland';
   const root = document.documentElement; const vars = THEMES[k].vars || {};
@@ -57,16 +67,27 @@ export function openSettings() {
   const c = me(); const cur = document.documentElement.dataset.theme || 'woodland';
   const gm = store.gmUnlocked(); const party = Object.entries(store.get('party') || {}).filter(([, x]) => !x.guest);
   const el = modal(`<h2>⚙️ Settings</h2>
-    <h3>🎲 Dice skin</h3><p class="small muted">How your 3D dice look when you roll.</p><button class="btn alt" id="setdice">Change dice skin</button>
+    <h3>🎲 Dice skin</h3><p class="small muted">How your 3D dice look when you roll. You start with Classic, Poké Ball and your type’s set; the GM hands out more as rewards.</p><button class="btn alt" id="setdice">Change dice skin</button>
     <h3 style="margin-top:14px">🎨 Theme</h3>
     <p class="small muted">${c ? `Everyone has Woodland Base. ${esc(c.nickname)} also has their type’s theme. The GM can give out more as rewards.` : 'Pick a character to unlock your type’s theme.'}</p>
     <div class="themes">${unlocked(c).map((k) => `<button class="th ${k === cur ? 'sel' : ''}" data-th="${k}">${swatch(THEMES[k])}<span>${THEMES[k].icon} ${esc(THEMES[k].name)}</span></button>`).join('')}</div>
-    ${gm ? `<details class="small" style="margin-top:14px"><summary><b>GM: give a theme as a reward</b></summary>
+    ${gm ? `<details class="small" style="margin-top:14px"><summary><b>GM: give a theme or dice as a reward</b></summary>
       <div class="grid g2" style="margin-top:6px"><select id="gtwho">${party.map(([id, x]) => `<option value="${id}">${esc(x.nickname)}</option>`).join('')}</select>
       <select id="gtwhat">${Object.entries(THEMES).filter(([k]) => k !== 'woodland').map(([k, t]) => `<option value="${k}">${t.icon} ${esc(t.name)}</option>`).join('')}</select></div>
-      <button class="btn alt sm" id="gtgo" style="margin-top:6px">🎁 Give theme</button></details>` : ''}`);
+      <button class="btn alt sm" id="gtgo" style="margin-top:6px">🎁 Give theme</button>
+      <div class="grid g2" style="margin-top:10px"><select id="gdwho">${party.map(([id, x]) => `<option value="${id}">${esc(x.nickname)}</option>`).join('')}</select>
+      <select id="gdwhat">${Object.entries(DICE_REWARDS).map(([k, n]) => `<option value="${k}">🎲 ${esc(n)}</option>`).join('')}</select></div>
+      <button class="btn alt sm" id="gdgo" style="margin-top:6px">🎁 Give dice</button></details>` : ''}`);
   $('#setdice', el).onclick = () => skinPicker();
   $$('[data-th]', el).forEach((b) => b.onclick = () => { setTheme(b.dataset.th); $$('[data-th]', el).forEach((x) => x.classList.toggle('sel', x === b)); });
+  const gd = $('#gdgo', el);
+  if (gd) gd.onclick = () => {
+    const id = $('#gdwho', el).value; const k = $('#gdwhat', el).value; const x = (store.get('party') || {})[id];
+    if (!x) return;
+    store.set(`party/${id}/dice`, [...new Set([...(x.dice || []), k])]);
+    store.pushLimited('log', { t: Date.now(), text: `${x.nickname} earned ${DICE_REWARDS[k]}!` });
+    toast(`${x.nickname} can now use ${DICE_REWARDS[k]}`);
+  };
   const g = $('#gtgo', el);
   if (g) g.onclick = () => {
     const id = $('#gtwho', el).value; const k = $('#gtwhat', el).value; const x = (store.get('party') || {})[id];
