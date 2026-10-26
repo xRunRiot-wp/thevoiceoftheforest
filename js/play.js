@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adeb75d';
-import * as sheet from './sheetdata.js?v=6adeb75d';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb75d';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb75d';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb75d';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb75d';
-import { CONFIG } from './config.js?v=6adeb75d';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb75d';
-import { merged, editContent } from './content-store.js?v=6adeb75d';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb75d';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb75d';
-import { homeHTML } from './sitepages.js?v=6adeb75d';
-import { pinsOf, showMap } from './hotbar.js?v=6adeb75d';
-import { chatterLatestHTML } from './chatter.js?v=6adeb75d';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb75d';
-import { locations, spots } from './friendzone.js?v=6adeb75d';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb75d';
-import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adeb75d';
-import { find } from './effects.js?v=6adeb75d';
-import * as dice3d from './dice3d.js?v=6adeb75d';
+import * as store from './store.js?v=6adeb7ac';
+import * as sheet from './sheetdata.js?v=6adeb7ac';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb7ac';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb7ac';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb7ac';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb7ac';
+import { CONFIG } from './config.js?v=6adeb7ac';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb7ac';
+import { merged, editContent } from './content-store.js?v=6adeb7ac';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb7ac';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb7ac';
+import { homeHTML } from './sitepages.js?v=6adeb7ac';
+import { pinsOf, showMap } from './hotbar.js?v=6adeb7ac';
+import { chatterLatestHTML } from './chatter.js?v=6adeb7ac';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb7ac';
+import { locations, spots } from './friendzone.js?v=6adeb7ac';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb7ac';
+import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adeb7ac';
+import { find } from './effects.js?v=6adeb7ac';
+import * as dice3d from './dice3d.js?v=6adeb7ac';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
