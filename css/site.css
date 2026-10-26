@@ -812,3 +812,7 @@ details.gs h4 { margin: 12px 0 4px; }
 .m-txt small { font-size: 12px; opacity: .85; }
 .m-num { margin-left: auto; font: 700 32px var(--pix); text-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
 @media (max-width: 420px) { .mind-tile { padding: 8px 10px; gap: 8px; } .m-ic { width: 32px; height: 32px; font-size: 18px; } .m-num { font-size: 26px; } }
+
+/* Play sheet Working-for: the Vault's guild toggle, sized for the sheet */
+.wf-tabs { flex: 1; min-width: 240px; margin: 0; gap: 6px; }
+.wf-tabs .vtab { padding: 6px 8px; font-size: 13px; }

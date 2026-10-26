@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adebcc0';
-import * as sheet from './sheetdata.js?v=6adebcc0';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adebcc0';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adebcc0';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adebcc0';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adebcc0';
-import { CONFIG } from './config.js?v=6adebcc0';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adebcc0';
-import { merged, editContent } from './content-store.js?v=6adebcc0';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adebcc0';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adebcc0';
-import { homeHTML } from './sitepages.js?v=6adebcc0';
-import { pinsOf, showMap } from './hotbar.js?v=6adebcc0';
-import { chatterLatestHTML } from './chatter.js?v=6adebcc0';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adebcc0';
-import { locations, spots } from './friendzone.js?v=6adebcc0';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adebcc0';
-import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adebcc0';
-import { find } from './effects.js?v=6adebcc0';
-import * as dice3d from './dice3d.js?v=6adebcc0';
+import * as store from './store.js?v=6adebd16';
+import * as sheet from './sheetdata.js?v=6adebd16';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adebd16';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adebd16';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adebd16';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adebd16';
+import { CONFIG } from './config.js?v=6adebd16';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adebd16';
+import { merged, editContent } from './content-store.js?v=6adebd16';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adebd16';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adebd16';
+import { homeHTML } from './sitepages.js?v=6adebd16';
+import { pinsOf, showMap } from './hotbar.js?v=6adebd16';
+import { chatterLatestHTML } from './chatter.js?v=6adebd16';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adebd16';
+import { locations, spots } from './friendzone.js?v=6adebd16';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adebd16';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adebd16';
+import { find } from './effects.js?v=6adebd16';
+import * as dice3d from './dice3d.js?v=6adebd16';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -261,7 +261,7 @@ function charCard(c) {
   return `<div class="card">
     <div class="char-head">${portrait(c)}<div class="grow">
       <div class="char-name">${esc(c.nickname)}</div>
-      <div class="workfor"><span class="small">Working for:</span>${[['woodland', 'Woodland Base'], ['vanguard', 'Vanguard Guild']].map(([k, n]) => `<button class="chip ${(c.guild || 'woodland') === k ? 'on' : ''}" data-setguild="${k}">${n}</button>`).join('')}</div>
+      <div class="workfor"><span class="small">Working for:</span><div class="vtabs wf-tabs">${[['woodland', 'Woodland Base'], ['vanguard', 'Vanguard Guild']].map(([k, n]) => `<button class="vtab ${(c.guild || 'woodland') === k ? 'on' : ''}" data-setguild="${k}" style="${guildTint(k)}">${k === 'vanguard' ? '🛡️' : '🌳'} ${n}</button>`).join('')}</div></div>
       <div class="char-sub">${esc(c.pokemon)}${c.nature ? ' · ' + ixLink('Nature (personality)', c.nature) : ''}${c.rank ? ' · ' + ixLink(c.rank + ' Rank', c.rank) : ''}${c.instinctRank ? ' · ' + ixLink('Instinct', c.instinctRank) : ''}</div>
       <div class="chips" style="margin-top:4px">${[c.type1, c.type2].filter(Boolean).map((t) => `<a href="#" class="chip type ty-${esc(t)}" data-ixname="Type effectiveness">${esc(t)}</a>`).join('')}${c.ability ? `<a href="#" class="pill" data-ixname="${esc(c.ability)}">${esc(c.ability)}</a>` : ''}${badgeChip(c)}</div>
     </div></div>
@@ -313,6 +313,9 @@ function charCard(c) {
     <div class="row" style="margin-top:12px"><button class="btn alt sm" id="editme">Edit character</button><a class="btn alt sm" href="#/join">Switch character</a></div>
   </div>`;
 }
+
+// Working-for toggle in each guild's colours, like the Vault tabs
+const guildTint = (k) => Object.entries(palette(k === 'vanguard' ? '#2f5fb8' : '#4f8a2e')).map(([v, col]) => `${v}:${col}`).join(';');
 
 // Look of each status condition on the sheet: [icon, colour]
 const COND_LOOK = { Burn: ['🔥', '#d8561f'], Poison: ['☠️', '#8e3fa0'], 'Badly Poisoned': ['☠️', '#5f1f78'], Paralysis: ['⚡', '#c9a10c'], Frozen: ['❄️', '#3b9fc9'],
