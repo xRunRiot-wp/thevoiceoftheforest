@@ -1,0 +1,78 @@
+// Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
+// and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
+import * as store from './store.js?v=6adeaadc';
+import { $, $$, esc, toast } from './util.js?v=6adeaadc';
+import { modal } from './ui.js?v=6adeaadc';
+import { skinPicker } from './dice3d.js?v=6adeaadc';
+
+export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
+  Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',
+  Dark: '#6a5444', Steel: '#9a9ab8', Fairy: '#d685ad' };
+const ICONS = { Normal: '⚪', Fire: '🔥', Water: '💧', Electric: '⚡', Grass: '🌿', Ice: '❄️', Fighting: '🥊', Poison: '☠️', Ground: '⛰️', Flying: '🪶',
+  Psychic: '🔮', Bug: '🐛', Rock: '🪨', Ghost: '👻', Dragon: '🐉', Dark: '🌙', Steel: '⚙️', Fairy: '✨' };
+
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const mix = (a, b, t) => '#' + hex(a).map((v, i) => Math.round(v + (hex(b)[i] - v) * t).toString(16).padStart(2, '0')).join('');
+const lum = (h) => { const [r, g, b] = hex(h); return (0.299 * r + 0.587 * g + 0.114 * b) / 255; };
+
+// A whole palette from one type colour, keeping the site's look (dark header, warm paper, bright buttons).
+function palette(base) {
+  const btn = lum(base) > 0.55 ? mix(base, '#000000', 0.25) : base;
+  return {
+    '--brown': mix(base, '#000000', 0.62), '--brown2': mix(base, '#000000', 0.42), '--brown3': mix(base, '#000000', 0.22), '--ink': mix(base, '#000000', 0.78),
+    '--muted': mix(base, '#000000', 0.5), '--cream': mix(base, '#ffffff', 0.86), '--cream2': mix(base, '#ffffff', 0.74), '--cream3': mix(base, '#ffffff', 0.6),
+    '--paper': mix(base, '#ffffff', 0.95), '--line': mix(base, '#ffffff', 0.4), '--hotbar': mix(base, '#000000', 0.7), '--gold': mix(base, '#ffffff', 0.55), '--orange': btn, '--orange-d': mix(btn, '#000000', 0.3), '--orange-l': mix(btn, '#ffffff', 0.35),
+  };
+}
+
+export const THEMES = {
+  woodland: { name: 'Woodland Base', icon: '🌳', swatch: ['#4a2f17', '#f7eed6', '#e07b1f'], vars: null },
+  ...Object.fromEntries(Object.entries(TYPE_COLORS).map(([t, c]) => [`type-${t.toLowerCase()}`, { name: `${t} Type`, icon: ICONS[t], swatch: [mix(c, '#000000', 0.62), mix(c, '#ffffff', 0.86), c], vars: palette(c) }])),
+};
+
+const KEY = () => 'dc.theme.' + store.tableCode();
+const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
+const me = () => (store.get('party') || {})[meId()];
+
+// Themes this player may use: Woodland Base, their own type(s), and any the GM gave them.
+export function unlocked(c = me()) {
+  const own = c ? [c.type1, c.type2].filter(Boolean).map((t) => `type-${String(t).toLowerCase()}`) : [];
+  const gifts = c && Array.isArray(c.themes) ? c.themes : [];
+  return ['woodland', ...new Set([...own, ...gifts])].filter((k) => THEMES[k]);
+}
+
+export function applyTheme() {
+  let k = 'woodland'; try { k = localStorage.getItem(KEY()) || 'woodland'; } catch { /* default */ }
+  if (!unlocked().includes(k)) k = 'woodland';
+  const root = document.documentElement; const vars = THEMES[k].vars || {};
+  for (const v of Object.keys(THEMES['type-fire'].vars)) root.style.removeProperty(v);
+  for (const [v, val] of Object.entries(vars)) root.style.setProperty(v, val);
+  root.dataset.theme = k;
+}
+const setTheme = (k) => { try { localStorage.setItem(KEY(), k); } catch { /* ignore */ } applyTheme(); };
+
+const swatch = (t) => `<span class="th-sw">${t.swatch.map((c) => `<i style="background:${c}"></i>`).join('')}</span>`;
+
+export function openSettings() {
+  const c = me(); const cur = document.documentElement.dataset.theme || 'woodland';
+  const gm = store.gmUnlocked(); const party = Object.entries(store.get('party') || {}).filter(([, x]) => !x.guest);
+  const el = modal(`<h2>⚙️ Settings</h2>
+    <h3>🎲 Dice skin</h3><p class="small muted">How your 3D dice look when you roll.</p><button class="btn alt" id="setdice">Change dice skin</button>
+    <h3 style="margin-top:14px">🎨 Theme</h3>
+    <p class="small muted">${c ? `Everyone has Woodland Base. ${esc(c.nickname)} also has their type’s theme. The GM can give out more as rewards.` : 'Pick a character to unlock your type’s theme.'}</p>
+    <div class="themes">${unlocked(c).map((k) => `<button class="th ${k === cur ? 'sel' : ''}" data-th="${k}">${swatch(THEMES[k])}<span>${THEMES[k].icon} ${esc(THEMES[k].name)}</span></button>`).join('')}</div>
+    ${gm ? `<details class="small" style="margin-top:14px"><summary><b>GM: give a theme as a reward</b></summary>
+      <div class="grid g2" style="margin-top:6px"><select id="gtwho">${party.map(([id, x]) => `<option value="${id}">${esc(x.nickname)}</option>`).join('')}</select>
+      <select id="gtwhat">${Object.entries(THEMES).filter(([k]) => k !== 'woodland').map(([k, t]) => `<option value="${k}">${t.icon} ${esc(t.name)}</option>`).join('')}</select></div>
+      <button class="btn alt sm" id="gtgo" style="margin-top:6px">🎁 Give theme</button></details>` : ''}`);
+  $('#setdice', el).onclick = () => skinPicker();
+  $$('[data-th]', el).forEach((b) => b.onclick = () => { setTheme(b.dataset.th); $$('[data-th]', el).forEach((x) => x.classList.toggle('sel', x === b)); });
+  const g = $('#gtgo', el);
+  if (g) g.onclick = () => {
+    const id = $('#gtwho', el).value; const k = $('#gtwhat', el).value; const x = (store.get('party') || {})[id];
+    if (!x) return;
+    store.set(`party/${id}/themes`, [...new Set([...(x.themes || []), k])]);
+    store.pushLimited('log', { t: Date.now(), text: `${x.nickname} earned the ${THEMES[k].name} theme!` });
+    toast(`${x.nickname} can now use ${THEMES[k].name}`);
+  };
+}

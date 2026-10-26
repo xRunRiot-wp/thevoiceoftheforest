@@ -4,7 +4,7 @@
 :root {
   color-scheme: light;
   --cream: #f7eed6; --cream2: #efe1bd; --cream3: #e4d1a3; --paper: #fffaf0;
-  --brown: #4a2f17; --brown2: #6b4423; --brown3: #8a5d33; --ink: #2e1d0e; --muted: #75583a;
+  --brown: #4a2f17; --brown2: #6b4423; --brown3: #8a5d33; --ink: #2e1d0e; --muted: #75583a; --line: #c9a66b; --hotbar: #3a2618;
   --orange: #e07b1f; --orange-d: #b85f12; --orange-l: #f5a14f;
   --navy: #1b2340; --navy2: #283463; --gold: #f2c14e;
   --good: #3f8f3a; --bad: #b8322a; --warn: #c98a12;
@@ -35,7 +35,13 @@ p { margin: 0 0 .8em; }
 .brand .orn { font-family: var(--pix); font-size: 18px; color: var(--gold); opacity: .85; }
 .brand .orn.flip { transform: scaleX(-1); display: inline-block; }
 @media (max-width: 380px) { .brand { font-size: 22px; gap: 6px; } .brand .orn { font-size: 20px; } }
-.chip-wx { cursor: pointer; border: 0; }
+.chip-wx, .chip-set { cursor: pointer; border: 0; }
+.actgroup { margin: 12px 0 6px; font-size: 15px; }
+.themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.th { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 8px; border: 2px solid var(--cream3); border-radius: 10px; background: var(--paper); cursor: pointer; font: inherit; color: var(--ink); text-align: left; }
+.th.sel { border-color: var(--orange); box-shadow: 0 0 0 2px var(--orange-l); }
+.th-sw { display: flex; width: 100%; height: 22px; border-radius: 6px; overflow: hidden; border: 1px solid rgba(0,0,0,.2); }
+.th-sw i { flex: 1; }
 .chip-wx.legend { background: #b8322a; color: #fff; animation: pulse 1.4s infinite; }
 .chip-status { font-family: var(--pix); font-size: 13px; padding: 3px 8px; border-radius: 99px; background: var(--brown2); color: var(--cream); white-space: nowrap; }
 .chip-status.live { background: var(--good); }
@@ -252,7 +258,7 @@ details.gs h4 { margin: 12px 0 4px; }
 
 /* Role-play action buttons */
 .actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-.actbtn { text-align: left; padding: 10px 12px; border-radius: 10px; border: 2px solid var(--line, #c9a66b); background: var(--card, #fffaf0); cursor: pointer; min-height: 56px; font: inherit; color: inherit; }
+.actbtn { text-align: left; padding: 10px 12px; border-radius: 10px; border: 2px solid var(--line); background: var(--paper); cursor: pointer; min-height: 56px; font: inherit; color: inherit; }
 .actbtn b { display: block; }
 .actbtn span { font-size: 12px; opacity: .75; }
 .actbtn:active { transform: translateY(1px); }
@@ -507,10 +513,10 @@ details.gs h4 { margin: 12px 0 4px; }
 .mem-actions input { flex: 1; min-width: 0; }
 .memory textarea { width: 100%; }
 .chatter-mini { display: block; text-decoration: none; color: inherit; margin-top: 12px; } .chatter-mini .line:first-of-type { border-top: 0; }
-.hotbar { display: flex; gap: 6px; overflow-x: auto; padding: 6px 12px 8px; background: #3a2618; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.hotbar { display: flex; gap: 6px; overflow-x: auto; padding: 6px 12px 8px; background: var(--hotbar); scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .hotbar::-webkit-scrollbar { display: none; }
 .hotbar .hb { flex: none; white-space: nowrap; font-size: 14px; padding: 4px 10px; border-radius: 999px; background: rgba(255, 243, 214, .12); border: 1px solid rgba(255, 243, 214, .3); color: var(--cream); text-decoration: none; font-family: inherit; line-height: 1.4; }
-.hotbar .hb-me { background: #e8862a; border-color: #ffd56b; color: #fff; }
+.hotbar .hb-me { background: var(--orange); border-color: var(--gold); color: #fff; }
 .hotbar .hb-btn { cursor: pointer; }
 .hotbar .hb-pin { background: rgba(107, 95, 194, .35); }
 .hotbar .hb-pin.gone { opacity: .5; text-decoration: line-through; }

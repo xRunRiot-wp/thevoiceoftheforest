@@ -1,17 +1,18 @@
-import { CONFIG } from './config.js?v=6adea9f8';
-import * as store from './store.js?v=6adea9f8';
-import * as sheet from './sheetdata.js?v=6adea9f8';
-import { $, $$, esc, uid } from './util.js?v=6adea9f8';
-import { closeModal, maxHp } from './ui.js?v=6adea9f8';
-import { renderJoin, renderPlay } from './play.js?v=6adea9f8';
-import { renderGM } from './gm.js?v=6adea9f8';
-import { renderGuild } from './guild.js?v=6adea9f8';
-import { renderRules } from './rulebook.js?v=6adea9f8';
-import { renderVault } from './vault.js?v=6adea9f8';
-import { renderGames } from './games.js?v=6adea9f8';
-import { updateHotbar } from './hotbar.js?v=6adea9f8';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6adea9f8';
-import { renderFriendZone } from './friendzone.js?v=6adea9f8';
+import { CONFIG } from './config.js?v=6adeaadc';
+import * as store from './store.js?v=6adeaadc';
+import * as sheet from './sheetdata.js?v=6adeaadc';
+import { $, $$, esc, uid } from './util.js?v=6adeaadc';
+import { closeModal, maxHp } from './ui.js?v=6adeaadc';
+import { renderJoin, renderPlay } from './play.js?v=6adeaadc';
+import { renderGM } from './gm.js?v=6adeaadc';
+import { renderGuild } from './guild.js?v=6adeaadc';
+import { renderRules } from './rulebook.js?v=6adeaadc';
+import { renderVault } from './vault.js?v=6adeaadc';
+import { renderGames } from './games.js?v=6adeaadc';
+import { updateHotbar } from './hotbar.js?v=6adeaadc';
+import { applyTheme, openSettings } from './theme.js?v=6adeaadc';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6adeaadc';
+import { renderFriendZone } from './friendzone.js?v=6adeaadc';
 
 const main = $('#main');
 let current = '';
@@ -62,6 +63,8 @@ function navHTML(active) {
 }
 
 function statusChip() {
+  applyTheme();
+  const sc = $('#setchip'); if (sc && !sc.onclick) sc.onclick = openSettings;
   updateWeatherChip();
   const s = store.status;
   const el = $('#tablechip');

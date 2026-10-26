@@ -2,9 +2,9 @@
 // A roll of 100 is a legendary event for the whole day: a huge fissure (Groudon) or a tsunami (Kyogre).
 // Every device works out the same weather from the table code and the time, so nothing has to be saved;
 // the GM can still force a weather. Rules are PokéRole 2.0's weather (p.55-57).
-import * as store from './store.js?v=6adea9f8';
-import { esc } from './util.js?v=6adea9f8';
-import { modal } from './ui.js?v=6adea9f8';
+import * as store from './store.js?v=6adeaadc';
+import { esc } from './util.js?v=6adeaadc';
+import { modal } from './ui.js?v=6adeaadc';
 
 export const WEATHERS = {
   clear: { name: 'Clear skies', icon: '☀️', w: 30, text: 'No weather effects.' },

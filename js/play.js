@@ -1,23 +1,23 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adea9f8';
-import * as sheet from './sheetdata.js?v=6adea9f8';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adea9f8';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adea9f8';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adea9f8';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adea9f8';
-import { CONFIG } from './config.js?v=6adea9f8';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adea9f8';
-import { merged, editContent } from './content-store.js?v=6adea9f8';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adea9f8';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adea9f8';
-import { homeHTML } from './sitepages.js?v=6adea9f8';
-import { pinsOf, showMap } from './hotbar.js?v=6adea9f8';
-import { chatterLatestHTML } from './chatter.js?v=6adea9f8';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adea9f8';
-import { locations, spots } from './friendzone.js?v=6adea9f8';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adea9f8';
-import { find } from './effects.js?v=6adea9f8';
-import * as dice3d from './dice3d.js?v=6adea9f8';
+import * as store from './store.js?v=6adeaadc';
+import * as sheet from './sheetdata.js?v=6adeaadc';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeaadc';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeaadc';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeaadc';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeaadc';
+import { CONFIG } from './config.js?v=6adeaadc';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeaadc';
+import { merged, editContent } from './content-store.js?v=6adeaadc';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeaadc';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeaadc';
+import { homeHTML } from './sitepages.js?v=6adeaadc';
+import { pinsOf, showMap } from './hotbar.js?v=6adeaadc';
+import { chatterLatestHTML } from './chatter.js?v=6adeaadc';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeaadc';
+import { locations, spots } from './friendzone.js?v=6adeaadc';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeaadc';
+import { find } from './effects.js?v=6adeaadc';
+import * as dice3d from './dice3d.js?v=6adeaadc';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -215,6 +215,9 @@ export function logRoll(by, label, dice, text, kind = 'pool', sides = 6) {
 // ---------------------------------------------------------------- role-play actions
 const ACTION_SCHEMA = [['name', 'Action'], ['attr', 'Attribute (e.g. Insight, Cute, Logic)'], ['skill', 'Skill (e.g. Alert, Allure)'], ['text', 'What it is for', 'area']];
 export const actions = () => merged('actions', ACTIONS);
+// Actions are shown in groups, by the attribute they use (an action can set its own group).
+const ACTION_GROUPS = [['explore', '🔍 Explore & notice'], ['move', '🏃 Move & strength'], ['talk', '💬 Talk & social'], ['mind', '🧠 Mind & instinct']];
+const actionGroup = (a) => a.group || ({ Strength: 'move', Dexterity: 'move', Tough: 'talk', Cool: 'talk', Beauty: 'talk', Clever: 'talk', Cute: 'talk', Logic: 'mind', Instinct: 'mind' }[a.attr] || 'explore');
 
 function actionRoll(c, a, extra = 0) {
   const base = statVal(c, a.attr) + statVal(c, a.skill);
@@ -288,9 +291,9 @@ function charCard(c) {
       <div class="move movecard"><a href="#" data-ixname="Physical Struggle" class="mvname"><b>Struggle</b></a><span>None · Physical · Accuracy Dexterity + Brawl · Damage Strength + Power 0</span><p class="mveff">Always available, even with no moves left.</p><button class="btn block" data-struggle="Physical Struggle">Roll Struggle</button></div></div>
 
     <div class="section-title"><h3>Actions</h3><span class="small muted">tap to roll${store.gmUnlocked() ? ' · <a href="#" id="edact">edit</a>' : ''}</span></div>
-    <div class="actions">${actions().map((a) => `<button class="actbtn" data-act="${esc(a.id)}"><b>${esc(a.name)}</b><span>${esc(a.attr)} + ${esc(a.skill)} · ${statVal(c, a.attr) + statVal(c, a.skill)} ${statVal(c, a.attr) + statVal(c, a.skill) === 1 ? "die" : "dice"}</span></button>`).join('')}</div>
+    <h4 class="actgroup">🎲 Quick rolls</h4><div class="row"><button class="btn" id="qroll">Quick roll</button><button class="btn alt" id="initroll">Initiative</button></div>
+    ${ACTION_GROUPS.map(([g, label]) => { const list = actions().filter((a) => actionGroup(a) === g); return list.length ? `<h4 class="actgroup">${label}</h4><div class="actions">${list.map((a) => `<button class="actbtn" data-act="${esc(a.id)}"><b>${esc(a.name)}</b><span>${esc(a.attr)} + ${esc(a.skill)} · ${statVal(c, a.attr) + statVal(c, a.skill)} ${statVal(c, a.attr) + statVal(c, a.skill) === 1 ? "die" : "dice"}</span></button>`).join('')}</div>` : ''; }).join('')}
 
-    <div class="row" style="margin-top:12px"><button class="btn" id="qroll">Quick roll</button><button class="btn alt" id="dskin">Dice skin</button><button class="btn alt" id="initroll">Initiative</button><button class="btn alt" id="primal">${st.includes('Primal State') ? 'Leave Primal' : 'Primal State'}</button></div>
 
     <div class="section-title"><h3>Poké bank</h3><span class="small muted">${esc(guildName(c.guild))} · shared coffers: ${num((store.get('guild') || {}).coffers).toLocaleString()}</span></div>
     ${lowAlertHTML()}<p class="small muted" style="margin:0 0 6px">${(() => { const k = capInfo(c.guild); return `${esc(k.name)} can still take ${k.left.toLocaleString()} of ${k.cap.toLocaleString()} Poké this session.`; })()}</p>
@@ -380,11 +383,9 @@ function bindCharCard(main, c) {
   };
   $$('[data-hp]', main).forEach((b) => b.onclick = () => store.update(path, (x) => { const mx = maxHp(x); x.hp = b.dataset.hp === 'full' ? mx : clamp((x.hp ?? mx) + num(b.dataset.hp), 0, mx); return x; }));
   $$('[data-will]', main).forEach((b) => b.onclick = () => store.update(path, (x) => { x.willCur = clamp((x.willCur ?? x.will) + num(b.dataset.will), 0, x.will || 0); return x; }));
-  $('#primal', main).onclick = () => togglePrimal(c);
   $('#stedit', main).onclick = () => pickStatus(c);
   $('#editme', main).onclick = () => editCharacter(c.id);
   $('#qroll', main).onclick = () => quickRoll(c);
-  $('#dskin', main).onclick = () => dice3d.skinPicker();
   $$('[data-act]', main).forEach((b) => b.onclick = () => actionRoll(c, actions().find((a) => a.id === b.dataset.act)));
   const ea = $('#edact', main);
   if (ea) ea.onclick = (e) => {
