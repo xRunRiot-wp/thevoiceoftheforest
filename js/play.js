@@ -1,23 +1,23 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adea8cc';
-import * as sheet from './sheetdata.js?v=6adea8cc';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adea8cc';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adea8cc';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adea8cc';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adea8cc';
-import { CONFIG } from './config.js?v=6adea8cc';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adea8cc';
-import { merged, editContent } from './content-store.js?v=6adea8cc';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adea8cc';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adea8cc';
-import { homeHTML } from './sitepages.js?v=6adea8cc';
-import { pinsOf, showMap } from './hotbar.js?v=6adea8cc';
-import { chatterLatestHTML } from './chatter.js?v=6adea8cc';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adea8cc';
-import { locations, spots } from './friendzone.js?v=6adea8cc';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adea8cc';
-import { find } from './effects.js?v=6adea8cc';
-import * as dice3d from './dice3d.js?v=6adea8cc';
+import * as store from './store.js?v=6adea991';
+import * as sheet from './sheetdata.js?v=6adea991';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adea991';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adea991';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adea991';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adea991';
+import { CONFIG } from './config.js?v=6adea991';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adea991';
+import { merged, editContent } from './content-store.js?v=6adea991';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adea991';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adea991';
+import { homeHTML } from './sitepages.js?v=6adea991';
+import { pinsOf, showMap } from './hotbar.js?v=6adea991';
+import { chatterLatestHTML } from './chatter.js?v=6adea991';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adea991';
+import { locations, spots } from './friendzone.js?v=6adea991';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adea991';
+import { find } from './effects.js?v=6adea991';
+import * as dice3d from './dice3d.js?v=6adea991';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -321,7 +321,7 @@ function sleepHTML(c) {
 // Guild Rank badge: every character carries the badge of their guild's current rank (bag item + chip by their name).
 // Pictures go in assets/badges/rank_<key>.png; until a picture is added (RANK_PICS), the rank's emoji is shown.
 const RANK_BADGE = { 'Basic Rank': ['🌱', 'basic'], 'Bronze Rank': ['🥉', 'bronze'], 'Silver Rank': ['🥈', 'silver'], 'Gold Rank': ['🥇', 'gold'], 'Diamond Rank': ['💎', 'diamond'], 'Lucario Rank': ['💫', 'lucario'] };
-const RANK_PICS = new Set([]);
+const RANK_PICS = new Set(['basic', 'bronze', 'silver', 'gold', 'diamond', 'lucario']);
 const badgeOf = (c) => {
   const r = rankFor(num((store.get(guildPath(c.guild)) || {}).gp)) || { name: 'Basic Rank', alt: 'Beginner' };
   const [emo, key] = RANK_BADGE[r.name] || RANK_BADGE['Basic Rank'];
