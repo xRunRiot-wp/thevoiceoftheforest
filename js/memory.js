@@ -2,8 +2,8 @@
 // Humanity 0 = only Pokémon thoughts; the closer to 5, the more of their human life comes back
 // in daydreams, and in dreams or nightmares when they rest. Memories are built from the
 // character's own memory seeds (written by the player or GM, never pulled from private forms).
-import * as store from './store.js?v=6adf4863';
-import { $, $$, esc, num, toast } from './util.js?v=6adf4863';
+import * as store from './store.js?v=6adfd393';
+import { $, $$, esc, num, toast } from './util.js?v=6adfd393';
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const TIERS = { 5: 'Human memories clear', 4: 'Details begin to fade', 3: 'Two lives in conflict', 2: 'Instinct overrides memory', 1: 'The human self is almost gone', 0: 'Fully Pokémon' };
@@ -53,6 +53,14 @@ const WRAP = {
     faint: ['Only instinct now. A last echo of {m} is swallowed whole.'],
   },
 };
+// characters who were always Pokémon (bornMon, e.g. Puff): no human life to lose, their own memories of home stay clear
+const HOME = {
+  daydream: ['{n} drifts for a moment, remembering {m}.', '{n} goes quiet in the middle of a joke, thinking about {m}.', 'Something small brings it back: {m}.'],
+  dream: ['{n} dreams of home: {m}.', 'In the dream it is all still there: {m}.'],
+  nightmare: ['A bad dream: {m}. {n} wakes up with a joke ready before anyone can ask.', '{n} dreams of {m}, and wakes up floating a little closer to the others.'],
+  fainted: ['As everything goes dark, {n} remembers {m}.'],
+  primal: ['Instinct rushes in. Somewhere underneath it: {m}.'],
+};
 const clarity = (h) => (h >= 5 ? 'clear' : h === 4 ? 'faded' : h === 3 ? 'conflict' : 'faint');
 // A memory seed: { id, what, who, where, sense, feeling } (old one-line seeds count as { what }).
 export const seeds = (c) => [
@@ -79,6 +87,11 @@ function nextSeed(c, list) {
 // kinds: daydream, dream, nightmare, fainted, primal. Fainting and Primal State always reach for a memory if there is one.
 export function makeMemory(c, kind = 'daydream') {
   const h = humanityOf(c); const s = seeds(c);
+  if (c.bornMon) {
+    if (!s.length || kind === 'echo' || (kind === 'daydream' && Math.random() < 0.5)) return { kind: 'thought', text: pick(MON), human: false };
+    const sd = nextSeed(c, s); const { m, after } = recall(sd, 5);
+    return { kind, text: pick(HOME[kind] || HOME.dream).replace(/\{n\}/g, c.nickname).replace(/\{m\}/g, m) + after, human: false, seed: sd.id };
+  }
   // primalEcho (GM-set, e.g. Slakoth): primal energy, Primal State and fainting bring back a broken fragment even at Humanity 0
   const echo = h === 0 && c.primalEcho && s.length && ['primal', 'fainted', 'echo'].includes(kind);
   if (echo) {
@@ -105,12 +118,12 @@ const ICON = { thought: '🐾', daydream: '☁️', dream: '🌙', nightmare: '�
 export function memoryHTML(c) {
   const h = humanityOf(c);
   const list = Object.entries(store.get(`memories/${c.id}`) || {}).sort().reverse().slice(0, 20);
-  return `<div class="memory"><div class="row" style="justify-content:space-between"><b>🧠 Remembering <span class="small muted">(only you and the GM)</span></b><span class="pill">Humanity ${h} · ${esc(TIERS[h])}</span></div>
+  return `<div class="memory"><div class="row" style="justify-content:space-between"><b>🧠 Remembering <span class="small muted">(only you and the GM)</span></b><span class="pill">${c.bornMon ? 'Born a Pokémon · memories of home' : `Humanity ${h} · ${esc(TIERS[h])}`}</span></div>
     <div class="mem-feed">${list.length ? list.map(([, x]) => `<div class="mem ${esc(x.kind)}"><span class="ic">${ICON[x.kind] || '💭'}</span><span class="grow">${esc(x.text)}</span></div>`).join('') : `<p class="small muted">${h ? 'No memories have surfaced yet.' : `${esc(c.nickname)} only thinks Pokémon thoughts now.`}</p>`}</div>
     ${store.gmUnlocked() && c.primalEcho ? '<div class="row" style="margin:6px 0"><button class="btn alt sm" id="memecho">⚡ Primal energy nearby (fragment)</button><span class="small muted">GM only</span></div>' : ''}
-    <div class="row nowrap mem-actions"><button class="btn alt sm" id="memday">${h ? '☁️ Daydream' : '🐾 Think'}</button><input id="memnote" placeholder="Write a thought or memory…"><button class="btn sm" id="memadd">Add</button></div>
+    <div class="row nowrap mem-actions"><button class="btn alt sm" id="memday">${h || c.bornMon ? '☁️ Daydream' : '🐾 Think'}</button><input id="memnote" placeholder="Write a thought or memory…"><button class="btn sm" id="memadd">Add</button></div>
     <details class="small mem-seeds" ${seedsOpen ? 'open' : ''}><summary>🌱 Memory seeds (${seeds(c).length})</summary>
-      <p class="muted">Pieces of your character’s human life. They come back in daydreams, in dreams and nightmares when you sleep, when you faint, and when you go Primal. The more Humanity you have, the more details come back. No real names.</p>
+      <p class="muted">${c.bornMon ? `Pieces of ${esc(c.nickname)}’s life before the guild. They come back in daydreams, in dreams and nightmares when you sleep, and when you faint. They never fade. No real names.</p>` : `Pieces of your character’s human life. They come back in daydreams, in dreams and nightmares when you sleep, when you faint, and when you go Primal. The more Humanity you have, the more details come back. No real names.</p>`}
       ${seeds(c).map((x) => `<div class="seed"><span class="grow"><b>${esc(x.what)}</b>${[x.who && '👤 ' + x.who, x.where && '📍 ' + x.where, x.sense && '👃 ' + x.sense, x.feeling && '💗 ' + x.feeling].filter(Boolean).map((t) => `<span class="small muted"> · ${esc(t)}</span>`).join('')}</span><button class="x" data-unseed="${esc(x.id)}" aria-label="Remove">×</button></div>`).join('')}
       <div class="seedform"><b class="small">Make a memory seed</b>
         <input id="sd-what" placeholder="What do you remember? (a red bicycle with a squeaky bell)">
