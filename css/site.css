@@ -815,4 +815,20 @@ details.gs h4 { margin: 12px 0 4px; }
 
 /* Play sheet Working-for: the Vault's guild toggle, sized for the sheet */
 .wf-tabs { flex: 1; min-width: 240px; margin: 0; gap: 6px; }
-.wf-tabs .vtab { padding: 6px 8px; font-size: 13px; }
+.wf-tabs .vtab { padding: 8px 10px; font-size: 16px; }
+
+/* Stats & skills: separate coloured panels, skills in three columns (Fight / Survival / Contest) */
+.stat-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
+.stat-cols.two { grid-template-columns: repeat(2, 1fr); }
+.stat-panel { display: flex; flex-direction: column; gap: 5px; padding: 8px; border-radius: 12px; background: color-mix(in srgb, var(--sc) 6%, var(--paper)); border: 2px solid color-mix(in srgb, var(--sc) 45%, var(--cream3)); }
+.stat-panel .stat-h { margin: 0 0 2px; font-size: 15px; }
+.stat-panel .stat { align-items: center; }
+.stat-skills { margin: 14px 0 0; }
+@media (max-width: 560px) { .stat-cols { gap: 6px; } .stat-panel { padding: 6px; } .stat-panel .stat { font-size: 12.5px; padding: 5px 6px; } .stat-panel .stat b { font-size: 15px; min-width: 22px; } .stat-panel .stat-h { font-size: 13px; } }
+.wf-tabs .vtab { white-space: nowrap; }
+@media (max-width: 560px) { .wf-tabs { min-width: 0; } .wf-tabs .vtab { font-size: 15px; padding: 8px 4px; } .wf-long { display: none; } }
+
+/* Play sheet: Moves and Actions side by side on wider screens */
+.mv-act { display: grid; grid-template-columns: 1fr; gap: 0 18px; align-items: start; }
+@media (min-width: 900px) { .mv-act { grid-template-columns: 1fr 1fr; } .mv-act .moves { grid-template-columns: 1fr; } .mv-act .actions { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } }
+@media (max-width: 560px) { .workfor .wf-tabs { flex: 1 1 100%; } }
