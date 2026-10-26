@@ -1,9 +1,9 @@
 // Character hotbar in the top banner: money, guild points & rank, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6adeb938';
-import { $, esc, num } from './util.js?v=6adeb938';
-import { modal } from './ui.js?v=6adeb938';
-import { rankFor, guildPath, guildName } from './guild.js?v=6adeb938';
+import * as store from './store.js?v=6adeb987';
+import { $, esc, num } from './util.js?v=6adeb987';
+import { modal } from './ui.js?v=6adeb987';
+import { rankFor, guildPath, guildName } from './guild.js?v=6adeb987';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -34,10 +34,10 @@ function hotbarHTML(c) {
     <span class="hb" title="Poké">💰 ${num(c.poke).toLocaleString()}</span>
     <span class="hb" title="${esc(guildName(c.guild))}">🏅 ${gp} GP · ${esc(rank)}</span>
     <span class="hb" title="Training Points">🎓 ${num(c.tp)} TP</span>
-    <span class="hb" title="Held item">✋ ${esc(c.held || '—')}</span>
+    ${pins || '<a class="hb hb-pin muted" href="#/play">📌 Pin items in your Bag</a>'}
+    <span class="hb hb-right" title="Held item">✋ ${esc(c.held || '—')}</span>
     <button class="hb hb-btn" id="hbgarb" title="Garment">🎀 ${esc(c.garments || '—')}</button>
-    <button class="hb hb-btn" id="hbmap">🗺️ Map</button>
-    ${pins || '<a class="hb hb-pin muted" href="#/play">📌 Pin items in your Bag</a>'}`;
+    <button class="hb hb-btn" id="hbmap">🗺️ Map</button>`;
 }
 
 // called on every render and table change
