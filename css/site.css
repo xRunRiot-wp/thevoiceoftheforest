@@ -652,3 +652,8 @@ details.gs h4 { margin: 12px 0 4px; }
 .shop-short b { font: 700 14px var(--pix); color: var(--brown); line-height: 1.2; }
 .shop-short small { color: var(--muted); font-size: 12px; line-height: 1.25; }
 .merch-page .section-title { margin-top: 10px; }
+
+/* "How many?" picker when storing / taking items */
+.qty-pick { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.qty-pick input { width: 90px; text-align: center; font: 700 22px var(--pix); padding: 6px; }
+.qty-pick .btn:not(.sm) { min-width: 48px; font-size: 22px; }

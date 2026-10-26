@@ -1,12 +1,13 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6adeb30d';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adeb30d';
-import { GUILDS2, guildName } from './guild.js?v=6adeb30d';
-import { addItem, me } from './play.js?v=6adeb30d';
-import { ixLink } from './effects.js?v=6adeb30d';
-import { gmTodo } from './chatter.js?v=6adeb30d';
-import { palette } from './theme.js?v=6adeb30d';
+import * as store from './store.js?v=6adeb3c3';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adeb3c3';
+import { GUILDS2, guildName } from './guild.js?v=6adeb3c3';
+import { addItem, me } from './play.js?v=6adeb3c3';
+import { ixLink } from './effects.js?v=6adeb3c3';
+import { gmTodo } from './chatter.js?v=6adeb3c3';
+import { palette } from './theme.js?v=6adeb3c3';
+import { modal, closeModal } from './ui.js?v=6adeb3c3';
 
 // Each guild's own colours on this page, so players can tell at a glance whose storage they're looking at.
 const GUILD_TINT = { woodland: '#4f8a2e', vanguard: '#2f5fb8' };
@@ -102,26 +103,56 @@ export function renderVault(main) {
   $$('[data-take-item]', main).forEach((b) => b.onclick = () => takeOut(b.dataset.takeItem));
 }
 
+// "How many?" before anything moves between a bag and storage; resolves to the amount, or 0 when cancelled.
+function askQty(verb, name, max, where, have) {
+  return new Promise((done) => {
+    let n = max; let settled = false;
+    const finish = (v) => { if (!settled) { settled = true; done(v); } };
+    const sh = modal(`<h2>${esc(verb)} ${esc(name)}</h2>
+      <p>How many go ${esc(where)}? <span class="muted">(${esc(have)})</span></p>
+      <div class="qty-pick"><button class="btn alt" data-q="-1" aria-label="One less">−</button>
+        <input id="qtyn" type="number" inputmode="numeric" min="1" max="${max}" value="${max}">
+        <button class="btn alt" data-q="1" aria-label="One more">+</button><button class="btn alt sm" data-q="all">All</button></div>
+      <div class="row" style="margin-top:14px"><button class="btn" id="qtyok">${esc(verb)} ${max}</button><button class="btn alt" data-close>Cancel</button></div>`);
+    const inp = $('#qtyn', sh); const ok = $('#qtyok', sh);
+    const set = (v) => { n = Math.max(1, Math.min(max, Math.round(num(v)) || 1)); inp.value = n; ok.textContent = `${verb} ${n}`; };
+    $$('[data-q]', sh).forEach((b) => b.onclick = () => set(b.dataset.q === 'all' ? max : n + num(b.dataset.q)));
+    inp.oninput = () => { const v = Math.round(num(inp.value)); if (v >= 1) { n = Math.min(max, v); ok.textContent = `${verb} ${n}`; } };
+    inp.onchange = () => set(inp.value);
+    ok.onclick = () => { set(inp.value); finish(n); closeModal(); };
+    // closing the sheet any other way (Cancel, Close, tapping outside) = nothing moves
+    new MutationObserver((_, o) => { if (!document.body.contains(sh)) { o.disconnect(); finish(0); } }).observe(document.body, { childList: true });
+  });
+}
+
 // storage -> the player's own bag (or the team bag when just watching)
-function takeOut(id) {
+async function takeOut(id) {
   const it = (store.get('storage') || {})[id]; if (!it) return;
+  const max = Math.max(1, num(it.qty));
+  const n = await askQty('Take', it.name, max, 'to your bag', `${max} in storage`);
+  const now = (store.get('storage') || {})[id]; if (!n || !now) return;
+  const take = Math.min(n, num(now.qty) || 1);
   const c = me(); const owner = c?.id || 'team';
-  store.set('storage/' + id, null);
+  if (take >= num(now.qty)) store.set('storage/' + id, null); else store.set(`storage/${id}/qty`, num(now.qty) - take);
   const bag = store.get('bag') || {};
   const same = Object.entries(bag).find(([, b]) => b.name === it.name && b.owner === owner);
-  if (same) store.set(`bag/${same[0]}/qty`, same[1].qty + it.qty); else store.set('bag/' + uid(), { name: it.name, qty: it.qty, owner });
-  ledger(guildOfItem(it), `${c?.nickname || 'Someone'} took ${it.name} ×${it.qty} from storage`);
-  toast(`${it.name} moved to the bag`);
+  if (same) store.set(`bag/${same[0]}/qty`, num(same[1].qty) + take); else store.set('bag/' + uid(), { name: it.name, qty: take, owner });
+  ledger(guildOfItem(it), `${c?.nickname || 'Someone'} took ${it.name} ×${take} from storage`);
+  toast(`${it.name} ×${take} moved to the bag`);
 }
 
 // bag -> the character's guild storage (the Store button in the bag)
-export function stash(bagId, c) {
+export async function stash(bagId, c) {
   const b = (store.get('bag') || {})[bagId]; if (!b) return;
   const guild = c.guild === 'vanguard' ? 'vanguard' : 'woodland';
-  store.set('bag/' + bagId, null);
+  const max = Math.max(1, num(b.qty));
+  const n = await askQty('Store', b.name, max, `into the ${guildName(guild)} storage`, `you have ${max}`);
+  const now = (store.get('bag') || {})[bagId]; if (!n || !now) return;
+  const put = Math.min(n, num(now.qty) || 1);
+  if (put >= num(now.qty)) store.set('bag/' + bagId, null); else store.set(`bag/${bagId}/qty`, num(now.qty) - put);
   const st = store.get('storage') || {};
   const same = Object.entries(st).find(([, x]) => x.name === b.name && guildOfItem(x) === guild);
-  if (same) store.set(`storage/${same[0]}/qty`, same[1].qty + b.qty); else store.set('storage/' + uid(), { name: b.name, qty: b.qty, owner: 'team', guild });
-  ledger(guild, `${c.nickname} stored ${b.name} ×${b.qty}`);
-  toast(`${b.name} stored in the ${guildName(guild)} storage`);
+  if (same) store.set(`storage/${same[0]}/qty`, num(same[1].qty) + put); else store.set('storage/' + uid(), { name: b.name, qty: put, owner: 'team', guild });
+  ledger(guild, `${c.nickname} stored ${b.name} ×${put}`);
+  toast(`${b.name} ×${put} stored in the ${guildName(guild)} storage`);
 }
