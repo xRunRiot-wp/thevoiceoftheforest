@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adfdb98';
-import * as sheet from './sheetdata.js?v=6adfdb98';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfdb98';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfdb98';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfdb98';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfdb98';
-import { CONFIG } from './config.js?v=6adfdb98';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfdb98';
-import { merged, editContent } from './content-store.js?v=6adfdb98';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfdb98';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfdb98';
-import { homeHTML } from './sitepages.js?v=6adfdb98';
-import { pinsOf, showMap } from './hotbar.js?v=6adfdb98';
-import { chatterLatestHTML } from './chatter.js?v=6adfdb98';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfdb98';
-import { locations, spots } from './friendzone.js?v=6adfdb98';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfdb98';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfdb98';
-import { find } from './effects.js?v=6adfdb98';
-import * as dice3d from './dice3d.js?v=6adfdb98';
+import * as store from './store.js?v=6adfdcac';
+import * as sheet from './sheetdata.js?v=6adfdcac';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfdcac';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfdcac';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfdcac';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfdcac';
+import { CONFIG } from './config.js?v=6adfdcac';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfdcac';
+import { merged, editContent } from './content-store.js?v=6adfdcac';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfdcac';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfdcac';
+import { homeHTML } from './sitepages.js?v=6adfdcac';
+import { pinsOf, showMap } from './hotbar.js?v=6adfdcac';
+import { chatterLatestHTML } from './chatter.js?v=6adfdcac';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfdcac';
+import { locations, spots } from './friendzone.js?v=6adfdcac';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfdcac';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfdcac';
+import { find } from './effects.js?v=6adfdcac';
+import * as dice3d from './dice3d.js?v=6adfdcac';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -288,6 +288,10 @@ function actionRoll(c, a, extra = 0) {
   $('#again', el).onclick = () => actionRoll(c, a, num($('#xd', el).value));
 }
 
+// Battle & Moves / Actions sides fold away so the other gets the room (remembered on this device).
+const foldPref = () => { try { return localStorage.getItem('dc.fold') || ''; } catch { return ''; } };
+const setFoldPref = (v) => { try { localStorage.setItem('dc.fold', v); } catch { /* ignore */ } };
+
 // Reactions to a foe's attack (Defenses card): Evade, or Clash with Strength (Physical move) / Special (Special move).
 const REACT = {
   evade: { name: 'Evade', attr: 'Dexterity', skill: 'Evasion', text: 'Dodge the attack completely. Costs an action; once per round.' },
@@ -353,11 +357,12 @@ function charCard(c) {
     </div>
     ${c.id === myId() || store.gmUnlocked() ? memoryHTML(c) : ''}
 
-    <div class="mv-act"><div class="mv-col">
+    <div class="always"><div class="al-status">
     <div class="section-title" style="margin-top:0"><h3>Status</h3><button class="btn alt sm" id="stedit">Change</button></div>
     <div class="conds">${st.length ? st.map((s) => { const [ic, col] = COND_LOOK[s] || ['⚠️', '#8a5d33']; return `<div class="cond" style="--cc:${col}"><div class="cond-head"><span class="cond-ic">${ic}</span><a href="#" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a><span class="cond-dur" data-cdur="${esc(STATUS_IX[s] || s)}"></span></div><div class="cond-body" data-cond="${esc(STATUS_IX[s] || s)}"><p class="small muted">Loading what to do…</p></div></div>`; }).join('')
       : '<div class="cond healthy"><div class="cond-head"><span class="cond-ic">✨</span><b>Healthy</b></div><p class="small" style="margin:4px 0 0">No conditions. Ready for adventure!</p></div>'}</div>
-    <div class="vitals in-col">
+    </div>
+    <div class="vitals al-vitals">
       <div class="vital hp"><div class="v-head"><span class="v-ic">❤️</span><b>${ixLink('HP')}</b><span class="v-val">${c.hp}<small>/${mx}</small></span></div>
         <div class="vbar-wrap" style="--n:${Math.max(1, mx)}">${bar(c.hp, mx)}</div>
         <div class="v-btns"><button class="btn alt" data-hp="-1">−1</button><button class="btn alt" data-hp="1">+1</button><button class="btn alt" data-hp="full">Full</button></div></div>
@@ -365,7 +370,10 @@ function charCard(c) {
         <div class="vbar-wrap" style="--n:${Math.max(1, num(c.will))}">${bar(c.willCur, c.will, 'will')}</div>
         <div class="v-btns"><button class="btn alt" data-will="-1">Spend</button><button class="btn alt" data-will="1">+1</button></div></div>
     </div>
-    <div class="section-title"><h3>Defenses</h3><span class="small muted">what foes roll against</span></div>
+    </div>
+    <div class="mv-act" data-fold="${foldPref()}"><div class="mv-col pane">
+    <button class="pane-tab" data-unfold>⚔️ Battle &amp; Moves</button><div class="pane-body">
+    <div class="section-title"><h3>Defenses</h3><span class="small muted">what foes roll against <button class="btn alt sm fold-btn" data-fold="moves" title="Hide this side">◀ Hide</button></span></div>
     <div class="mind defs">
       <a href="#" data-ixname="Vitality" class="mind-tile def"><span class="m-ic">🛡️</span><span class="m-txt"><span class="m-lab">Defense</span><small>vs Physical · Vitality</small></span><b class="m-num">${statVal(c, 'Vitality')}</b></a>
       <a href="#" data-ixname="Insight" class="mind-tile spdef"><span class="m-ic">🔮</span><span class="m-txt"><span class="m-lab">Sp. Defense</span><small>vs Special · Insight</small></span><b class="m-num">${statVal(c, 'Insight')}</b></a>
@@ -375,11 +383,12 @@ function charCard(c) {
     <div class="section-title"><h3>Moves</h3><span class="small muted">tap to roll</span></div>
     <div class="moves">${(c.moves || []).map((m, i) => `<div class="move movecard"><a href="#" data-ixname="${esc(m)}" class="mvname"><b>${esc(m)}</b></a><span data-minfo="${esc(m)}">…</span><p class="mveff" data-meff="${esc(m)}"></p><button class="btn block" data-move="${i}">Roll ${esc(m)}</button></div>`).join('') || '<p class="muted small">No moves on this sheet yet.</p>'}
       <div class="move movecard"><a href="#" data-ixname="Physical Struggle" class="mvname"><b>Struggle</b></a><span>None · Physical · Accuracy Dexterity + Brawl · Damage Strength + Power 0</span><p class="mveff">Always available, even with no moves left.</p><button class="btn block" data-struggle="Physical Struggle">Roll Struggle</button></div></div>
-    </div><div class="act-col">
-    <div class="section-title"><h3>Actions</h3><span class="small muted">tap to roll${store.gmUnlocked() ? ' · <a href="#" id="edact">edit</a>' : ''}</span></div>
+    </div></div><div class="act-col pane">
+    <button class="pane-tab" data-unfold>🎲 Actions</button><div class="pane-body">
+    <div class="section-title"><h3>Actions</h3><span class="small muted">tap to roll${store.gmUnlocked() ? ' · <a href="#" id="edact">edit</a>' : ''} <button class="btn alt sm fold-btn" data-fold="actions" title="Hide this side">Hide ▶</button></span></div>
     <h4 class="actgroup">🎲 Quick rolls</h4><div class="row"><button class="btn" id="qroll">Quick roll</button><button class="btn alt" id="initroll">Initiative</button></div>
     ${ACTION_GROUPS.map(([g, label]) => { const list = actions().filter((a) => actionGroup(a) === g); return list.length ? `<h4 class="actgroup">${label}</h4><div class="actions">${list.map((a) => `<button class="actbtn" data-act="${esc(a.id)}"><b>${esc(a.name)}</b><span>${esc(a.attr)} + ${esc(a.skill)}</span><span class="actdice">${statVal(c, a.attr) + statVal(c, a.skill)} ${statVal(c, a.attr) + statVal(c, a.skill) === 1 ? "die" : "dice"}</span></button>`).join('')}</div>` : ''; }).join('')}
-    </div></div>
+    </div></div></div>
 
 
     <div class="section-title"><h3>Poké bank</h3><span class="small muted">${esc(guildName(c.guild))} · shared coffers: ${num((store.get('guild') || {}).coffers).toLocaleString()}</span></div>
@@ -501,6 +510,9 @@ function bindCharCard(main, c) {
   $('#initroll', main).onclick = () => rollInitiative(c);
   $('#evaderoll', main).onclick = () => actionRoll(c, REACT.evade);
   $('#clashroll', main).onclick = () => clashPick(c);
+  const mva = $('.mv-act', main);
+  $$('[data-fold]', mva).forEach((b) => b.onclick = () => { mva.dataset.fold = b.dataset.fold; setFoldPref(b.dataset.fold); });
+  $$('[data-unfold]', mva).forEach((b) => b.onclick = () => { mva.dataset.fold = ''; setFoldPref(''); });
   $('#boostbtn', main).onclick = () => pickBoosts(c);
   if ($('#clearboosts', main)) $('#clearboosts', main).onclick = () => clearBoosts(c);
   $('#additem', main).onclick = () => addItem(c.id);

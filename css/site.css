@@ -851,6 +851,24 @@ details.gs h4 { margin: 12px 0 4px; }
 
 /* Play sheet: Moves and Actions side by side on wider screens */
 .mv-act { display: grid; grid-template-columns: 1fr; gap: 0 18px; align-items: start; }
+/* Status + HP/Will always on show; Battle & Moves and Actions fold to a side tab */
+.always { display: grid; grid-template-columns: 1fr; gap: 0 18px; align-items: start; margin-bottom: 0; }
+.mv-act .pane-body > .section-title:first-child { margin-top: 4px; }
+.al-vitals { margin: 0 0 10px; }
+.pane-tab { display: none; width: 100%; padding: 10px 14px; border: 2px solid var(--cream3); border-radius: 14px; background: var(--cream2, #f3e6cc); font: inherit; font-weight: 700; cursor: pointer; text-align: left; margin: 6px 0; }
+.mv-act[data-fold="moves"] .mv-col .pane-body, .mv-act[data-fold="actions"] .act-col .pane-body { display: none; }
+.mv-act[data-fold="moves"] .mv-col .pane-tab, .mv-act[data-fold="actions"] .act-col .pane-tab { display: block; }
+.fold-btn { margin-left: 6px; }
+@media (min-width: 900px) {
+  .always { grid-template-columns: 1fr 1fr; }
+  .always .al-vitals { margin-top: 38px; }
+  .mv-act { transition: grid-template-columns .25s; }
+  .mv-act[data-fold="moves"] { grid-template-columns: 54px 1fr !important; }
+  .mv-act[data-fold="actions"] { grid-template-columns: 1fr 54px !important; }
+  .mv-act .pane-tab { writing-mode: vertical-rl; min-height: 240px; text-align: center; padding: 14px 8px; margin: 0; position: sticky; top: 90px; }
+  .mv-act[data-fold="moves"] .mv-col .pane-tab { transform: rotate(180deg); }
+  .mv-act[data-fold="actions"] .moves { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+}
 @media (min-width: 900px) { .mv-act { grid-template-columns: 1fr 1fr; } .mv-act .moves { grid-template-columns: 1fr; } .mv-act .actions { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } }
 @media (max-width: 560px) { .workfor .wf-tabs { flex: 1 1 100%; } }
 
