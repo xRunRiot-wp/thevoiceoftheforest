@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6adeab60';
-import { $, $$, esc, toast } from './util.js?v=6adeab60';
+import * as store from './store.js?v=6adead12';
+import { $, $$, esc, toast } from './util.js?v=6adead12';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 export const RESIDENTS = {
@@ -19,7 +19,8 @@ export const RESIDENTS = {
   Rocky: { icon: '🗿', img: 'assets/portraits/sudowoodo.png' },
   'Mimi & Kippy': { icon: '⚡', img: 'assets/portraits/pikachu.png' },
   'Weather Watch': { icon: '🌦️' },
-  Golett: { icon: '🐢' },   // Ground/Ghost, Adamant, he/him; clay reshaped to look like a Squirtle; loves food but has no mouth
+  Golett: { icon: '🐢' },
+  Slash: { icon: '⚔️' }, Slice: { icon: '⚔️' }, Sharp: { icon: '⚔️' }, Shank: { icon: '⚔️' },   // the Block Brothers (Aegislash merchants)   // Ground/Ghost, Adamant, he/him; clay reshaped to look like a Squirtle; loves food but has no mouth
   Gemini: { icon: '🌟', img: 'assets/portraits/cleffa.png' },
   Slakoth: { icon: '💤', img: 'assets/portraits/slakoth.png' },
   Ludicolo: { icon: '🌧️' },
