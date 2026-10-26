@@ -2,9 +2,9 @@
 // A roll of 100 is a disaster for the whole day: a huge fissure or a tsunami. Players never see who causes them (GM screen only).
 // Every device works out the same weather from the table code and the time, so nothing has to be saved;
 // the GM can still force a weather. Rules are PokéRole 2.0's weather (p.55-57).
-import * as store from './store.js?v=6adeafb5';
-import { esc } from './util.js?v=6adeafb5';
-import { modal } from './ui.js?v=6adeafb5';
+import * as store from './store.js?v=6adeb19c';
+import { esc } from './util.js?v=6adeb19c';
+import { modal } from './ui.js?v=6adeb19c';
 
 export const WEATHERS = {
   clear: { name: 'Clear skies', icon: '☀️', w: 30, text: 'No weather effects.' },
@@ -83,12 +83,17 @@ export function weatherChipHTML() {
 
 export function showWeather() {
   const cw = currentWeather(); const w = WEATHERS[cw.key]; const ev = cw.event && EVENTS[cw.event];
-  modal(`<h2>${w.icon} ${esc(w.name)}</h2>
+  modal(`<div class="fortune ft-full"><div class="ft-top">✦ What’s the Weather? ✦</div>
+    <div class="ft-orb" aria-hidden="true">${w.icon}</div><div class="ft-name">${esc(w.name)}</div>
     ${ev ? `<div class="wx-event"><b>${ev.icon} ${esc(ev.name)}</b><p>${esc(ev.text)}</p></div>` : ''}
-    <p>${esc(w.text)}</p>
-    <p class="small"><b>Changes at:</b> ${timeOf(cw.next)}${cw.gm ? ' (set by the GM)' : ''}. The weather changes every 6 hours.</p>
-    <p class="small"><b>Today’s sky roll (1d100):</b> ${cw.daily.roll}${cw.daily.roll === 100 ? ' — a disaster strikes!' : '. On a 100, a huge fissure or a tsunami hits for the day.'}</p>
-    <p class="small muted">Your Play sheet shows which of your moves and abilities the weather changes.</p>`);
+    <div class="ft-say">The skies foretell…</div>
+    <p class="ft-text">${esc(w.text)}</p>
+    <div class="ft-rows">
+      <div><span>Next reading</span><b>${timeOf(cw.next)}</b>${cw.gm ? '<i>set by the GM</i>' : '<i>every 6 hours</i>'}</div>
+      <div><span>Today’s sky roll</span><b>${cw.daily.roll}</b><i>${cw.daily.roll === 100 ? 'a disaster strikes!' : 'on a 100, disaster'}</i></div>
+    </div>
+    <p class="small ft-foot">Your Play sheet shows which of your moves and abilities the weather changes.</p></div>`,
+  (sh) => sh.classList.add('ft-sheet'));
 }
 
 // What the weather does to one character: [{what, note, good}] (moves need the move list: {name -> {type, effect}})

@@ -1,11 +1,16 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6adeafb5';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adeafb5';
-import { GUILDS2, guildName } from './guild.js?v=6adeafb5';
-import { addItem, me } from './play.js?v=6adeafb5';
-import { ixLink } from './effects.js?v=6adeafb5';
-import { gmTodo } from './chatter.js?v=6adeafb5';
+import * as store from './store.js?v=6adeb19c';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adeb19c';
+import { GUILDS2, guildName } from './guild.js?v=6adeb19c';
+import { addItem, me } from './play.js?v=6adeb19c';
+import { ixLink } from './effects.js?v=6adeb19c';
+import { gmTodo } from './chatter.js?v=6adeb19c';
+import { palette } from './theme.js?v=6adeb19c';
+
+// Each guild's own colours on this page, so players can tell at a glance whose storage they're looking at.
+const GUILD_TINT = { woodland: '#4f8a2e', vanguard: '#2f5fb8' };
+const tintStyle = (k) => Object.entries(palette(GUILD_TINT[k] || GUILD_TINT.woodland)).map(([v, c]) => `${v}:${c}`).join(';');
 
 // One line in the guild's ledger. amt = Poké in (+) or out (-); item lines have no amt.
 export function ledger(guild, text, amt = null) {
@@ -68,11 +73,11 @@ export function renderVault(main) {
   const gstore = store.get(tab === 'vanguard' ? 'vanguard' : 'guild') || {};
   const slots = num(gstore.slots);
 
-  main.innerHTML = `
+  main.innerHTML = `<div class="vault-tint vault-${tab}" style="${tintStyle(tab)}">
   <div class="hero banner"><img class="hdr" src="assets/banners/items_treasure.jpg" alt=""></div>
   <h1>Storage & Poké</h1>
   ${lowAlertHTML()}
-  <div class="vtabs">${GUILDS2.map(([k, n]) => `<button class="vtab ${k === tab ? 'on' : ''}" data-vtab="${k}">${esc(n)}</button>`).join('')}</div>
+  <div class="vtabs">${GUILDS2.map(([k, n]) => `<button class="vtab ${k === tab ? 'on' : ''}" data-vtab="${k}" style="${tintStyle(k)}">${k === 'vanguard' ? '🛡️' : '🌳'} ${esc(n)}</button>`).join('')}</div>
 
   <div class="vault-grid">
     <div>
@@ -88,7 +93,7 @@ export function renderVault(main) {
       <div class="section-title"><h2>Storage</h2><span class="small">${used}${slots ? ` / ${slots} slots` : ' items'}</span><button class="btn alt sm" id="addstore">+ Item</button></div>
       <div class="card" style="padding:6px 12px">${items.length ? `<ul class="log" style="max-height:none">${items.map(([id, b]) => `<li class="row nowrap"><span class="grow">${ixLink(b.name)} ×${b.qty}${b.kind ? ` <span class="small muted">${esc(b.kind)}</span>` : ''}</span><button class="btn alt sm" data-take-item="${id}">To my bag</button></li>`).join('')}</ul>` : `<p class="muted small">The ${esc(guildName(tab))} storage is empty. Use <b>Store</b> on an item in a character's bag, or <b>+ Item</b>.</p>`}</div>
     </div>
-  </div>`;
+  </div></div>`;
 
   $$('[data-vtab]', main).forEach((b) => b.onclick = () => { tab = b.dataset.vtab; renderVault(main); });
   $('#addstore', main).onclick = () => addItem('team', 'storage', tab);
