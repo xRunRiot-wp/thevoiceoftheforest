@@ -1,17 +1,17 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ade9fe5';
-import * as sheet from './sheetdata.js?v=6ade9fe5';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ade9fe5';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ade9fe5';
-import { MISSION_GP } from './content.js?v=6ade9fe5';
-import { ranks } from './rulebook.js?v=6ade9fe5';
-import { merged, editContent } from './content-store.js?v=6ade9fe5';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ade9fe5';
-import { myId } from './app.js?v=6ade9fe5';
-import { lowAlertHTML } from './vault.js?v=6ade9fe5';
-import { friendZoneSection } from './friendzone.js?v=6ade9fe5';
-import { ixLink } from './effects.js?v=6ade9fe5';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ade9fe5';
+import * as store from './store.js?v=6adea046';
+import * as sheet from './sheetdata.js?v=6adea046';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adea046';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adea046';
+import { MISSION_GP } from './content.js?v=6adea046';
+import { ranks } from './rulebook.js?v=6adea046';
+import { merged, editContent } from './content-store.js?v=6adea046';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6adea046';
+import { myId } from './app.js?v=6adea046';
+import { lowAlertHTML } from './vault.js?v=6adea046';
+import { friendZoneSection } from './friendzone.js?v=6adea046';
+import { ixLink } from './effects.js?v=6adea046';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adea046';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -124,7 +124,7 @@ export function renderGuild(main) {
   main.innerHTML = `
   <div class="hero"><img class="hdr" src="assets/banners/guilds.jpg" alt=""></div>
   <h1>${esc(g.name || 'Guild')}</h1>
-  <div class="guild-layout"><aside class="guild-side">${trackerHTML(finished)}</aside><div class="guild-main">
+  <div class="guild-layout"><aside class="guild-side">${trackerHTML(finished)}${friendZoneSection()}</aside><div class="guild-main">
   ${lowAlertHTML()}
   <div class="guildboxes">${GUILDS2.map(([k]) => guildBox(k)).join('')}</div>
   <div class="card coffers"><span class="pix">Shared guild coffers:</span> <b class="pix">${(g.coffers || 0).toLocaleString()} Poké</b></div>
@@ -134,7 +134,6 @@ export function renderGuild(main) {
   <div class="section-title"><h2>Mission board</h2></div>
   ${active.length ? active.map(([id, m]) => missionCard(id, m)).join('') : '<p class="muted">No open missions right now.</p>'}
 
-  ${friendZoneSection()}
 
   <div class="section-title"><h2>Shop</h2><span class="small muted">paid from the character’s own Poké</span></div>
   <div class="card" style="padding:6px 12px"><ul class="log" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><span class="grow">${ixLink(s.name)}</span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>
