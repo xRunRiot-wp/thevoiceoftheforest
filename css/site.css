@@ -315,6 +315,9 @@ details.gs h4 { margin: 12px 0 4px; }
 .navtile { background: var(--paper); border: 2px solid var(--brown2); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
 .navtile-head { position: relative; display: block; text-decoration: none; }
 .navtile-head img { display: block; width: 100%; aspect-ratio: 16 / 7; object-fit: cover; }
+.navtile-wide { grid-column: 1 / -1; }   /* Home spans the whole row; the other tiles sit below it */
+.navtile-wide .navtile-head img { aspect-ratio: 16 / 6; object-position: center 15%; }
+@media (max-width: 600px) { .navtile-wide .navtile-head img { aspect-ratio: 16 / 7; } }
 .navtile-head span { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 12px 8px; font: 700 18px var(--pix); color: #fff8e6;
   background: linear-gradient(transparent, rgba(40, 22, 8, .85)); text-shadow: 0 1px 2px #000; }
 .navtile-kids { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; }

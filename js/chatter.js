@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6adeaf5e';
-import { $, $$, esc, toast } from './util.js?v=6adeaf5e';
+import * as store from './store.js?v=6adeafb5';
+import { $, $$, esc, toast } from './util.js?v=6adeafb5';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 export const RESIDENTS = {

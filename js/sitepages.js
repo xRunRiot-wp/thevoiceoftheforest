@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6adeaf5e';
-import { esc } from './util.js?v=6adeaf5e';
-import { LINKS, CAST } from './content.js?v=6adeaf5e';
+import { GS_TEXT } from './gstext.js?v=6adeafb5';
+import { esc } from './util.js?v=6adeafb5';
+import { LINKS, CAST } from './content.js?v=6adeafb5';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -76,7 +76,7 @@ const TILE_ART = { 'meet-the-characters': 'assets/gs/home_team.png', 'story-guil
 export function navTilesHTML() {
   // only a section's own pages here; their sub-pages show when that page is opened
   const sub = (kids) => kids.map(([k, t]) => `<a href="${href(k)}">${esc(t)}</a>`);
-  return `<div class="navtiles">${SITE_NAV.map(([k, t, kids]) => `<div class="navtile">
+  return `<div class="navtiles">${SITE_NAV.map(([k, t, kids]) => `<div class="navtile${k === 'home' ? ' navtile-wide' : ''}">
     <a class="navtile-head" href="${href(k)}"><img src="${TILE_ART[k] || bannerFor(k)}" alt="" loading="lazy"><span>${esc(t)}</span></a>
     ${kids ? `<div class="navtile-kids">${sub(kids).join('')}</div>` : ''}</div>`).join('')}</div>`;
 }
