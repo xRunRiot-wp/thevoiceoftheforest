@@ -725,3 +725,13 @@ details.gs h4 { margin: 12px 0 4px; }
 .stat-h { color: color-mix(in srgb, var(--sc) 60%, var(--brown)); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .stat-key { display: inline-flex; gap: 6px; font: 400 12px var(--sans); }
 .stat-key i { font-style: normal; padding: 1px 8px; border-radius: 99px; color: var(--ink); background: color-mix(in srgb, var(--sc) 14%, var(--paper)); border-left: 3px solid var(--sc); }
+
+/* Move cards in their type's colour (bold), with the type icon in the corner */
+.movecard.typed { position: relative; border-color: color-mix(in srgb, var(--mt) 55%, #000); box-shadow: 0 3px 0 color-mix(in srgb, var(--mt) 45%, #000);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--mt) 95%, #000) 0%, color-mix(in srgb, var(--mt) 66%, #000) 100%); }
+.movecard.typed > span:not(.mvtype), .movecard.typed .mveff { text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
+.movecard.typed > span:not(.mvtype) { color: #fff; opacity: .92; }
+.movecard.typed .mveff { color: #fff; }
+.movecard.typed .mvname b { text-shadow: 0 2px 0 rgba(0, 0, 0, .35); padding-right: 96px; }
+.mvtype { position: absolute; top: 8px; right: 8px; padding: 3px 10px; border-radius: 99px; font: 700 13px var(--pix); color: #fff !important;
+  background: color-mix(in srgb, var(--mt) 80%, #000); border: 2px solid rgba(255, 255, 255, .85); box-shadow: 0 2px 0 rgba(0, 0, 0, .3); text-shadow: 0 1px 0 rgba(0, 0, 0, .45); }

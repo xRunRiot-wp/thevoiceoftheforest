@@ -1,23 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adeb658';
-import * as sheet from './sheetdata.js?v=6adeb658';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb658';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb658';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb658';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb658';
-import { CONFIG } from './config.js?v=6adeb658';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb658';
-import { merged, editContent } from './content-store.js?v=6adeb658';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb658';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb658';
-import { homeHTML } from './sitepages.js?v=6adeb658';
-import { pinsOf, showMap } from './hotbar.js?v=6adeb658';
-import { chatterLatestHTML } from './chatter.js?v=6adeb658';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb658';
-import { locations, spots } from './friendzone.js?v=6adeb658';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb658';
-import { find } from './effects.js?v=6adeb658';
-import * as dice3d from './dice3d.js?v=6adeb658';
+import * as store from './store.js?v=6adeb6fb';
+import * as sheet from './sheetdata.js?v=6adeb6fb';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb6fb';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb6fb';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb6fb';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb6fb';
+import { CONFIG } from './config.js?v=6adeb6fb';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb6fb';
+import { merged, editContent } from './content-store.js?v=6adeb6fb';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb6fb';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb6fb';
+import { homeHTML } from './sitepages.js?v=6adeb6fb';
+import { pinsOf, showMap } from './hotbar.js?v=6adeb6fb';
+import { chatterLatestHTML } from './chatter.js?v=6adeb6fb';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb6fb';
+import { locations, spots } from './friendzone.js?v=6adeb6fb';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb6fb';
+import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adeb6fb';
+import { find } from './effects.js?v=6adeb6fb';
+import * as dice3d from './dice3d.js?v=6adeb6fb';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -424,6 +425,9 @@ function bindCharCard(main, c) {
     const idx = { get: (k) => base.get(k) || base.get(ix.byName.get(k)?.name?.toLowerCase() || '') };
     $$('[data-minfo]', main).forEach((s) => {
       const m = idx.get(s.dataset.minfo.toLowerCase());
+      // bold card in the move's own type colour, with the type's icon
+      const card = s.closest('.movecard'); const tc = m && TYPE_COLORS[m.type];
+      if (card && tc) { card.style.setProperty('--mt', tc); card.classList.add('typed'); if (!card.querySelector('.mvtype')) card.insertAdjacentHTML('afterbegin', `<span class="mvtype">${TYPE_ICONS[m.type] || ''} ${esc(m.type)}</span>`); }
       s.textContent = m ? `${m.type} · ${m.cat} · Accuracy ${m.acc.join(' + ') || '—'}${m.power != null ? ' · Damage ' + (m.cat === 'Special' ? 'Special' : 'Strength') + ' + Power ' + m.power : ''}` : 'not in the moves list — you can still roll it';
     });
     $$('[data-meff]', main).forEach((p) => { const m = idx.get(p.dataset.meff.toLowerCase()); p.innerHTML = m?.effect ? linkify(m.effect, ix, m.name) : (m ? 'No added effect.' : ''); });

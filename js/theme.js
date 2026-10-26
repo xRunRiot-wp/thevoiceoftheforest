@@ -1,14 +1,14 @@
 // Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
 // and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
-import * as store from './store.js?v=6adeb658';
-import { $, $$, esc, toast } from './util.js?v=6adeb658';
-import { modal } from './ui.js?v=6adeb658';
-import { skinPicker } from './dice3d.js?v=6adeb658';
+import * as store from './store.js?v=6adeb6fb';
+import { $, $$, esc, toast } from './util.js?v=6adeb6fb';
+import { modal } from './ui.js?v=6adeb6fb';
+import { skinPicker } from './dice3d.js?v=6adeb6fb';
 
 export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
   Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',
   Dark: '#6a5444', Steel: '#9a9ab8', Fairy: '#d685ad' };
-const ICONS = { Normal: '⚪', Fire: '🔥', Water: '💧', Electric: '⚡', Grass: '🌿', Ice: '❄️', Fighting: '🥊', Poison: '☠️', Ground: '⛰️', Flying: '🪶',
+export const TYPE_ICONS = { Normal: '⚪', Fire: '🔥', Water: '💧', Electric: '⚡', Grass: '🌿', Ice: '❄️', Fighting: '🥊', Poison: '☠️', Ground: '⛰️', Flying: '🪶',
   Psychic: '🔮', Bug: '🐛', Rock: '🪨', Ghost: '👻', Dragon: '🐉', Dark: '🌙', Steel: '⚙️', Fairy: '✨' };
 
 const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -27,7 +27,7 @@ export function palette(base) {
 
 export const THEMES = {
   woodland: { name: 'Woodland Base', icon: '🌳', swatch: ['#4a2f17', '#f7eed6', '#e07b1f'], vars: null },
-  ...Object.fromEntries(Object.entries(TYPE_COLORS).map(([t, c]) => [`type-${t.toLowerCase()}`, { name: `${t} Type`, icon: ICONS[t], swatch: [mix(c, '#000000', 0.62), mix(c, '#ffffff', 0.86), c], vars: palette(c) }])),
+  ...Object.fromEntries(Object.entries(TYPE_COLORS).map(([t, c]) => [`type-${t.toLowerCase()}`, { name: `${t} Type`, icon: TYPE_ICONS[t], swatch: [mix(c, '#000000', 0.62), mix(c, '#ffffff', 0.86), c], vars: palette(c) }])),
 };
 
 const KEY = () => 'dc.theme.' + store.tableCode();
