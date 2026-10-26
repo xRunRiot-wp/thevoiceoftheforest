@@ -535,3 +535,9 @@ details.gs h4 { margin: 12px 0 4px; }
 .wxtag { font-size: 14px; }
 .wx-event { background: #b8322a; color: #fff; border-radius: var(--r); padding: 8px 12px; margin-bottom: 8px; }
 .wx-event p { margin: 4px 0 0; }
+
+/* Humanity / Primal colour scale */
+.tri a.ixbox.scale { border-width: 2px; transition: background .3s, border-color .3s; }
+.ixbox.scale b { color: var(--sc); }
+.ixbox .pips { display: flex; gap: 3px; justify-content: center; margin-top: 4px; }
+.ixbox .pips i { width: 14px; height: 6px; border-radius: 3px; border: 1px solid var(--sc); }

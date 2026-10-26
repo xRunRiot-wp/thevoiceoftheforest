@@ -1,23 +1,23 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adea532';
-import * as sheet from './sheetdata.js?v=6adea532';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adea532';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adea532';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adea532';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adea532';
-import { CONFIG } from './config.js?v=6adea532';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adea532';
-import { merged, editContent } from './content-store.js?v=6adea532';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adea532';
-import { guildName, missionParts } from './guild.js?v=6adea532';
-import { homeHTML } from './sitepages.js?v=6adea532';
-import { pinsOf, showMap } from './hotbar.js?v=6adea532';
-import { chatterLatestHTML } from './chatter.js?v=6adea532';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6adea532';
-import { locations, spots } from './friendzone.js?v=6adea532';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adea532';
-import { find } from './effects.js?v=6adea532';
-import * as dice3d from './dice3d.js?v=6adea532';
+import * as store from './store.js?v=6adea576';
+import * as sheet from './sheetdata.js?v=6adea576';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adea576';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adea576';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adea576';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adea576';
+import { CONFIG } from './config.js?v=6adea576';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adea576';
+import { merged, editContent } from './content-store.js?v=6adea576';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adea576';
+import { guildName, missionParts } from './guild.js?v=6adea576';
+import { homeHTML } from './sitepages.js?v=6adea576';
+import { pinsOf, showMap } from './hotbar.js?v=6adea576';
+import { chatterLatestHTML } from './chatter.js?v=6adea576';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6adea576';
+import { locations, spots } from './friendzone.js?v=6adea576';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adea576';
+import { find } from './effects.js?v=6adea576';
+import * as dice3d from './dice3d.js?v=6adea576';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -250,6 +250,12 @@ function pokeMove(c, kind) {
 }
 
 // ---------------------------------------------------------------- character card
+// Colour scales for Humanity (5 = fully yourself, blue -> 0 = fully Pokémon, purple) and Primal points (0 calm -> 5+ red)
+const HUM_COLORS = ['#5b2a86', '#b8322a', '#e07b24', '#e0b324', '#4f9fd8', '#2f6fd8'];
+const PRIMAL_COLORS = ['#6a9a5b', '#e0b324', '#e07b24', '#d0502a', '#b8322a', '#7a1a1a'];
+const scaleStyle = (cols, v) => { const c = cols[Math.max(0, Math.min(5, num(v)))]; return `background:${c}22;border-color:${c};--sc:${c}`; };
+const pips = (v, cols) => `<span class="pips">${[1, 2, 3, 4, 5].map((i) => `<i style="background:${i <= num(v) ? cols[Math.min(5, num(v))] : 'transparent'}"></i>`).join('')}</span>`;
+
 function charCard(c) {
   const mx = maxHp(c);
   const st = c.status || [];
@@ -266,8 +272,8 @@ function charCard(c) {
     <div class="meter"><b>${ixLink('Will points', 'Will')}</b>${bar(c.willCur, c.will, 'will')}<span class="val">${c.willCur ?? 0}/${c.will}</span></div>
     <div class="row" style="justify-content:flex-end"><div class="stepper"><button class="btn alt" data-will="-1">Spend</button><button class="btn alt" data-will="1">+1</button></div></div>
     <div class="tri pair" style="margin-top:10px">
-      <div class="pcol"><a href="#" data-ixname="Humanity" class="ixbox"><b>${c.humanity ?? 0}</b><span>Humanity</span></a><div class="stepper"><button class="btn alt sm" data-hum="-1">−1</button><button class="btn alt sm" data-hum="1">+1</button></div></div>
-      <div class="pcol"><a href="#" data-ixname="Primal points" class="ixbox"><b>${c.primal ?? 0}</b><span>Primal</span></a><div class="stepper"><button class="btn alt sm" data-primalpt="-1">−1</button><button class="btn alt sm" data-primalpt="1">+1</button></div></div>
+      <div class="pcol"><a href="#" data-ixname="Humanity" class="ixbox scale" style="${scaleStyle(HUM_COLORS, c.humanity)}"><b>${c.humanity ?? 0}</b><span>Humanity</span>${pips(c.humanity, HUM_COLORS)}</a><div class="stepper"><button class="btn alt sm" data-hum="-1">−1</button><button class="btn alt sm" data-hum="1">+1</button></div></div>
+      <div class="pcol"><a href="#" data-ixname="Primal points" class="ixbox scale" style="${scaleStyle(PRIMAL_COLORS, c.primal)}"><b>${c.primal ?? 0}</b><span>Primal</span>${pips(c.primal, PRIMAL_COLORS)}</a><div class="stepper"><button class="btn alt sm" data-primalpt="-1">−1</button><button class="btn alt sm" data-primalpt="1">+1</button></div></div>
     </div>
     <div class="tri pair" style="margin-top:6px">
       <a href="#" data-ixname="Instinct" class="ixbox"><b>${c.instinct ?? 0}</b><span>Instinct</span></a><a href="#" data-ixname="Logic" class="ixbox"><b>${c.logic ?? 0}</b><span>Logic</span></a>
