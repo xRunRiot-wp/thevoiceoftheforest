@@ -470,3 +470,15 @@ details.gs h4 { margin: 12px 0 4px; }
 .sleep .row { gap: 6px; margin-top: 6px; }
 .sleep select { flex: 1; min-width: 0; }
 .fz-mons .pill.sleeper { background: #e6e0ff; border-color: #6b5fc2; }
+.zerohp { margin: 10px 0; padding: 10px 12px; border-radius: 12px; background: #3a0f18; color: #ffe3e8; border: 2px solid #ff6b81; box-shadow: 0 0 14px rgba(255, 107, 129, .45); }
+.zerohp p { margin: 6px 0; }
+.zerohp .row { gap: 8px; }
+.memory { margin: 12px 0 4px; padding: 10px; border-radius: 12px; background: linear-gradient(180deg, #f3eefc, #fbf7ef); border: 1px solid #b9a7e6; }
+.mem-feed { max-height: 220px; overflow-y: auto; margin: 8px 0; }
+.mem { display: flex; gap: 8px; padding: 6px 2px; border-top: 1px dashed rgba(107, 95, 194, .25); font-size: 15px; }
+.mem .ic { flex: none; }
+.mem.nightmare { color: #6a1f2b; }
+.mem.dream, .mem.daydream { font-style: italic; }
+.mem-actions { gap: 6px; }
+.mem-actions input { flex: 1; min-width: 0; }
+.memory textarea { width: 100%; }

@@ -1,18 +1,19 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade9bd0';
-import * as sheet from './sheetdata.js?v=6ade9bd0';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9bd0';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9bd0';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9bd0';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9bd0';
-import { CONFIG } from './config.js?v=6ade9bd0';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9bd0';
-import { merged, editContent } from './content-store.js?v=6ade9bd0';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9bd0';
-import { guildName } from './guild.js?v=6ade9bd0';
-import { homeHTML } from './sitepages.js?v=6ade9bd0';
-import { locations, spots } from './friendzone.js?v=6ade9bd0';
-import * as dice3d from './dice3d.js?v=6ade9bd0';
+import * as store from './store.js?v=6ade9caf';
+import * as sheet from './sheetdata.js?v=6ade9caf';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9caf';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9caf';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9caf';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9caf';
+import { CONFIG } from './config.js?v=6ade9caf';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9caf';
+import { merged, editContent } from './content-store.js?v=6ade9caf';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9caf';
+import { guildName } from './guild.js?v=6ade9caf';
+import { homeHTML } from './sitepages.js?v=6ade9caf';
+import { memoryHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6ade9caf';
+import { locations, spots } from './friendzone.js?v=6ade9caf';
+import * as dice3d from './dice3d.js?v=6ade9caf';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -222,6 +223,7 @@ function charCard(c) {
       <div class="char-sub">${esc(c.pokemon)}${c.nature ? ' · ' + ixLink('Nature (personality)', c.nature) : ''}${c.rank ? ' · ' + ixLink(c.rank + ' Rank', c.rank) : ''}${c.instinctRank ? ' · ' + ixLink('Instinct', c.instinctRank) : ''}</div>
       <div class="chips" style="margin-top:4px">${[c.type1, c.type2].filter(Boolean).map((t) => `<a href="#" class="chip type ty-${esc(t)}" data-ixname="Type effectiveness">${esc(t)}</a>`).join('')}${c.ability ? `<a href="#" class="pill" data-ixname="${esc(c.ability)}">${esc(c.ability)}</a>` : ''}${badgeChip(c)}</div>
     </div></div>
+    ${zeroHpHTML(c)}
     <div class="meter"><b>${ixLink('HP')}</b>${bar(c.hp, mx)}<span class="val">${c.hp}/${mx}</span></div>
     <div class="row" style="justify-content:flex-end"><div class="stepper"><button class="btn alt" data-hp="-1">−1</button><button class="btn alt" data-hp="1">+1</button><button class="btn alt" data-hp="full">Full</button></div></div>
     <div class="meter"><b>${ixLink('Will points', 'Will')}</b>${bar(c.willCur, c.will, 'will')}<span class="val">${c.willCur ?? 0}/${c.will}</span></div>
@@ -230,8 +232,10 @@ function charCard(c) {
       <a href="#" data-ixname="Humanity" class="ixbox"><b>${c.humanity ?? 0}</b><span>Humanity</span></a><a href="#" data-ixname="Instinct" class="ixbox"><b>${c.instinct ?? 0}</b><span>Instinct</span></a>
       <a href="#" data-ixname="Logic" class="ixbox"><b>${c.logic ?? 0}</b><span>Logic</span></a><a href="#" data-ixname="Primal points" class="ixbox"><b>${c.primal ?? 0}</b><span>Primal</span></a>
     </div>
+    <div class="row" style="justify-content:flex-end;margin-top:6px"><span class="small muted" style="margin-right:auto">Primal Score</span><div class="stepper"><button class="btn alt" data-primalpt="-1">−1</button><button class="btn alt" data-primalpt="1">+1</button></div></div>
     <div class="section-title" style="margin-top:12px"><h4 style="margin:0">Status</h4><button class="btn alt sm" id="stedit">Change</button></div>
     <div class="chips">${st.length ? st.map((s) => `<a href="#" class="chip on" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a>`).join('') : '<span class="small muted">Healthy</span>'}</div>
+    ${memoryHTML(c)}
 
     <div class="section-title"><h3>Moves</h3><span class="small muted">tap to roll</span></div>
     <div class="moves">${(c.moves || []).map((m, i) => `<div class="move movecard"><a href="#" data-ixname="${esc(m)}" class="mvname"><b>${esc(m)}</b></a><span data-minfo="${esc(m)}">…</span><p class="mveff" data-meff="${esc(m)}"></p><button class="btn block" data-move="${i}">Roll ${esc(m)}</button></div>`).join('') || '<p class="muted small">No moves on this sheet yet.</p>'}
@@ -291,10 +295,16 @@ function bagList(c) {
 function bindCharCard(main, c) {
   const path = 'party/' + c.id;
   ensureBadge(c);
+  bindMemory(main, c);
+  bindZeroHp(main, c, togglePrimal);
+  if (num(c.hp) > 0 && c.zeroAnswered) store.set(path + '/zeroAnswered', null);   // back above 0: ask again next time
+  $$('[data-primalpt]', main).forEach((b) => b.onclick = () => store.update(path, (x) => ({ ...x, primal: Math.max(0, num(x.primal) + num(b.dataset.primalpt)) })));
   const ss = $('#sleepsel', main);
   if (ss) ss.onchange = () => {
     if (!ss.value) return;
+    const asked = num(store.get('session/sleepAsk')) > num(c.sleepT);
     store.update(path, (x) => ({ ...x, sleep: ss.value, sleepT: Date.now() }));
+    if (asked) restDream(c);   // resting brings a dream (or nightmare)
     const [lid, key] = ss.value.split('|'); const l = locations().find((x) => x.id === lid); const sp = l && spots(l).find((x) => x.key === key);
     store.pushLimited('log', { t: Date.now(), text: `${c.nickname} is sleeping at ${sp ? sp.name.replace(/^[^\w]*\d*\.?\s*/, '') : 'camp'}${l ? ' (' + l.name + ')' : ''}.` });
     toast('Sleeping spot saved');
@@ -339,15 +349,15 @@ function bindCharCard(main, c) {
   });
 }
 
-function togglePrimal(c) {
+function togglePrimal(c, asked = false) {
   const on = (c.status || []).includes('Primal State');
-  if (!on && !confirm('Enter Primal State? You regain all HP, cure status, ignore pain and add Instinct dice to every action — and lose 1 Humanity.')) return;
+  if (!on && !asked && !confirm('Enter Primal State? You regain all HP, cure status, ignore pain and add Instinct dice to every action. Your Primal Score goes up by 1 and you lose 1 Humanity.')) return;
   store.update('party/' + c.id, (x) => {
     if (on) { x.status = (x.status || []).filter((s) => s !== 'Primal State'); }
-    else { x.hp = maxHp(x); x.status = ['Primal State']; x.humanity = Math.max(0, (x.humanity || 0) - 1); }
+    else { x.hp = maxHp(x); x.status = ['Primal State']; x.humanity = Math.max(0, (x.humanity || 0) - 1); x.primal = num(x.primal) + 1; x.zeroAnswered = null; }
     return x;
   });
-  store.pushLimited('log', { t: Date.now(), text: on ? `${c.nickname} calms down and leaves Primal State.` : `${c.nickname} enters Primal State! (−1 Humanity)` });
+  store.pushLimited('log', { t: Date.now(), text: on ? `${c.nickname} calms down and leaves Primal State.` : `${c.nickname} enters Primal State! (Primal Score +1, −1 Humanity)` });
 }
 
 // ---------------------------------------------------------------- stats
