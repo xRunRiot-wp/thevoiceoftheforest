@@ -541,3 +541,9 @@ details.gs h4 { margin: 12px 0 4px; }
 .ixbox.scale b { color: var(--sc); }
 .ixbox .pips { display: flex; gap: 3px; justify-content: center; margin-top: 4px; }
 .ixbox .pips i { width: 14px; height: 6px; border-radius: 3px; border: 1px solid var(--sc); }
+
+/* memory seeds */
+.mem-seeds .seed { display: flex; gap: 6px; align-items: flex-start; padding: 6px 0; border-top: 1px dashed var(--cream3); }
+.mem-seeds .seedform { display: grid; gap: 6px; margin-top: 8px; padding: 8px; background: var(--cream); border-radius: 8px; border: 1px solid var(--cream3); }
+.mem-seeds .seedform .grid { gap: 6px; }
+.mem.primal { color: #b8322a; }

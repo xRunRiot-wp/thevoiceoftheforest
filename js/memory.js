@@ -2,8 +2,8 @@
 // Humanity 0 = only Pokémon thoughts; the closer to 5, the more of their human life comes back
 // in daydreams, and in dreams or nightmares when they rest. Memories are built from the
 // character's own memory seeds (written by the player or GM, never pulled from private forms).
-import * as store from './store.js?v=6adea576';
-import { $, $$, esc, num, toast } from './util.js?v=6adea576';
+import * as store from './store.js?v=6adea672';
+import { $, $$, esc, num, toast } from './util.js?v=6adea672';
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const TIERS = { 5: 'Human memories clear', 4: 'Details begin to fade', 3: 'Two lives in conflict', 2: 'Instinct overrides memory', 1: 'The human self is almost gone', 0: 'Fully Pokémon' };
@@ -36,48 +36,101 @@ const WRAP = {
     conflict: ['{n} dreams of {m}, but their own claws keep getting in the way. They wake up frightened of themselves.'],
     faint: ['A nightmare of the storm. For a heartbeat there was {m}, then nothing.'],
   },
+  fainted: {
+    clear: ['As everything goes dark, {n} sees it plainly: {m}.', 'Falling, {n} suddenly remembers {m}.'],
+    faded: ['The world tilts and fades, and for a second there is {m}.', 'Blackness, and somewhere inside it, {m}.'],
+    conflict: ['{n} hits the ground. A flash of {m}, and the Pokémon part of them reaches for it.'],
+    faint: ['Darkness. Just before it closes: {m}.'],
+  },
+  primal: {
+    clear: ['The Primal surge roars up, and {n} clings to one thing: {m}.', 'Instinct floods in. {n} holds on to {m} as hard as they can.'],
+    faded: ['The surge washes over {n}, carrying {m} away with it.', 'Wild strength pours in. {m}… it slips further out of reach.'],
+    conflict: ['Teeth, claws, heartbeat. Somewhere far below: {m}.'],
+    faint: ['Only instinct now. A last echo of {m} is swallowed whole.'],
+  },
 };
 const clarity = (h) => (h >= 5 ? 'clear' : h === 4 ? 'faded' : h === 3 ? 'conflict' : 'faint');
-const seeds = (c) => (c.memories || '').split('\n').map((x) => x.trim()).filter(Boolean);
+// A memory seed: { id, what, who, where, sense, feeling } (old one-line seeds count as { what }).
+export const seeds = (c) => [
+  ...(c.memories || '').split('\n').map((x) => x.trim()).filter(Boolean).map((what, i) => ({ id: 'l' + i, what, legacy: true })),
+  ...Object.entries(c.seedList || {}).map(([id, x]) => ({ ...x, id })).filter((x) => x && x.what),
+];
+// How much of a seed comes back depends on Humanity: everything at 5, then fewer details, then only a sense or a feeling.
+function recall(sd, h) {
+  const full = [sd.what, sd.who && `with ${sd.who}`, sd.where && `at ${sd.where}`].filter(Boolean).join(' ');
+  if (h >= 5) return { m: full + (sd.sense ? ` (${sd.sense})` : ''), after: sd.feeling ? ` It felt ${sd.feeling}.` : '' };
+  if (h === 4) return { m: [sd.what, sd.where && `at ${sd.where}`].filter(Boolean).join(' ') + (sd.sense ? ` (${sd.sense})` : ''), after: sd.feeling ? ` It felt ${sd.feeling}, maybe.` : '' };
+  if (h === 3) return { m: sd.what, after: sd.feeling ? ` It felt ${sd.feeling}.` : '' };
+  return { m: sd.sense || sd.feeling || sd.what, after: '' };
+}
+// The seed that has surfaced least often comes up next (ties broken at random).
+function nextSeed(c, list) {
+  const used = {};
+  Object.values(store.get(`memories/${c.id}`) || {}).forEach((x) => { if (x.seed) used[x.seed] = (used[x.seed] || 0) + 1; });
+  const low = Math.min(...list.map((x) => used[x.id] || 0));
+  return pick(list.filter((x) => (used[x.id] || 0) === low));
+}
 
 // One thought for this character: human memory with chance Humanity/5 (none at 0), otherwise a Pokémon thought.
+// kinds: daydream, dream, nightmare, fainted, primal. Fainting and Primal State always reach for a memory if there is one.
 export function makeMemory(c, kind = 'daydream') {
   const h = humanityOf(c); const s = seeds(c);
-  const human = h > 0 && s.length && Math.random() < h / 5;
+  const human = h > 0 && s.length && (kind === 'fainted' || kind === 'primal' || Math.random() < h / 5);
   if (!human) {
-    const t = kind === 'daydream' ? pick(MON) : kind === 'nightmare' ? 'A bad dream of the storm and a huge shriek. Then just darkness and the smell of rain.' : `${c.nickname} dreams of chasing berries down a hill. Nothing else.`;
+    const t = { daydream: pick(MON), nightmare: 'A bad dream of the storm and a huge shriek. Then just darkness and the smell of rain.',
+      fainted: `${c.nickname} faints. Only darkness, and the smell of the forest floor.`, primal: `Pure instinct takes over ${c.nickname}. There is nothing else.` }[kind]
+      || `${c.nickname} dreams of chasing berries down a hill. Nothing else.`;
     return { kind: kind === 'daydream' ? 'thought' : kind, text: t, human: false };
   }
-  return { kind, text: pick(WRAP[kind][clarity(h)]).replace(/\{n\}/g, c.nickname).replace(/\{m\}/g, pick(s)), human: true };
+  const sd = nextSeed(c, s); const { m, after } = recall(sd, h);
+  return { kind, text: pick(WRAP[kind][clarity(h)]).replace(/\{n\}/g, c.nickname).replace(/\{m\}/g, m) + after, human: true, seed: sd.id };
 }
 export function addMemory(c, entry) { store.pushLimited(`memories/${c.id}`, { ...entry, h: humanityOf(c), t: Date.now() }, 60); }
 // A dream when the character goes to sleep (rests and end of session): a nightmare one time in three.
 export function restDream(c) { addMemory(c, makeMemory(c, Math.random() < 1 / 3 ? 'nightmare' : 'dream')); }
 
-const ICON = { thought: '🐾', daydream: '☁️', dream: '🌙', nightmare: '🌩️', note: '✍️' };
+let seedsOpen = false;   // keep the seed box open across live re-renders
+const ICON = { thought: '🐾', daydream: '☁️', dream: '🌙', nightmare: '🌩️', fainted: '💫', primal: '💢', note: '✍️' };
 export function memoryHTML(c) {
   const h = humanityOf(c);
   const list = Object.entries(store.get(`memories/${c.id}`) || {}).sort().reverse().slice(0, 20);
   return `<div class="memory"><div class="row" style="justify-content:space-between"><b>🧠 Remembering <span class="small muted">(only you and the GM)</span></b><span class="pill">Humanity ${h} · ${esc(TIERS[h])}</span></div>
     <div class="mem-feed">${list.length ? list.map(([, x]) => `<div class="mem ${esc(x.kind)}"><span class="ic">${ICON[x.kind] || '💭'}</span><span class="grow">${esc(x.text)}</span></div>`).join('') : `<p class="small muted">${h ? 'No memories have surfaced yet.' : `${esc(c.nickname)} only thinks Pokémon thoughts now.`}</p>`}</div>
     <div class="row nowrap mem-actions"><button class="btn alt sm" id="memday">${h ? '☁️ Daydream' : '🐾 Think'}</button><input id="memnote" placeholder="Write a thought or memory…"><button class="btn sm" id="memadd">Add</button></div>
-    <details class="small"><summary>Memory seeds (${seeds(c).length})</summary>
-      <p class="muted">Things from your character’s human life, one per line (a place, a person’s nickname, a smell, a song…). Dreams and daydreams are built from these. No real names.</p>
-      <textarea id="memseeds" rows="4" placeholder="a red bicycle with a squeaky bell&#10;my little brother’s laugh&#10;the bakery on the corner">${esc(c.memories || '')}</textarea>
-      <button class="btn alt sm" id="memsave">Save seeds</button></details></div>`;
+    <details class="small mem-seeds" ${seedsOpen ? 'open' : ''}><summary>🌱 Memory seeds (${seeds(c).length})</summary>
+      <p class="muted">Pieces of your character’s human life. They come back in daydreams, in dreams and nightmares when you sleep, when you faint, and when you go Primal. The more Humanity you have, the more details come back. No real names.</p>
+      ${seeds(c).map((x) => `<div class="seed"><span class="grow"><b>${esc(x.what)}</b>${[x.who && '👤 ' + x.who, x.where && '📍 ' + x.where, x.sense && '👃 ' + x.sense, x.feeling && '💗 ' + x.feeling].filter(Boolean).map((t) => `<span class="small muted"> · ${esc(t)}</span>`).join('')}</span><button class="x" data-unseed="${esc(x.id)}" aria-label="Remove">×</button></div>`).join('')}
+      <div class="seedform"><b class="small">Make a memory seed</b>
+        <input id="sd-what" placeholder="What do you remember? (a red bicycle with a squeaky bell)">
+        <div class="grid g2"><input id="sd-who" placeholder="Who was there? (a nickname)"><input id="sd-where" placeholder="Where? (the bakery on the corner)"></div>
+        <div class="grid g2"><input id="sd-sense" placeholder="A smell, sound or sight (warm bread)"><input id="sd-feeling" placeholder="How it felt (safe, happy)"></div>
+        <button class="btn alt sm" id="sdadd">🌱 Plant this seed</button></div></details></div>`;
 }
 // GM's read-only look at a character's memories (character pop-up)
 export function memoryFeedHTML(c) {
   const list = Object.entries(store.get(`memories/${c.id}`) || {}).sort().reverse().slice(0, 12);
-  return `<div class="memory"><b>🧠 Remembering</b> <span class="small muted">(only this player and the GM see this)</span><div class="mem-feed">${list.length ? list.map(([, x]) => `<div class="mem ${esc(x.kind)}"><span class="ic">${ICON[x.kind] || '💭'}</span><span class="grow">${esc(x.text)}</span></div>`).join('') : '<p class="small muted">Nothing yet.</p>'}</div>${seeds(c).length ? `<p class="small"><b>Memory seeds:</b> ${esc(seeds(c).join(' · '))}</p>` : ''}</div>`;
+  return `<div class="memory"><b>🧠 Remembering</b> <span class="small muted">(only this player and the GM see this)</span><div class="mem-feed">${list.length ? list.map(([, x]) => `<div class="mem ${esc(x.kind)}"><span class="ic">${ICON[x.kind] || '💭'}</span><span class="grow">${esc(x.text)}</span></div>`).join('') : '<p class="small muted">Nothing yet.</p>'}</div>${seeds(c).length ? `<p class="small"><b>Memory seeds:</b> ${esc(seeds(c).map((x) => x.what).join(' · '))}</p>` : ''}</div>`;
 }
 export function bindMemory(main, c) {
   const d = $('#memday', main);
-  if (d) d.onclick = () => addMemory(c, makeMemory(c, 'daydream'));
+  if (d) d.onclick = () => addMemory(c, makeMemory(c, (c.status || []).includes('Primal State') && Math.random() < 0.5 ? 'primal' : 'daydream'));
   const a = $('#memadd', main);
   if (a) a.onclick = () => { const t = $('#memnote', main).value.trim(); if (!t) return; addMemory(c, { kind: 'note', text: t }); };
-  const s = $('#memsave', main);
-  if (s) s.onclick = () => { store.set(`party/${c.id}/memories`, $('#memseeds', main).value); toast('Memory seeds saved'); };
+  const box = $('.mem-seeds', main);
+  if (box) box.ontoggle = () => { seedsOpen = box.open; };
+  const s = $('#sdadd', main);
+  if (s) s.onclick = () => {
+    const v = (k) => $('#sd-' + k, main).value.trim();
+    if (!v('what')) { toast('Write what they remember first'); return; }
+    store.set(`party/${c.id}/seedList/${store.tid()}`, { what: v('what'), who: v('who'), where: v('where'), sense: v('sense'), feeling: v('feeling'), t: Date.now() });
+    toast('Memory seed planted 🌱');
+  };
+  $$('[data-unseed]', main).forEach((b) => b.onclick = () => {
+    const id = b.dataset.unseed;
+    if (!confirm('Remove this memory seed?')) return;
+    if (id.startsWith('l')) store.set(`party/${c.id}/memories`, (c.memories || '').split('\n').map((x) => x.trim()).filter(Boolean).filter((_, i) => 'l' + i !== id).join('\n'));
+    else store.set(`party/${c.id}/seedList/${id}`, null);
+  });
 }
 
 // ---- 0 HP: offer Primal State (banner on that player's sheet until they answer)
@@ -92,6 +145,7 @@ export function bindZeroHp(main, c, enterPrimal) {
   const n = $('#nofaint', main);
   if (n) n.onclick = () => {
     store.update('party/' + c.id, (x) => ({ ...x, zeroAnswered: true, status: [...new Set([...(x.status || []), 'Fainted'])] }));
+    addMemory(c, makeMemory(c, 'fainted'));
     store.pushLimited('log', { t: Date.now(), text: `${c.nickname} fainted.` });
   };
 }
