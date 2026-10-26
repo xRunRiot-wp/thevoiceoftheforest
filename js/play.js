@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adebc4e';
-import * as sheet from './sheetdata.js?v=6adebc4e';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adebc4e';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adebc4e';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adebc4e';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adebc4e';
-import { CONFIG } from './config.js?v=6adebc4e';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adebc4e';
-import { merged, editContent } from './content-store.js?v=6adebc4e';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adebc4e';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adebc4e';
-import { homeHTML } from './sitepages.js?v=6adebc4e';
-import { pinsOf, showMap } from './hotbar.js?v=6adebc4e';
-import { chatterLatestHTML } from './chatter.js?v=6adebc4e';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adebc4e';
-import { locations, spots } from './friendzone.js?v=6adebc4e';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adebc4e';
-import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adebc4e';
-import { find } from './effects.js?v=6adebc4e';
-import * as dice3d from './dice3d.js?v=6adebc4e';
+import * as store from './store.js?v=6adebcc0';
+import * as sheet from './sheetdata.js?v=6adebcc0';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adebcc0';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adebcc0';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adebcc0';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adebcc0';
+import { CONFIG } from './config.js?v=6adebcc0';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adebcc0';
+import { merged, editContent } from './content-store.js?v=6adebcc0';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adebcc0';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adebcc0';
+import { homeHTML } from './sitepages.js?v=6adebcc0';
+import { pinsOf, showMap } from './hotbar.js?v=6adebcc0';
+import { chatterLatestHTML } from './chatter.js?v=6adebcc0';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adebcc0';
+import { locations, spots } from './friendzone.js?v=6adebcc0';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adebcc0';
+import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adebcc0';
+import { find } from './effects.js?v=6adebcc0';
+import * as dice3d from './dice3d.js?v=6adebcc0';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -266,6 +266,9 @@ function charCard(c) {
       <div class="chips" style="margin-top:4px">${[c.type1, c.type2].filter(Boolean).map((t) => `<a href="#" class="chip type ty-${esc(t)}" data-ixname="Type effectiveness">${esc(t)}</a>`).join('')}${c.ability ? `<a href="#" class="pill" data-ixname="${esc(c.ability)}">${esc(c.ability)}</a>` : ''}${badgeChip(c)}</div>
     </div></div>
     ${zeroHpHTML(c)}
+    <div class="section-title" style="margin-top:10px"><h4 style="margin:0">Status</h4><button class="btn alt sm" id="stedit">Change</button></div>
+    <div class="conds">${st.length ? st.map((s) => { const [ic, col] = COND_LOOK[s] || ['⚠️', '#8a5d33']; return `<div class="cond" style="--cc:${col}"><div class="cond-head"><span class="cond-ic">${ic}</span><a href="#" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a><span class="cond-dur" data-cdur="${esc(STATUS_IX[s] || s)}"></span></div><div class="cond-body" data-cond="${esc(STATUS_IX[s] || s)}"><p class="small muted">Loading what to do…</p></div></div>`; }).join('')
+      : '<div class="cond healthy"><div class="cond-head"><span class="cond-ic">✨</span><b>Healthy</b></div><p class="small" style="margin:4px 0 0">No conditions. Ready for adventure!</p></div>'}</div>
     <div class="vitals">
       <div class="vital hp"><div class="v-head"><span class="v-ic">❤️</span><b>${ixLink('HP')}</b><span class="v-val">${c.hp}<small>/${mx}</small></span></div>
         <div class="vbar-wrap" style="--n:${Math.max(1, mx)}">${bar(c.hp, mx)}</div>
@@ -282,9 +285,6 @@ function charCard(c) {
       <a href="#" data-ixname="Instinct" class="mind-tile instinct"><span class="m-ic">🐾</span><span class="m-txt"><span class="m-lab">Instinct</span><small>${esc(c.instinctRank || 'Wild side')}</small></span><b class="m-num">${c.instinct ?? 0}</b></a>
       <a href="#" data-ixname="Logic" class="mind-tile logic"><span class="m-ic">🧠</span><span class="m-txt"><span class="m-lab">Logic</span><small>Human mind</small></span><b class="m-num">${c.logic ?? 0}</b></a>
     </div>
-    <div class="section-title" style="margin-top:12px"><h4 style="margin:0">Status</h4><button class="btn alt sm" id="stedit">Change</button></div>
-    <div class="conds">${st.length ? st.map((s) => { const [ic, col] = COND_LOOK[s] || ['⚠️', '#8a5d33']; return `<div class="cond" style="--cc:${col}"><div class="cond-head"><span class="cond-ic">${ic}</span><a href="#" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a><span class="cond-dur" data-cdur="${esc(STATUS_IX[s] || s)}"></span></div><div class="cond-body" data-cond="${esc(STATUS_IX[s] || s)}"><p class="small muted">Loading what to do…</p></div></div>`; }).join('')
-      : '<div class="cond healthy"><div class="cond-head"><span class="cond-ic">✨</span><b>Healthy</b></div><p class="small" style="margin:4px 0 0">No conditions. Ready for adventure!</p></div>'}</div>
     ${c.id === myId() || store.gmUnlocked() ? memoryHTML(c) : ''}
 
     <div class="section-title"><h3>Moves</h3><span class="small muted">tap to roll</span></div>
