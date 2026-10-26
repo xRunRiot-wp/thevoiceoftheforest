@@ -851,6 +851,27 @@ details.gs h4 { margin: 12px 0 4px; }
 
 /* Play sheet: Moves and Actions side by side on wider screens */
 .mv-act { display: grid; grid-template-columns: 1fr; gap: 0 18px; align-items: start; }
+/* Battle and Actions: two clear cards, each with a coloured header bar */
+.mv-act .pane-body { background: var(--paper); border: 2px solid var(--cream3); border-radius: 18px; padding: 0 14px 14px; margin-bottom: 14px; box-shadow: 0 3px 0 rgba(0, 0, 0, .06); }
+.pane-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 -14px 4px; padding: 10px 14px; border-radius: 16px 16px 0 0; color: #fff; }
+.pane-head h3 { margin: 0; color: #fff; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
+.pane-head.battle { background: linear-gradient(135deg, #b4472a, #7a2b18); }
+.pane-head.acts { background: linear-gradient(135deg, #2f5aa8, #1b2f63); }
+.pane-head .fold-btn { background: rgba(255, 255, 255, .92); }
+.pane-head .ph-right { display: flex; align-items: center; gap: 10px; }
+.pane-head .ph-right a { color: #fff; }
+.mv-act .actgroup small { font-family: var(--sans); font-size: 12px; margin-left: 6px; letter-spacing: 0; }
+.mv-act .actgroup { border-top: 1px dashed var(--cream3); padding-top: 10px; }
+.mv-act .pane-head + .actgroup { border-top: 0; padding-top: 4px; }
+@media (min-width: 900px) {
+  .mv-act[data-fold=""] .mind-tile { padding: 8px 12px; }
+  .mv-act[data-fold=""] .m-ic { width: 34px; height: 34px; font-size: 18px; }
+  .mv-act[data-fold=""] .m-num { font-size: 26px; }
+  .mv-act[data-fold=""] .react-row .btn { min-height: 40px; padding: 6px 8px; }
+  .mv-act[data-fold=""] .actions { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 6px; }
+  .mv-act[data-fold=""] .actbtn { min-height: 48px; padding: 7px 10px; }
+  .mv-act[data-fold=""] .actbtn b { font-size: 14px; }
+}
 /* Status + HP/Will always on show; Battle & Moves and Actions fold to a side tab */
 .always { display: grid; grid-template-columns: 1fr; gap: 0 18px; align-items: start; margin-bottom: 0; }
 .mv-act .pane-body > .section-title:first-child { margin-top: 4px; }
