@@ -1,23 +1,23 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adeb613';
-import * as sheet from './sheetdata.js?v=6adeb613';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb613';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb613';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb613';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb613';
-import { CONFIG } from './config.js?v=6adeb613';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb613';
-import { merged, editContent } from './content-store.js?v=6adeb613';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb613';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb613';
-import { homeHTML } from './sitepages.js?v=6adeb613';
-import { pinsOf, showMap } from './hotbar.js?v=6adeb613';
-import { chatterLatestHTML } from './chatter.js?v=6adeb613';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb613';
-import { locations, spots } from './friendzone.js?v=6adeb613';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb613';
-import { find } from './effects.js?v=6adeb613';
-import * as dice3d from './dice3d.js?v=6adeb613';
+import * as store from './store.js?v=6adeb658';
+import * as sheet from './sheetdata.js?v=6adeb658';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb658';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb658';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb658';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb658';
+import { CONFIG } from './config.js?v=6adeb658';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb658';
+import { merged, editContent } from './content-store.js?v=6adeb658';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb658';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb658';
+import { homeHTML } from './sitepages.js?v=6adeb658';
+import { pinsOf, showMap } from './hotbar.js?v=6adeb658';
+import { chatterLatestHTML } from './chatter.js?v=6adeb658';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb658';
+import { locations, spots } from './friendzone.js?v=6adeb658';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb658';
+import { find } from './effects.js?v=6adeb658';
+import * as dice3d from './dice3d.js?v=6adeb658';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -714,8 +714,10 @@ export { RULES, CONFIG };
 
 
 function statGrids(c) {
-  const g = (title, list) => `<h4 style="margin-top:8px">${title}</h4><div class="statgrid">${list.map((a) => `<a href="#" class="stat" data-ixname="${a}">${a}<b>${c[a] ?? 0}</b></a>`).join('')}</div>`;
-  return g('Attributes', ATTRS) + g('Skills', SKILLS) + g('Social', SOCIAL);
+  // subtle colour per group (PokéRole's own groups): body = amber, Fight skills = clay red, Survival = moss, Contest = lilac, Social = berry
+  const fam = (a) => (ATTRS.includes(a) ? 'body' : SOCIAL.includes(a) ? 'social' : ['Brawl', 'Channel', 'Clash', 'Evasion'].includes(a) ? 'fight' : ['Alert', 'Athletic', 'Nature', 'Stealth'].includes(a) ? 'survive' : 'contest');
+  const g = (title, list, cls) => `<h4 class="stat-h ${cls}" style="margin-top:8px">${title}</h4><div class="statgrid">${list.map((a) => `<a href="#" class="stat st-${fam(a)}" data-ixname="${a}">${a}<b>${c[a] ?? 0}</b></a>`).join('')}</div>`;
+  return g('💪 Attributes', ATTRS, 'st-body') + g('🍃 Skills <span class="stat-key"><i class="st-fight">Fight</i><i class="st-survive">Survival</i><i class="st-contest">Contest</i></span>', SKILLS, 'st-survive') + g('💬 Social', SOCIAL, 'st-social');
 }
 
 function pickStatus(c) {

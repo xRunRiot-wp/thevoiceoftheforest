@@ -716,3 +716,12 @@ details.gs h4 { margin: 12px 0 4px; }
 .bad-t { color: var(--bad); font-weight: 700; }
 .buy-confirm { display: flex; gap: 10px; align-items: center; }
 .buy-confirm p { margin: 0; font-size: 16px; }
+
+/* Stats & skills: soft colour per group, so players can find things at a glance */
+.st-body { --sc: #c98a2b; } .st-fight { --sc: #b8573a; } .st-survive { --sc: #5b8a3a; } .st-contest { --sc: #8a62b3; } .st-social { --sc: #c4577e; }
+.stat[class*="st-"] { background: color-mix(in srgb, var(--sc) 9%, var(--paper)); border: 1px solid color-mix(in srgb, var(--sc) 35%, var(--cream3)); border-left: 4px solid var(--sc); color: var(--ink); text-decoration: none; }
+.stat[class*="st-"] b { color: color-mix(in srgb, var(--sc) 70%, var(--brown)); min-width: 26px; text-align: center; border-radius: 99px; background: color-mix(in srgb, var(--sc) 16%, transparent); }
+.stat[class*="st-"]:hover { background: color-mix(in srgb, var(--sc) 16%, var(--paper)); }
+.stat-h { color: color-mix(in srgb, var(--sc) 60%, var(--brown)); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.stat-key { display: inline-flex; gap: 6px; font: 400 12px var(--sans); }
+.stat-key i { font-style: normal; padding: 1px 8px; border-radius: 99px; color: var(--ink); background: color-mix(in srgb, var(--sc) 14%, var(--paper)); border-left: 3px solid var(--sc); }
