@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adeb9d4';
-import * as sheet from './sheetdata.js?v=6adeb9d4';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeb9d4';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeb9d4';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeb9d4';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeb9d4';
-import { CONFIG } from './config.js?v=6adeb9d4';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeb9d4';
-import { merged, editContent } from './content-store.js?v=6adeb9d4';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeb9d4';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeb9d4';
-import { homeHTML } from './sitepages.js?v=6adeb9d4';
-import { pinsOf, showMap } from './hotbar.js?v=6adeb9d4';
-import { chatterLatestHTML } from './chatter.js?v=6adeb9d4';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeb9d4';
-import { locations, spots } from './friendzone.js?v=6adeb9d4';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeb9d4';
-import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adeb9d4';
-import { find } from './effects.js?v=6adeb9d4';
-import * as dice3d from './dice3d.js?v=6adeb9d4';
+import * as store from './store.js?v=6adebb2e';
+import * as sheet from './sheetdata.js?v=6adebb2e';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adebb2e';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adebb2e';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adebb2e';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adebb2e';
+import { CONFIG } from './config.js?v=6adebb2e';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adebb2e';
+import { merged, editContent } from './content-store.js?v=6adebb2e';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adebb2e';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adebb2e';
+import { homeHTML } from './sitepages.js?v=6adebb2e';
+import { pinsOf, showMap } from './hotbar.js?v=6adebb2e';
+import { chatterLatestHTML } from './chatter.js?v=6adebb2e';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adebb2e';
+import { locations, spots } from './friendzone.js?v=6adebb2e';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adebb2e';
+import { TYPE_COLORS, TYPE_ICONS } from './theme.js?v=6adebb2e';
+import { find } from './effects.js?v=6adebb2e';
+import * as dice3d from './dice3d.js?v=6adebb2e';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -266,10 +266,14 @@ function charCard(c) {
       <div class="chips" style="margin-top:4px">${[c.type1, c.type2].filter(Boolean).map((t) => `<a href="#" class="chip type ty-${esc(t)}" data-ixname="Type effectiveness">${esc(t)}</a>`).join('')}${c.ability ? `<a href="#" class="pill" data-ixname="${esc(c.ability)}">${esc(c.ability)}</a>` : ''}${badgeChip(c)}</div>
     </div></div>
     ${zeroHpHTML(c)}
-    <div class="meter"><b>${ixLink('HP')}</b>${bar(c.hp, mx)}<span class="val">${c.hp}/${mx}</span></div>
-    <div class="row" style="justify-content:flex-end"><div class="stepper"><button class="btn alt" data-hp="-1">−1</button><button class="btn alt" data-hp="1">+1</button><button class="btn alt" data-hp="full">Full</button></div></div>
-    <div class="meter"><b>${ixLink('Will points', 'Will')}</b>${bar(c.willCur, c.will, 'will')}<span class="val">${c.willCur ?? 0}/${c.will}</span></div>
-    <div class="row" style="justify-content:flex-end"><div class="stepper"><button class="btn alt" data-will="-1">Spend</button><button class="btn alt" data-will="1">+1</button></div></div>
+    <div class="vitals">
+      <div class="vital hp"><div class="v-head"><span class="v-ic">❤️</span><b>${ixLink('HP')}</b><span class="v-val">${c.hp}<small>/${mx}</small></span></div>
+        <div class="vbar-wrap" style="--n:${Math.max(1, mx)}">${bar(c.hp, mx)}</div>
+        <div class="v-btns"><button class="btn alt" data-hp="-1">−1</button><button class="btn alt" data-hp="1">+1</button><button class="btn alt" data-hp="full">Full</button></div></div>
+      <div class="vital will"><div class="v-head"><span class="v-ic">✨</span><b>${ixLink('Will points', 'Will')}</b><span class="v-val">${c.willCur ?? 0}<small>/${c.will}</small></span></div>
+        <div class="vbar-wrap" style="--n:${Math.max(1, num(c.will))}">${bar(c.willCur, c.will, 'will')}</div>
+        <div class="v-btns"><button class="btn alt" data-will="-1">Spend</button><button class="btn alt" data-will="1">+1</button></div></div>
+    </div>
     <div class="tri pair" style="margin-top:10px">
       <div class="pcol"><a href="#" data-ixname="Humanity" class="ixbox scale" style="${scaleStyle(HUM_COLORS, c.humanity)}"><b>${c.humanity ?? 0}</b><span>Humanity</span>${pips(c.humanity, HUM_COLORS)}</a><div class="stepper"><button class="btn alt sm" data-hum="-1">−1</button><button class="btn alt sm" data-hum="1">+1</button></div></div>
       <div class="pcol"><a href="#" data-ixname="Primal points" class="ixbox scale" style="${scaleStyle(PRIMAL_COLORS, c.primal)}"><b>${c.primal ?? 0}</b><span>Primal</span>${pips(c.primal, PRIMAL_COLORS)}</a><div class="stepper"><button class="btn alt sm" data-primalpt="-1">−1</button><button class="btn alt sm" data-primalpt="1">+1</button></div></div>

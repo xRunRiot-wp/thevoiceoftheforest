@@ -1,14 +1,15 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import * as store from './store.js?v=6adeb9d4';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6adeb9d4';
-import { modal, portrait } from './ui.js?v=6adeb9d4';
-import * as sheet from './sheetdata.js?v=6adeb9d4';
-import { shop } from './guild.js?v=6adeb9d4';
-import { merged, editContent } from './content-store.js?v=6adeb9d4';
-import { logRoll, me, addTeamFx } from './play.js?v=6adeb9d4';
-import { luckyReaction, gmTodo } from './chatter.js?v=6adeb9d4';
-import { ranks } from './rulebook.js?v=6adeb9d4';
+import * as store from './store.js?v=6adebb2e';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6adebb2e';
+import { modal, portrait } from './ui.js?v=6adebb2e';
+import * as sheet from './sheetdata.js?v=6adebb2e';
+import { shop } from './guild.js?v=6adebb2e';
+import { merged, editContent } from './content-store.js?v=6adebb2e';
+import { logRoll, me, addTeamFx } from './play.js?v=6adebb2e';
+import { luckyReaction, gmTodo } from './chatter.js?v=6adebb2e';
+import { ranks } from './rulebook.js?v=6adebb2e';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6adebb2e';
 
 export const GAMES = [
   {
@@ -174,11 +175,11 @@ export function renderGames(main, [arg]) {
       <div class="row" style="justify-content:space-between;margin-top:12px"><h1 style="margin:0">Gambling Games</h1>${gm ? '<button class="btn alt sm" id="add">+ Game</button>' : ''}</div>
       <p class="small muted">Games of chance around Gravity Falls. Spins show up in the table's roll log for everyone.</p>
       <div class="gamecards">${list.map((g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''}" href="#/games/${esc(g.id)}">
-        <canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>
+        ${isFortune(g) ? fortuneMini() : `<canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>`}
         <div class="gc-text"><h3>${esc(g.name)}</h3>
           <p class="gc-host">${esc(g.host ? (g.only ? '' : 'Run by ') + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}${g.only ? ` · <b>${esc(g.only)} only</b>` : ''}${g.special && g.twists.length ? ` · <b>✨ ${esc(g.special)} twists</b>` : ''}</p>
           <p class="gc-intro">${esc((g.intro || '').split('. ')[0].replace(/\.$/, ''))}.</p>
-          <span class="gc-play">Spin the wheel →</span></div></a>`).join('')}</div>`;
+          <span class="gc-play">${isFortune(g) ? 'Draw a card →' : 'Spin the wheel →'}</span></div></a>`).join('')}</div>`;
     $$('[data-g]', main).forEach((cv) => drawWheel(cv, list.find((g) => g.id === cv.dataset.g), -Math.PI / 2));
     const a = $('#add', main);
     if (a) a.onclick = () => editContent('games', GAME_SCHEMA, null, { title: 'New game', onSave: () => renderGames(main, []) });
@@ -186,6 +187,8 @@ export function renderGames(main, [arg]) {
   }
   const g = list.find((x) => x.id === arg);
   if (!g) { main.innerHTML = '<p>That game is gone. <a href="#/games">Back</a></p>'; return; }
+  // Castform's weather fortune table: cards instead of a wheel
+  if (isFortune(g)) { renderFortune(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }
   main.innerHTML = `<div class="row" style="justify-content:space-between;margin-top:12px"><a class="btn alt sm" href="#/games">← Games</a>${gm ? '<button class="btn alt sm" id="ed">Edit</button>' : ''}</div>
     <h1 style="margin:10px 0 4px">${esc(g.name)}</h1>
     <p>${esc(g.intro || '')}</p>
