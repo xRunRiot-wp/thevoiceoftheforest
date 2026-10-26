@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adec13d';
-import * as sheet from './sheetdata.js?v=6adec13d';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adec13d';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adec13d';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adec13d';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adec13d';
-import { CONFIG } from './config.js?v=6adec13d';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adec13d';
-import { merged, editContent } from './content-store.js?v=6adec13d';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adec13d';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adec13d';
-import { homeHTML } from './sitepages.js?v=6adec13d';
-import { pinsOf, showMap } from './hotbar.js?v=6adec13d';
-import { chatterLatestHTML } from './chatter.js?v=6adec13d';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adec13d';
-import { locations, spots } from './friendzone.js?v=6adec13d';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adec13d';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adec13d';
-import { find } from './effects.js?v=6adec13d';
-import * as dice3d from './dice3d.js?v=6adec13d';
+import * as store from './store.js?v=6adec230';
+import * as sheet from './sheetdata.js?v=6adec230';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adec230';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adec230';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adec230';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adec230';
+import { CONFIG } from './config.js?v=6adec230';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adec230';
+import { merged, editContent } from './content-store.js?v=6adec230';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adec230';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adec230';
+import { homeHTML } from './sitepages.js?v=6adec230';
+import { pinsOf, showMap } from './hotbar.js?v=6adec230';
+import { chatterLatestHTML } from './chatter.js?v=6adec230';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adec230';
+import { locations, spots } from './friendzone.js?v=6adec230';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adec230';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adec230';
+import { find } from './effects.js?v=6adec230';
+import * as dice3d from './dice3d.js?v=6adec230';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -255,6 +255,12 @@ const PRIMAL_COLORS = ['#6a9a5b', '#e0b324', '#e07b24', '#d0502a', '#b8322a', '#
 const scaleStyle = (cols, v) => { const c = cols[Math.max(0, Math.min(5, num(v)))]; return `background:${c}22;border-color:${c};--sc:${c}`; };
 const pips = (v, cols) => `<span class="pips">${[1, 2, 3, 4, 5].map((i) => `<i style="background:${i <= num(v) ? cols[Math.min(5, num(v))] : 'transparent'}"></i>`).join('')}</span>`;
 
+// species, nature, rank, instinct and gear as small labelled boxes (label on top, value below); tap one to read its rule
+const factBoxes = (c) => `<div class="facts">${[
+  ['Species', c.pokemon, ''], ['Nature', c.nature, 'Nature (personality)'], ['Rank', c.rank, c.rank ? c.rank + ' Rank' : ''], ['Instinct', c.instinctRank, 'Instinct'],
+  ['Held item', c.held || '—', 'Garments'], ['Garment', c.garments || '—', 'Garments'], ['Training Points', num(c.tp), 'Training'],
+].filter(([, v]) => v !== undefined && v !== null && v !== '').map(([k, v, ix]) => `<${ix ? `a href="#" data-ixname="${esc(ix)}"` : 'div'} class="fact"><span class="fact-k">${k}</span><span class="fact-v">${esc(v)}</span></${ix ? 'a' : 'div'}>`).join('')}</div>`;
+
 function charCard(c) {
   const mx = maxHp(c);
   const st = c.status || [];
@@ -262,8 +268,7 @@ function charCard(c) {
     <div class="char-head">${portrait(c)}<div class="grow">
       <div class="char-name">${esc(c.nickname)}</div>
       <div class="workfor"><span class="small">Working for:</span><div class="vtabs wf-tabs">${[['woodland', 'Woodland', 'Base'], ['vanguard', 'Vanguard', 'Guild']].map(([k, n, tail]) => `<button class="vtab ${(c.guild || 'woodland') === k ? 'on' : ''}" data-setguild="${k}" style="${guildTint(k)}">${k === 'vanguard' ? '🛡️' : '🌳'} ${n}<span class="wf-long"> ${tail}</span></button>`).join('')}</div></div>
-      <div class="char-sub">${esc(c.pokemon)}${c.nature ? ' · ' + ixLink('Nature (personality)', c.nature) : ''}${c.rank ? ' · ' + ixLink(c.rank + ' Rank', c.rank) : ''}${c.instinctRank ? ' · ' + ixLink('Instinct', c.instinctRank) : ''}</div>
-      <p class="small" style="margin:4px 0 0">${ixLink('Garments', 'Held item')}: ${esc(c.held || '—')} · ${ixLink('Garments')}: ${esc(c.garments || '—')} · ${ixLink('Training', 'Training Points')}: ${c.tp || 0}</p>
+      ${factBoxes(c)}
       <div class="chips" style="margin-top:4px">${[c.type1, c.type2].filter(Boolean).map((t) => `<a href="#" class="chip type ty-${esc(t)}" data-ixname="Type effectiveness">${esc(t)}</a>`).join('')}${c.ability ? `<a href="#" class="pill" data-ixname="${esc(c.ability)}">${esc(c.ability)}</a>` : ''}${badgeChip(c)}</div>
     </div></div>
     ${zeroHpHTML(c)}

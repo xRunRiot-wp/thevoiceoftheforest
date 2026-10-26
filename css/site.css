@@ -737,7 +737,7 @@ details.gs h4 { margin: 12px 0 4px; }
 
 /* Move cards in their type's colour (bold), with the type icon in the corner */
 .movecard.typed { position: relative; border-color: color-mix(in srgb, var(--mt) 55%, #000); box-shadow: 0 3px 0 color-mix(in srgb, var(--mt) 45%, #000);
-  background: linear-gradient(150deg, color-mix(in srgb, var(--mt) 95%, #000) 0%, color-mix(in srgb, var(--mt) 66%, #000) 100%); }
+  background: linear-gradient(180deg, color-mix(in srgb, var(--mt) 55%, #000) 0%, var(--mt) 45%, color-mix(in srgb, var(--mt) 38%, #fff) 100%); }
 .movecard.typed > span:not(.mvtype), .movecard.typed .mveff { text-shadow: 0 1px 2px rgba(0, 0, 0, .55); }
 .movecard.typed > span:not(.mvtype) { color: #fff; opacity: .92; }
 .movecard.typed .mveff { color: #fff; }
@@ -837,3 +837,19 @@ details.gs h4 { margin: 12px 0 4px; }
 .mv-act { display: grid; grid-template-columns: 1fr; gap: 0 18px; align-items: start; }
 @media (min-width: 900px) { .mv-act { grid-template-columns: 1fr 1fr; } .mv-act .moves { grid-template-columns: 1fr; } .mv-act .actions { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } }
 @media (max-width: 560px) { .workfor .wf-tabs { flex: 1 1 100%; } }
+
+/* sheet header facts: labelled boxes instead of dotted lines */
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; margin: 6px 0 2px; }
+.fact { display: flex; flex-direction: column; gap: 1px; padding: 5px 9px; border-radius: 10px; background: var(--cream2); border: 1px solid var(--cream3); color: var(--brown2); text-decoration: none; min-width: 0; }
+a.fact:hover { border-color: var(--orange); }
+.fact-k { font: 700 11px var(--pix); text-transform: uppercase; letter-spacing: .04em; opacity: .7; }
+.fact-v { font-size: 16px; font-weight: 700; color: var(--ink, #3b2a1a); overflow-wrap: anywhere; }
+@media (max-width: 560px) { .facts { grid-template-columns: repeat(2, 1fr); } .fact-v { font-size: 15px; } }
+
+/* move cards fade from dark (top) to pastel (bottom); Struggle does the same in navy. The effect text sits on a soft light panel so it stays readable on the pastel end */
+.movecard:not(.typed) { --mt: #3a4a8c; border-color: var(--navy); background: linear-gradient(180deg, color-mix(in srgb, var(--mt) 55%, #000) 0%, var(--mt) 45%, color-mix(in srgb, var(--mt) 38%, #fff) 100%); }
+.movecard .mveff { background: rgba(255, 255, 255, .78); color: var(--ink) !important; text-shadow: none !important; padding: 6px 10px; border-radius: 8px; }
+.movecard .mveff:empty { display: none; }
+.movecard .mveff a.ix { color: var(--brown2); }
+/* sleeping spot and weather line up: same top, same height */
+.pair-row > .sleep.fortune, .pair-row .wxcard.fortune { margin: 0; height: 100%; box-sizing: border-box; }
