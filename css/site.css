@@ -806,7 +806,16 @@ details.gs h4 { margin: 12px 0 4px; }
 .mind-tile:hover { transform: translateY(-2px); }
 .mind-tile.instinct { background: linear-gradient(135deg, #b4472a, #6e2416); border-color: #e99a4c; }
 .mind.defs { margin: 0 0 4px; }
+.vitals.in-col { margin: 0 0 10px; }
 .react-row { margin: 8px 0 4px; }
+.boost-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 6px; }
+.boost-chip { padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: 14px; color: #fff; }
+.boost-chip.up, .stat.boosted.up b { background: #2f8f4e; }
+.boost-chip.down, .stat.boosted.down b { background: #b8452f; }
+.stat.boosted b { color: #fff; border-radius: 8px; padding: 0 6px; }
+.boost-row { padding: 4px 0; border-bottom: 1px dashed var(--cream3); }
+.boost-row .up { color: #2f8f4e; } .boost-row .down { color: #b8452f; }
+.boost-val { min-width: 34px; text-align: center; font-weight: 700; }
 .react-row .btn { flex: 1; }
 .react-row small { opacity: .8; font-size: .8em; margin-left: 4px; }
 .mind-tile.def { background: linear-gradient(135deg, #6b7a3a, #3a4520); border-color: #c8d67a; }

@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adfd9d8';
-import * as sheet from './sheetdata.js?v=6adfd9d8';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfd9d8';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfd9d8';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfd9d8';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfd9d8';
-import { CONFIG } from './config.js?v=6adfd9d8';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfd9d8';
-import { merged, editContent } from './content-store.js?v=6adfd9d8';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfd9d8';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfd9d8';
-import { homeHTML } from './sitepages.js?v=6adfd9d8';
-import { pinsOf, showMap } from './hotbar.js?v=6adfd9d8';
-import { chatterLatestHTML } from './chatter.js?v=6adfd9d8';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfd9d8';
-import { locations, spots } from './friendzone.js?v=6adfd9d8';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfd9d8';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfd9d8';
-import { find } from './effects.js?v=6adfd9d8';
-import * as dice3d from './dice3d.js?v=6adfd9d8';
+import * as store from './store.js?v=6adfdb2e';
+import * as sheet from './sheetdata.js?v=6adfdb2e';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfdb2e';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfdb2e';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfdb2e';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfdb2e';
+import { CONFIG } from './config.js?v=6adfdb2e';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfdb2e';
+import { merged, editContent } from './content-store.js?v=6adfdb2e';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfdb2e';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfdb2e';
+import { homeHTML } from './sitepages.js?v=6adfdb2e';
+import { pinsOf, showMap } from './hotbar.js?v=6adfdb2e';
+import { chatterLatestHTML } from './chatter.js?v=6adfdb2e';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfdb2e';
+import { locations, spots } from './friendzone.js?v=6adfdb2e';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfdb2e';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfdb2e';
+import { find } from './effects.js?v=6adfdb2e';
+import * as dice3d from './dice3d.js?v=6adfdb2e';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -346,14 +346,6 @@ function charCard(c) {
     <div class="section-title" style="margin-top:10px"><h4 style="margin:0">Status</h4><button class="btn alt sm" id="stedit">Change</button></div>
     <div class="conds">${st.length ? st.map((s) => { const [ic, col] = COND_LOOK[s] || ['⚠️', '#8a5d33']; return `<div class="cond" style="--cc:${col}"><div class="cond-head"><span class="cond-ic">${ic}</span><a href="#" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a><span class="cond-dur" data-cdur="${esc(STATUS_IX[s] || s)}"></span></div><div class="cond-body" data-cond="${esc(STATUS_IX[s] || s)}"><p class="small muted">Loading what to do…</p></div></div>`; }).join('')
       : '<div class="cond healthy"><div class="cond-head"><span class="cond-ic">✨</span><b>Healthy</b></div><p class="small" style="margin:4px 0 0">No conditions. Ready for adventure!</p></div>'}</div>
-    <div class="vitals">
-      <div class="vital hp"><div class="v-head"><span class="v-ic">❤️</span><b>${ixLink('HP')}</b><span class="v-val">${c.hp}<small>/${mx}</small></span></div>
-        <div class="vbar-wrap" style="--n:${Math.max(1, mx)}">${bar(c.hp, mx)}</div>
-        <div class="v-btns"><button class="btn alt" data-hp="-1">−1</button><button class="btn alt" data-hp="1">+1</button><button class="btn alt" data-hp="full">Full</button></div></div>
-      <div class="vital will"><div class="v-head"><span class="v-ic">✨</span><b>${ixLink('Will points', 'Will')}</b><span class="v-val">${c.willCur ?? 0}<small>/${c.will}</small></span></div>
-        <div class="vbar-wrap" style="--n:${Math.max(1, num(c.will))}">${bar(c.willCur, c.will, 'will')}</div>
-        <div class="v-btns"><button class="btn alt" data-will="-1">Spend</button><button class="btn alt" data-will="1">+1</button></div></div>
-    </div>
     <div class="tri pair" style="margin-top:10px">
       <div class="pcol"><a href="#" data-ixname="Humanity" class="ixbox scale" style="${scaleStyle(HUM_COLORS, c.humanity)}"><b>${c.humanity ?? 0}</b><span>Humanity</span>${pips(c.humanity, HUM_COLORS)}</a><div class="stepper"><button class="btn alt sm" data-hum="-1">−1</button><button class="btn alt sm" data-hum="1">+1</button></div></div>
       <div class="pcol"><a href="#" data-ixname="Primal points" class="ixbox scale" style="${scaleStyle(PRIMAL_COLORS, c.primal)}"><b>${c.primal ?? 0}</b><span>Primal</span>${pips(c.primal, PRIMAL_COLORS)}</a><div class="stepper"><button class="btn alt sm" data-primalpt="-1">−1</button><button class="btn alt sm" data-primalpt="1">+1</button></div></div>
@@ -365,12 +357,21 @@ function charCard(c) {
     ${c.id === myId() || store.gmUnlocked() ? memoryHTML(c) : ''}
 
     <div class="mv-act"><div class="mv-col">
+    <div class="vitals in-col">
+      <div class="vital hp"><div class="v-head"><span class="v-ic">❤️</span><b>${ixLink('HP')}</b><span class="v-val">${c.hp}<small>/${mx}</small></span></div>
+        <div class="vbar-wrap" style="--n:${Math.max(1, mx)}">${bar(c.hp, mx)}</div>
+        <div class="v-btns"><button class="btn alt" data-hp="-1">−1</button><button class="btn alt" data-hp="1">+1</button><button class="btn alt" data-hp="full">Full</button></div></div>
+      <div class="vital will"><div class="v-head"><span class="v-ic">✨</span><b>${ixLink('Will points', 'Will')}</b><span class="v-val">${c.willCur ?? 0}<small>/${c.will}</small></span></div>
+        <div class="vbar-wrap" style="--n:${Math.max(1, num(c.will))}">${bar(c.willCur, c.will, 'will')}</div>
+        <div class="v-btns"><button class="btn alt" data-will="-1">Spend</button><button class="btn alt" data-will="1">+1</button></div></div>
+    </div>
     <div class="section-title"><h3>Defenses</h3><span class="small muted">what foes roll against</span></div>
     <div class="mind defs">
       <a href="#" data-ixname="Vitality" class="mind-tile def"><span class="m-ic">🛡️</span><span class="m-txt"><span class="m-lab">Defense</span><small>vs Physical · Vitality</small></span><b class="m-num">${statVal(c, 'Vitality')}</b></a>
       <a href="#" data-ixname="Insight" class="mind-tile spdef"><span class="m-ic">🔮</span><span class="m-txt"><span class="m-lab">Sp. Defense</span><small>vs Special · Insight</small></span><b class="m-num">${statVal(c, 'Insight')}</b></a>
     </div>
-    <div class="row react-row"><button class="btn" id="evaderoll">🌀 Evade <small>${statVal(c, 'Dexterity') + statVal(c, 'Evasion')} ${statVal(c, 'Dexterity') + statVal(c, 'Evasion') === 1 ? 'die' : 'dice'}</small></button><button class="btn alt" id="clashroll">💥 Clash</button></div>
+    <div class="row react-row"><button class="btn" id="evaderoll">🌀 Evade <small>${statVal(c, 'Dexterity') + statVal(c, 'Evasion')} ${statVal(c, 'Dexterity') + statVal(c, 'Evasion') === 1 ? 'die' : 'dice'}</small></button><button class="btn alt" id="clashroll">💥 Clash</button><button class="btn alt" id="boostbtn">± Boosts</button></div>
+    ${boostStrip(c)}
     <div class="section-title"><h3>Moves</h3><span class="small muted">tap to roll</span></div>
     <div class="moves">${(c.moves || []).map((m, i) => `<div class="move movecard"><a href="#" data-ixname="${esc(m)}" class="mvname"><b>${esc(m)}</b></a><span data-minfo="${esc(m)}">…</span><p class="mveff" data-meff="${esc(m)}"></p><button class="btn block" data-move="${i}">Roll ${esc(m)}</button></div>`).join('') || '<p class="muted small">No moves on this sheet yet.</p>'}
       <div class="move movecard"><a href="#" data-ixname="Physical Struggle" class="mvname"><b>Struggle</b></a><span>None · Physical · Accuracy Dexterity + Brawl · Damage Strength + Power 0</span><p class="mveff">Always available, even with no moves left.</p><button class="btn block" data-struggle="Physical Struggle">Roll Struggle</button></div></div>
@@ -500,6 +501,8 @@ function bindCharCard(main, c) {
   $('#initroll', main).onclick = () => rollInitiative(c);
   $('#evaderoll', main).onclick = () => actionRoll(c, REACT.evade);
   $('#clashroll', main).onclick = () => clashPick(c);
+  $('#boostbtn', main).onclick = () => pickBoosts(c);
+  if ($('#clearboosts', main)) $('#clearboosts', main).onclick = () => clearBoosts(c);
   $('#additem', main).onclick = () => addItem(c.id);
   $$('[data-poke]', main).forEach((b) => b.onclick = () => pokeMove(c, b.dataset.poke));
   $$('[data-use]', main).forEach((b) => b.onclick = () => useItem(b.dataset.use, c));
@@ -566,7 +569,45 @@ export function statVal(c, name) {
   if (/^(smart|clever)/i.test(n)) return num(c.Clever);
   if (/^will$/i.test(n)) return num(c.will);
   const key = Object.keys(c).find((k) => k.toLowerCase() === n.toLowerCase());
-  return key ? num(c[key]) : 0;
+  return (key ? num(c[key]) : 0) + boostOf(c, n);
+}
+// Temporary boosts (c.boosts = { Strength: 1, Evasion: -1 }): count in every roll, never change the real stats.
+export const BOOSTABLE = [...ATTRS, ...SOCIAL, 'Brawl', 'Channel', 'Clash', 'Evasion', 'Alert', 'Athletic', 'Nature', 'Stealth', 'Allure', 'Etiquette', 'Intimidate', 'Perform'];
+export function boostOf(c, name) {
+  const b = c?.boosts || {}; const n = String(name || '').toLowerCase();
+  const key = Object.keys(b).find((k) => k.toLowerCase() === n);
+  return key ? num(b[key]) : 0;
+}
+const boostList = (c) => Object.entries(c.boosts || {}).filter(([, v]) => num(v));
+const signed = (v) => (v > 0 ? '+' + v : '−' + Math.abs(v));
+function boostStrip(c) {
+  const l = boostList(c);
+  return l.length ? `<div class="boost-strip"><span class="small"><b>Boosts:</b></span>${l.map(([k, v]) => `<span class="boost-chip ${v > 0 ? 'up' : 'down'}">${v > 0 ? '▲' : '▼'} ${esc(k)} ${signed(v)}</span>`).join('')}<button class="btn alt sm" id="clearboosts">Clear boosts</button></div>` : '';
+}
+function setBoost(c, stat, d) {
+  const v = boostOf(party()[c.id] || c, stat) + d;
+  store.set(`party/${c.id}/boosts/${stat}`, v || null);
+  window.dispatchEvent(new Event('refreshpage'));
+}
+export function clearBoosts(c, quiet) {
+  if (!boostList(c).length) return;
+  store.set(`party/${c.id}/boosts`, null);
+  if (!quiet) store.pushLimited('log', { t: Date.now(), text: `${c.nickname}'s temporary boosts wear off.` });
+  window.dispatchEvent(new Event('refreshpage'));
+}
+function pickBoosts(c) {
+  const cur = () => party()[c.id] || c;
+  const row = (k) => { const v = boostOf(cur(), k); return `<div class="row nowrap boost-row"><span class="grow"><b>${esc(k)}</b> <span class="small muted">${num(cur()[k])}${v ? ` → <b class="${v > 0 ? 'up' : 'down'}">${num(cur()[k]) + v}</b>` : ''}</span></span><button class="btn alt sm" data-bst="${k}" data-d="-1">−1</button><span class="boost-val">${v ? signed(v) : '0'}</span><button class="btn alt sm" data-bst="${k}" data-d="1">+1</button></div>`; };
+  const body = () => `<h2>Temporary boosts</h2><p class="small muted">For moves like Growl or Bulk Up. Every roll and the Defenses count these. Real stats never change.</p>
+    <h4>Attributes</h4>${[...ATTRS].map(row).join('')}<h4>Social</h4>${SOCIAL.map(row).join('')}<h4>Skills</h4>${BOOSTABLE.slice(ATTRS.length + SOCIAL.length).map(row).join('')}
+    <div class="row" style="margin-top:10px"><button class="btn alt" id="bclear">Clear all boosts</button><button class="btn" data-close>Done</button></div>`;
+  const el = modal(body());
+  const wire = () => {
+    $$('[data-bst]', el).forEach((b) => b.onclick = () => { setBoost(c, b.dataset.bst, num(b.dataset.d)); paint(); });
+    $('#bclear', el).onclick = () => { clearBoosts(cur()); paint(); };
+  };
+  const paint = () => { const sh = el.querySelector('.sheet') || el; const keep = sh.scrollTop; sh.innerHTML = `<button class="btn alt sm x" data-close>Close</button>${body()}`; sh.scrollTop = keep; wire(); };
+  wire();
 }
 const primalDice = (c) => ((c.status || []).includes('Primal State') ? num(c.instinct) : 0);
 const painOf = (c) => ((c.status || []).includes('Primal State') ? 0 : painFor(c.hp ?? maxHp(c), maxHp(c)));
@@ -811,7 +852,7 @@ export { RULES, CONFIG };
 
 function statGrids(c) {
   // one panel per group (PokéRole's own groups), each in its own colour: body = amber, Fight = clay red, Survival = moss, Contest = lilac, Social = berry
-  const panel = (title, list, cls) => `<div class="stat-panel ${cls}"><h4 class="stat-h">${title}</h4>${list.map((a) => `<a href="#" class="stat ${cls}" data-ixname="${a}">${a}<b>${c[a] ?? 0}</b></a>`).join('')}</div>`;
+  const panel = (title, list, cls) => `<div class="stat-panel ${cls}"><h4 class="stat-h">${title}</h4>${list.map((a) => { const v = boostOf(c, a); return `<a href="#" class="stat ${cls}${v ? (v > 0 ? ' boosted up' : ' boosted down') : ''}" data-ixname="${a}">${a}<b>${v ? `${v > 0 ? '▲' : '▼'}${num(c[a]) + v}` : c[a] ?? 0}</b></a>`; }).join('')}</div>`;
   return `<div class="stat-cols two">${panel('💪 Attributes', ATTRS, 'st-body')}${panel('💬 Social', SOCIAL, 'st-social')}</div>
     <h4 class="stat-h st-survive stat-skills">🍃 Skills</h4>
     <div class="stat-cols rows">${panel('⚔️ Fight', ['Brawl', 'Channel', 'Clash', 'Evasion'], 'st-fight')}${panel('🌲 Survival', ['Alert', 'Athletic', 'Nature', 'Stealth'], 'st-survive')}${panel('🎀 Contest', ['Allure', 'Etiquette', 'Intimidate', 'Perform'], 'st-contest')}</div>`;

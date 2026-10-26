@@ -1,16 +1,16 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6adfd9d8';
-import * as sheet from './sheetdata.js?v=6adfd9d8';
-import { ledger } from './vault.js?v=6adfd9d8';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6adfd9d8';
-import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6adfd9d8';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6adfd9d8';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6adfd9d8';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal } from './play.js?v=6adfd9d8';
-import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6adfd9d8';
-import { merged, editContent } from './content-store.js?v=6adfd9d8';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6adfd9d8';
-import { CONFIG } from './config.js?v=6adfd9d8';
+import * as store from './store.js?v=6adfdb2e';
+import * as sheet from './sheetdata.js?v=6adfdb2e';
+import { ledger } from './vault.js?v=6adfdb2e';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6adfdb2e';
+import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6adfdb2e';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6adfdb2e';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6adfdb2e';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts } from './play.js?v=6adfdb2e';
+import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6adfdb2e';
+import { merged, editContent } from './content-store.js?v=6adfdb2e';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6adfdb2e';
+import { CONFIG } from './config.js?v=6adfdb2e';
 
 const PORTRAIT_LIST = ['beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -59,7 +59,7 @@ export async function renderGM(main) {
   <section id="gm-Party" class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Party</h2><button class="btn alt sm" id="addguest">+ Guest</button></div>
     <div style="margin-top:8px">${partyStrip('')}</div>
     ${guests().length ? `<h4 style="margin-top:10px">${ixLink('Guest party member', 'Guests')}</h4>${guests().map((c) => `<div class="row nowrap" style="padding:6px 0;border-bottom:1px dashed var(--cream3)">${portrait(c, 'xs')}<div class="grow"><b class="pix">${esc(c.nickname)}</b> <span class="small muted">leaves ${esc({ mission: 'when the mission ends', floor: 'at the next floor', session: 'at session end', manual: 'when removed' }[c.guest.leaves] || '')} · ${c.guest.controller === 'player' ? 'player-controlled' : 'GM-controlled'}</span></div><button class="btn alt sm" data-gperm="${c.id}">Make permanent</button><button class="btn bad sm" data-gleave="${c.id}">Leaves</button></div>`).join('')}` : ''}
-    <div class="row" style="margin-top:10px"><button class="btn alt" id="callrest">🌙 Call a rest</button></div>
+    <div class="row" style="margin-top:10px"><button class="btn alt" id="callrest">🌙 Call a rest</button><button class="btn alt" id="clearallboosts">Clear everyone's boosts</button></div>
     <p class="small muted">Tap a character to see the full sheet and edit it.</p></section>
 
   <section id="gm-Dungeon" class="card">
@@ -289,6 +289,13 @@ function bindGM(main) {
   s('#dleave').onclick = () => { store.set('session/dungeon', ''); store.set('session/floor', 0); store.set('session/hunger', 0); store.gmSet('threat', 0); };
   s('#hunger').onclick = () => store.set('session/hunger', (sess.hunger || 0) + 1);
   // mid-session rest: players are asked where they sleep (Friend Zone); healing is optional
+  s('#clearallboosts').onclick = () => {
+    const list = Object.values(store.get('party') || {}).filter((c) => Object.keys(c.boosts || {}).length);
+    if (!list.length) return toast('Nobody has boosts right now');
+    list.forEach((c) => clearBoosts(c, true));
+    store.pushLimited('log', { t: Date.now(), text: "Everyone's temporary boosts wear off." });
+    toast('Boosts cleared');
+  };
   s('#callrest').onclick = () => {
     const el = modal(`<h2>🌙 Call a rest</h2><p>Every player gets asked where their character sleeps tonight.</p>
       <label class="check"><input type="checkbox" id="rheal"> Everyone recovers: full HP and Will, statuses cleared</label>
@@ -434,7 +441,7 @@ function bindGM(main) {
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6adfd9d8');
+    const { openTable } = await import('./app.js?v=6adfdb2e');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));
