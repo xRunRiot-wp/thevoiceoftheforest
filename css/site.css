@@ -794,3 +794,8 @@ details.gs h4 { margin: 12px 0 4px; }
   background: repeating-linear-gradient(to right, transparent 0 calc(100% / var(--n) - 1px), rgba(45, 31, 18, .55) calc(100% / var(--n) - 1px) calc(100% / var(--n))); }
 .v-btns { display: flex; gap: 6px; }
 .v-btns .btn { flex: 1; min-height: 38px; padding: 4px; }
+
+/* Guild page character cards: stats on their own line, each kept whole */
+.char-stats { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 2px; }
+.char-stats span { white-space: nowrap; }
+.portrait.art img { object-position: center; }

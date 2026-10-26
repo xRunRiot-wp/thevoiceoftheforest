@@ -1,5 +1,5 @@
 // Shared bits of UI: modal sheet, portraits, bars, dice faces.
-import { esc } from './util.js?v=6adebb2e';
+import { esc } from './util.js?v=6adebb98';
 
 const PORTRAITS = ['beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 
@@ -9,8 +9,9 @@ export function portraitFile(species) {
 }
 
 // The GM's own character art (campaign site, Meet the Characters), by character name or species
-const ART = { gemini: 'cast_gemini.png', cleffa: 'cast_gemini.png', slakoth: 'cast_slakoth.jpg', magnemite: 'cast_magnemite.jpg', puff: 'cast_puff.jpg', cottonee: 'cast_puff.jpg',
-  rox: 'cast_rox.jpg', felicia: 'cast_felicia.jpg', rocky: 'cast_rocky.jpg', sudowoodo: 'cast_rocky.jpg', mimi: 'cast_mimi_kippy.jpg', kippy: 'cast_mimi_kippy.jpg', mimikippy: 'cast_mimi_kippy.jpg' };
+// (the _centered copies are trimmed of empty space so the Pokémon sits in the middle of the frame)
+const ART = { gemini: 'cast_gemini_centered.png', cleffa: 'cast_gemini_centered.png', slakoth: 'cast_slakoth_centered.png', magnemite: 'cast_magnemite.jpg', puff: 'cast_puff_centered.png', cottonee: 'cast_puff_centered.png',
+  rox: 'cast_rox_centered.png', felicia: 'cast_felicia.jpg', rocky: 'cast_rocky.jpg', sudowoodo: 'cast_rocky.jpg', mimi: 'cast_mimi_kippy.jpg', kippy: 'cast_mimi_kippy.jpg', mimikippy: 'cast_mimi_kippy.jpg' };
 export function artFile(c) {
   for (const v of [c?.nickname, c?.name, c?.pokemon, c?.species]) { const k = String(v || '').toLowerCase().replace(/[^a-z]/g, ''); if (ART[k]) return 'assets/gs/' + ART[k]; }
   return null;
