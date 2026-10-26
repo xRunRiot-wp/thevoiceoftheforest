@@ -589,3 +589,8 @@ details.gs h4 { margin: 12px 0 4px; }
 .mc-btns .btn { min-height: 34px; padding: 4px 8px; font-size: 14px; }
 @media (max-width: 520px) { .mc-table { grid-template-columns: repeat(2, 1fr); } }
 .mc-edit { margin-bottom: 6px; align-items: center; }
+
+/* sleeping spot + weather share one row */
+.pair-row { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 12px 0 4px; align-items: stretch; }
+.pair-row > .sleep, .pair-row .wxcard { margin: 0; height: 100%; }
+@media (min-width: 560px) { .pair-row { grid-template-columns: 1fr 1fr; } }

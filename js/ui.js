@@ -1,5 +1,5 @@
 // Shared bits of UI: modal sheet, portraits, bars, dice faces.
-import { esc } from './util.js?v=6adead12';
+import { esc } from './util.js?v=6adeae35';
 
 const PORTRAITS = ['beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 

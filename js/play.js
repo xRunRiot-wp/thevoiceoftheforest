@@ -1,23 +1,23 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adead12';
-import * as sheet from './sheetdata.js?v=6adead12';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adead12';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adead12';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adead12';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adead12';
-import { CONFIG } from './config.js?v=6adead12';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adead12';
-import { merged, editContent } from './content-store.js?v=6adead12';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adead12';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adead12';
-import { homeHTML } from './sitepages.js?v=6adead12';
-import { pinsOf, showMap } from './hotbar.js?v=6adead12';
-import { chatterLatestHTML } from './chatter.js?v=6adead12';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adead12';
-import { locations, spots } from './friendzone.js?v=6adead12';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adead12';
-import { find } from './effects.js?v=6adead12';
-import * as dice3d from './dice3d.js?v=6adead12';
+import * as store from './store.js?v=6adeae35';
+import * as sheet from './sheetdata.js?v=6adeae35';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adeae35';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adeae35';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adeae35';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adeae35';
+import { CONFIG } from './config.js?v=6adeae35';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adeae35';
+import { merged, editContent } from './content-store.js?v=6adeae35';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adeae35';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adeae35';
+import { homeHTML } from './sitepages.js?v=6adeae35';
+import { pinsOf, showMap } from './hotbar.js?v=6adeae35';
+import { chatterLatestHTML } from './chatter.js?v=6adeae35';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adeae35';
+import { locations, spots } from './friendzone.js?v=6adeae35';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adeae35';
+import { find } from './effects.js?v=6adeae35';
+import * as dice3d from './dice3d.js?v=6adeae35';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -285,7 +285,6 @@ function charCard(c) {
     <div class="chips">${st.length ? st.map((s) => `<a href="#" class="chip on" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a>`).join('') : '<span class="small muted">Healthy</span>'}</div>
     ${c.id === myId() || store.gmUnlocked() ? memoryHTML(c) : ''}
 
-    <div id="wxcard"></div>
     <div class="section-title"><h3>Moves</h3><span class="small muted">tap to roll</span></div>
     <div class="moves">${(c.moves || []).map((m, i) => `<div class="move movecard"><a href="#" data-ixname="${esc(m)}" class="mvname"><b>${esc(m)}</b></a><span data-minfo="${esc(m)}">…</span><p class="mveff" data-meff="${esc(m)}"></p><button class="btn block" data-move="${i}">Roll ${esc(m)}</button></div>`).join('') || '<p class="muted small">No moves on this sheet yet.</p>'}
       <div class="move movecard"><a href="#" data-ixname="Physical Struggle" class="mvname"><b>Struggle</b></a><span>None · Physical · Accuracy Dexterity + Brawl · Damage Strength + Power 0</span><p class="mveff">Always available, even with no moves left.</p><button class="btn block" data-struggle="Physical Struggle">Roll Struggle</button></div></div>
@@ -300,7 +299,7 @@ function charCard(c) {
     <div class="card pokebank"><div class="pix pokeamt">${num(c.poke).toLocaleString()} <span>Poké</span></div>
       <div class="row"><button class="btn sm" data-poke="add">+ Add</button><button class="btn alt sm" data-poke="spend">− Spend</button><button class="btn alt sm" data-poke="give">Give to guild</button><button class="btn alt sm" data-poke="take">Take from guild</button></div></div>
 
-    ${sleepHTML(c)}
+    <div class="pair-row">${sleepHTML(c)}<div id="wxcard"></div></div>
     <div class="section-title"><h3>Bag</h3><button class="btn alt sm" id="additem">+ Item</button></div>
     ${bagList(c)}
 
