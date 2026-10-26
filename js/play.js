@@ -1,19 +1,19 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ade9caf';
-import * as sheet from './sheetdata.js?v=6ade9caf';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9caf';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9caf';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9caf';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9caf';
-import { CONFIG } from './config.js?v=6ade9caf';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9caf';
-import { merged, editContent } from './content-store.js?v=6ade9caf';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9caf';
-import { guildName } from './guild.js?v=6ade9caf';
-import { homeHTML } from './sitepages.js?v=6ade9caf';
-import { memoryHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6ade9caf';
-import { locations, spots } from './friendzone.js?v=6ade9caf';
-import * as dice3d from './dice3d.js?v=6ade9caf';
+import * as store from './store.js?v=6ade9d06';
+import * as sheet from './sheetdata.js?v=6ade9d06';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ade9d06';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ade9d06';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ade9d06';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ade9d06';
+import { CONFIG } from './config.js?v=6ade9d06';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ade9d06';
+import { merged, editContent } from './content-store.js?v=6ade9d06';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ade9d06';
+import { guildName } from './guild.js?v=6ade9d06';
+import { homeHTML } from './sitepages.js?v=6ade9d06';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6ade9d06';
+import { locations, spots } from './friendzone.js?v=6ade9d06';
+import * as dice3d from './dice3d.js?v=6ade9d06';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -235,7 +235,7 @@ function charCard(c) {
     <div class="row" style="justify-content:flex-end;margin-top:6px"><span class="small muted" style="margin-right:auto">Primal Score</span><div class="stepper"><button class="btn alt" data-primalpt="-1">−1</button><button class="btn alt" data-primalpt="1">+1</button></div></div>
     <div class="section-title" style="margin-top:12px"><h4 style="margin:0">Status</h4><button class="btn alt sm" id="stedit">Change</button></div>
     <div class="chips">${st.length ? st.map((s) => `<a href="#" class="chip on" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a>`).join('') : '<span class="small muted">Healthy</span>'}</div>
-    ${memoryHTML(c)}
+    ${c.id === myId() || store.gmUnlocked() ? memoryHTML(c) : ''}
 
     <div class="section-title"><h3>Moves</h3><span class="small muted">tap to roll</span></div>
     <div class="moves">${(c.moves || []).map((m, i) => `<div class="move movecard"><a href="#" data-ixname="${esc(m)}" class="mvname"><b>${esc(m)}</b></a><span data-minfo="${esc(m)}">…</span><p class="mveff" data-meff="${esc(m)}"></p><button class="btn block" data-move="${i}">Roll ${esc(m)}</button></div>`).join('') || '<p class="muted small">No moves on this sheet yet.</p>'}
@@ -551,6 +551,7 @@ export function viewCharacter(id) {
     <p class="small" style="color:var(--bad)">${esc((c.status || []).join(', '))}</p>
     <p class="small"><b>Moves:</b> ${esc((c.moves || []).join(', ') || '—')}</p>
     ${statGrids(c)}
+    ${store.gmUnlocked() ? memoryFeedHTML(c) : ''}
     <div class="row" style="margin-top:12px"><button class="btn alt" id="ed">Edit</button></div>`, (el) => { $('#ed', el).onclick = () => editCharacter(id); });
 }
 

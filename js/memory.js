@@ -2,8 +2,8 @@
 // Humanity 0 = only Pokémon thoughts; the closer to 5, the more of their human life comes back
 // in daydreams, and in dreams or nightmares when they rest. Memories are built from the
 // character's own memory seeds (written by the player or GM, never pulled from private forms).
-import * as store from './store.js?v=6ade9caf';
-import { $, $$, esc, num, toast } from './util.js?v=6ade9caf';
+import * as store from './store.js?v=6ade9d06';
+import { $, $$, esc, num, toast } from './util.js?v=6ade9d06';
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const TIERS = { 5: 'Human memories clear', 4: 'Details begin to fade', 3: 'Two lives in conflict', 2: 'Instinct overrides memory', 1: 'The human self is almost gone', 0: 'Fully Pokémon' };
@@ -58,13 +58,18 @@ const ICON = { thought: '🐾', daydream: '☁️', dream: '🌙', nightmare: '�
 export function memoryHTML(c) {
   const h = humanityOf(c);
   const list = Object.entries(store.get(`memories/${c.id}`) || {}).sort().reverse().slice(0, 20);
-  return `<div class="memory"><div class="row" style="justify-content:space-between"><b>🧠 Remembering</b><span class="pill">Humanity ${h} · ${esc(TIERS[h])}</span></div>
+  return `<div class="memory"><div class="row" style="justify-content:space-between"><b>🧠 Remembering <span class="small muted">(only you and the GM)</span></b><span class="pill">Humanity ${h} · ${esc(TIERS[h])}</span></div>
     <div class="mem-feed">${list.length ? list.map(([, x]) => `<div class="mem ${esc(x.kind)}"><span class="ic">${ICON[x.kind] || '💭'}</span><span class="grow">${esc(x.text)}</span></div>`).join('') : `<p class="small muted">${h ? 'No memories have surfaced yet.' : `${esc(c.nickname)} only thinks Pokémon thoughts now.`}</p>`}</div>
     <div class="row nowrap mem-actions"><button class="btn alt sm" id="memday">${h ? '☁️ Daydream' : '🐾 Think'}</button><input id="memnote" placeholder="Write a thought or memory…"><button class="btn sm" id="memadd">Add</button></div>
     <details class="small"><summary>Memory seeds (${seeds(c).length})</summary>
       <p class="muted">Things from your character’s human life, one per line (a place, a person’s nickname, a smell, a song…). Dreams and daydreams are built from these. No real names.</p>
       <textarea id="memseeds" rows="4" placeholder="a red bicycle with a squeaky bell&#10;my little brother’s laugh&#10;the bakery on the corner">${esc(c.memories || '')}</textarea>
       <button class="btn alt sm" id="memsave">Save seeds</button></details></div>`;
+}
+// GM's read-only look at a character's memories (character pop-up)
+export function memoryFeedHTML(c) {
+  const list = Object.entries(store.get(`memories/${c.id}`) || {}).sort().reverse().slice(0, 12);
+  return `<div class="memory"><b>🧠 Remembering</b> <span class="small muted">(only this player and the GM see this)</span><div class="mem-feed">${list.length ? list.map(([, x]) => `<div class="mem ${esc(x.kind)}"><span class="ic">${ICON[x.kind] || '💭'}</span><span class="grow">${esc(x.text)}</span></div>`).join('') : '<p class="small muted">Nothing yet.</p>'}</div>${seeds(c).length ? `<p class="small"><b>Memory seeds:</b> ${esc(seeds(c).join(' · '))}</p>` : ''}</div>`;
 }
 export function bindMemory(main, c) {
   const d = $('#memday', main);
