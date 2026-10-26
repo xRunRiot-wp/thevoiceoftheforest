@@ -824,6 +824,11 @@ details.gs h4 { margin: 12px 0 4px; }
 .stat-panel .stat-h { margin: 0 0 2px; font-size: 15px; }
 .stat-panel .stat { align-items: center; }
 .stat-skills { margin: 14px 0 0; }
+/* skills: one row per group, heading then its 4 skills across (2x2 on phones) */
+.stat-cols.rows { grid-template-columns: 1fr; }
+.stat-cols.rows .stat-panel { display: grid; grid-template-columns: 110px repeat(4, 1fr); align-items: center; gap: 6px; }
+.stat-cols.rows .stat-h { margin: 0; }
+@media (max-width: 560px) { .stat-cols.rows .stat-panel { grid-template-columns: repeat(2, 1fr); } .stat-cols.rows .stat-h { grid-column: 1 / -1; } }
 @media (max-width: 560px) { .stat-cols { gap: 6px; } .stat-panel { padding: 6px; } .stat-panel .stat { font-size: 12.5px; padding: 5px 6px; } .stat-panel .stat b { font-size: 15px; min-width: 22px; } .stat-panel .stat-h { font-size: 13px; } }
 .wf-tabs .vtab { white-space: nowrap; }
 @media (max-width: 560px) { .wf-tabs { min-width: 0; } .wf-tabs .vtab { font-size: 15px; padding: 8px 4px; } .wf-long { display: none; } }
