@@ -1,9 +1,9 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6adea1c9';
-import { $, $$, esc, toast } from './util.js?v=6adea1c9';
-import { modal, closeModal } from './ui.js?v=6adea1c9';
-import { merged, editContent } from './content-store.js?v=6adea1c9';
+import * as store from './store.js?v=6adea270';
+import { $, $$, esc, toast } from './util.js?v=6adea270';
+import { modal, closeModal } from './ui.js?v=6adea270';
+import { merged, editContent } from './content-store.js?v=6adea270';
 
 export const LOCATIONS = [
   {
@@ -35,6 +35,7 @@ export const LOCATIONS = [
 const NETWORK = [{
   id: 'network',
   about: 'The Friend Zone Network is a collection of portable Pokémon habitats established throughout the region. Recruited Pokémon live in environments that suit their species, develop relationships, help maintain the camps, and remain available when their rescue team needs them. Now, through the network, they help any Pokémon in need.\n\nUnlike permanent towns, these are expedition-style communities made of tents, tarps, modular shelters, movable furniture, and natural resting areas. Everything built by the guild can be dismantled and relocated during emergencies.',
+  loyaltyText: 'Loyalty is the team’s relationship with a location. Every region starts at 0 🌸 because the team has never been there. Reaching a region for the first time earns 1 🌸.',
   typesText: [
     'The Sentinels | Serious, organized, and highly committed to rescue work. They enjoy drills, patrols, and structured assignments. They may become frustrated by careless behavior.',
     'The Caretakers | Like Beatrice, they look after everyone. They remember injuries, prepare meals, welcome new residents, and make sure the quieter Pokémon are included.',
@@ -73,7 +74,7 @@ const NETWORK = [{
     'Clearly marked departure routes and safe relay assembly points.',
   ].join('\n'),
 }];
-const NET_SCHEMA = [['about', 'About the network', 'area'], ['typesText', 'Personality types — one per line: Name | description', 'area'],
+const NET_SCHEMA = [['about', 'About the network', 'area'], ['loyaltyText', 'What loyalty means', 'area'], ['typesText', 'Personality types — one per line: Name | description', 'area'],
   ['relay', 'Relay Network', 'area'], ['relayRulesText', 'Relay rules — one per line: Rule | description', 'area'],
   ['staffText', 'Relay staffing — one per line: Duty | responsibility', 'area'], ['staffNote', 'Staffing note', 'area'],
   ['pokemonRulesText', 'Pokémon rules — one per line', 'area'], ['campRulesText', 'Encampment rules — one per line', 'area']];
@@ -81,6 +82,7 @@ const network = () => merged('fznetwork', NETWORK)[0] || NETWORK[0];
 const pairs = (t) => (t || '').split('\n').map((l) => l.split('|').map((x) => x.trim())).filter((x) => x[0]);
 export const personalityTypes = () => pairs(network().typesText).map(([n]) => n);
 const flowers = (n) => (Number(n) > 0 ? '🌸'.repeat(Math.min(5, Number(n))) : '');
+const loyaltyLabel = (n) => (Number(n) > 0 ? flowers(n) : '0 🌸 · not visited yet');
 
 function networkHTML(gm) {
   const n = network();
@@ -88,6 +90,7 @@ function networkHTML(gm) {
   const dl = (t) => pairs(t).map(([a, b]) => `<p><b>${esc(a)}:</b> ${esc(b || '')}</p>`).join('');
   return `<div class="card fz-net"><div class="row" style="justify-content:space-between"><h2 style="margin:0">🕸️ Friend Zone Network</h2>${gm ? '<button class="btn alt sm" id="fznetedit">Edit</button>' : ''}</div>
     ${(n.about || '').split('\n\n').map((x) => `<p>${esc(x)}</p>`).join('')}
+    ${n.loyaltyText ? `<details><summary><b>🌸 Loyalty</b></summary><p>${esc(n.loyaltyText)}</p></details>` : ''}
     <details><summary><b>🗺️ Travel times from Woodland Base</b></summary><table class="fz-travel"><tr><th>Region</th><th>On foot</th><th>Relay</th></tr>
       ${locations().map((l) => `<tr><td><a href="#/friends/${esc(l.id)}">${esc(l.icon || '📍')} ${esc(l.name)}</a></td><td>${esc(l.onFoot || '—')}</td><td>${esc(l.relayTime || '—')}</td></tr>`).join('')}</table></details>
     <details><summary><b>🎭 Recruit personalities</b></summary>${dl(n.typesText)}</details>
@@ -110,7 +113,7 @@ export const locations = () => merged('friendzone', LOCATIONS);
 export function friendZoneSection() {
   return `<div class="section-title"><h2>Friend Zone</h2><a class="small" href="#/friends">Network →</a></div>
   <div class="card fz-mini">${locations().map((l) => { const n = residents(l);
-    return `<a class="fz-row" href="#/friends/${esc(l.id)}"><span class="grow"><b>${esc(l.icon || '📍')} ${esc(l.name)}</b> ${flowers(l.loyalty)}<span class="small muted"> · relay ${esc(l.relayTime || '—')}</span></span><span class="small">${spots(l).length ? `${n} resident${n === 1 ? '' : 's'}` : 'camp not set up'}</span></a>`; }).join('')}</div>`;
+    return `<a class="fz-row" href="#/friends/${esc(l.id)}"><span class="grow"><b>${esc(l.icon || '📍')} ${esc(l.name)}</b> ${Number(l.loyalty) > 0 ? flowers(l.loyalty) : '<span class="small muted">0 🌸</span>'}<span class="small muted"> · relay ${esc(l.relayTime || '—')}</span></span><span class="small">${spots(l).length ? `${n} resident${n === 1 ? '' : 's'}` : 'camp not set up'}</span></a>`; }).join('')}</div>`;
 }
 const residents = (l) => spots(l).reduce((s, x) => s + x.mons.length, 0) + Object.values(store.get('recruits/' + l.id) || {}).reduce((s, x) => s + Object.keys(x || {}).length, 0);
 
@@ -127,7 +130,7 @@ export function renderFriendZone(main, [arg]) {
     <p class="small muted">Where recruited Pokémon live. Each location has its own camp.</p>
     ${networkHTML(gm)}
     ${list.length > 1 ? `<div class="fz-tabs">${list.map((l) => `<a class="btn ${l.id === loc.id ? '' : 'alt'} sm" href="#/friends/${esc(l.id)}">${esc(l.icon || '📍')} ${esc(l.name)}</a>`).join('')}</div>` : ''}
-    <div class="card fz-head"><h2 style="margin:0 0 6px">${esc(loc.icon || '📍')} ${esc(loc.name)} ${flowers(loc.loyalty) ? `<span class="fz-loyal" title="Loyalty">${flowers(loc.loyalty)}</span>` : ''}</h2>
+    <div class="card fz-head"><h2 style="margin:0 0 6px">${esc(loc.icon || '📍')} ${esc(loc.name)} <span class="fz-loyal${Number(loc.loyalty) > 0 ? '' : ' small muted'}" title="Loyalty">${loyaltyLabel(loc.loyalty)}</span></h2>
       <p class="small"><b>On foot:</b> ${esc(loc.onFoot || '—')} · <b>Relay:</b> ${esc(loc.relayTime || '—')}</p>
       ${loc.role ? `<p><i>${esc(loc.role)}</i></p>` : ''}${loc.welcome ? `<p>${esc(loc.welcome)}</p>` : ''}${!spots(loc).length ? `<p class="small muted">This camp hasn’t been set up yet.${gm ? ' Tap Edit to add its spots.' : ''}</p>` : ''}${loc.theme ? `<p class="small"><b>Theme:</b> ${esc(loc.theme)}</p>` : ''}</div>
     <div class="fz-spots">${spots(loc).map((s) => { const extra = Object.entries(recruits[s.key] || {});
