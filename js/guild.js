@@ -1,18 +1,18 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6adeb3c3';
-import * as sheet from './sheetdata.js?v=6adeb3c3';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adeb3c3';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adeb3c3';
-import { MISSION_GP } from './content.js?v=6adeb3c3';
-import { ranks } from './rulebook.js?v=6adeb3c3';
-import { merged, editContent } from './content-store.js?v=6adeb3c3';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6adeb3c3';
-import { myId } from './app.js?v=6adeb3c3';
-import { lowAlertHTML } from './vault.js?v=6adeb3c3';
-import { friendZoneSection } from './friendzone.js?v=6adeb3c3';
-import { ixLink } from './effects.js?v=6adeb3c3';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adeb3c3';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6adeb3c3';
+import * as store from './store.js?v=6adeb436';
+import * as sheet from './sheetdata.js?v=6adeb436';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adeb436';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adeb436';
+import { MISSION_GP } from './content.js?v=6adeb436';
+import { ranks } from './rulebook.js?v=6adeb436';
+import { merged, editContent } from './content-store.js?v=6adeb436';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6adeb436';
+import { myId } from './app.js?v=6adeb436';
+import { lowAlertHTML } from './vault.js?v=6adeb436';
+import { friendZoneSection } from './friendzone.js?v=6adeb436';
+import { ixLink } from './effects.js?v=6adeb436';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adeb436';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6adeb436';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],

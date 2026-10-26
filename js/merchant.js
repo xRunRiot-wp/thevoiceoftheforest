@@ -3,11 +3,11 @@
 // Haggling: Slash never tolerates it (try 1 "fair", try 2 "absolutely not", try 3 = he and his troupe of 3 stand armed).
 // Beat him in that fight: his caravan never returns and the team gets everything on his table.
 // Lose: his prices go up 150% for good (no more sales) and he attacks at the very next haggle.
-import * as store from './store.js?v=6adeb3c3';
-import { $, $$, esc, num, uid, toast } from './util.js?v=6adeb3c3';
-import { modal, closeModal } from './ui.js?v=6adeb3c3';
-import { ixLink } from './effects.js?v=6adeb3c3';
-import { guildSay, gmTodo } from './chatter.js?v=6adeb3c3';
+import * as store from './store.js?v=6adeb436';
+import { $, $$, esc, num, uid, toast } from './util.js?v=6adeb436';
+import { modal, closeModal } from './ui.js?v=6adeb436';
+import { ixLink } from './effects.js?v=6adeb436';
+import { guildSay, gmTodo } from './chatter.js?v=6adeb436';
 
 export const BROTHERS = {
   Slash: { tell: 'Does not tolerate haggling.', lines: ['No. The price I listed is fair.', 'Absolutely not.', '*stands armed and guarded with his troupe of 3*'] },
@@ -16,9 +16,11 @@ export const BROTHERS = {
   Shank: { tell: '', lines: [] },
 };
 const ORDER = Object.keys(BROTHERS);
-// her table picture: the items and prices on Slash's first table (GM can change them)
-const START = [['Oran Berry', 30, 'tag'], ['Luminous Orb', 150], ['Gravelerock', 40], ['Tamato Berry', 50], ['Golden Spike', 30], ['Pecha Berry', 70]]
-  .map(([name, price, sale]) => ({ name, price, sale: sale === 'tag' ? '' : sale || '', saleTag: sale === 'tag', sold: false }));
+// Slash's first table, as she listed it (10-25); qty = how many come in that slot for the one price. GM can change them.
+const START = [['Oran Berry', 30, 'tag'], ['Escape Orb', 150], ['Gravelerock', 40, '', 10], ['Cheri Berry', 50], ['Stick', 30, '', 10], ['Pecha Berry', 70]]
+  .map(([name, price, sale, qty]) => ({ name, price, qty: qty || 1, sale: sale === 'tag' ? '' : sale || '', saleTag: sale === 'tag', sold: false }));
+const qtyOf = (s) => Math.max(1, num(s.qty) || 1);
+const label = (s) => (qtyOf(s) > 1 ? `${qtyOf(s)} ${/s$/.test(s.name) ? s.name : s.name + 's'}` : s.name);
 
 const M = () => store.get('merchant') || {};
 const who = () => M().brother || 'Slash';
@@ -39,7 +41,7 @@ export function merchantHTML() {
       ${b.tell ? `<p class="small mc-tell">🛡️ ${esc(b.tell)}</p>` : ''}
       <div class="mc-table">${slots().map((s, i) => `<div class="mc-slot ${s.sold ? 'sold' : ''}">
         ${(s.sale || s.saleTag) && !b.angry && !s.sold ? '<span class="mc-sale">SALE</span>' : ''}
-        <div class="mc-item">${ixLink(s.name)}</div>
+        <div class="mc-item">${qtyOf(s) > 1 ? `<span class="pix mc-qty">${qtyOf(s)}×</span> ` : ''}${ixLink(s.name)}</div>
         <div class="mc-tag">${s.sold ? 'SOLD' : `${s.sale && !b.angry ? `<s>${num(s.price)}</s> ` : ''}${priceOf(s)} Poké`}</div>
         ${s.sold ? '' : `<div class="row nowrap mc-btns"><button class="btn sm" data-mbuy="${i}">Buy</button><button class="btn alt sm" data-mhag="${i}">Haggle</button></div>`}</div>`).join('')}</div>`
       : `<p class="muted">No merchant has set up a table today.</p>`}
@@ -76,7 +78,7 @@ function buy(i) {
   const price = priceOf(s);
   const party = Object.values(store.get('party') || {}).filter((c) => !c.guest);
   if (!party.length) { toast('Make a character first'); return; }
-  const el = modal(`<h2>Buy ${esc(s.name)}</h2><p>${price} Poké from ${esc(who())}, paid by the character buying it.</p>
+  const el = modal(`<h2>Buy ${esc(label(s))}</h2><p>${price} Poké from ${esc(who())}, paid by the character buying it.</p>
     <label class="f">Who's buying<select id="ow">${party.map((c) => `<option value="${c.id}" ${c.id === meId() ? 'selected' : ''}>${esc(c.nickname)} (${num(c.poke).toLocaleString()} Poké)</option>`).join('')}</select></label>
     <button class="btn block" id="ok" style="margin-top:10px">Buy</button>`);
   $('#ok', el).onclick = () => {
@@ -84,15 +86,15 @@ function buy(i) {
     if (!buyer) return;
     if (num(buyer.poke) < price) { toast(`${buyer.nickname} only has ${num(buyer.poke).toLocaleString()} Poké`); return; }
     store.update('party/' + ow, (x) => ({ ...x, poke: num(x?.poke) - price }));
-    toBag(s.name, ow);
+    toBag(s.name, ow, qtyOf(s));
     store.set('merchant/slots', slots().map((x, j) => (j === i ? { ...x, sold: true } : x)));
-    store.pushLimited('log', { t: Date.now(), text: `${buyer.nickname} bought ${s.name} from ${who()} for ${price} Poké.` });
-    closeModal(); toast('Bought ' + s.name);
+    store.pushLimited('log', { t: Date.now(), text: `${buyer.nickname} bought ${label(s)} from ${who()} for ${price} Poké.` });
+    closeModal(); toast('Bought ' + label(s));
   };
 }
-function toBag(name, owner) {
+function toBag(name, owner, qty = 1) {
   const same = Object.entries(store.get('bag') || {}).find(([, b]) => b.name === name && b.owner === owner);
-  if (same) store.set(`bag/${same[0]}/qty`, num(same[1].qty) + 1); else store.set('bag/' + uid(), { name, qty: 1, owner });
+  if (same) store.set(`bag/${same[0]}/qty`, num(same[1].qty) + qty); else store.set('bag/' + uid(), { name, qty, owner });
 }
 
 // Each character's haggle tries count up with this brother until he rotates out.
@@ -124,7 +126,7 @@ function fight(name, me, text) {
 function won() {
   const name = who();
   if (!confirm(`Players defeated ${name}? His caravan never returns, and the team gets everything on his table.`)) return;
-  slots().filter((s) => !s.sold).forEach((s) => toBag(s.name, 'team'));
+  slots().filter((s) => !s.sold).forEach((s) => toBag(s.name, 'team', qtyOf(s)));
   store.update('merchant', (m) => ({ ...(m || {}), away: true, slots: null, haggles: null, bros: { ...((m || {}).bros || {}), [name]: { ...(((m || {}).bros || {})[name] || {}), gone: true } } }));
   store.pushLimited('log', { t: Date.now(), text: `The team defeated ${name}! His caravan will never return. Everything on his table went to the team bag.` });
   guildSay('Guildmaster Beautifly', 'say', `${name}’s caravan won’t be coming back. I hope that table was worth it.`);
@@ -138,10 +140,10 @@ function lost() {
 
 function editTable() {
   const s = slots();
-  const el = modal(`<h2>${esc(who())}’s table</h2><p class="small muted">Six slots. Sale price is optional (shown with a SALE tag). Tick “sold” to mark an empty slot.</p>
-    ${s.map((x, i) => `<div class="grid g2 mc-edit"><input data-k="name" data-i="${i}" value="${esc(x.name)}" placeholder="Item"><div class="row nowrap"><input data-k="price" data-i="${i}" type="number" value="${esc(x.price)}" placeholder="Price"><input data-k="sale" data-i="${i}" type="number" value="${esc(x.sale)}" placeholder="Sale"><label class="check"><input type="checkbox" data-k="sold" data-i="${i}" ${x.sold ? 'checked' : ''}> sold</label></div></div>`).join('')}
+  const el = modal(`<h2>${esc(who())}’s table</h2><p class="small muted">Six slots. Qty = how many come for the one price. Sale price is optional (shown with a SALE tag). Tick “sold” to mark an empty slot.</p>
+    ${s.map((x, i) => `<div class="grid g2 mc-edit"><input data-k="name" data-i="${i}" value="${esc(x.name)}" placeholder="Item"><div class="row nowrap"><input data-k="qty" data-i="${i}" type="number" min="1" value="${qtyOf(x)}" placeholder="Qty" title="How many" style="max-width:64px"><input data-k="price" data-i="${i}" type="number" value="${esc(x.price)}" placeholder="Price"><input data-k="sale" data-i="${i}" type="number" value="${esc(x.sale)}" placeholder="Sale"><label class="check"><input type="checkbox" data-k="sold" data-i="${i}" ${x.sold ? 'checked' : ''}> sold</label></div></div>`).join('')}
     <div class="row" style="margin-top:10px"><button class="btn" id="msave">Save table</button><button class="btn alt" id="mrestock">Restock (clear sold)</button></div>`);
-  const read = () => s.map((x, i) => ({ name: $(`[data-k=name][data-i="${i}"]`, el).value.trim() || x.name, price: num($(`[data-k=price][data-i="${i}"]`, el).value), sale: $(`[data-k=sale][data-i="${i}"]`, el).value === '' ? '' : num($(`[data-k=sale][data-i="${i}"]`, el).value), sold: $(`[data-k=sold][data-i="${i}"]`, el).checked, saleTag: !!x.saleTag && $(`[data-k=sale][data-i="${i}"]`, el).value === '' }));
+  const read = () => s.map((x, i) => ({ name: $(`[data-k=name][data-i="${i}"]`, el).value.trim() || x.name, price: num($(`[data-k=price][data-i="${i}"]`, el).value), qty: Math.max(1, num($(`[data-k=qty][data-i="${i}"]`, el).value) || 1), sale: $(`[data-k=sale][data-i="${i}"]`, el).value === '' ? '' : num($(`[data-k=sale][data-i="${i}"]`, el).value), sold: $(`[data-k=sold][data-i="${i}"]`, el).checked, saleTag: !!x.saleTag && $(`[data-k=sale][data-i="${i}"]`, el).value === '' }));
   $('#msave', el).onclick = () => { store.set('merchant/slots', read()); closeModal(); toast('Table saved'); };
   $('#mrestock', el).onclick = () => { store.set('merchant/slots', read().map((x) => ({ ...x, sold: false }))); closeModal(); toast('Restocked'); };
 }
