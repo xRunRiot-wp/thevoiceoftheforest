@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adfd543';
-import * as sheet from './sheetdata.js?v=6adfd543';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfd543';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfd543';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfd543';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfd543';
-import { CONFIG } from './config.js?v=6adfd543';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfd543';
-import { merged, editContent } from './content-store.js?v=6adfd543';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfd543';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfd543';
-import { homeHTML } from './sitepages.js?v=6adfd543';
-import { pinsOf, showMap } from './hotbar.js?v=6adfd543';
-import { chatterLatestHTML } from './chatter.js?v=6adfd543';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfd543';
-import { locations, spots } from './friendzone.js?v=6adfd543';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfd543';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfd543';
-import { find } from './effects.js?v=6adfd543';
-import * as dice3d from './dice3d.js?v=6adfd543';
+import * as store from './store.js?v=6adfd8ff';
+import * as sheet from './sheetdata.js?v=6adfd8ff';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfd8ff';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfd8ff';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfd8ff';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfd8ff';
+import { CONFIG } from './config.js?v=6adfd8ff';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfd8ff';
+import { merged, editContent } from './content-store.js?v=6adfd8ff';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfd8ff';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfd8ff';
+import { homeHTML } from './sitepages.js?v=6adfd8ff';
+import { pinsOf, showMap } from './hotbar.js?v=6adfd8ff';
+import { chatterLatestHTML } from './chatter.js?v=6adfd8ff';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfd8ff';
+import { locations, spots } from './friendzone.js?v=6adfd8ff';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfd8ff';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfd8ff';
+import { find } from './effects.js?v=6adfd8ff';
+import * as dice3d from './dice3d.js?v=6adfd8ff';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -352,6 +352,11 @@ function charCard(c) {
     ${c.id === myId() || store.gmUnlocked() ? memoryHTML(c) : ''}
 
     <div class="mv-act"><div class="mv-col">
+    <div class="section-title"><h3>Defenses</h3><span class="small muted">what foes roll against</span></div>
+    <div class="mind defs">
+      <a href="#" data-ixname="Vitality" class="mind-tile def"><span class="m-ic">🛡️</span><span class="m-txt"><span class="m-lab">Defense</span><small>vs Physical · Vitality</small></span><b class="m-num">${statVal(c, 'Vitality')}</b></a>
+      <a href="#" data-ixname="Insight" class="mind-tile spdef"><span class="m-ic">🔮</span><span class="m-txt"><span class="m-lab">Sp. Defense</span><small>vs Special · Insight</small></span><b class="m-num">${statVal(c, 'Insight')}</b></a>
+    </div>
     <div class="section-title"><h3>Moves</h3><span class="small muted">tap to roll</span></div>
     <div class="moves">${(c.moves || []).map((m, i) => `<div class="move movecard"><a href="#" data-ixname="${esc(m)}" class="mvname"><b>${esc(m)}</b></a><span data-minfo="${esc(m)}">…</span><p class="mveff" data-meff="${esc(m)}"></p><button class="btn block" data-move="${i}">Roll ${esc(m)}</button></div>`).join('') || '<p class="muted small">No moves on this sheet yet.</p>'}
       <div class="move movecard"><a href="#" data-ixname="Physical Struggle" class="mvname"><b>Struggle</b></a><span>None · Physical · Accuracy Dexterity + Brawl · Damage Strength + Power 0</span><p class="mveff">Always available, even with no moves left.</p><button class="btn block" data-struggle="Physical Struggle">Roll Struggle</button></div></div>
