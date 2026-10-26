@@ -806,6 +806,9 @@ details.gs h4 { margin: 12px 0 4px; }
 .mind-tile:hover { transform: translateY(-2px); }
 .mind-tile.instinct { background: linear-gradient(135deg, #b4472a, #6e2416); border-color: #e99a4c; }
 .mind.defs { margin: 0 0 4px; }
+.react-row { margin: 8px 0 4px; }
+.react-row .btn { flex: 1; }
+.react-row small { opacity: .8; font-size: .8em; margin-left: 4px; }
 .mind-tile.def { background: linear-gradient(135deg, #6b7a3a, #3a4520); border-color: #c8d67a; }
 .mind-tile.spdef { background: linear-gradient(135deg, #7a3f9a, #3f1f55); border-color: #d3a6f0; }
 .mind-tile.logic { background: linear-gradient(135deg, #2f5aa8, #1b2f63); border-color: #8fb4ff; }

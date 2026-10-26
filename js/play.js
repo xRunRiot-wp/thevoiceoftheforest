@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adfd8ff';
-import * as sheet from './sheetdata.js?v=6adfd8ff';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfd8ff';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfd8ff';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfd8ff';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfd8ff';
-import { CONFIG } from './config.js?v=6adfd8ff';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfd8ff';
-import { merged, editContent } from './content-store.js?v=6adfd8ff';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfd8ff';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfd8ff';
-import { homeHTML } from './sitepages.js?v=6adfd8ff';
-import { pinsOf, showMap } from './hotbar.js?v=6adfd8ff';
-import { chatterLatestHTML } from './chatter.js?v=6adfd8ff';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfd8ff';
-import { locations, spots } from './friendzone.js?v=6adfd8ff';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfd8ff';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfd8ff';
-import { find } from './effects.js?v=6adfd8ff';
-import * as dice3d from './dice3d.js?v=6adfd8ff';
+import * as store from './store.js?v=6adfd9d8';
+import * as sheet from './sheetdata.js?v=6adfd9d8';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfd9d8';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfd9d8';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfd9d8';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfd9d8';
+import { CONFIG } from './config.js?v=6adfd9d8';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfd9d8';
+import { merged, editContent } from './content-store.js?v=6adfd9d8';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfd9d8';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfd9d8';
+import { homeHTML } from './sitepages.js?v=6adfd9d8';
+import { pinsOf, showMap } from './hotbar.js?v=6adfd9d8';
+import { chatterLatestHTML } from './chatter.js?v=6adfd9d8';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfd9d8';
+import { locations, spots } from './friendzone.js?v=6adfd9d8';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfd9d8';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfd9d8';
+import { find } from './effects.js?v=6adfd9d8';
+import * as dice3d from './dice3d.js?v=6adfd9d8';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -288,6 +288,19 @@ function actionRoll(c, a, extra = 0) {
   $('#again', el).onclick = () => actionRoll(c, a, num($('#xd', el).value));
 }
 
+// Reactions to a foe's attack (Defenses card): Evade, or Clash with Strength (Physical move) / Special (Special move).
+const REACT = {
+  evade: { name: 'Evade', attr: 'Dexterity', skill: 'Evasion', text: 'Dodge the attack completely. Costs an action; once per round.' },
+  clashP: { name: 'Clash', attr: 'Strength', skill: 'Clash', text: 'Meet a Physical move head-on. Costs an action; once per round.' },
+  clashS: { name: 'Clash', attr: 'Special', skill: 'Clash', text: 'Meet a Special move head-on. Costs an action; once per round.' },
+};
+function clashPick(c) {
+  const dice = (a) => statVal(c, a.attr) + statVal(c, a.skill);
+  const el = modal(`<h2>Clash</h2><p class="small muted">Which kind of move are you clashing with?</p>
+    <div class="row"><button class="btn" data-cl="clashP">Physical · Strength + Clash (${dice(REACT.clashP)})</button><button class="btn alt" data-cl="clashS">Special · Special + Clash (${dice(REACT.clashS)})</button></div>`);
+  $$('[data-cl]', el).forEach((b) => b.onclick = () => actionRoll(c, REACT[b.dataset.cl]));
+}
+
 // ---------------------------------------------------------------- Poké bank (each character's own money)
 const POKE_ASK = { add: 'How much Poké does {n} get?', spend: 'How much Poké does {n} spend?', give: 'How much Poké does {n} give to the guild coffers?', take: 'How much Poké does {n} take from the guild coffers?' };
 function pokeMove(c, kind) {
@@ -357,6 +370,7 @@ function charCard(c) {
       <a href="#" data-ixname="Vitality" class="mind-tile def"><span class="m-ic">🛡️</span><span class="m-txt"><span class="m-lab">Defense</span><small>vs Physical · Vitality</small></span><b class="m-num">${statVal(c, 'Vitality')}</b></a>
       <a href="#" data-ixname="Insight" class="mind-tile spdef"><span class="m-ic">🔮</span><span class="m-txt"><span class="m-lab">Sp. Defense</span><small>vs Special · Insight</small></span><b class="m-num">${statVal(c, 'Insight')}</b></a>
     </div>
+    <div class="row react-row"><button class="btn" id="evaderoll">🌀 Evade <small>${statVal(c, 'Dexterity') + statVal(c, 'Evasion')} ${statVal(c, 'Dexterity') + statVal(c, 'Evasion') === 1 ? 'die' : 'dice'}</small></button><button class="btn alt" id="clashroll">💥 Clash</button></div>
     <div class="section-title"><h3>Moves</h3><span class="small muted">tap to roll</span></div>
     <div class="moves">${(c.moves || []).map((m, i) => `<div class="move movecard"><a href="#" data-ixname="${esc(m)}" class="mvname"><b>${esc(m)}</b></a><span data-minfo="${esc(m)}">…</span><p class="mveff" data-meff="${esc(m)}"></p><button class="btn block" data-move="${i}">Roll ${esc(m)}</button></div>`).join('') || '<p class="muted small">No moves on this sheet yet.</p>'}
       <div class="move movecard"><a href="#" data-ixname="Physical Struggle" class="mvname"><b>Struggle</b></a><span>None · Physical · Accuracy Dexterity + Brawl · Damage Strength + Power 0</span><p class="mveff">Always available, even with no moves left.</p><button class="btn block" data-struggle="Physical Struggle">Roll Struggle</button></div></div>
@@ -484,6 +498,8 @@ function bindCharCard(main, c) {
     $('#newact', el).onclick = () => editContent('actions', ACTION_SCHEMA, null, { title: 'New action', onSave: () => location.reload() });
   };
   $('#initroll', main).onclick = () => rollInitiative(c);
+  $('#evaderoll', main).onclick = () => actionRoll(c, REACT.evade);
+  $('#clashroll', main).onclick = () => clashPick(c);
   $('#additem', main).onclick = () => addItem(c.id);
   $$('[data-poke]', main).forEach((b) => b.onclick = () => pokeMove(c, b.dataset.poke));
   $$('[data-use]', main).forEach((b) => b.onclick = () => useItem(b.dataset.use, c));
