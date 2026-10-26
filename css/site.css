@@ -853,3 +853,11 @@ a.fact:hover { border-color: var(--orange); }
 .movecard .mveff a.ix { color: var(--brown2); }
 /* sleeping spot and weather line up: same top, same height */
 .pair-row > .sleep.fortune, .pair-row .wxcard.fortune { margin: 0; height: 100%; box-sizing: border-box; }
+
+/* who did each finished mission: guild-coloured tags + a running tally (everyone sees it) */
+.trk-by { display: inline-block; margin-top: 3px; padding: 1px 8px; border-radius: 99px; font: 700 12px var(--pix); color: #fff; width: fit-content; }
+.trk-by.by-woodland { background: #4f8a2e; } .trk-by.by-vanguard { background: #2f5fb8; }
+.trk summary .grow { display: flex; flex-direction: column; }
+.trk-tally { display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 10px; }
+.trk-tally .trk-by { font-size: 13px; padding: 3px 10px; margin: 0; }
+.trk-who { gap: 6px; margin: 2px 0 8px; align-items: center; }

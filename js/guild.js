@@ -1,19 +1,19 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6adec230';
-import * as sheet from './sheetdata.js?v=6adec230';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adec230';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adec230';
-import { MISSION_GP } from './content.js?v=6adec230';
-import { ranks } from './rulebook.js?v=6adec230';
-import { merged, editContent } from './content-store.js?v=6adec230';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6adec230';
-import { myId } from './app.js?v=6adec230';
-import { lowAlertHTML } from './vault.js?v=6adec230';
-import { friendZoneSection } from './friendzone.js?v=6adec230';
-import { ixLink } from './effects.js?v=6adec230';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adec230';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6adec230';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6adec230';
+import * as store from './store.js?v=6adf422c';
+import * as sheet from './sheetdata.js?v=6adf422c';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adf422c';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adf422c';
+import { MISSION_GP } from './content.js?v=6adf422c';
+import { ranks } from './rulebook.js?v=6adf422c';
+import { merged, editContent } from './content-store.js?v=6adf422c';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6adf422c';
+import { myId } from './app.js?v=6adf422c';
+import { lowAlertHTML } from './vault.js?v=6adf422c';
+import { friendZoneSection } from './friendzone.js?v=6adf422c';
+import { ixLink } from './effects.js?v=6adf422c';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adf422c';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6adf422c';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6adf422c';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -46,7 +46,7 @@ export function rankFor(gp) {
 export function missionCard(id, m, { gm = false } = {}) {
   const gp = m.gp ?? MISSION_GP[m.rank] ?? 0;
   return `<div class="card mission ${esc(m.status || '')} ${m.hidden ? 'hidden' : ''}">
-    <div class="row" style="justify-content:space-between"><span class="pill">${esc(m.rank)} Rank · ${gp} GP${m.guild === 'vanguard' ? ' · Vanguard' : ''}</span><span class="pill">${m.hidden ? 'GM only' : esc(m.status || 'open')}</span></div>
+    <div class="row" style="justify-content:space-between"><span class="pill">${esc(m.rank)} Rank · ${gp} GP${m.guild === 'vanguard' ? ' · Vanguard' : ''}</span><span class="pill">${m.hidden ? 'GM only' : esc(m.status || 'open')}${m.status === 'done' || m.status === 'failed' ? ` · ${GUILD_ICON[missionBy(m)]} ${esc(guildName(missionBy(m)))}` : ''}</span></div>
     ${m.art ? `<span><img class="art-wide" src="${esc(m.art)}" alt="" loading="lazy" style="max-height:260px;object-fit:cover"></span>` : ''}
     <h3 style="margin:8px 0 4px">${esc(m.title)}</h3>
     ${m.client ? `<p class="small muted">Client: ${esc(m.client)}${m.place ? ' · ' + esc(m.place) : ''}</p>` : ''}
@@ -64,10 +64,13 @@ export function missionCard(id, m, { gm = false } = {}) {
 const openTrack = new Set();   // stays open across live refreshes
 function trackerHTML(list) {
   const gm = store.gmUnlocked();
+  const tally = GUILDS2.map(([k, n]) => [k, n, list.filter(([, m]) => m.status === 'done' && missionBy(m) === k).length]);
   return `<div class="tracker"><h2>Completed missions</h2>
+    ${list.length ? `<div class="trk-tally">${tally.map(([k, n, c]) => `<span class="trk-by by-${k}">${GUILD_ICON[k]} ${esc(n)}: <b>${c}</b></span>`).join('')}</div>` : ''}
     ${list.length ? list.map(([id, m]) => `<details class="trk ${esc(m.status)}" data-trk="${id}" ${openTrack.has(id) ? 'open' : ''}>
-      <summary>${m.art ? `<img src="${esc(m.art)}" alt="" loading="lazy">` : '<span class="trk-noart"></span>'}<span class="grow"><b>${esc(m.title)}</b><span class="small">${esc(m.rank)} Rank · ${m.status === 'failed' ? '❌ failed' : '✅ completed'}</span></span></summary>
+      <summary>${m.art ? `<img src="${esc(m.art)}" alt="" loading="lazy">` : '<span class="trk-noart"></span>'}<span class="grow"><b>${esc(m.title)}</b><span class="small">${esc(m.rank)} Rank · ${m.status === 'failed' ? '❌ failed' : '✅ completed'}</span><span class="trk-by by-${missionBy(m)}">${GUILD_ICON[missionBy(m)]} ${esc(guildName(missionBy(m)))}</span></span></summary>
       <div class="trk-body">
+        ${gm ? `<div class="row nowrap trk-who"><span class="small">Done by:</span>${GUILDS2.map(([k, n]) => `<button class="btn ${missionBy(m) === k ? '' : 'alt'} sm" data-setby="${id}|${k}">${GUILD_ICON[k]} ${esc(n.split(' ')[0])}</button>`).join('')}</div>` : ''}
         ${m.client ? `<p class="small muted">Client: ${esc(m.client)}${m.place ? ' · ' + esc(m.place) : ''}</p>` : ''}
         ${m.details ? `<p class="small">${esc(m.details)}</p>` : ''}${m.reward ? `<p class="small"><b>Reward:</b> ${esc(m.reward)}</p>` : ''}
         <div class="trk-var"><b class="small">How it went (GM notes)</b>
@@ -78,6 +81,7 @@ function trackerHTML(list) {
 }
 function bindTracker(main) {
   $$('[data-trk]', main).forEach((d) => d.ontoggle = () => (d.open ? openTrack.add(d.dataset.trk) : openTrack.delete(d.dataset.trk)));
+  $$('[data-setby]', main).forEach((b) => b.onclick = () => { const [id, k] = b.dataset.setby.split('|'); setMissionBy(id, k); });
   $$('[data-varsave]', main).forEach((b) => b.onclick = () => {
     const id = b.dataset.varsave;
     store.set(`missions/${id}/variation`, $(`[data-var="${id}"]`, main).value.trim() || null);
@@ -85,17 +89,45 @@ function bindTracker(main) {
   });
 }
 
-export function finishMission(id, ok) {
+export const GUILD_ICON = { woodland: '🌳', vanguard: '🛡️' };
+// which guild took a mission (old missions without a record count for the guild they were posted for)
+export const missionBy = (m) => ((m.doneBy || m.guild) === 'vanguard' ? 'vanguard' : 'woodland');
+const finishedPts = (m) => { const gp = m.gp ?? MISSION_GP[m.rank] ?? 0; return m.status === 'done' ? gp : m.status === 'failed' ? (m.rank === 'X' ? -200 : -gp) : 0; };
+
+// GM: before marking Done/Failed, pick which guild did the mission
+export function askWhoDid(id, ok, then) {
   const m = (store.get('missions') || {})[id]; if (!m) return;
+  const cur = missionBy(m);
+  const el = modal(`<h2>Who ${ok ? 'completed' : 'attempted'} it?</h2><p class="small">“${esc(m.title)}”. ${ok ? 'The Guild Points go to' : 'The lost points come off'} that guild. Everyone can see it in Completed missions.</p>
+    <div class="grid g2">${GUILDS2.map(([k, n]) => `<button class="btn ${k === cur ? '' : 'alt'} block" data-who="${k}">${GUILD_ICON[k]} ${esc(n)}</button>`).join('')}</div>`);
+  $$('[data-who]', el).forEach((b) => b.onclick = () => { closeModal(); finishMission(id, ok, b.dataset.who); then?.(); });
+}
+
+// GM: change which guild did a finished mission; its points move across
+export function setMissionBy(id, by) {
+  const m = (store.get('missions') || {})[id]; if (!m || missionBy(m) === by) return;
+  const pts = finishedPts(m);
+  store.update(guildPath(missionBy(m)), (g) => ({ ...g, gp: (g?.gp || 0) - pts }));
+  store.update(guildPath(by), (g) => ({ ...g, gp: (g?.gp || 0) + pts }));
+  store.set(`missions/${id}/doneBy`, by);
+  store.pushLimited('log', { t: Date.now(), text: `${m.title}: done by ${guildName(by)} (${pts} GP moved)` });
+  toast(`Now credited to ${guildName(by)}`);
+}
+
+export function finishMission(id, ok, by) {
+  const m = (store.get('missions') || {})[id]; if (!m) return;
+  const prevBy = missionBy(m); by = by === 'vanguard' || by === 'woodland' ? by : prevBy;
   const gp = m.gp ?? MISSION_GP[m.rank] ?? 0;
   const pointsFor = (good) => (good ? gp : (m.rank === 'X' ? -200 : -gp));
   const was = m.status === 'done' || m.status === 'failed' ? m.status : '';
   if (was === (ok ? 'done' : 'failed')) { toast(`Already ${was === 'done' ? 'completed' : 'failed'}: no points changed`); return; }
-  // switching a finished mission (failed <-> done) takes back the points it gave before
-  const delta = pointsFor(ok) - (was ? pointsFor(was === 'done') : 0);   // to the mission's own guild
-  store.update(guildPath(m.guild), (g) => ({ ...g, gp: (g?.gp || 0) + delta }));
+  // switching a finished mission (failed <-> done) takes back the points it gave before, from whoever had them
+  if (was) store.update(guildPath(prevBy), (g) => ({ ...g, gp: (g?.gp || 0) - pointsFor(was === 'done') }));
+  const delta = pointsFor(ok);   // to the guild that did it
+  store.update(guildPath(by), (g) => ({ ...g, gp: (g?.gp || 0) + delta }));
+  store.set(`missions/${id}/doneBy`, by);
   store.set(`missions/${id}/status`, ok ? 'done' : 'failed');
-  store.pushLimited('log', { t: Date.now(), text: `Mission ${ok ? 'complete' : 'failed'}: ${m.title} (${delta > 0 ? '+' : ''}${delta} GP)` });
+  store.pushLimited('log', { t: Date.now(), text: `Mission ${ok ? 'complete' : 'failed'}: ${m.title} by ${guildName(by)} (${delta > 0 ? '+' : ''}${delta} GP)` });
   toast(`${delta > 0 ? '+' : ''}${delta} Guild Points`);
   if (ok) { guildSay('Guildmaster Beautifly', 'say', `Well done on “${m.title}”. The guild is proud of you.`); if (m.reward) gmTodo(`Hand out the reward for “${m.title}”: ${m.reward}`); }
   else guildSay('Guildmaster Beautifly', 'say', `“${m.title}” didn’t go to plan. Rest up — we learn and we try again.`);
@@ -103,7 +135,7 @@ export function finishMission(id, ok) {
   if (ok && m.partOf) {
     const parent = Object.entries(store.get('missions') || {}).find(([, x]) => x.title?.toLowerCase() === m.partOf.toLowerCase());
     const pr = parent && missionParts(parent[1]);
-    if (pr && pr.done === pr.total && parent[1].status !== 'done') finishMission(parent[0], true);
+    if (pr && pr.done === pr.total && parent[1].status !== 'done') finishMission(parent[0], true, by);
   }
 }
 
