@@ -896,3 +896,8 @@ a.fact:hover { border-color: var(--orange); }
   .mh-door { grid-template-columns: 1fr; }
 }
 @media (min-width: 761px) { .mh-spots .mh-seat .portrait.sm { width: 70px; height: 70px; } }
+
+/* daily "who are you working for?" box: the Working-for toggle, big */
+.wf-ask { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.wf-ask .vtab { min-height: 64px; font-size: 17px; }
+@media (max-width: 560px) { .wf-ask { grid-template-columns: 1fr; } }

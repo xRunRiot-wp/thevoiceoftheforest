@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adf453d';
-import * as sheet from './sheetdata.js?v=6adf453d';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adf453d';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adf453d';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adf453d';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adf453d';
-import { CONFIG } from './config.js?v=6adf453d';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adf453d';
-import { merged, editContent } from './content-store.js?v=6adf453d';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adf453d';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adf453d';
-import { homeHTML } from './sitepages.js?v=6adf453d';
-import { pinsOf, showMap } from './hotbar.js?v=6adf453d';
-import { chatterLatestHTML } from './chatter.js?v=6adf453d';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adf453d';
-import { locations, spots } from './friendzone.js?v=6adf453d';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adf453d';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adf453d';
-import { find } from './effects.js?v=6adf453d';
-import * as dice3d from './dice3d.js?v=6adf453d';
+import * as store from './store.js?v=6adf47b3';
+import * as sheet from './sheetdata.js?v=6adf47b3';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adf47b3';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adf47b3';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adf47b3';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adf47b3';
+import { CONFIG } from './config.js?v=6adf47b3';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adf47b3';
+import { merged, editContent } from './content-store.js?v=6adf47b3';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adf47b3';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adf47b3';
+import { homeHTML } from './sitepages.js?v=6adf47b3';
+import { pinsOf, showMap } from './hotbar.js?v=6adf47b3';
+import { chatterLatestHTML } from './chatter.js?v=6adf47b3';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adf47b3';
+import { locations, spots } from './friendzone.js?v=6adf47b3';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adf47b3';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adf47b3';
+import { find } from './effects.js?v=6adf47b3';
+import * as dice3d from './dice3d.js?v=6adf47b3';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -123,6 +123,26 @@ function missionBanner(sess, mission, combat, c, myTurn) {
 }
 
 // ---------------------------------------------------------------- play screen
+// First time a player opens their character each day (Eastern time) or each live session: who are you working for?
+const easternDay = (t) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(t));
+function askGuildToday(c) {
+  if (!c || c.guest || document.querySelector('.sheet-bg')) return;
+  const asked = num(c.guildAskT);
+  const since = num(store.get('session/liveSince'));
+  if (asked && easternDay(asked) === easternDay(Date.now()) && !(store.get('session/live') && since > asked)) return;
+  store.set(`party/${c.id}/guildAskT`, Date.now());   // asked once; closing the box keeps the current guild
+  const cur = c.guild === 'vanguard' ? 'vanguard' : 'woodland';
+  const el = modal(`<h2>Welcome back, ${esc(c.nickname)}!</h2><p>Who are you working for today?</p>
+    <div class="vtabs wf-tabs wf-ask">${[['woodland', '🌳 Woodland Base'], ['vanguard', '🛡️ Vanguard Guild']].map(([k, n]) => `<button class="vtab ${cur === k ? 'on' : ''}" data-askguild="${k}" style="${guildTint(k)}">${n}</button>`).join('')}</div>
+    <p class="small muted" style="margin-top:10px">You can switch any time with <b>Working for</b> on your sheet.</p>`);
+  $$('[data-askguild]', el).forEach((b) => b.onclick = () => {
+    const k = b.dataset.askguild;
+    if (k !== cur) store.set(`party/${c.id}/guild`, k);
+    store.pushLimited('log', { t: Date.now(), text: `${c.nickname} is working for the ${guildName(k)}.` });
+    closeModal();
+  });
+}
+
 export function renderPlay(main) {
   const c = me();
   const sess = store.get('session') || {};
@@ -455,6 +475,7 @@ function bindCharCard(main, c) {
     store.set(`party/${c.id}/guild`, b.dataset.setguild);
     store.pushLimited('log', { t: Date.now(), text: `${c.nickname} is working for the ${guildName(b.dataset.setguild)}.` });
   });
+  askGuildToday(c);
   Promise.all([allMoves(), loadIndex()]).then(([list, ix]) => {
     const base = sheet.moveIndex(list);
     // Follow Index aliases (e.g. a sheet's "Metranome" is Metronome).
