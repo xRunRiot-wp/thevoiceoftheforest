@@ -1,18 +1,19 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6adeb598';
-import * as sheet from './sheetdata.js?v=6adeb598';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adeb598';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adeb598';
-import { MISSION_GP } from './content.js?v=6adeb598';
-import { ranks } from './rulebook.js?v=6adeb598';
-import { merged, editContent } from './content-store.js?v=6adeb598';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6adeb598';
-import { myId } from './app.js?v=6adeb598';
-import { lowAlertHTML } from './vault.js?v=6adeb598';
-import { friendZoneSection } from './friendzone.js?v=6adeb598';
-import { ixLink } from './effects.js?v=6adeb598';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adeb598';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6adeb598';
+import * as store from './store.js?v=6adeb613';
+import * as sheet from './sheetdata.js?v=6adeb613';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adeb613';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adeb613';
+import { MISSION_GP } from './content.js?v=6adeb613';
+import { ranks } from './rulebook.js?v=6adeb613';
+import { merged, editContent } from './content-store.js?v=6adeb613';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6adeb613';
+import { myId } from './app.js?v=6adeb613';
+import { lowAlertHTML } from './vault.js?v=6adeb613';
+import { friendZoneSection } from './friendzone.js?v=6adeb613';
+import { ixLink } from './effects.js?v=6adeb613';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adeb613';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6adeb613';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6adeb613';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -122,15 +123,19 @@ function shopShortcuts() {
 
 export function renderShop(main) {
   main.innerHTML = `<div class="row" style="margin-top:12px"><a class="btn alt sm" href="#/guild">← Guild</a></div>
+  ${pokeBarHTML()}
   <div class="hero banner"><img class="hdr" src="assets/banners/items.jpg" alt=""></div>
   <div class="section-title"><h2>🐭 Maushold & Chandelure’s Shop</h2><span class="small muted">paid from the character’s own Poké</span></div>
-  <div class="card" style="padding:6px 12px"><ul class="log" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><span class="grow">${ixLink(s.name)}</span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>`;
+  <div class="card" style="padding:6px 12px"><ul class="log" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><span class="grow">${ixLink(s.name)}</span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>
+  ${shopChatHTML('guild', 'Maushold & Chandelure')}`;
   $$('[data-buy]', main).forEach((b) => b.onclick = () => buy(b.dataset.buy));
 }
 
 export function renderMerchant(main) {
   main.innerHTML = `<div class="row" style="margin-top:12px"><a class="btn alt sm" href="#/guild">← Guild</a></div>
-  <div class="merch-page">${merchantHTML()}</div>`;
+  ${pokeBarHTML()}
+  <div class="merch-page">${merchantHTML()}</div>
+  ${shopChatHTML('merchant', (store.get('merchant') || {}).brother || 'Slash')}`;
   bindMerchant(main);
 }
 
@@ -178,27 +183,21 @@ export function renderGuild(main) {
 }
 
 // shop buys are paid from the buying character's own Poké and go into their bag
+const SHOP_THANKS = ['Thank you! Come again!', 'Pleasure doing business. Stay safe out there!', '*the Maushold family waves together*', '*Chandelure’s flames flicker happily*', 'Good choice! That one never lasts long.'];
 function buy(id) {
   const s = shop().find((x) => x.id === id); if (!s) return;
-  const price = num(s.price);
-  const party = Object.values(store.get('party') || {}).filter((c) => !c.guest);
-  if (!party.length) { toast('Make a character first'); return; }
-  const el = modal(`<h2>Buy ${esc(s.name)}</h2><p>${price} Poké, paid by the character buying it.</p>
-    <label class="f">Who's buying<select id="ow">${party.map((c) => `<option value="${c.id}" ${c.id === myId() ? 'selected' : ''}>${esc(c.nickname)} (${num(c.poke).toLocaleString()} Poké)</option>`).join('')}</select></label>
-    <button class="btn block" id="ok" style="margin-top:10px">Buy</button>`);
-  $('#ok', el).onclick = () => {
-    const ow = $('#ow', el).value;
-    const buyer = (store.get('party') || {})[ow];
-    if (!buyer) return;
-    if (num(buyer.poke) < price) { toast(`${buyer.nickname} only has ${num(buyer.poke).toLocaleString()} Poké`); return; }
-    store.update('party/' + ow, (x) => ({ ...x, poke: num(x?.poke) - price }));
+  const stocked = s.stock !== '' && s.stock != null;
+  buyDialog({ item: s.name, price: num(s.price), max: stocked ? Math.max(1, num(s.stock)) : 99, seller: 'Maushold & Chandelure', onBuy: (buyer, qty, total) => {
+    store.update('party/' + buyer.id, (x) => ({ ...x, poke: num(x?.poke) - total }));
     const bag = store.get('bag') || {};
-    const same = Object.entries(bag).find(([, b]) => b.name === s.name && b.owner === ow);
-    if (same) store.set(`bag/${same[0]}/qty`, same[1].qty + 1); else store.set('bag/' + uid(), { name: s.name, qty: 1, owner: ow });
-    if (s.stock !== '' && s.stock != null) store.set(`content/shop/${s.id}`, { ...s, builtin: undefined, edited: undefined, id: undefined, stock: Math.max(0, num(s.stock) - 1) });
-    store.pushLimited('log', { t: Date.now(), text: `${buyer.nickname} bought ${s.name} for ${price} Poké.` });
-    closeModal(); toast('Bought ' + s.name);
-  };
+    const same = Object.entries(bag).find(([, b]) => b.name === s.name && b.owner === buyer.id);
+    if (same) store.set(`bag/${same[0]}/qty`, num(same[1].qty) + qty); else store.set('bag/' + uid(), { name: s.name, qty, owner: buyer.id });
+    if (stocked) store.set(`content/shop/${s.id}`, { ...s, builtin: undefined, edited: undefined, id: undefined, stock: Math.max(0, num(s.stock) - qty) });
+    const text = `${buyer.nickname} bought ${qty > 1 ? qty + ' × ' : ''}${s.name} for ${total.toLocaleString()} Poké.`;
+    store.pushLimited('log', { t: Date.now(), text });
+    logSale('guild', buyer, text, SHOP_THANKS[Math.floor(Math.random() * SHOP_THANKS.length)]);
+    toast(`Bought ${qty > 1 ? qty + ' × ' : ''}${s.name}`);
+  } });
 }
 
 function moveToBag(id) {

@@ -700,3 +700,19 @@ details.gs h4 { margin: 12px 0 4px; }
 .cond-row.todo b { color: var(--ink); }
 .cond-row.todo b::before { content: '👉 '; }
 @media (max-width: 420px) { .cond-row { grid-template-columns: 1fr; gap: 2px; } }
+
+/* Shop pages: Poké quick reference, shop chat, buy confirm */
+.pokebar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+.pokebar > div { background: var(--hotbar); color: var(--cream); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; border: 2px solid var(--brown3); }
+.pokebar span { font-size: 12px; opacity: .85; }
+.pokebar b { font-size: 20px; color: var(--gold); }
+.pokebar a { color: var(--gold); font-weight: 700; }
+.shopchat { padding: 8px 12px; max-height: 420px; overflow-y: auto; }
+.sc-line { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; }
+.sc-bubble { background: var(--cream2); border-radius: 4px 12px 12px 12px; padding: 6px 10px; flex: 1; min-width: 0; }
+.sc-bubble p { margin: 0; font-size: 14px; }
+.sc-reply { margin-top: 4px !important; font-style: italic; color: var(--brown2); }
+.buy-total { margin: 10px 0 0; font-size: 15px; }
+.bad-t { color: var(--bad); font-weight: 700; }
+.buy-confirm { display: flex; gap: 10px; align-items: center; }
+.buy-confirm p { margin: 0; font-size: 16px; }

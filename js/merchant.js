@@ -3,11 +3,12 @@
 // Haggling: Slash never tolerates it (try 1 "fair", try 2 "absolutely not", try 3 = he and his troupe of 3 stand armed).
 // Beat him in that fight: his caravan never returns and the team gets everything on his table.
 // Lose: his prices go up 150% for good (no more sales) and he attacks at the very next haggle.
-import * as store from './store.js?v=6adeb598';
-import { $, $$, esc, num, uid, toast } from './util.js?v=6adeb598';
-import { modal, closeModal } from './ui.js?v=6adeb598';
-import { ixLink } from './effects.js?v=6adeb598';
-import { guildSay, gmTodo } from './chatter.js?v=6adeb598';
+import * as store from './store.js?v=6adeb613';
+import { $, $$, esc, num, uid, toast } from './util.js?v=6adeb613';
+import { modal, closeModal } from './ui.js?v=6adeb613';
+import { ixLink } from './effects.js?v=6adeb613';
+import { guildSay, gmTodo } from './chatter.js?v=6adeb613';
+import { buyDialog, logSale } from './shopkit.js?v=6adeb613';
 
 export const BROTHERS = {
   Slash: { tell: 'Does not tolerate haggling.', lines: ['No. The price I listed is fair.', 'Absolutely not.', '*stands armed and guarded with his troupe of 3*'] },
@@ -73,24 +74,18 @@ function setBrother(n) {
   guildSay(n, 'do', `rolls the caravan into ${M().place || 'Woodland Base'} and sets up a little table, shield polished, prices posted.`);
 }
 
+const MERCH_THANKS = ['A fair trade. The shield remembers good customers.', '*taps his shield twice: a deal is a deal*', 'Spend wisely, traveller.', 'Hmph. You have a good eye.'];
 function buy(i) {
   const s = slots()[i]; if (!s || s.sold) return;
-  const price = priceOf(s);
-  const party = Object.values(store.get('party') || {}).filter((c) => !c.guest);
-  if (!party.length) { toast('Make a character first'); return; }
-  const el = modal(`<h2>Buy ${esc(label(s))}</h2><p>${price} Poké from ${esc(who())}, paid by the character buying it.</p>
-    <label class="f">Who's buying<select id="ow">${party.map((c) => `<option value="${c.id}" ${c.id === meId() ? 'selected' : ''}>${esc(c.nickname)} (${num(c.poke).toLocaleString()} Poké)</option>`).join('')}</select></label>
-    <button class="btn block" id="ok" style="margin-top:10px">Buy</button>`);
-  $('#ok', el).onclick = () => {
-    const ow = $('#ow', el).value; const buyer = (store.get('party') || {})[ow];
-    if (!buyer) return;
-    if (num(buyer.poke) < price) { toast(`${buyer.nickname} only has ${num(buyer.poke).toLocaleString()} Poké`); return; }
-    store.update('party/' + ow, (x) => ({ ...x, poke: num(x?.poke) - price }));
-    toBag(s.name, ow, qtyOf(s));
+  buyDialog({ item: s.name, unit: label(s), price: priceOf(s), max: 1, seller: who(), onBuy: (buyer, qty, price) => {
+    store.update('party/' + buyer.id, (x) => ({ ...x, poke: num(x?.poke) - price }));
+    toBag(s.name, buyer.id, qtyOf(s));
     store.set('merchant/slots', slots().map((x, j) => (j === i ? { ...x, sold: true } : x)));
-    store.pushLimited('log', { t: Date.now(), text: `${buyer.nickname} bought ${label(s)} from ${who()} for ${price} Poké.` });
-    closeModal(); toast('Bought ' + label(s));
-  };
+    const text = `${buyer.nickname} bought ${label(s)} from ${who()} for ${price} Poké.`;
+    store.pushLimited('log', { t: Date.now(), text });
+    logSale('merchant', buyer, text, MERCH_THANKS[Math.floor(Math.random() * MERCH_THANKS.length)]);
+    toast('Bought ' + label(s));
+  } });
 }
 function toBag(name, owner, qty = 1) {
   const same = Object.entries(store.get('bag') || {}).find(([, b]) => b.name === name && b.owner === owner);
