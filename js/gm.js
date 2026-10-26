@@ -1,20 +1,23 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6ade9e74';
-import * as sheet from './sheetdata.js?v=6ade9e74';
-import { ledger } from './vault.js?v=6ade9e74';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ade9e74';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ade9e74';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ade9e74';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal } from './play.js?v=6ade9e74';
-import { missionCard, finishMission, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ade9e74';
-import { merged, editContent } from './content-store.js?v=6ade9e74';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ade9e74';
-import { CONFIG } from './config.js?v=6ade9e74';
+import * as store from './store.js?v=6ade9ecd';
+import * as sheet from './sheetdata.js?v=6ade9ecd';
+import { ledger } from './vault.js?v=6ade9ecd';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ade9ecd';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ade9ecd';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ade9ecd';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal } from './play.js?v=6ade9ecd';
+import { missionCard, finishMission, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ade9ecd';
+import { merged, editContent } from './content-store.js?v=6ade9ecd';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ade9ecd';
+import { CONFIG } from './config.js?v=6ade9ecd';
 
 const PORTRAIT_LIST = ['beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
 const direction = (s) => ([2, 3, 7].includes(s) ? 'North' : [4, 10, 11, 12].includes(s) ? 'South' : [5, 6].includes(s) ? 'East' : 'West');
 const distance = () => { let d; do d = die(6); while (d >= 5); return d; };
+
+// Dungeons explored (names only), plus the one the team is in now
+const explored = () => { const names = Object.values(store.get('dungeonsExplored') || {}).sort((a, b) => a.t - b.t).map((d) => d.name); const cur = store.get('session/dungeon'); return cur && !names.includes(cur) ? [...names, cur] : names; };
 
 export async function renderGM(main) {
   if (!store.gmUnlocked()) return lockScreen(main);
@@ -60,9 +63,11 @@ export async function renderGM(main) {
   <section id="gm-Dungeon" class="card">
     <h2>Dungeon</h2>
     <div class="grid g2">
-      <label class="f">Dungeon<input id="dname" list="dtypes" value="${esc(sess.dungeon || '')}" placeholder="e.g. Twilight Falls"></label><datalist id="dtypes">${DUNGEON_TYPES.map((t) => `<option value="${esc(t)}">`).join('')}</datalist>
+      <label class="f">Dungeon<select id="dname"><option value="">Not in a dungeon</option>${explored().map((n) => `<option ${n === sess.dungeon ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
       <label class="f">Floors<input id="dfloors" type="number" inputmode="numeric" value="${sess.floors || ''}"></label>
     </div>
+    <div class="row nowrap" style="margin-top:8px"><input id="dnew" placeholder="Add a dungeon name…"><button class="btn alt sm" id="dadd">+ Add</button></div>
+    <p class="small muted" style="margin:4px 0 0">Dungeons explored: only names are kept. Floors and items change every time you go in.</p>
     <div class="row" style="margin-top:8px"><span class="pix" style="font-size:20px">Floor ${sess.floor || 1}</span><button class="btn alt sm" id="fdown">−</button><button class="btn alt sm" id="fup">Next floor</button><button class="btn alt sm" id="dleave">Leave dungeon</button></div>
     <div class="row" style="margin-top:10px"><button class="btn" id="event">Roll event (every 2 tiles)</button><button class="btn alt" id="trap">Random trap</button><button class="btn alt" id="wind">+1 turn on floor (${G.windTurns || 0})</button></div>
     <div id="evres" class="result">${G.lastEvent ? `${G.lastEvent.html}${G.lastEvent.say ? '<button class="btn alt sm" id="evrev">Tell the players</button>' : ''}` : ''}</div>
@@ -257,7 +262,13 @@ function bindGM(main) {
 
   // ---- dungeon
   const sess = store.get('session') || {};
-  s('#dname').onchange = (e) => store.set('session/dungeon', e.target.value.trim());
+  s('#dname').onchange = (e) => store.set('session/dungeon', e.target.value);
+  s('#dadd').onclick = () => {
+    const n = s('#dnew').value.trim(); if (!n) return;
+    if (!explored().some((x) => x.toLowerCase() === n.toLowerCase())) store.set('dungeonsExplored/' + store.tid(), { name: n, t: Date.now() });
+    store.set('session/dungeon', explored().find((x) => x.toLowerCase() === n.toLowerCase()) || n);
+    toast(`${n} added`);
+  };
   s('#dfloors').onchange = (e) => store.set('session/floors', num(e.target.value));
   s('#fup').onclick = () => { dropGuests('floor'); store.set('session/floor', (sess.floor || 1) + 1); store.gmSet('windTurns', 0); store.pushLimited('log', { t: Date.now(), text: `The team reaches floor ${(sess.floor || 1) + 1}.` }); };
   s('#fdown').onclick = () => store.set('session/floor', Math.max(1, (sess.floor || 1) - 1));
@@ -409,7 +420,7 @@ function bindGM(main) {
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6ade9e74');
+    const { openTable } = await import('./app.js?v=6ade9ecd');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));
