@@ -1,15 +1,16 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6adea3eb';
-import * as sheet from './sheetdata.js?v=6adea3eb';
-import { ledger } from './vault.js?v=6adea3eb';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6adea3eb';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6adea3eb';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6adea3eb';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal } from './play.js?v=6adea3eb';
-import { missionCard, finishMission, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6adea3eb';
-import { merged, editContent } from './content-store.js?v=6adea3eb';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6adea3eb';
-import { CONFIG } from './config.js?v=6adea3eb';
+import * as store from './store.js?v=6adea532';
+import * as sheet from './sheetdata.js?v=6adea532';
+import { ledger } from './vault.js?v=6adea532';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6adea532';
+import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6adea532';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6adea532';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6adea532';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal } from './play.js?v=6adea532';
+import { missionCard, finishMission, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6adea532';
+import { merged, editContent } from './content-store.js?v=6adea532';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6adea532';
+import { CONFIG } from './config.js?v=6adea532';
 
 const PORTRAIT_LIST = ['beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -32,7 +33,7 @@ export async function renderGM(main) {
 
   main.innerHTML = `
   <div class="row" style="justify-content:space-between;margin-bottom:8px"><h1 style="margin:0">GM screen</h1><button class="btn alt sm" id="lock">Lock</button></div>
-  <div class="filters">${['Battle', 'Party', 'Dungeon', 'Loot', 'Missions', 'Reveal', 'End session', 'Notes', 'Index', 'Edit content', 'Table'].map((s) => `<a class="chip" href="#gm-${s.replace(/\s/g, '')}" data-jump>${s}</a>`).join('')}</div>
+  <div class="filters">${['Battle', 'Party', 'Dungeon', 'Weather', 'Loot', 'Missions', 'Reveal', 'End session', 'Notes', 'Index', 'Edit content', 'Table'].map((s) => `<a class="chip" href="#gm-${s.replace(/\s/g, '')}" data-jump>${s}</a>`).join('')}</div>
 
   <div class="session">
     <div class="row" style="justify-content:space-between"><b>Session ${sess.n || 1}</b><span class="small">${missions[sess.mission] ? esc(missions[sess.mission].title) : 'no current mission'}</span></div>
@@ -75,6 +76,13 @@ export async function renderGM(main) {
     <p class="small muted">Enemy-team threat counter: ${G.threat || 0}/6 · ${ixLink('Dungeon event roll', 'Event table')} · ${ixLink('Floor time limit (wind)', 'Wind rule')} · ${ixLink('Hunger')}: ${sess.hunger || 0} <button class="btn alt sm" id="hunger">+1</button></p>
     ${(G.dlog || []).length ? `<ul class="log small">${G.dlog.slice(-12).reverse().map((l) => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}
   </section>
+
+  ${(() => { const cw = currentWeather(); const w = WEATHERS[cw.key]; return `<section id="gm-Weather" class="card">
+    <h2>Weather</h2>
+    <p><b>${w.icon} ${esc(w.name)}</b>${cw.gm ? ' (set by you)' : ''} · changes every 6 hours · today’s sky roll: <b>${cw.daily.roll}</b>${cw.daily.roll === 100 ? ' (legendary event!)' : ''}</p>
+    <div class="row nowrap"><select id="wxpick">${Object.entries(WEATHERS).map(([k, x]) => `<option value="${k}" ${k === cw.key ? 'selected' : ''}>${x.icon} ${esc(x.name)}</option>`).join('')}</select><button class="btn alt sm" id="wxset">Set for 6 hours</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn alt sm" id="wxfissure">🌋 Huge fissure (Groudon)</button><button class="btn alt sm" id="wxtsunami">🌊 Tsunami (Kyogre)</button>${cw.gm ? '<button class="btn alt sm" id="wxclear">Back to normal weather</button>' : ''}</div>
+    <p class="small muted">Weather is posted in Around the Guild, shown in the hotbar, and each player’s sheet lists the moves and abilities it changes. A 100 on the daily 1d100 starts a fissure or a tsunami for the day.</p></section>`; })()}
 
   <section id="gm-Loot" class="card">
     <h2>Loot</h2>
@@ -271,6 +279,10 @@ function bindGM(main) {
     toast(`${n} added`);
   };
   s('#dfloors').onchange = (e) => store.set('session/floors', num(e.target.value));
+  s('#wxset').onclick = () => { setWeather(s('#wxpick').value); toast('Weather set'); };
+  s('#wxfissure').onclick = () => { if (confirm('Start a huge fissure (Groudon) for 24 hours?')) startEvent('fissure'); };
+  s('#wxtsunami').onclick = () => { if (confirm('Start a tsunami (Kyogre) for 24 hours?')) startEvent('tsunami'); };
+  if (s('#wxclear')) s('#wxclear').onclick = clearWeather;
   s('#nextsave').onclick = () => { store.set('session/next', s('#nextstep').value.trim() || null); toast('Players will see it on Play'); };
   s('#fup').onclick = () => { dropGuests('floor'); store.set('session/floor', (sess.floor || 1) + 1); store.gmSet('windTurns', 0); store.pushLimited('log', { t: Date.now(), text: `The team reaches floor ${(sess.floor || 1) + 1}.` }); };
   s('#fdown').onclick = () => store.set('session/floor', Math.max(1, (sess.floor || 1) - 1));
@@ -422,7 +434,7 @@ function bindGM(main) {
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6adea3eb');
+    const { openTable } = await import('./app.js?v=6adea532');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));

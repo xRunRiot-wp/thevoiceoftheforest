@@ -1,16 +1,17 @@
-import { CONFIG } from './config.js?v=6adea3eb';
-import * as store from './store.js?v=6adea3eb';
-import * as sheet from './sheetdata.js?v=6adea3eb';
-import { $, $$, esc, uid } from './util.js?v=6adea3eb';
-import { closeModal, maxHp } from './ui.js?v=6adea3eb';
-import { renderJoin, renderPlay } from './play.js?v=6adea3eb';
-import { renderGM } from './gm.js?v=6adea3eb';
-import { renderGuild } from './guild.js?v=6adea3eb';
-import { renderRules } from './rulebook.js?v=6adea3eb';
-import { renderVault } from './vault.js?v=6adea3eb';
-import { renderGames } from './games.js?v=6adea3eb';
-import { updateHotbar } from './hotbar.js?v=6adea3eb';
-import { renderFriendZone } from './friendzone.js?v=6adea3eb';
+import { CONFIG } from './config.js?v=6adea532';
+import * as store from './store.js?v=6adea532';
+import * as sheet from './sheetdata.js?v=6adea532';
+import { $, $$, esc, uid } from './util.js?v=6adea532';
+import { closeModal, maxHp } from './ui.js?v=6adea532';
+import { renderJoin, renderPlay } from './play.js?v=6adea532';
+import { renderGM } from './gm.js?v=6adea532';
+import { renderGuild } from './guild.js?v=6adea532';
+import { renderRules } from './rulebook.js?v=6adea532';
+import { renderVault } from './vault.js?v=6adea532';
+import { renderGames } from './games.js?v=6adea532';
+import { updateHotbar } from './hotbar.js?v=6adea532';
+import { weatherTick } from './weather.js?v=6adea532';
+import { renderFriendZone } from './friendzone.js?v=6adea532';
 
 const main = $('#main');
 let current = '';
@@ -118,3 +119,13 @@ window.addEventListener('hashchange', route);
 
 export const refresh = () => rerender?.();
 export { $$, esc };
+
+// Weather: post each 6-hour change to "Around the Guild" and keep the hotbar chip current.
+// Only on a table that has really loaded with its game in it (never on a blank or half-loaded one).
+async function weatherLoop() {
+  const state = await store.whenLoaded();
+  if (state === 'data' && Object.keys(store.get('party') || {}).length) weatherTick();
+  updateHotbar();
+}
+setInterval(weatherLoop, 5 * 60e3);
+setTimeout(weatherLoop, 8000);

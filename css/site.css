@@ -524,3 +524,14 @@ details.gs h4 { margin: 12px 0 4px; }
 .fz-travel th, .fz-travel td { text-align: left; padding: 5px 4px; border-bottom: 1px solid var(--cream3); }
 .fz-loyal { font-size: 18px; letter-spacing: 2px; }
 .fz-mons .pill.recruit small { opacity: .75; }
+
+/* weather */
+.hb-wx.legend { background: #b8322a; color: #fff; animation: pulse 1.4s infinite; }
+.wxcard { background: #e8f1fb; border: 2px solid #8fb6e0; border-radius: var(--r); padding: 10px 12px; margin-top: 12px; }
+.wxcard.on { background: #fff6d6; border-color: var(--gold); }
+.wxcard ul { list-style: none; margin: 6px 0 0; padding: 0; }
+.wxcard li { display: flex; gap: 8px; padding: 4px 0; font-size: 14px; border-top: 1px dashed rgba(0,0,0,.12); }
+.wxcard li.down b { color: #b8322a; }
+.wxtag { font-size: 14px; }
+.wx-event { background: #b8322a; color: #fff; border-radius: var(--r); padding: 8px 12px; margin-bottom: 8px; }
+.wx-event p { margin: 4px 0 0; }

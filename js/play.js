@@ -1,21 +1,23 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adea3eb';
-import * as sheet from './sheetdata.js?v=6adea3eb';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adea3eb';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adea3eb';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adea3eb';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adea3eb';
-import { CONFIG } from './config.js?v=6adea3eb';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adea3eb';
-import { merged, editContent } from './content-store.js?v=6adea3eb';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adea3eb';
-import { guildName, missionParts } from './guild.js?v=6adea3eb';
-import { homeHTML } from './sitepages.js?v=6adea3eb';
-import { pinsOf, showMap } from './hotbar.js?v=6adea3eb';
-import { chatterLatestHTML } from './chatter.js?v=6adea3eb';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6adea3eb';
-import { locations, spots } from './friendzone.js?v=6adea3eb';
-import * as dice3d from './dice3d.js?v=6adea3eb';
+import * as store from './store.js?v=6adea532';
+import * as sheet from './sheetdata.js?v=6adea532';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adea532';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adea532';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adea532';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adea532';
+import { CONFIG } from './config.js?v=6adea532';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adea532';
+import { merged, editContent } from './content-store.js?v=6adea532';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adea532';
+import { guildName, missionParts } from './guild.js?v=6adea532';
+import { homeHTML } from './sitepages.js?v=6adea532';
+import { pinsOf, showMap } from './hotbar.js?v=6adea532';
+import { chatterLatestHTML } from './chatter.js?v=6adea532';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream } from './memory.js?v=6adea532';
+import { locations, spots } from './friendzone.js?v=6adea532';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adea532';
+import { find } from './effects.js?v=6adea532';
+import * as dice3d from './dice3d.js?v=6adea532';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -274,6 +276,7 @@ function charCard(c) {
     <div class="chips">${st.length ? st.map((s) => `<a href="#" class="chip on" data-ixname="${esc(STATUS_IX[s] || s)}">${esc(s)}</a>`).join('') : '<span class="small muted">Healthy</span>'}</div>
     ${c.id === myId() || store.gmUnlocked() ? memoryHTML(c) : ''}
 
+    <div id="wxcard"></div>
     <div class="section-title"><h3>Moves</h3><span class="small muted">tap to roll</span></div>
     <div class="moves">${(c.moves || []).map((m, i) => `<div class="move movecard"><a href="#" data-ixname="${esc(m)}" class="mvname"><b>${esc(m)}</b></a><span data-minfo="${esc(m)}">…</span><p class="mveff" data-meff="${esc(m)}"></p><button class="btn block" data-move="${i}">Roll ${esc(m)}</button></div>`).join('') || '<p class="muted small">No moves on this sheet yet.</p>'}
       <div class="move movecard"><a href="#" data-ixname="Physical Struggle" class="mvname"><b>Struggle</b></a><span>None · Physical · Accuracy Dexterity + Brawl · Damage Strength + Power 0</span><p class="mveff">Always available, even with no moves left.</p><button class="btn block" data-struggle="Physical Struggle">Roll Struggle</button></div></div>
@@ -398,6 +401,17 @@ function bindCharCard(main, c) {
     });
     $$('[data-meff]', main).forEach((p) => { const m = idx.get(p.dataset.meff.toLowerCase()); p.innerHTML = m?.effect ? linkify(m.effect, ix, m.name) : (m ? 'No added effect.' : ''); });
     $$('[data-move]', main).forEach((b) => b.onclick = () => moveRoll(c, idx.get(c.moves[+b.dataset.move].toLowerCase()) || { name: c.moves[+b.dataset.move], type: '', cat: 'Status', acc: [], power: null, effect: '' }));
+    const wxEl = $('#wxcard', main);
+    if (wxEl) {
+      const w = WEATHERS[currentWeather().key]; const ab = c.ability && find(ix, c.ability);
+      const hits = weatherFor(c, (c.moves || []).map((n) => idx.get(n.toLowerCase())), ab ? { name: ab.name, text: ab.outcome || ab.trigger || '' } : null);
+      wxEl.innerHTML = `<div class="wxcard ${hits.length ? 'on' : ''}"><div class="row nowrap" style="justify-content:space-between"><b>${w.icon} Weather: ${esc(w.name)}</b><button class="btn alt sm" id="wxinfo">Details</button></div>
+        ${hits.length ? `<ul>${hits.map((h) => `<li class="${h.good ? 'up' : 'down'}"><span>${h.good ? '⬆️' : '⚠️'}</span><span><b>${esc(h.what)}</b>${h.ability ? ' (your ability)' : ''}: ${h.special || h.ability ? linkify(h.note, ix) : esc(h.note)}</span></li>`).join('')}</ul>`
+          : `<p class="small" style="margin:4px 0 0">${w.ix ? 'This weather doesn’t change any of your moves or your ability.' : 'No weather effects right now.'}</p>`}</div>`;
+      $('#wxinfo', wxEl).onclick = showWeather;
+      const tagged = new Set(hits.map((h) => h.what));
+      $$('.movecard .mvname', main).forEach((a) => { if (tagged.has(idx.get(a.dataset.ixname.toLowerCase())?.name) && !a.querySelector('.wxtag')) (a.querySelector('b') || a).insertAdjacentHTML('beforeend', ` <span class="wxtag">${w.icon}</span>`); });
+    }
     $$('[data-struggle]', main).forEach((b) => b.onclick = () => moveRoll(c, idx.get('physical struggle') || { name: 'Physical Struggle', type: 'None', cat: 'Physical', acc: ['Dexterity', 'Brawl'], power: 0, effect: '' }));
   });
 }
