@@ -517,6 +517,12 @@ details.gs h4 { margin: 12px 0 4px; }
 .fz-mini { padding: 4px 12px; }
 .fz-row { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px dashed var(--cream3); text-decoration: none; color: inherit; }
 .fz-row:first-child { border-top: 0; }
+.fz-row .fz-ic { flex: none; width: 24px; text-align: center; font-size: 18px; align-self: flex-start; }
+.fz-row .fz-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fz-row .fz-nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fz-row .fz-meta { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 13px; color: var(--ink); opacity: .85; }
+.fz-row .fz-meta > span { white-space: nowrap; }
+.fz-row .fz-loy { min-width: 4.2em; }
 .fz-net details { margin-top: 8px; border-top: 1px dashed var(--cream3); padding-top: 6px; }
 .fz-net summary { cursor: pointer; min-height: 32px; }
 .fz-net p { margin: 6px 0; }

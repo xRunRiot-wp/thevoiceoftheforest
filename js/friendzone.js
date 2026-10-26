@@ -1,9 +1,9 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6adea6e2';
-import { $, $$, esc, toast } from './util.js?v=6adea6e2';
-import { modal, closeModal } from './ui.js?v=6adea6e2';
-import { merged, editContent } from './content-store.js?v=6adea6e2';
+import * as store from './store.js?v=6adea706';
+import { $, $$, esc, toast } from './util.js?v=6adea706';
+import { modal, closeModal } from './ui.js?v=6adea706';
+import { merged, editContent } from './content-store.js?v=6adea706';
 
 export const LOCATIONS = [
   {
@@ -113,7 +113,8 @@ export const locations = () => merged('friendzone', LOCATIONS);
 export function friendZoneSection() {
   return `<div class="section-title"><h2>Friend Zone</h2><a class="small" href="#/friends">Network →</a></div>
   <div class="card fz-mini">${locations().map((l) => { const n = residents(l);
-    return `<a class="fz-row" href="#/friends/${esc(l.id)}"><span class="grow"><b>${esc(l.icon || '📍')} ${esc(l.name)}</b> ${Number(l.loyalty) > 0 ? flowers(l.loyalty) : '<span class="small muted">0 🌸</span>'}<span class="small muted"> · relay ${esc(l.relayTime || '—')}</span></span><span class="small">${spots(l).length ? `${n} resident${n === 1 ? '' : 's'}` : 'camp not set up'}</span></a>`; }).join('')}</div>`;
+    return `<a class="fz-row" href="#/friends/${esc(l.id)}"><span class="fz-ic">${esc(l.icon || '📍')}</span><span class="fz-txt"><b class="fz-nm">${esc(l.name)}</b>
+      <span class="fz-meta"><span class="fz-loy">${Number(l.loyalty) > 0 ? flowers(l.loyalty) : '0 🌸'}</span><span>relay ${esc(l.relayTime || '—')}</span><span class="${spots(l).length ? '' : 'muted'}">${spots(l).length ? `${n} resident${n === 1 ? '' : 's'}` : 'camp not set up'}</span></span></span></a>`; }).join('')}</div>`;
 }
 const residents = (l) => spots(l).reduce((s, x) => s + x.mons.length, 0) + Object.values(store.get('recruits/' + l.id) || {}).reduce((s, x) => s + Object.keys(x || {}).length, 0);
 
