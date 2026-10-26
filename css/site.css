@@ -483,3 +483,13 @@ details.gs h4 { margin: 12px 0 4px; }
 .mem-actions input { flex: 1; min-width: 0; }
 .memory textarea { width: 100%; }
 .chatter-mini { display: block; text-decoration: none; color: inherit; margin-top: 12px; } .chatter-mini .line:first-of-type { border-top: 0; }
+.hotbar { display: flex; gap: 6px; overflow-x: auto; padding: 6px 12px 8px; background: #3a2618; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.hotbar::-webkit-scrollbar { display: none; }
+.hotbar .hb { flex: none; white-space: nowrap; font-size: 14px; padding: 4px 10px; border-radius: 999px; background: rgba(255, 243, 214, .12); border: 1px solid rgba(255, 243, 214, .3); color: var(--cream); text-decoration: none; font-family: inherit; line-height: 1.4; }
+.hotbar .hb-me { background: #e8862a; border-color: #ffd56b; color: #fff; }
+.hotbar .hb-btn { cursor: pointer; }
+.hotbar .hb-pin { background: rgba(107, 95, 194, .35); }
+.hotbar .hb-pin.gone { opacity: .5; text-decoration: line-through; }
+.hotbar .hb-pin.muted { opacity: .7; font-style: italic; }
+.pinbtn { opacity: .45; } .pinbtn.on { opacity: 1; background: #e6e0ff; }
+.worldmap { width: 100%; border-radius: 10px; display: block; }

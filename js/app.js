@@ -1,15 +1,16 @@
-import { CONFIG } from './config.js?v=6ade9dc5';
-import * as store from './store.js?v=6ade9dc5';
-import * as sheet from './sheetdata.js?v=6ade9dc5';
-import { $, $$, esc, uid } from './util.js?v=6ade9dc5';
-import { closeModal, maxHp } from './ui.js?v=6ade9dc5';
-import { renderJoin, renderPlay } from './play.js?v=6ade9dc5';
-import { renderGM } from './gm.js?v=6ade9dc5';
-import { renderGuild } from './guild.js?v=6ade9dc5';
-import { renderRules } from './rulebook.js?v=6ade9dc5';
-import { renderVault } from './vault.js?v=6ade9dc5';
-import { renderGames } from './games.js?v=6ade9dc5';
-import { renderFriendZone } from './friendzone.js?v=6ade9dc5';
+import { CONFIG } from './config.js?v=6ade9e74';
+import * as store from './store.js?v=6ade9e74';
+import * as sheet from './sheetdata.js?v=6ade9e74';
+import { $, $$, esc, uid } from './util.js?v=6ade9e74';
+import { closeModal, maxHp } from './ui.js?v=6ade9e74';
+import { renderJoin, renderPlay } from './play.js?v=6ade9e74';
+import { renderGM } from './gm.js?v=6ade9e74';
+import { renderGuild } from './guild.js?v=6ade9e74';
+import { renderRules } from './rulebook.js?v=6ade9e74';
+import { renderVault } from './vault.js?v=6ade9e74';
+import { renderGames } from './games.js?v=6ade9e74';
+import { updateHotbar } from './hotbar.js?v=6ade9e74';
+import { renderFriendZone } from './friendzone.js?v=6ade9e74';
 
 const main = $('#main');
 let current = '';
@@ -81,13 +82,13 @@ async function route() {
   const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, vault: renderVault, games: renderGames, friends: renderFriendZone, rules: renderRules }[page] || renderJoin;
   rerender = () => render(main, rest);
   await rerender();
-  statusChip();
+  statusChip(); updateHotbar();
 }
 
 // Re-render the live pages when the table changes, without losing typing focus.
 let pending = false;
 store.subscribe(() => {
-  statusChip();
+  statusChip(); updateHotbar();
   if (pending) return;
   pending = true;
   requestAnimationFrame(() => {
