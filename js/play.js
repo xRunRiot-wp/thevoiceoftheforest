@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adfdd41';
-import * as sheet from './sheetdata.js?v=6adfdd41';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfdd41';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfdd41';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfdd41';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfdd41';
-import { CONFIG } from './config.js?v=6adfdd41';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfdd41';
-import { merged, editContent } from './content-store.js?v=6adfdd41';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfdd41';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfdd41';
-import { homeHTML } from './sitepages.js?v=6adfdd41';
-import { pinsOf, showMap } from './hotbar.js?v=6adfdd41';
-import { chatterLatestHTML } from './chatter.js?v=6adfdd41';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfdd41';
-import { locations, spots } from './friendzone.js?v=6adfdd41';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfdd41';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfdd41';
-import { find } from './effects.js?v=6adfdd41';
-import * as dice3d from './dice3d.js?v=6adfdd41';
+import * as store from './store.js?v=6adfde76';
+import * as sheet from './sheetdata.js?v=6adfde76';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfde76';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfde76';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfde76';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfde76';
+import { CONFIG } from './config.js?v=6adfde76';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfde76';
+import { merged, editContent } from './content-store.js?v=6adfde76';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfde76';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfde76';
+import { homeHTML } from './sitepages.js?v=6adfde76';
+import { pinsOf, showMap } from './hotbar.js?v=6adfde76';
+import { chatterLatestHTML } from './chatter.js?v=6adfde76';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfde76';
+import { locations, spots } from './friendzone.js?v=6adfde76';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfde76';
+import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfde76';
+import { find } from './effects.js?v=6adfde76';
+import * as dice3d from './dice3d.js?v=6adfde76';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -341,7 +341,7 @@ function charCard(c) {
   const st = c.status || [];
   return `<div class="card">
     <div class="char-head">${portrait(c)}<div class="grow">
-      <div class="char-name">${esc(c.nickname)}</div>
+      <div class="char-name-row"><div class="char-name">${esc(c.nickname)}</div><button class="btn alt sm" id="editme2">✏️ Edit sheet</button></div>
       <div class="workfor"><span class="small">Working for:</span><div class="vtabs wf-tabs">${[['woodland', 'Woodland', 'Base'], ['vanguard', 'Vanguard', 'Guild']].map(([k, n, tail]) => `<button class="vtab ${(c.guild || 'woodland') === k ? 'on' : ''}" data-setguild="${k}" style="${guildTint(k)}">${k === 'vanguard' ? '🛡️' : '🌳'} ${n}<span class="wf-long"> ${tail}</span></button>`).join('')}</div></div>
       ${factBoxes(c)}
       <div class="chips" style="margin-top:4px">${[c.type1, c.type2].filter(Boolean).map((t) => `<a href="#" class="chip type ty-${esc(t)}" data-ixname="Type effectiveness">${esc(t)}</a>`).join('')}${c.ability ? `<a href="#" class="pill" data-ixname="${esc(c.ability)}">${esc(c.ability)}</a>` : ''}${badgeChip(c)}</div>
@@ -497,6 +497,7 @@ function bindCharCard(main, c) {
   $$('[data-will]', main).forEach((b) => b.onclick = () => store.update(path, (x) => { x.willCur = clamp((x.willCur ?? x.will) + num(b.dataset.will), 0, x.will || 0); return x; }));
   $('#stedit', main).onclick = () => pickStatus(c);
   $('#editme', main).onclick = () => editCharacter(c.id);
+  $('#editme2', main).onclick = () => editCharacter(c.id);
   $('#qroll', main).onclick = () => quickRoll(c);
   $$('[data-act]', main).forEach((b) => b.onclick = () => actionRoll(c, actions().find((a) => a.id === b.dataset.act)));
   const ea = $('#edact', main);
@@ -836,7 +837,7 @@ export function editCharacter(id, onCreated) {
       <label class="check"><input type="checkbox" id="isguest" ${c.guest ? 'checked' : ''}> This is a guest / escort / NPC helper</label>
       <div class="grid g2"><label class="f">Leaves<select id="gleave">${['mission', 'floor', 'session', 'manual'].map((o) => `<option ${c.guest?.leaves === o ? 'selected' : ''} value="${o}">${{ mission: 'when the mission ends', floor: 'at the next floor', session: 'at the end of the session', manual: 'when I remove them' }[o]}</option>`).join('')}</select></label>
       <label class="f">Controlled by<select id="gctl"><option value="gm" ${c.guest?.controller !== 'player' ? 'selected' : ''}>GM</option><option value="player" ${c.guest?.controller === 'player' ? 'selected' : ''}>A player can pick them</option></select></label></div></div>` : ''}
-    <div class="row" style="margin-top:12px"><button class="btn" id="save">Save</button>${isNew ? '' : '<button class="btn bad" id="del">Remove</button>'}</div>`);
+    <div class="row" style="margin-top:12px"><button class="btn" id="save">Save</button>${isNew || !store.gmUnlocked() ? '' : '<button class="btn bad" id="del">Remove</button>'}</div>`);
   $('#save', sheetEl).onclick = () => {
     $$('[data-k]', sheetEl).forEach((el) => {
       const k = el.dataset.k;
@@ -857,7 +858,7 @@ export function editCharacter(id, onCreated) {
     closeModal();
     if (isNew) onCreated?.(nid);
   };
-  if (!isNew) $('#del', sheetEl).onclick = () => { if (confirm(`Remove ${c.nickname} from this table?`)) { store.set('party/' + id, null); closeModal(); } };
+  if ($('#del', sheetEl)) $('#del', sheetEl).onclick = () => { if (confirm(`Remove ${c.nickname} from this table?`)) { store.set('party/' + id, null); closeModal(); } };
 }
 
 export { RULES, CONFIG };

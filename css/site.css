@@ -116,6 +116,7 @@ label.f > input, label.f > select, label.f > textarea { margin-top: 3px; font-we
 /* ---------- character */
 .char-head { display: flex; gap: 12px; align-items: center; }
 .char-name { font: 700 24px var(--pix); color: var(--brown); line-height: 1; }
+.char-name-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .char-sub { font-size: 14px; color: var(--muted); }
 .bar { height: 16px; background: #3a2a1a; border-radius: 8px; overflow: hidden; border: 2px solid var(--brown); }
 .bar > i { display: block; height: 100%; background: var(--hp); transition: width .25s; }
