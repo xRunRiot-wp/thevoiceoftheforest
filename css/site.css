@@ -1421,3 +1421,10 @@ a.ch-chip:hover { background: var(--navy); }
 @keyframes dig-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 @media (prefers-reduced-motion: reduce) { .digsprite, .digsprite.hit, .digsprite.miss, .digsprite.slow { animation: none; } }
 .sentry-roster .sface { width: 32px; height: 32px; border-radius: 6px; }
+
+/* Sentry Duty card: banner across it until today's shift is done */
+.gamecard.due { position: relative; overflow: hidden; box-shadow: 0 0 0 3px #e0453a, 0 0 18px rgba(224, 69, 58, .55); }
+.due-ribbon { position: absolute; z-index: 2; top: 50%; left: -10%; right: -10%; transform: translateY(-50%) rotate(-8deg); background: repeating-linear-gradient(-45deg, #f2c14e 0 14px, #2b1a0c 14px 28px); padding: 4px 0; pointer-events: none; box-shadow: 0 3px 10px rgba(0, 0, 0, .45); }
+.due-ribbon { color: transparent; font-size: 0; }
+.due-ribbon::after { content: 'Today’s shift not done yet!'; display: block; margin: 0 auto; width: max-content; max-width: 80%; padding: 4px 14px; background: #e0453a; color: #fff; font: 700 15px var(--pix); letter-spacing: .5px; border-radius: 6px; text-align: center; }
+.gamecard.due:hover .due-ribbon { opacity: .35; transition: opacity .2s; }

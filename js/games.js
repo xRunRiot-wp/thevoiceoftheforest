@@ -1,18 +1,18 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6ae13844';
-import * as store from './store.js?v=6ae13844';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae13844';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13844';
-import { modal, portrait } from './ui.js?v=6ae13844';
-import * as sheet from './sheetdata.js?v=6ae13844';
-import { shop } from './guild.js?v=6ae13844';
-import { merged, editContent } from './content-store.js?v=6ae13844';
-import { logRoll, me, addTeamFx } from './play.js?v=6ae13844';
-import { luckyReaction, gmTodo } from './chatter.js?v=6ae13844';
-import { ranks } from './rulebook.js?v=6ae13844';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae13844';
-import { isSentry, renderSentry, sentryMini } from './sentry.js?v=6ae13844';
+import { markWinner } from './sparkle.js?v=6ae13965';
+import * as store from './store.js?v=6ae13965';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae13965';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13965';
+import { modal, portrait } from './ui.js?v=6ae13965';
+import * as sheet from './sheetdata.js?v=6ae13965';
+import { shop } from './guild.js?v=6ae13965';
+import { merged, editContent } from './content-store.js?v=6ae13965';
+import { logRoll, me, addTeamFx } from './play.js?v=6ae13965';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ae13965';
+import { ranks } from './rulebook.js?v=6ae13965';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae13965';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae13965';
 
 export const GAMES = [
   {
@@ -182,7 +182,7 @@ export function renderGames(main, [arg]) {
     main.innerHTML = `<div class="hero"><img class="hdr" src="assets/banners/items_orbs.jpg" alt=""></div>
       <div class="row" style="justify-content:space-between;margin-top:12px"><h1 style="margin:0">Gambling Games</h1>${gm ? '<button class="btn alt sm" id="add">+ Game</button>' : ''}</div>
       <p class="small muted">Games of chance around Gravity Falls. Spins show up in the table's roll log for everyone.</p>
-      <div class="gamecards">${list.map((g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''}" href="#/games/${esc(g.id)}">
+      <div class="gamecards">${list.map((g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''} ${isSentry(g) && sentryDue() ? 'due' : ''}" href="#/games/${esc(g.id)}">${isSentry(g) && sentryDue() ? '<span class="due-ribbon">⚠️ Today’s shift not done yet!</span>' : ''}
         ${isSentry(g) ? sentryMini() : isFortune(g) ? fortuneMini() : `<canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>`}
         <div class="gc-text"><h3>${esc(g.name)}</h3>
           <p class="gc-host">${esc(g.host ? (g.only ? '' : 'Run by ') + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}${g.only ? ` · <b>${esc(g.only)} only</b>` : ''}${g.special && g.twists.length ? ` · <b>✨ ${esc(g.special)} twists</b>` : ''}</p>
