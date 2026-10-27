@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6ae00ac2';
-import { $, $$, esc, toast } from './util.js?v=6ae00ac2';
+import * as store from './store.js?v=6ae00bca';
+import { $, $$, esc, toast } from './util.js?v=6ae00bca';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
@@ -158,7 +158,7 @@ export function chatterLatestHTML(n = 3, welcome = '') {
   const feed = Object.entries(store.get('chatter') || {}).sort().reverse().slice(0, n);
   const top = welcome ? `<div class="gboard-top">${welcome}</div>` : '';
   if (!feed.length) return top ? `<div class="card gboard">${top}</div>` : '';
-  return `<div class="card gboard">${top}<a class="chatter chatter-mini" href="#/guild"><div class="row" style="justify-content:space-between"><b>🏕️ Around the Guild</b><span class="small">more on the Guild page →</span></div>
+  return `<div class="card gboard">${top}<a class="chatter chatter-mini" href="#/guild"><div class="gb-head"><h3>🏕️ Around the Guild</h3><span class="gb-more">More on the Guild page →</span></div>
     ${feed.map(([, x]) => lineHTML(x)).join('')}</a></div>`;
 }
 const lineHTML = (x) => `<div class="line ${x.kind === 'do' ? 'do' : ''} ${x.tag === 'lucky' ? 'lucky' : ''}"><div class="face">${face(x.who)}</div><div class="grow">${x.kind === 'do'

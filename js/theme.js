@@ -1,10 +1,10 @@
 // Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
 // and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
-import { CURSORS, cursorKind, setCursorKind } from './digcursor.js?v=6ae00ac2';
-import * as store from './store.js?v=6ae00ac2';
-import { $, $$, esc, toast } from './util.js?v=6ae00ac2';
-import { modal, closeModal } from './ui.js?v=6ae00ac2';
-import { skinPicker } from './dice3d.js?v=6ae00ac2';
+import { CURSORS, cursorKind, setCursorKind } from './digcursor.js?v=6ae00bca';
+import * as store from './store.js?v=6ae00bca';
+import { $, $$, esc, toast } from './util.js?v=6ae00bca';
+import { modal, closeModal, portrait } from './ui.js?v=6ae00bca';
+import { skinPicker } from './dice3d.js?v=6ae00bca';
 
 export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
   Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',
@@ -75,7 +75,7 @@ export function openSettings() {
   const c = me(); const cur = document.documentElement.dataset.theme || 'woodland';
   const gm = store.gmUnlocked(); const party = Object.entries(store.get('party') || {}).filter(([, x]) => !x.guest);
   const el = modal(`<h2>⚙️ Settings</h2>
-    <h3>👤 Character</h3><p class="small muted">${c ? `Playing as <b>${esc(c.nickname)}</b>.` : 'No character picked on this device.'}</p><button class="btn alt" id="setswitch">🔁 Switch Character</button>
+    <h3>👤 Character</h3><p class="small muted">${c ? `Playing as <b>${esc(c.nickname)}</b>.` : 'No character picked on this device.'}</p><button class="btn alt" id="setswitch">🔁 Switch Character</button><div class="themes who-list" id="setwho" hidden></div>
     <h3 style="margin-top:14px">🎲 Dice skin</h3><p class="small muted">How your 3D dice look when you roll. You start with Classic, Poké Ball and your type’s set; the GM hands out more as rewards.</p><button class="btn alt" id="setdice">Change dice skin</button>
     <h3 style="margin-top:14px">📄 Character sheet only</h3>
     <label class="check"><input type="checkbox" id="setsheetonly" ${sheetOnly() ? 'checked' : ''}> Just show my stats, moves and items. Hides the roll buttons, actions and extras, for players who roll at the table or on Roll20. (This device only.)</label>
@@ -91,7 +91,21 @@ export function openSettings() {
       <div class="grid g2" style="margin-top:10px"><select id="gdwho">${party.map(([id, x]) => `<option value="${id}">${esc(x.nickname)}</option>`).join('')}</select>
       <select id="gdwhat">${Object.entries(DICE_REWARDS).map(([k, n]) => `<option value="${k}">🎲 ${esc(n)}</option>`).join('')}</select></div>
       <button class="btn alt sm" id="gdgo" style="margin-top:6px">🎁 Give dice</button></details>` : ''}`);
-  $('#setswitch', el).onclick = () => { closeModal(); location.hash = '#/join'; };
+  // Switch Character: show the characters you can pick right here instead of leaving for the Home page.
+  $('#setswitch', el).onclick = () => {
+    const box = $('#setwho', el); if (!box.hidden) { box.hidden = true; return; }
+    const p = Object.values(store.get('party') || {}).filter((x) => !x.guest || x.guest.controller === 'player');
+    box.innerHTML = p.length ? p.map((x) => `<button class="th who ${x.id === meId() ? 'sel' : ''}" data-who="${x.id}">${portrait(x, 'sm')}<span><b>${esc(x.nickname)}</b><small>${esc(x.pokemon || '')}</small></span></button>`).join('')
+      : '<p class="small muted">No characters at this table yet.</p>';
+    box.hidden = false;
+    $$('[data-who]', box).forEach((b) => b.onclick = () => {
+      const t = store.tableCode();
+      try { localStorage.setItem('dc.me.' + t, b.dataset.who); localStorage.setItem('dc.joined.' + t, '1'); } catch { /* ignore */ }
+      closeModal(); applyTheme();
+      if (location.hash === '#/play') window.dispatchEvent(new Event('refreshpage')); else location.hash = '#/play';
+      toast(`Now playing as ${(store.get('party') || {})[b.dataset.who]?.nickname || 'your character'}`);
+    });
+  };
   $('#setdice', el).onclick = () => skinPicker();
   $('#setsheetonly', el).onchange = (e) => { setSheetOnly(e.target.checked); window.dispatchEvent(new Event('refreshpage')); };
   $$('[data-cur]', el).forEach((b) => b.onclick = () => { setCursorKind(b.dataset.cur); $$('[data-cur]', el).forEach((x) => x.classList.toggle('sel', x === b)); });
