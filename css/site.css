@@ -1269,3 +1269,8 @@ a.ch-chip:hover { background: var(--navy); }
   45% { opacity: 1; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(var(--s)) rotate(calc(var(--rot) * .5)); }
   100% { opacity: 0; transform: translate(calc(-50% + var(--dx) * 1.25), calc(-50% + var(--dy) + var(--fall))) scale(var(--s)) rotate(var(--rot)); }
 }
+
+/* Meet the Characters! picture tile, full width on the Home page under the player trailer */
+.home-chars { margin-top: 14px; }
+.home-chars .navtile-head img { aspect-ratio: 4 / 1; object-position: center 55%; }
+@media (max-width: 600px) { .home-chars .navtile-head img { aspect-ratio: 16 / 8; } }
