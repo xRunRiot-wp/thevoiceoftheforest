@@ -462,7 +462,9 @@ details.gs h4 { margin: 12px 0 4px; }
 .sp small { opacity: .8; font-size: 12px; }
 .sp.on { border-color: #ffd56b; background: rgba(255, 213, 107, .18); box-shadow: 0 0 12px rgba(255, 213, 107, .35); }
 @media (max-width: 720px) {
-  .wheel-layout { grid-template-columns: 1fr; }
+  .wheel-layout { grid-template-columns: minmax(0, 1fr); }
+  .wheel-layout > * { min-width: 0; }   /* the sideways character strip must scroll, not widen the page */
+  .wheel-layout canvas { max-width: 100%; height: auto; }
   .spinners { position: static; }
   #splist { flex-direction: row; overflow-x: auto; padding-bottom: 4px; }
   .sp { width: auto; flex: 0 0 auto; }

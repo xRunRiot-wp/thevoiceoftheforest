@@ -1,10 +1,10 @@
 // Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
 // and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
-import { CURSORS, cursorKind, setCursorKind } from './digcursor.js?v=6ae0d55a';
-import * as store from './store.js?v=6ae0d55a';
-import { $, $$, esc, toast } from './util.js?v=6ae0d55a';
-import { modal, closeModal, portrait } from './ui.js?v=6ae0d55a';
-import { skinPicker } from './dice3d.js?v=6ae0d55a';
+import { CURSORS, cursorKind, setCursorKind } from './digcursor.js?v=6ae1105f';
+import * as store from './store.js?v=6ae1105f';
+import { $, $$, esc, toast } from './util.js?v=6ae1105f';
+import { modal, closeModal, portrait } from './ui.js?v=6ae1105f';
+import { skinPicker } from './dice3d.js?v=6ae1105f';
 
 export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
   Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',

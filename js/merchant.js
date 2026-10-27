@@ -3,12 +3,12 @@
 // Haggling: Slash never tolerates it (try 1 "fair", try 2 "absolutely not", try 3 = he and his troupe of 3 stand armed).
 // Beat him in that fight: his caravan never returns and the team gets everything on his table.
 // Lose: his prices go up 150% for good (no more sales) and he attacks at the very next haggle.
-import * as store from './store.js?v=6ae0d55a';
-import { $, $$, esc, num, uid, toast } from './util.js?v=6ae0d55a';
-import { modal, closeModal } from './ui.js?v=6ae0d55a';
-import { ixLink } from './effects.js?v=6ae0d55a';
-import { guildSay, gmTodo } from './chatter.js?v=6ae0d55a';
-import { buyDialog, logSale } from './shopkit.js?v=6ae0d55a';
+import * as store from './store.js?v=6ae1105f';
+import { $, $$, esc, num, uid, toast } from './util.js?v=6ae1105f';
+import { modal, closeModal } from './ui.js?v=6ae1105f';
+import { ixLink } from './effects.js?v=6ae1105f';
+import { guildSay, gmTodo } from './chatter.js?v=6ae1105f';
+import { buyDialog, logSale } from './shopkit.js?v=6ae1105f';
 
 export const BROTHERS = {
   Slash: { tell: 'Does not tolerate haggling.', lines: ['No. The price I listed is fair.', 'Absolutely not.', '*stands armed and guarded with his troupe of 3*'] },
