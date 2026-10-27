@@ -1,13 +1,13 @@
 // Training Gym (#/gym): one drill per day per character. Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6adff200';
-import { $, $$, esc, num, pool } from './util.js?v=6adff200';
-import { modal, diceFaces } from './ui.js?v=6adff200';
-import { statVal, logRoll } from './play.js?v=6adff200';
-import { myId } from './app.js?v=6adff200';
-import { currentWeather, WEATHERS, showWeather } from './weather.js?v=6adff200';
-import { RESIDENTS } from './chatter.js?v=6adff200';
+import * as store from './store.js?v=6adff3ae';
+import { $, $$, esc, num, pool } from './util.js?v=6adff3ae';
+import { modal, diceFaces } from './ui.js?v=6adff3ae';
+import { statVal, logRoll } from './play.js?v=6adff3ae';
+import { myId } from './app.js?v=6adff3ae';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML } from './weather.js?v=6adff3ae';
+import { RESIDENTS } from './chatter.js?v=6adff3ae';
 
 const BAR = 5;
 export const DRILLS = [
@@ -130,7 +130,7 @@ function gymWxHTML(c, wx) {
   const at = new Date(cw.next).toLocaleString([], { ...(cw.next - Date.now() > 12 * 3600e3 ? { weekday: 'short' } : {}), hour: 'numeric', minute: '2-digit' });
   const says = wx.lvl === 2 ? 'A storm! Everyone trains indoors and loses a die.' : wx.lvl ? 'Bad weather. The outdoor drills have moved inside.' : 'Good training weather. Every drill runs outside.';
   const mine = wxDice(c, wx);
-  return `<div class="fortune gym-wxw"><div class="ft-top">✦ Gym Weather ✦</div>
+  return `<div class="fortune gym-wxw">${wxFxHTML(wx.key)}<div class="ft-top">✦ Gym Weather ✦</div>
     <div class="ft-orb" aria-hidden="true">${wx.w.icon || ''}</div><div class="ft-name">${esc(wx.w.name || '')}</div>
     <div class="ft-say">${esc(says)}</div>
     ${PERK[wx.key] ? `<p class="small ft-none">${esc(PERK[wx.key])} types +1 die.</p>` : ''}

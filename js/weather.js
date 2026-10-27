@@ -2,9 +2,9 @@
 // A roll of 100 is a disaster for the whole day: a huge fissure or a tsunami. Players never see who causes them (GM screen only).
 // Every device works out the same weather from the table code and the time, so nothing has to be saved;
 // the GM can still force a weather. Rules are PokéRole 2.0's weather (p.55-57).
-import * as store from './store.js?v=6adff200';
-import { esc } from './util.js?v=6adff200';
-import { modal } from './ui.js?v=6adff200';
+import * as store from './store.js?v=6adff3ae';
+import { esc } from './util.js?v=6adff3ae';
+import { modal } from './ui.js?v=6adff3ae';
 
 export const WEATHERS = {
   clear: { name: 'Clear skies', icon: '☀️', w: 30, text: 'No weather effects.' },
@@ -83,7 +83,7 @@ export function weatherChipHTML() {
 
 export function showWeather() {
   const cw = currentWeather(); const w = WEATHERS[cw.key]; const ev = cw.event && EVENTS[cw.event];
-  modal(`<div class="fortune ft-full"><div class="ft-top">✦ What’s the Weather? ✦</div>
+  modal(`<div class="fortune ft-full">${wxFxHTML(cw.key)}<div class="ft-top">✦ What’s the Weather? ✦</div>
     <div class="ft-orb" aria-hidden="true">${w.icon}</div><div class="ft-name">${esc(w.name)}</div>
     ${ev ? `<div class="wx-event"><b>${ev.icon} ${esc(ev.name)}</b><p>${esc(ev.text)}</p></div>` : ''}
     <div class="ft-say">The skies foretell…</div>
@@ -132,3 +132,16 @@ export function weatherTick() {
 export function setWeather(key, hours = BLOCK) { store.set('weather/override', { key, until: Date.now() + hours * 3600e3 }); store.set('weather/posted', null); }
 export function startEvent(ev) { store.set('weather/override', { key: EVENTS[ev].weather, until: Date.now() + 24 * 3600e3, event: ev }); store.set('weather/posted', null); store.set('weather/eventPosted', null); }
 export function clearWeather() { store.set('weather/override', null); store.set('weather/posted', null); }
+
+// Moving weather drawn over a weather card (like a phone lock-screen weather overlay). Particles get fixed
+// pseudo-random spots so every card looks the same; CSS (.wxfx-*) does the animation and stops for reduced motion.
+const FX = {
+  clear: ['glint', 7], cloudy: ['cloud', 4], sunny: ['glint', 6], rain: ['drop', 34], fog: ['mist', 4], wind: ['gust', 12],
+  sandstorm: ['sand', 46], hail: ['hail', 26], harsh: ['ember', 20], typhoon: ['drop', 56],
+};
+export function wxFxHTML(key) {
+  const [kind, n] = FX[key] || FX.clear;
+  const r = (i, k) => hash(`fx|${key}|${i}|${k}`);
+  const bits = Array.from({ length: n }, (_, i) => `<i class="${kind}" style="--x:${(r(i, 'x') * 100).toFixed(1)}%;--y:${(r(i, 'y') * 100).toFixed(1)}%;--d:${(-r(i, 'd') * 6).toFixed(2)}s;--s:${(0.7 + r(i, 's') * 0.6).toFixed(2)}"></i>`).join('');
+  return `<div class="wxfx wxfx-${key}" aria-hidden="true">${bits}${key === 'typhoon' ? '<b class="flash"></b>' : ''}${key === 'harsh' || key === 'sunny' ? '<b class="heat"></b><b class="rays"></b>' : ''}</div>`;
+}

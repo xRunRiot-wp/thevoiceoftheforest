@@ -1037,3 +1037,55 @@ body[data-sheetonly] .mv-act { margin-top: 14px; }
 .gc-face { width: 40px; height: 40px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 20px; background: var(--cream2); border: 2px solid #8a5a2b; }
 .gym-wxw .ft-top { margin-bottom: auto; } .gym-wxw .ft-more { margin-top: auto; } .gym-wxw .ft-orb { width: 110px; height: 110px; font-size: 58px; }
 @media (max-width: 720px) { .gym-wxw .ft-top, .gym-wxw .ft-more { margin: 0 0 0; } .gym-wxw .ft-more { margin-top: 10px; } .gym-wxw .ft-orb { width: 74px; height: 74px; font-size: 38px; } }
+
+/* Moving weather over the weather cards (weather.js wxFxHTML) */
+.fortune > :not(.wxfx) { position: relative; z-index: 1; }
+.wxfx { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; z-index: 0; }
+.wxfx i, .wxfx b { position: absolute; display: block; }
+.wxfx i { left: var(--x); top: var(--y); animation-delay: var(--d); }
+/* rain + typhoon */
+.wxfx .drop { top: -12%; width: 2px; height: 20px; background: linear-gradient(transparent, rgba(200, 228, 255, .95)); animation: wx-fall calc(.9s * var(--s)) linear infinite; animation-delay: var(--d); }
+.wxfx-typhoon .drop { height: 26px; width: 2px; transform: rotate(18deg); animation-duration: calc(.55s * var(--s)); }
+@keyframes wx-fall { from { transform: translate(0, 0) rotate(var(--rot, 0deg)); } to { transform: translate(-10px, 520px) rotate(var(--rot, 0deg)); } }
+.wxfx-typhoon .drop { --rot: 18deg; }
+.wxfx .flash { inset: 0; background: rgba(220, 230, 255, .55); opacity: 0; animation: wx-flash 7s infinite; }
+@keyframes wx-flash { 0%, 88%, 92%, 100% { opacity: 0; } 89%, 91% { opacity: .9; } 90% { opacity: .2; } }
+/* fog */
+.wxfx .mist { left: -60%; width: 220%; height: 34%; top: calc(var(--y) * .8); border-radius: 50%; background: radial-gradient(closest-side, rgba(230, 225, 245, .28), transparent); animation: wx-drift calc(14s * var(--s)) ease-in-out infinite alternate; animation-delay: var(--d); }
+@keyframes wx-drift { from { transform: translateX(-12%); } to { transform: translateX(12%); } }
+/* clouds */
+.wxfx .cloud { top: calc(var(--y) * .7); left: -40%; width: 120px; height: 40px; border-radius: 40px; background: rgba(235, 235, 255, .16); box-shadow: 30px -14px 0 4px rgba(235, 235, 255, .13); animation: wx-cross calc(26s * var(--s)) linear infinite; animation-delay: calc(var(--d) * 4); }
+@keyframes wx-cross { from { transform: translateX(0); } to { transform: translateX(420px); } }
+/* wind */
+.wxfx .gust { left: -30%; width: 90px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(225, 240, 255, .6), transparent); animation: wx-gust calc(1.6s * var(--s)) linear infinite; animation-delay: var(--d); }
+@keyframes wx-gust { from { transform: translateX(0); opacity: 0; } 20% { opacity: 1; } to { transform: translateX(520px); opacity: 0; } }
+/* sandstorm */
+.wxfx-sandstorm { background: linear-gradient(160deg, rgba(214, 160, 80, .18), transparent 70%); }
+.wxfx .sand { width: 3px; height: 3px; border-radius: 50%; background: rgba(240, 200, 130, .8); animation: wx-sand calc(1.1s * var(--s)) linear infinite; animation-delay: var(--d); }
+@keyframes wx-sand { from { transform: translate(-60px, -20px); opacity: 0; } 15% { opacity: 1; } to { transform: translate(380px, 90px); opacity: 0; } }
+/* hail */
+.wxfx .hail { top: -6%; width: 5px; height: 5px; border-radius: 50%; background: rgba(240, 248, 255, .9); box-shadow: 0 0 4px rgba(200, 230, 255, .8); animation: wx-hail calc(1.4s * var(--s)) linear infinite; animation-delay: var(--d); }
+@keyframes wx-hail { from { transform: translate(0, 0); } to { transform: translate(14px, 520px); } }
+/* sunny + harsh sunlight */
+.wxfx .rays { left: 50%; top: 32%; width: 900px; height: 900px; margin: -450px 0 0 -450px; border-radius: 50%;
+  background: repeating-conic-gradient(rgba(255, 225, 140, .16) 0 7deg, transparent 7deg 22deg);
+  -webkit-mask: radial-gradient(circle, #000 8%, transparent 45%); mask: radial-gradient(circle, #000 8%, transparent 45%); animation: wx-spin 60s linear infinite; }
+.wxfx-harsh .rays { background: repeating-conic-gradient(rgba(255, 150, 70, .2) 0 7deg, transparent 7deg 22deg); animation-duration: 35s; }
+@keyframes wx-spin { to { transform: rotate(360deg); } }
+.wxfx .heat { inset: 0; background: radial-gradient(circle at 50% 22%, rgba(255, 200, 90, .25), transparent 60%); animation: wx-pulse 4s ease-in-out infinite alternate; }
+.wxfx-harsh .heat { background: radial-gradient(circle at 50% 22%, rgba(255, 120, 40, .4), transparent 70%); }
+@keyframes wx-pulse { from { opacity: .5; } to { opacity: 1; } }
+.wxfx .ember { top: 100%; width: 4px; height: 4px; border-radius: 50%; background: #ffb347; box-shadow: 0 0 6px #ff7a1a; animation: wx-rise calc(3.5s * var(--s)) ease-in infinite; animation-delay: var(--d); }
+@keyframes wx-rise { from { transform: translate(0, 0); opacity: 0; } 15% { opacity: 1; } to { transform: translate(18px, -560px); opacity: 0; } }
+/* clear skies: soft twinkling glints */
+.wxfx .glint { width: 6px; height: 6px; background: radial-gradient(circle, #fff, transparent 70%); animation: wx-twinkle calc(3s * var(--s)) ease-in-out infinite; animation-delay: var(--d); }
+@keyframes wx-twinkle { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: 1; transform: scale(1.4); } }
+.ft-full .wxfx, .wxcard .wxfx { -webkit-mask: linear-gradient(#000 0 30%, rgba(0, 0, 0, .35) 55%); mask: linear-gradient(#000 0 30%, rgba(0, 0, 0, .35) 55%); }   /* lighter behind long reading text */
+@media (prefers-reduced-motion: reduce) { .wxfx i, .wxfx b { animation: none !important; } .wxfx .flash { display: none; } }
+
+/* Top bar tabs answer the cursor like the Castform tarot cards: gold outline + glow, small lift */
+.tabs a { position: relative; border-radius: 8px 8px 0 0; transition: transform .15s, box-shadow .15s, color .15s; }
+.tabs a:hover, .tabs a:focus-visible { transform: translateY(-3px); color: var(--gold); outline: none; background: rgba(233, 196, 106, .14);
+  box-shadow: inset 0 0 0 2px rgba(233, 196, 106, .85), 0 0 16px rgba(233, 196, 106, .6); z-index: 1; }
+.tabs a.on:hover { background: var(--brown2); box-shadow: inset 0 0 0 2px rgba(233, 196, 106, .8), 0 0 18px rgba(233, 196, 106, .6); }
+@media (prefers-reduced-motion: reduce) { .tabs a { transition: none; } .tabs a:hover { transform: none; } }
