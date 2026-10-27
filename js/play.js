@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adffbfe';
-import * as sheet from './sheetdata.js?v=6adffbfe';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adffbfe';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adffbfe';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adffbfe';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adffbfe';
-import { CONFIG } from './config.js?v=6adffbfe';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adffbfe';
-import { merged, editContent } from './content-store.js?v=6adffbfe';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adffbfe';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adffbfe';
-import { homeHTML } from './sitepages.js?v=6adffbfe';
-import { pinsOf, showMap } from './hotbar.js?v=6adffbfe';
-import { chatterLatestHTML } from './chatter.js?v=6adffbfe';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adffbfe';
-import { locations, spots } from './friendzone.js?v=6adffbfe';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6adffbfe';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6adffbfe';
-import { find } from './effects.js?v=6adffbfe';
-import * as dice3d from './dice3d.js?v=6adffbfe';
+import * as store from './store.js?v=6adffc18';
+import * as sheet from './sheetdata.js?v=6adffc18';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adffc18';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adffc18';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adffc18';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adffc18';
+import { CONFIG } from './config.js?v=6adffc18';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adffc18';
+import { merged, editContent } from './content-store.js?v=6adffc18';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adffc18';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adffc18';
+import { homeHTML } from './sitepages.js?v=6adffc18';
+import { pinsOf, showMap } from './hotbar.js?v=6adffc18';
+import { chatterLatestHTML } from './chatter.js?v=6adffc18';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adffc18';
+import { locations, spots } from './friendzone.js?v=6adffc18';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6adffc18';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6adffc18';
+import { find } from './effects.js?v=6adffc18';
+import * as dice3d from './dice3d.js?v=6adffc18';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -423,6 +423,14 @@ const COND_LOOK = { Burn: ['🔥', '#d8561f'], Poison: ['☠️', '#8e3fa0'], 'B
   Sleep: ['💤', '#3d4f9a'], Confused: ['💫', '#c2508f'], Flinch: ['😖', '#9a6a3a'], Infatuated: ['💗', '#d6467a'], Blocked: ['🛡️', '#6a6f80'],
   Disabled: ['🚫', '#8a3030'], 'Primal State': ['🔴', '#b3202a'], Fainted: ['😵', '#555a66'] };
 
+// moving night sky behind the sleeping-spot card: drifting aurora, twinkling stars, floating z's, a shooting star now and then
+const DREAM_FX = (() => {
+  const r = (i) => ((Math.sin(i * 127.1) * 43758.5453) % 1 + 1) % 1;
+  const stars = Array.from({ length: 16 }, (_, i) => `<i class="dstar" style="--x:${(r(i) * 100).toFixed(1)}%;--y:${(r(i + 50) * 100).toFixed(1)}%;--d:${(-r(i + 90) * 4).toFixed(2)}s"></i>`).join('');
+  const zs = Array.from({ length: 6 }, (_, i) => `<i class="dz" style="--x:${(12 + r(i + 200) * 76).toFixed(1)}%;--d:${(-i * 1.1).toFixed(2)}s;--sz:${(13 + r(i + 300) * 12).toFixed(0)}px">z</i>`).join('');
+  return `<div class="wxfx dreamfx" aria-hidden="true"><b class="aurora"></b><b class="aurora a2"></b>${stars}${zs}<b class="shoot"></b></div>`;
+})();
+
 // Sleeping spot: players pick where they sleep (Friend Zone spots). The GM's end of session asks everyone again.
 function sleepHTML(c) {
   const ask = num(store.get('session/sleepAsk')) > num(c.sleepT);
@@ -431,8 +439,8 @@ function sleepHTML(c) {
   const [lid, skey] = (c.sleep || '').split('|');
   const loc = locations().find((l) => l.id === lid); const spot = loc && spots(loc).find((x) => x.key === skey);
   const icon = (spot?.name.match(/^\p{Extended_Pictographic}/u) || [])[0] || loc?.icon || '🌙';
-  return `<div class="sleep fortune dream ${ask ? 'ask' : ''}"><div class="ft-top">✦ ${ask ? 'Time to rest!' : 'Sleeping Spot'} ✦</div>
-    <div class="ft-orb dream-orb" aria-hidden="true">${spot ? icon : '🌙'}</div>
+  return `<div class="sleep fortune dream ${ask ? 'ask' : ''}">${DREAM_FX}<div class="ft-top">✦ ${ask ? 'Time to rest!' : 'Sleeping Spot'} ✦</div>
+    <div class="ft-orb dream-orb" aria-hidden="true"><span class="dream-ic">${spot ? icon : '🌙'}</span></div>
     ${spot ? `<div class="ft-name">${esc(spot.name.replace(/^[^\w]*\d*\.?\s*/, ''))}</div><div class="ft-say">resting at ${esc(loc.name)}</div>
       ${spot.desc ? `<p class="dream-desc">${esc(spot.desc)}</p>` : ''}${spot.mons.length ? `<p class="dream-near">💤 Sleeping nearby: ${esc(spot.mons.join(', '))}</p>` : ''}`
       : `<div class="ft-say">${ask ? 'Where is your character sleeping tonight?' : 'No bed picked yet. Where will you rest?'}</div>`}
