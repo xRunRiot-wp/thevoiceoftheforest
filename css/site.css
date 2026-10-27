@@ -1342,3 +1342,9 @@ a.ch-chip:hover { background: var(--navy); }
 .gm-sec.open > .gm-tab .gm-fold { display: inline; margin-left: auto; font-size: 13px; color: var(--muted); }
 .gm-sec.open > .gm-tab + h2, .gm-sec.open > .gm-tab + .row > h2:first-child { display: none; }
 @media (prefers-reduced-motion: reduce) { .gm-tab { transition: none; } .gm-tab:hover { transform: none; } }
+/* a private room inside a Friend Zone spot (e.g. the Guild's cellar) */
+.fz-room { margin-top: 6px; padding: 8px 10px; border: 2px dashed #8a6a3c; border-radius: 10px; background: rgba(60, 40, 20, .07); display: flex; flex-direction: column; gap: 5px; }
+.fz-room.full { border-style: solid; background: rgba(107, 95, 194, .08); }
+.fz-room p { margin: 0; }
+.fz-room-hd { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; justify-content: space-between; }
+.fz-lock { font-size: 11px; background: #f3e6c8; border-color: #8a6a3c; }

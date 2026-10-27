@@ -1,9 +1,9 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae08bf1';
-import { $, $$, esc, toast } from './util.js?v=6ae08bf1';
-import { modal, closeModal } from './ui.js?v=6ae08bf1';
-import { merged, editContent } from './content-store.js?v=6ae08bf1';
+import * as store from './store.js?v=6ae08cda';
+import { $, $$, esc, toast } from './util.js?v=6ae08cda';
+import { modal, closeModal } from './ui.js?v=6ae08cda';
+import { merged, editContent } from './content-store.js?v=6ae08cda';
 
 export const LOCATIONS = [
   {
@@ -17,6 +17,7 @@ export const LOCATIONS = [
     relay: 'Rootpost Relay — Abra and Ralts rotate shifts beside the guild’s main mission board.',
     spotsText: [
       '🌟 Gravity Falls Guild | Fast responders and last line of defense. | Diglett, Vanguard Guild, the Guildmaster’s team and high-ranking members',
+      '↳ 🕯️ The Cellar | A cool, quiet stone room beneath the Guild, lit by a single lantern. Only one character can bed down here at a time. | | 1',
       '1. Mossy Hollow | Soft moss beds, shade tarps, and leafy shelters. Relaxed Pokémon care for plants and share herbal remedies. |',
       '2. Acorn Grove | Tree-root sleeping nooks and hanging hammocks. Energetic residents gather supplies and welcome visitors. | Gemini',
       '3. Fernshade Camp | Protected fern tents and woven resting mats. Patient caretakers look after smaller or newly recruited Pokémon. |',
@@ -103,10 +104,14 @@ function networkHTML(gm) {
 const SCHEMA = [['name', 'Location'], ['icon', 'Icon (emoji)'], ['loyalty', 'Loyalty (0–5 🌸)'], ['onFoot', 'Travel on foot from Woodland Base'], ['relayTime', 'Relay arrival'],
   ['role', 'Role in the network', 'area'], ['welcome', 'Welcome text', 'area'], ['theme', 'Theme'],
   ['awning', 'Central awning', 'area'], ['caretaker', 'Caretaker', 'area'], ['sentinel', 'Sentinel'], ['relay', 'Relay station', 'area'],
-  ['spotsText', 'Spots — one per line: Name | description | Pokémon living there (comma separated)', 'area']];
+  ['spotsText', 'Spots — one per line: Name | description | Pokémon living there (comma separated) | max player characters sleeping there (optional). Start a name with ↳ to make it a room inside the spot above it.', 'area']];
 
 export const spots = (loc) => (loc.spotsText || '').split('\n').map((l) => l.split('|').map((x) => x.trim())).filter((x) => x[0])
-  .map(([name, desc, mons], i) => ({ i, key: name.replace(/^[^\w]*\d*\.?\s*/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-') || 's' + i, name, desc: desc || '', mons: (mons || '').split(',').map((x) => x.trim()).filter(Boolean) }));
+  .map(([name, desc, mons, limit], i) => ({ i, key: name.replace(/^[^\w]*\d*\.?\s*/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-') || 's' + i, name: name.replace(/^↳\s*/, ''), room: name.startsWith('↳'),
+    limit: Math.max(0, parseInt(limit, 10) || 0), desc: desc || '', mons: (mons || '').split(',').map((x) => x.trim()).filter(Boolean) }));
+// player characters sleeping in a spot (other than `exceptId`); a spot with a limit is full once this reaches it
+export const spotSleepers = (locId, key, exceptId = '') => Object.values(store.get('party') || {}).filter((c) => !c.guest && c.id !== exceptId && c.sleep === locId + '|' + key);
+export const spotFull = (locId, s, exceptId = '') => s.limit > 0 && spotSleepers(locId, s.key, exceptId).length >= s.limit;
 export const locations = () => merged('friendzone', LOCATIONS);
 
 // Friend Zone summary on the Guild page: one card per location, tap to open its camp.
@@ -117,6 +122,13 @@ export function friendZoneSection() {
       <span class="fz-meta"><span class="fz-loy">${Number(l.loyalty) > 0 ? flowers(l.loyalty) : '0 🌸'}</span><span>relay ${esc(l.relayTime || '—')}</span><span class="${spots(l).length ? '' : 'muted'}">${spots(l).length ? `${n} resident${n === 1 ? '' : 's'}` : 'camp not set up'}</span></span></span></a>`; }).join('')}</div>`;
 }
 const residents = (l) => spots(l).reduce((s, x) => s + x.mons.length, 0) + Object.values(store.get('recruits/' + l.id) || {}).reduce((s, x) => s + Object.keys(x || {}).length, 0);
+
+// a small private room inside a spot (e.g. the Guild's cellar): shows who has it and how many it fits
+function roomHTML(loc, r) {
+  const who = spotSleepers(loc.id, r.key); const full = r.limit > 0 && who.length >= r.limit;
+  return `<div class="fz-room ${full ? 'full' : ''}"><div class="fz-room-hd"><b>${esc(r.name)}</b>${r.limit ? `<span class="pill fz-lock">🔒 ${r.limit === 1 ? 'One character only' : `${r.limit} characters max`}</span>` : ''}</div>
+    ${r.desc ? `<p class="small">${esc(r.desc)}</p>` : ''}<div class="fz-mons">${r.mons.map((m) => `<span class="pill">${esc(m)}</span>`).join('')}${who.map((c) => `<span class="pill sleeper">💤 ${esc(c.nickname)}</span>`).join('')}${!who.length && !r.mons.length ? '<span class="small muted">Empty. Pick it as your sleeping spot to claim it.</span>' : ''}</div></div>`;
+}
 
 export function renderFriendZone(main, [arg]) {
   const gm = store.gmUnlocked();
@@ -136,10 +148,11 @@ export function renderFriendZone(main, [arg]) {
     <div class="card fz-head"><h2 style="margin:0 0 6px">${esc(loc.icon || '📍')} ${esc(loc.name)} <span class="fz-loyal${Number(loc.loyalty) > 0 ? '' : ' small muted'}" title="Loyalty">${loyaltyLabel(loc.loyalty)}</span></h2>
       <p class="small"><b>On foot:</b> ${esc(loc.onFoot || '—')} · <b>Relay:</b> ${esc(loc.relayTime || '—')}</p>
       ${loc.role ? `<p><i>${esc(loc.role)}</i></p>` : ''}${loc.welcome ? `<p>${esc(loc.welcome)}</p>` : ''}${!spots(loc).length ? `<p class="small muted">This camp hasn’t been set up yet.${gm ? ' Tap Edit to add its spots.' : ''}</p>` : ''}${loc.theme ? `<p class="small"><b>Theme:</b> ${esc(loc.theme)}</p>` : ''}</div>
-    <div class="fz-spots">${spots(loc).map((s) => { const extra = Object.entries(recruits[s.key] || {});
+    <div class="fz-spots">${spots(loc).filter((s) => !s.room).map((s) => { const extra = Object.entries(recruits[s.key] || {});
+      const rooms = []; for (const r of spots(loc).slice(s.i + 1)) { if (!r.room) break; rooms.push(r); }
       return `<div class="card fz-spot"><h3 style="margin:0 0 4px">${esc(s.name)}</h3>${s.desc ? `<p class="small">${esc(s.desc)}</p>` : ''}
         <div class="fz-mons">${spotMons(s).map((m) => `<span class="pill">${esc(m)}</span>`).join('')}${extra.map(([id, r]) => `<span class="pill recruit">${esc(r.name)}${r.type ? ` <small>· ${esc(r.type.replace(/^The\s+/, ''))}</small>` : ''}${gm ? ` <button class="x" data-unrecruit="${esc(s.key)}/${id}" aria-label="Remove">×</button>` : ''}</span>`).join('')}${sleepers.filter((c) => c.sleep === loc.id + '|' + s.key).map((c) => `<span class="pill sleeper">💤 ${esc(c.nickname)}</span>`).join('')}${!spotMons(s).length && !extra.length && !sleepers.some((c) => c.sleep === loc.id + '|' + s.key) ? '<span class="small muted">Nobody lives here yet.</span>' : ''}</div>
-        <button class="btn alt sm" data-recruit="${esc(s.key)}">+ Recruit here</button></div>`; }).join('')}</div>
+        <button class="btn alt sm" data-recruit="${esc(s.key)}">+ Recruit here</button>${rooms.map((r) => roomHTML(loc, r)).join('')}</div>`; }).join('')}</div>
     <div class="card fz-staff">
       ${loc.awning ? `<p><b>⛺ Central awning:</b> ${esc(loc.awning)}</p>` : ''}${loc.caretaker ? `<p><b>🐝 Caretaker:</b> ${esc(loc.caretaker)}</p>` : ''}
       ${loc.sentinel ? `<p><b>🛡️ Sentinel:</b> ${esc(loc.sentinel)}</p>` : ''}${loc.relay ? `<p><b>📮 Relay station:</b> ${esc(loc.relay)}</p>` : ''}</div>
