@@ -1257,3 +1257,15 @@ a.ch-chip:hover { background: var(--navy); }
   .rk-row { grid-template-columns: 1fr; }
   .rk-guild { position: static; }
 }
+
+/* Mission complete burst (js/burst.js): area things fly up out of the full bar, then tumble down and fade */
+.mb-bar.full { cursor: var(--cur-link, pointer); }
+.mb-bar.mb-flash { animation: mbFlash 1.2s ease-out; }
+@keyframes mbFlash { 0% { box-shadow: 0 0 0 rgba(200,255,150,0); } 20% { box-shadow: 0 0 28px 8px rgba(200,255,150,.9); } 100% { box-shadow: 0 0 0 rgba(200,255,150,0); } }
+.mburst { position: fixed; inset: 0; pointer-events: none; z-index: 95; overflow: hidden; }
+.mburst span { position: absolute; font-size: 26px; transform: translate(-50%, -50%); animation: mbFly 2.4s cubic-bezier(.15,.7,.3,1) forwards; opacity: 0; }
+@keyframes mbFly {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(.3) rotate(0); }
+  45% { opacity: 1; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(var(--s)) rotate(calc(var(--rot) * .5)); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx) * 1.25), calc(-50% + var(--dy) + var(--fall))) scale(var(--s)) rotate(var(--rot)); }
+}

@@ -1,19 +1,20 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ae0077a';
-import * as sheet from './sheetdata.js?v=6ae0077a';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae0077a';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae0077a';
-import { MISSION_GP } from './content.js?v=6ae0077a';
-import { ranks } from './rulebook.js?v=6ae0077a';
-import { merged, editContent } from './content-store.js?v=6ae0077a';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae0077a';
-import { myId } from './app.js?v=6ae0077a';
-import { lowAlertHTML } from './vault.js?v=6ae0077a';
-import { friendZoneSection } from './friendzone.js?v=6ae0077a';
-import { ixLink } from './effects.js?v=6ae0077a';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae0077a';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6ae0077a';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6ae0077a';
+import * as store from './store.js?v=6ae0087d';
+import * as sheet from './sheetdata.js?v=6ae0087d';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae0087d';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae0087d';
+import { MISSION_GP } from './content.js?v=6ae0087d';
+import { ranks } from './rulebook.js?v=6ae0087d';
+import { merged, editContent } from './content-store.js?v=6ae0087d';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae0087d';
+import { myId } from './app.js?v=6ae0087d';
+import { lowAlertHTML } from './vault.js?v=6ae0087d';
+import { friendZoneSection } from './friendzone.js?v=6ae0087d';
+import { ixLink } from './effects.js?v=6ae0087d';
+import { burstSet } from './burst.js?v=6ae0087d';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae0087d';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6ae0087d';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6ae0087d';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -52,7 +53,7 @@ export function missionCard(id, m, { gm = false } = {}) {
     ${m.client ? `<p class="small muted">Client: ${esc(m.client)}${m.place ? ' · ' + esc(m.place) : ''}</p>` : ''}
     ${m.details ? `<p class="small">${esc(m.details)}</p>` : ''}
     ${(() => { const pr = missionParts(m); return pr ? `<div class="mprog"><div class="row nowrap" style="justify-content:space-between"><b class="small">Progress: ${pr.done} / ${pr.total} missions</b><span class="small">${Math.round((pr.done / pr.total) * 100)}%</span></div>
-      <div class="bar"><i style="width:${(pr.done / pr.total) * 100}%"></i></div>
+      <div class="mb-bar${pr.done >= pr.total ? ' full' : ''}"${pr.done >= pr.total ? ` data-burst="${esc(JSON.stringify(burstSet(m, pr.parts)))}" data-key="${esc(m.title)}" title="Mission complete! Tap to celebrate again"` : ''}><i style="width:${(pr.done / pr.total) * 100}%"></i></div>
       <ul class="mparts">${pr.parts.map((x) => `<li class="${x.status === 'done' ? 'done' : ''}">${x.status === 'done' ? '✅' : '⬜'} ${esc(x.title)}</li>`).join('')}</ul>
       <p class="small muted">Completes by itself when every part is done.</p></div>` : ''; })()}${m.reward ? `<p class="small"><b>Reward:</b> ${esc(m.reward)}</p>` : ''}
     <div class="row">${!gm && (m.status || 'open') === 'open' ? `<button class="btn sm" data-take="${id}">Take mission</button>` : ''}

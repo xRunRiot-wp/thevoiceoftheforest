@@ -1,24 +1,25 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae0077a';
-import * as sheet from './sheetdata.js?v=6ae0077a';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae0077a';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae0077a';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae0077a';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae0077a';
-import { CONFIG } from './config.js?v=6ae0077a';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae0077a';
-import { merged, editContent } from './content-store.js?v=6ae0077a';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae0077a';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae0077a';
-import { homeHTML } from './sitepages.js?v=6ae0077a';
-import { pinsOf, showMap } from './hotbar.js?v=6ae0077a';
-import { chatterLatestHTML } from './chatter.js?v=6ae0077a';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae0077a';
-import { locations, spots } from './friendzone.js?v=6ae0077a';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae0077a';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae0077a';
-import { find } from './effects.js?v=6ae0077a';
-import * as dice3d from './dice3d.js?v=6ae0077a';
+import * as store from './store.js?v=6ae0087d';
+import * as sheet from './sheetdata.js?v=6ae0087d';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae0087d';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae0087d';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae0087d';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae0087d';
+import { CONFIG } from './config.js?v=6ae0087d';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae0087d';
+import { merged, editContent } from './content-store.js?v=6ae0087d';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae0087d';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae0087d';
+import { homeHTML } from './sitepages.js?v=6ae0087d';
+import { burstSet } from './burst.js?v=6ae0087d';
+import { pinsOf, showMap } from './hotbar.js?v=6ae0087d';
+import { chatterLatestHTML } from './chatter.js?v=6ae0087d';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae0087d';
+import { locations, spots } from './friendzone.js?v=6ae0087d';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae0087d';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae0087d';
+import { find } from './effects.js?v=6ae0087d';
+import * as dice3d from './dice3d.js?v=6ae0087d';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -114,7 +115,7 @@ function missionBanner(sess, mission, combat, c, myTurn) {
       <div class="grow"><span class="mb-kicker">${mission ? 'Main mission' : 'No mission yet'}</span><b>${mission ? esc(mission.title) : 'Visit the Guild'}</b></div>
       ${mission ? `<span class="mb-rank">${esc(mission.rank)}</span>` : ''}</div>
     ${parts ? `<div class="mb-prog"><div class="row nowrap" style="justify-content:space-between"><span class="small">Mission progress</span><span class="small"><b>${done} / ${parts.total}</b> jobs</span></div>
-      <div class="mb-bar"><i style="width:${pct(done, parts.total)}%"></i></div>
+      <div class="mb-bar${done >= parts.total ? ' full' : ''}"${done >= parts.total ? ` data-burst="${esc(JSON.stringify(burstSet(mission, parts.parts)))}" data-key="${esc(mission.title)}" title="Mission complete! Tap to celebrate again"` : ''}><i style="width:${pct(done, parts.total)}%"></i></div>
       <div class="mb-parts">${parts.parts.map((x) => `<span class="mb-part ${esc(x.status || 'open')}" title="${esc(x.title)}">${x.status === 'done' ? '✅' : x.status === 'failed' ? '❌' : x.status === 'taken' ? '🎯' : '⬜'} ${esc(x.title)}</span>`).join('')}</div></div>` : ''}
     ${sess.dungeon ? `<div class="mb-prog"><div class="row nowrap" style="justify-content:space-between"><span class="small">🏔️ ${esc(sess.dungeon)}</span><span class="small"><b>Floor ${floor}${sess.floors ? ' / ' + sess.floors : ''}</b>${combat.active ? ` · Battle, round ${combat.round || 1}` : ''}</span></div>
       ${sess.floors ? `<div class="mb-bar floor"><i style="width:${pct(floor, sess.floors)}%"></i></div>` : ''}</div>` : ''}

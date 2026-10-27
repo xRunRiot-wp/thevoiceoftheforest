@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6ae0077a';
-import { esc } from './util.js?v=6ae0077a';
-import { LINKS, CAST } from './content.js?v=6ae0077a';
+import { GS_TEXT } from './gstext.js?v=6ae0087d';
+import { esc } from './util.js?v=6ae0087d';
+import { LINKS, CAST } from './content.js?v=6ae0087d';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -77,7 +77,9 @@ export function navTilesHTML() {
   // only a section's own pages here; their sub-pages show when that page is opened
   // (her call: the villain teams stay off the Guilds quick links; their pages are still on the Guilds page)
   const sub = (kids) => kids.filter(([k]) => !k.startsWith('guilds_team-')).map(([k, t]) => `<a href="${href(k)}">${esc(t)}</a>`);
-  return `<div class="navtiles">${SITE_NAV.map(([k, t, kids]) => `<div class="navtile${k === 'home' ? ' navtile-wide' : ''}">
+  // her call: no Home tile; Story & Guild Rank Progression takes its wide spot at the top
+  const tiles = [...SITE_NAV.filter(([k]) => k === STORY), ...SITE_NAV.filter(([k]) => k !== 'home' && k !== STORY)];
+  return `<div class="navtiles">${tiles.map(([k, t, kids]) => `<div class="navtile${k === STORY ? ' navtile-wide' : ''}">
     <a class="navtile-head" href="${href(k)}"><img src="${TILE_ART[k] || bannerFor(k)}" alt="" loading="lazy"><span>${esc(t)}</span></a>
     ${kids ? `<div class="navtile-kids">${sub(kids).join('')}</div>` : ''}</div>`).join('')}</div>`;
 }
