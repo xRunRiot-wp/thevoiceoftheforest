@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6ae12cfc';
-import { $, $$, esc, toast } from './util.js?v=6ae12cfc';
+import * as store from './store.js?v=6ae12ebd';
+import { $, $$, esc, toast } from './util.js?v=6ae12ebd';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
@@ -79,7 +79,7 @@ const AMBIENT = [
   // The New Adventurers (Gemini, Rox, Felicia, Puff, Golett)
   ['Gemini', 'say', 'New plan: we name our team something cool. Team Lucky Stars? Team Trouble? …Team Lucky Trouble.'],
   ['Gemini', 'do', 'signs the New Adventurers book with a big pink heart, then adds a second heart just in case.'],
-  ['Gemini', 'say', 'Getting kicked out of my last guild was the BEST thing that ever happened to me. Don’t tell them I said that.'],
+  ['Gemini', 'say', 'I didn’t want to leave my old guild, you know. I still miss them. …But I’m really glad I found you guys.'],
   ['Rox', 'do', 'polishes a brand-new pair of sunglasses, puts them on, and nods at nobody in particular.'],
   ['Rox', 'say', 'Every place we help gets a stone marker. Woodland Base is going to need a lot of stones.'],
   ['Rox', 'do', 'quietly fixes a wobbly bench outside the mess hall and walks off before anyone can say thank you.'],
