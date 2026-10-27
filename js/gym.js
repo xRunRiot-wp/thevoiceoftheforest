@@ -1,13 +1,13 @@
 // Training Gym (#/gym): one drill per day per character. Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6adfecd7';
-import { $, $$, esc, num, pool } from './util.js?v=6adfecd7';
-import { modal, diceFaces } from './ui.js?v=6adfecd7';
-import { statVal, logRoll } from './play.js?v=6adfecd7';
-import { myId } from './app.js?v=6adfecd7';
-import { currentWeather, WEATHERS } from './weather.js?v=6adfecd7';
-import { RESIDENTS } from './chatter.js?v=6adfecd7';
+import * as store from './store.js?v=6adfef0a';
+import { $, $$, esc, num, pool } from './util.js?v=6adfef0a';
+import { modal, diceFaces } from './ui.js?v=6adfef0a';
+import { statVal, logRoll } from './play.js?v=6adfef0a';
+import { myId } from './app.js?v=6adfef0a';
+import { currentWeather, WEATHERS, showWeather } from './weather.js?v=6adfef0a';
+import { RESIDENTS } from './chatter.js?v=6adfef0a';
 
 const BAR = 5;
 export const DRILLS = [
@@ -95,31 +95,48 @@ function gymChat(wx) {
   const { key, next } = slotOf();
   const r = (i) => hash(`${store.tableCode()}|gym|${key}|${i}`);
   const pick = (arr, i) => arr[Math.floor(r(i) * arr.length)];
-  const drill = (i) => drillNow(pick(DRILLS, i), wx).name;
-  const fill = (txt, i) => txt.replace('{d}', drill(i)).replace('{w}', (wx.w.name || 'weather').toLowerCase());
-  const lines = [[COACH(), fill(pick(wx.lvl ? COACH_BAD : COACH_GOOD, 1), 2)]];
   const who = [...MEMBERS].sort((a, b) => r('m' + a) - r('m' + b)).slice(0, 4);
+  // every member is on their own drill this slot, and their lines are about that drill
+  const drills = [...DRILLS].sort((a, b) => r('d' + a.id) - r('d' + b.id)).map((d) => drillNow(d, wx));
+  const wname = (wx.w.name || 'weather').toLowerCase();
+  const fill = (txt, d) => txt.replace('{d}', d.name).replace('{w}', wname);
+  const lines = [{ who: COACH(), text: fill(pick(wx.lvl ? COACH_BAD : COACH_GOOD, 1), drills[0]) }];
   const used = new Set();
   who.forEach((m, i) => {
     const list = wx.lvl && r(10 + i) < 0.4 ? WHINE_BAD : r(20 + i) < 0.5 ? WHINE : FOCUS;
     let k = Math.floor(r(30 + i) * list.length);
     for (let tries = 0; used.has(list[k]) && tries < list.length; tries++) k = (k + 1) % list.length;   // no two members say the same thing
     used.add(list[k]);
-    lines.push([m, fill(list[k], 40 + i)]);
+    lines.push({ who: m, drill: drills[i], text: fill(list[k], drills[i]) });
   });
-  lines.push([COACH(), fill(pick(COACH_END, 50), 51)]);
-  return { lines, next };
+  lines.push({ who: COACH(), text: fill(pick(COACH_END, 50), drills[Math.floor(r(51) * who.length)]) });
+  return { lines, roster: who.map((m, i) => [m, drills[i]]), next };
 }
 function faceOf(name) {
-  if (name === COACH()) return '<span class="gc-face">🥊</span>';
-  const r = RESIDENTS[name] || {};
-  return r.img ? `<img class="gc-face" src="${r.img}" alt="">` : `<span class="gc-face">${r.icon || '💬'}</span>`;
+  const r = name === COACH() ? { img: 'assets/portraits/hariyama.png' } : RESIDENTS[name] || {};
+  return r.img ? `<span class="gc-face"><img src="${r.img}" alt="">${r.img2 ? `<img class="f2" src="${r.img2}" alt="">` : ''}</span>` : `<span class="gc-face">${r.icon || '💬'}</span>`;
 }
+const drillChip = (d) => `<span class="gc-drill${d.indoor ? ' indoor' : ''}">${d.icon} ${esc(d.name)}${d.indoor ? ' 🏠' : ''}</span>`;
 function gymChatHTML(wx) {
-  const { lines, next } = gymChat(wx);
+  const { lines, roster, next } = gymChat(wx);
   const at = new Date(next).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   return `<div class="card gym-chat"><div class="row" style="justify-content:space-between"><h3 style="margin:0">💬 Gym chatter</h3><span class="small muted">new chatter at ${at}${store.gmUnlocked() ? ' · <a href="#" id="gcoach">rename coach</a>' : ''}</span></div>
-    ${lines.map(([who, text]) => `<div class="gc-line ${who === COACH() ? 'coach' : ''}">${faceOf(who)}<div><b>${esc(SHORT[who] || who)}</b><p>${esc(text)}</p></div></div>`).join('')}</div>`;
+    <div class="gc-board"><b class="small">📋 On the drills right now</b>${roster.map(([m, d]) => `<div class="gc-slot">${faceOf(m)}<span><b>${esc(SHORT[m] || m)}</b>${drillChip(d)}</span></div>`).join('')}</div>
+    ${lines.map((l) => `<div class="gc-line ${l.who === COACH() ? 'coach' : ''}">${faceOf(l.who)}<div><b>${esc(SHORT[l.who] || l.who)}</b>${l.drill ? ' ' + drillChip(l.drill) : ''}<p>${esc(l.text)}</p></div></div>`).join('')}</div>`;
+}
+// the weather beside the chatter: what the sky is doing and what it means for training
+function gymWxHTML(c, wx) {
+  const cw = currentWeather();
+  const at = new Date(cw.next).toLocaleString([], { ...(cw.next - Date.now() > 12 * 3600e3 ? { weekday: 'short' } : {}), hour: 'numeric', minute: '2-digit' });
+  const says = wx.lvl === 2 ? 'A storm! Everyone trains indoors and loses a die.' : wx.lvl ? 'Bad weather. The outdoor drills have moved inside.' : 'Good training weather. Every drill runs outside.';
+  const mine = wxDice(c, wx);
+  return `<div class="fortune gym-wxw"><div class="ft-top">✦ Gym Weather ✦</div>
+    <div class="ft-orb" aria-hidden="true">${wx.w.icon || ''}</div><div class="ft-name">${esc(wx.w.name || '')}</div>
+    <div class="ft-say">${esc(says)}</div>
+    ${PERK[wx.key] ? `<p class="small ft-none">${esc(PERK[wx.key])} types +1 die.</p>` : ''}
+    ${mine ? `<p class="small ft-none"><b>${esc(c.nickname)}: ${mine > 0 ? '+' : ''}${mine} die today.</b></p>` : ''}
+    <p class="small ft-none">Next reading ${esc(at)}${cw.gm ? ' (set by the GM)' : ''}</p>
+    <button class="ft-more" id="gwxinfo">Read the full fortune ›</button></div>`;
 }
 
 const easternDay = (t) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(t));
@@ -162,8 +179,9 @@ export function renderGym(main) {
         <button class="btn block" data-train="${d.id}" ${done && !gm ? 'disabled' : ''}>${done ? (gm ? 'Train again (GM)' : 'Rested') : 'Train'}</button></div>`;
     }).join('')}</div>
     <p class="small muted">Training Points are spent with the GM's OK to raise stats.</p>
-    ${gymChatHTML(wx)}`;
+    <div class="gym-bottom">${gymChatHTML(wx)}${gymWxHTML(c, wx)}</div>`;
   $$('[data-train]', main).forEach((b) => b.onclick = () => train(c.id, b.dataset.train));
+  $('#gwxinfo', main).onclick = showWeather;
   const gc = $('#gcoach', main);
   if (gc) gc.onclick = (e) => { e.preventDefault(); const n = prompt('Coach name', COACH()); if (n && n.trim()) store.set('gym/coach', n.trim()); };
 }

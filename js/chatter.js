@@ -1,29 +1,30 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6adfecd7';
-import { $, $$, esc, toast } from './util.js?v=6adfecd7';
+import * as store from './store.js?v=6adfef0a';
+import { $, $$, esc, toast } from './util.js?v=6adfef0a';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
+// faces: original Explorers of Sky / Rescue Team portraits; species those games don't have keep an emoji (players without one use their own art)
 export const RESIDENTS = {
   'Guildmaster Beautifly': { icon: '🦋', img: 'assets/portraits/beautifly.png' },
   Chandelure: { icon: '🕯️' },
   Maushold: { icon: '🐭' },
-  Diglett: { icon: '⛏️' },
-  'Beedrill (camp caretaker)': { icon: '🐝' },
+  Diglett: { icon: '⛏️', img: 'assets/portraits/diglett.png' },
+  'Beedrill (camp caretaker)': { icon: '🐝', img: 'assets/portraits/beedrill.png' },
   'Bramble the Scolipede': { icon: '🛡️' },
-  'Abra & Ralts': { icon: '📮' },
+  'Abra & Ralts': { icon: '📮', img: 'assets/portraits/abra.png', img2: 'assets/portraits/ralts.png' },
   Magnemite: { icon: '🔩', img: 'assets/portraits/magnemite.png' },
-  Puff: { icon: '☁️' },
-  Rox: { icon: '🪨' },
-  Felicia: { icon: '🔨' },
+  Puff: { icon: '☁️', img: 'assets/gs/cast_puff_centered.png' },
+  Rox: { icon: '🐉', img: 'assets/gs/cast_rox_centered.png' },
+  Felicia: { icon: '🔨', img: 'assets/gs/cast_felicia.jpg' },
   Rocky: { icon: '🗿', img: 'assets/portraits/sudowoodo.png' },
   'Mimi & Kippy': { icon: '⚡', img: 'assets/portraits/pikachu.png' },
-  'Weather Watch': { icon: '🌦️' },
-  Golett: { icon: '🐢' },
+  'Weather Watch': { icon: '🌦️', img: 'assets/portraits/castform.png' },
+  Golett: { icon: '🐢', img: 'assets/gs/cast_chid.jpg' },
   Slash: { icon: '⚔️' }, Slice: { icon: '⚔️' }, Sharp: { icon: '⚔️' }, Shank: { icon: '⚔️' },   // the Block Brothers (Aegislash merchants)   // Ground/Ghost, Adamant, he/him; clay reshaped to look like a Squirtle; loves food but has no mouth
   Gemini: { icon: '🌟', img: 'assets/portraits/cleffa.png' },
   Slakoth: { icon: '💤', img: 'assets/portraits/slakoth.png' },
-  Ludicolo: { icon: '🌧️' },
+  Ludicolo: { icon: '🌧️', img: 'assets/portraits/ludicolo.png' },
 };
 
 // Everyday life around Woodland Base. [speaker, kind ('say' | 'do'), text]
@@ -137,7 +138,7 @@ export function gmTodo(text, tag = '') {
   if (!open) store.set('gmtodo/' + store.tid(), { text, tag, done: false, t: Date.now() });
 }
 
-const face = (who) => { const r = RESIDENTS[who] || {}; return r.img ? `<img src="${r.img}" alt="">` : `<span>${r.icon || '💬'}</span>`; };
+const face = (who) => { const r = RESIDENTS[who] || {}; return r.img ? `<img src="${r.img}" alt="">${r.img2 ? `<img class="f2" src="${r.img2}" alt="">` : ''}` : `<span>${r.icon || '💬'}</span>`; };
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60e3); return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`; };
 
 // The newest few lines for the home page (it refreshes live with the table)
