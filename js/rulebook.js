@@ -1,12 +1,12 @@
 // Rulebook: quick lookup from inside the game. Index of every effect/interaction, rules, story, cast, guild, items, handouts, links, credits.
-import * as store from './store.js?v=6ae0087d';
-import * as sheet from './sheetdata.js?v=6ae0087d';
-import { $, $$, esc } from './util.js?v=6ae0087d';
-import { portrait } from './ui.js?v=6ae0087d';
-import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ae0087d';
-import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ae0087d';
-import { merged, editContent } from './content-store.js?v=6ae0087d';
-import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ae0087d';
+import * as store from './store.js?v=6ae00908';
+import * as sheet from './sheetdata.js?v=6ae00908';
+import { $, $$, esc } from './util.js?v=6ae00908';
+import { portrait } from './ui.js?v=6ae00908';
+import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ae00908';
+import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ae00908';
+import { merged, editContent } from './content-store.js?v=6ae00908';
+import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ae00908';
 
 const gm = () => store.gmUnlocked();
 const editBtn = (attr) => (gm() ? `<button class="btn alt sm" ${attr}>Edit</button>` : '');
@@ -43,7 +43,8 @@ export async function renderRules(main, [sub, arg]) {
     return `<details class="card gs"${open ? ' open' : ''}><summary>${esc(title)}</summary>${h}</details>`;
   };
   const RULE_GS = { 'new-character': 'how-to-play_new-character', combat: 'how-to-play_beginner-mechanics_combat-and-movement', traps: 'how-to-play_beginner-mechanics_traps-and-hazards', evolution: 'how-to-play_advanced-mechanics_evolution', training: 'how-to-play_advanced-mechanics_training', recruiting: 'how-to-play_advanced-mechanics_recruiting', directing: 'how-to-play_advanced-mechanics_directing-teammates' };
-  const back = '<a class="btn alt sm" href="#/rules">← Rulebook</a>';
+  // every inner page: the top back button plus a floating one that stays on screen while scrolling (her ask)
+  const back = '<a class="btn alt sm" href="#/rules">← Rulebook</a><a class="btn dark fab" href="#/rules" title="Back to the Rulebook">📖 Rulebook</a>';
   const pages = {
     '': hub, world: worldPage, site: sitePageView, coverage, index: indexPage, r: rulePage, story, cast: castPage, ranks: ranksPage, rivals: rivalsPage, items: itemsPage, handouts, links, credits,
   };
@@ -220,7 +221,7 @@ export async function renderRules(main, [sub, arg]) {
   }
 
   async function coverage() {
-    const { shop } = await import('./guild.js?v=6ae0087d');
+    const { shop } = await import('./guild.js?v=6ae00908');
     const [sm, sa, st, g] = await Promise.all([sheet.moves(), sheet.abilities(), sheet.treasure(), sheet.guild().catch(() => ({ chars: [] }))]);
     const party = Object.values(store.get('party') || {});
     const lootNames = [];
