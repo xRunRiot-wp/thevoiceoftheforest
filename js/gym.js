@@ -1,13 +1,13 @@
 // Training Gym (#/gym): one drill per day per character. Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6adfefdf';
-import { $, $$, esc, num, pool } from './util.js?v=6adfefdf';
-import { modal, diceFaces } from './ui.js?v=6adfefdf';
-import { statVal, logRoll } from './play.js?v=6adfefdf';
-import { myId } from './app.js?v=6adfefdf';
-import { currentWeather, WEATHERS, showWeather } from './weather.js?v=6adfefdf';
-import { RESIDENTS } from './chatter.js?v=6adfefdf';
+import * as store from './store.js?v=6adff0b8';
+import { $, $$, esc, num, pool } from './util.js?v=6adff0b8';
+import { modal, diceFaces } from './ui.js?v=6adff0b8';
+import { statVal, logRoll } from './play.js?v=6adff0b8';
+import { myId } from './app.js?v=6adff0b8';
+import { currentWeather, WEATHERS, showWeather } from './weather.js?v=6adff0b8';
+import { RESIDENTS } from './chatter.js?v=6adff0b8';
 
 const BAR = 5;
 export const DRILLS = [
@@ -77,7 +77,7 @@ function wxNoteHTML(c, wx) {
 
 // ---- gym chat: the guild's own members (never player characters) react to the coach and their drills; new lines every 3 hours
 const COACH = () => store.get('gym/coach') || 'Coach Hariyama';
-const MEMBERS = ['Diglett', 'Mimi & Kippy', 'Bramble the Scolipede', 'Abra & Ralts', 'Beedrill (camp caretaker)'];
+const MEMBERS = ['Diglett', 'Mimi', 'Kippy', 'Bramble the Scolipede', 'Abra', 'Ralts', 'Beedrill (camp caretaker)'];
 const SHORT = { 'Bramble the Scolipede': 'Bramble', 'Beedrill (camp caretaker)': 'Beedrill' };
 const COACH_GOOD = ['Warm up! Ten laps of the clearing, and I want to hear you counting!', 'Today we work on the {d}. Nobody leaves until they beat yesterday.', 'Form first, power second. Show me slow and perfect.', 'Great weather for sweat! Line up for the {d}!', 'Water break in five. Then the {d} again, twice as fast.'];
 const COACH_BAD = ['{w} outside, so we train inside. No complaining, the tunnels build character!', 'Nobody goes near the cliffs in this {w}. Everyone to the {d}, indoors!', 'A real explorer trains in any weather. But not in THIS weather. Inside, now.', 'Listen to that {w}. That is the sound of you getting tougher in here.'];
@@ -114,7 +114,7 @@ function gymChat(wx) {
 }
 function faceOf(name) {
   const r = name === COACH() ? { img: 'assets/portraits/hariyama.png' } : RESIDENTS[name] || {};
-  return r.img ? `<span class="gc-face"><img src="${r.img}" alt="">${r.img2 ? `<img class="f2" src="${r.img2}" alt="">` : ''}</span>` : `<span class="gc-face">${r.icon || '💬'}</span>`;
+  return r.img ? `<span class="gc-face"><img src="${r.img}" alt=""></span>` : `<span class="gc-face">${r.icon || '💬'}</span>`;
 }
 const drillChip = (d) => `<span class="gc-drill${d.indoor ? ' indoor' : ''}">${d.icon} ${esc(d.name)}${d.indoor ? ' 🏠' : ''}</span>`;
 function gymChatHTML(wx) {

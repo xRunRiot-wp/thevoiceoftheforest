@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6adfefdf';
-import { $, $$, esc, toast } from './util.js?v=6adfefdf';
+import * as store from './store.js?v=6adff0b8';
+import { $, $$, esc, toast } from './util.js?v=6adff0b8';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have keep an emoji (players without one use their own art)
@@ -12,13 +12,15 @@ export const RESIDENTS = {
   Diglett: { icon: '⛏️', img: 'assets/portraits/diglett.png' },
   'Beedrill (camp caretaker)': { icon: '🐝', img: 'assets/portraits/beedrill.png' },
   'Bramble the Scolipede': { icon: '🛡️' },
-  'Abra & Ralts': { icon: '📮', img: 'assets/portraits/abra.png', img2: 'assets/portraits/ralts.png' },
+  Abra: { icon: '📮', img: 'assets/portraits/abra.png' },
+  Ralts: { icon: '📮', img: 'assets/portraits/ralts.png' },
   Magnemite: { icon: '🔩', img: 'assets/portraits/magnemite.png' },
   Puff: { icon: '☁️', img: 'assets/gs/cast_puff_centered.png' },
   Rox: { icon: '🐉', img: 'assets/gs/cast_rox_centered.png' },
   Felicia: { icon: '🔨', img: 'assets/gs/cast_felicia.jpg' },
   Rocky: { icon: '🗿', img: 'assets/portraits/sudowoodo.png' },
-  'Mimi & Kippy': { icon: '⚡', img: 'assets/portraits/pikachu.png' },
+  Mimi: { icon: '💧', img: 'assets/portraits/mudkip.png' },   // the Mudkip partner (keeper of the Relic Fragment)
+  Kippy: { icon: '⚡', img: 'assets/portraits/pikachu.png' },   // the Pikachu
   'Weather Watch': { icon: '🌦️', img: 'assets/portraits/castform.png' },
   Golett: { icon: '🐢', img: 'assets/gs/cast_chid.jpg' },
   Slash: { icon: '⚔️' }, Slice: { icon: '⚔️' }, Sharp: { icon: '⚔️' }, Shank: { icon: '⚔️' },   // the Block Brothers (Aegislash merchants)   // Ground/Ghost, Adamant, he/him; clay reshaped to look like a Squirtle; loves food but has no mouth
@@ -44,8 +46,12 @@ const AMBIENT = [
   ['Beedrill (camp caretaker)', 'do', 'buzzes from bed to bed in Fernshade Camp, tucking blankets around the newest recruits.'],
   ['Bramble the Scolipede', 'say', 'Perimeter is quiet. Too quiet. I’ll take another lap.'],
   ['Bramble the Scolipede', 'do', 'curls up across the camp entrance like a living wall, one eye open.'],
-  ['Abra & Ralts', 'say', 'Rootpost Relay: two new letters for the board and one very soggy parcel from Sunshell Beach.'],
-  ['Abra & Ralts', 'do', 'swap shifts beside the mission board. Abra falls asleep standing up almost immediately.'],
+  ['Ralts', 'say', 'Rootpost Relay: two new letters for the board and one very soggy parcel from Sunshell Beach.'],
+  ['Ralts', 'do', 'senses a homesick recruit from across the hall and quietly sits beside them until they smile.'],
+  ['Ralts', 'say', 'Shift change in five minutes. Somebody please wake Abra gently. Gently!'],
+  ['Abra', 'do', 'takes over the relay shift beside the mission board and falls asleep standing up almost immediately.'],
+  ['Abra', 'say', 'Zzz... parcel for Fernshade Camp... teleporting it now... zzz.'],
+  ['Abra', 'do', 'blinks out mid-yawn and reappears a second later holding a letter that is only slightly singed.'],
   ['Magnemite', 'say', 'Good news: my new invention almost works! Bad news: please stand further back.'],
   ['Magnemite', 'do', 'hums near the workbench as three bolts and a spring float into a shape that is definitely not a lantern.'],
   ['Puff', 'do', 'drifts past the guild sign and leaves a small, perfect cotton mustache on it.'],
@@ -56,8 +62,12 @@ const AMBIENT = [
   ['Felicia', 'say', 'Bring me anything shiny you find out there. Anything. I mean it.'],
   ['Rocky', 'do', 'balances five stones into a tower at Hearthstone Circle. Nobody has ever seen it fall.'],
   ['Rocky', 'say', 'The forest feels calmer tonight. I want to keep it that way.'],
-  ['Mimi & Kippy', 'say', 'Mimi: “Back in our rookie days we got lost on the way to the mess hall.” Kippy: “Twice.”'],
-  ['Mimi & Kippy', 'do', 'trade stories with the new recruits about Temporal Tower until the lanterns burn low.'],
+  ['Mimi', 'say', 'Back in our rookie days Kippy and I got lost on the way to the mess hall. Twice.'],
+  ['Mimi', 'do', 'polishes the Relic Fragment on its cord, then tucks it safely away again.'],
+  ['Mimi', 'say', 'Every explorer gets scared. The trick is going one step further anyway.'],
+  ['Kippy', 'do', 'trades stories with the new recruits about Temporal Tower until the lanterns burn low.'],
+  ['Kippy', 'say', 'Diamond Rank or not, I still check my Bag three times before every expedition.'],
+  ['Kippy', 'do', 'sparks a little too hard during a sneeze and the lanterns flicker all along the hall.'],
   ['Gemini', 'do', 'lies on the mess hall roof counting stars and making up new constellations, all of them lucky.'],
   ['Gemini', 'say', 'I have a really good feeling about the Lucky Den tonight. Like, a REALLY good feeling.'],
   ['Slakoth', 'do', 'is asleep on the Miltankshake Shack sign again, well after closing.'],
@@ -138,7 +148,7 @@ export function gmTodo(text, tag = '') {
   if (!open) store.set('gmtodo/' + store.tid(), { text, tag, done: false, t: Date.now() });
 }
 
-const face = (who) => { const r = RESIDENTS[who] || {}; return r.img ? `<img src="${r.img}" alt="">${r.img2 ? `<img class="f2" src="${r.img2}" alt="">` : ''}` : `<span>${r.icon || '💬'}</span>`; };
+const face = (who) => { const r = RESIDENTS[who] || {}; return r.img ? `<img src="${r.img}" alt="">` : `<span>${r.icon || '💬'}</span>`; };
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60e3); return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`; };
 
 // The newest few lines for the home page (it refreshes live with the table)
