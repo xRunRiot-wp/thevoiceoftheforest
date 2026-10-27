@@ -1,9 +1,9 @@
 // GM-editable content. Every list on the site (rules, chapters, cast, ranks, items, moves, abilities,
 // index entries, shop) starts from built-in defaults and is overlaid with the GM's edits stored in
 // the table state under content/<type>/<id>. {deleted:true} hides a default.
-import * as store from './store.js?v=6adff3ae';
-import { slug, uid, esc, $, $$, num } from './util.js?v=6adff3ae';
-import { modal, closeModal } from './ui.js?v=6adff3ae';
+import * as store from './store.js?v=6adff44c';
+import { slug, uid, esc, $, $$, num } from './util.js?v=6adff44c';
+import { modal, closeModal } from './ui.js?v=6adff44c';
 
 export function merged(type, defaults, key = (d) => d.id || slug(d.name || d.title)) {
   const edits = store.get('content/' + type) || {};

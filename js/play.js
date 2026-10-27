@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adff3ae';
-import * as sheet from './sheetdata.js?v=6adff3ae';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adff3ae';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adff3ae';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adff3ae';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adff3ae';
-import { CONFIG } from './config.js?v=6adff3ae';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adff3ae';
-import { merged, editContent } from './content-store.js?v=6adff3ae';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adff3ae';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adff3ae';
-import { homeHTML } from './sitepages.js?v=6adff3ae';
-import { pinsOf, showMap } from './hotbar.js?v=6adff3ae';
-import { chatterLatestHTML } from './chatter.js?v=6adff3ae';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adff3ae';
-import { locations, spots } from './friendzone.js?v=6adff3ae';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML } from './weather.js?v=6adff3ae';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6adff3ae';
-import { find } from './effects.js?v=6adff3ae';
-import * as dice3d from './dice3d.js?v=6adff3ae';
+import * as store from './store.js?v=6adff44c';
+import * as sheet from './sheetdata.js?v=6adff44c';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adff44c';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adff44c';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adff44c';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adff44c';
+import { CONFIG } from './config.js?v=6adff44c';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adff44c';
+import { merged, editContent } from './content-store.js?v=6adff44c';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adff44c';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adff44c';
+import { homeHTML } from './sitepages.js?v=6adff44c';
+import { pinsOf, showMap } from './hotbar.js?v=6adff44c';
+import { chatterLatestHTML } from './chatter.js?v=6adff44c';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adff44c';
+import { locations, spots } from './friendzone.js?v=6adff44c';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6adff44c';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6adff44c';
+import { find } from './effects.js?v=6adff44c';
+import * as dice3d from './dice3d.js?v=6adff44c';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -557,7 +557,7 @@ function bindCharCard(main, c) {
       const w = WEATHERS[currentWeather().key]; const ab = c.ability && find(ix, c.ability);
       const hits = weatherFor(c, (c.moves || []).map((n) => idx.get(n.toLowerCase())), ab ? { name: ab.name, text: ab.outcome || ab.trigger || '' } : null);
       wxEl.innerHTML = `<div class="wxcard fortune ${hits.length ? 'on' : ''}">${wxFxHTML(currentWeather().key)}<div class="ft-top">✦ What’s the Weather? ✦</div>
-        <div class="ft-orb" aria-hidden="true">${w.icon}</div><div class="ft-name">${esc(w.name)}</div>
+        <div class="ft-orb" aria-hidden="true">${wxIconHTML(currentWeather().key)}</div><div class="ft-name">${esc(w.name)}</div>
         <div class="ft-say">${hits.length ? 'The skies foretell…' : 'The skies are quiet for you.'}</div>
         ${hits.length ? `<ul>${hits.map((h) => `<li class="${h.good ? 'up' : 'down'}"><span>${h.good ? '⬆️' : '⚠️'}</span><span><b>${esc(h.what)}</b>${h.ability ? ' (your ability)' : ''}: ${h.special || h.ability ? linkify(h.note, ix) : esc(h.note)}</span></li>`).join('')}</ul>`
           : `<p class="small ft-none">${w.ix ? 'This weather doesn’t change any of your moves or your ability.' : 'No weather effects right now.'}</p>`}

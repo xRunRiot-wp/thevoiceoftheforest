@@ -2,9 +2,9 @@
 // A roll of 100 is a disaster for the whole day: a huge fissure or a tsunami. Players never see who causes them (GM screen only).
 // Every device works out the same weather from the table code and the time, so nothing has to be saved;
 // the GM can still force a weather. Rules are PokéRole 2.0's weather (p.55-57).
-import * as store from './store.js?v=6adff3ae';
-import { esc } from './util.js?v=6adff3ae';
-import { modal } from './ui.js?v=6adff3ae';
+import * as store from './store.js?v=6adff44c';
+import { esc } from './util.js?v=6adff44c';
+import { modal } from './ui.js?v=6adff44c';
 
 export const WEATHERS = {
   clear: { name: 'Clear skies', icon: '☀️', w: 30, text: 'No weather effects.' },
@@ -84,7 +84,7 @@ export function weatherChipHTML() {
 export function showWeather() {
   const cw = currentWeather(); const w = WEATHERS[cw.key]; const ev = cw.event && EVENTS[cw.event];
   modal(`<div class="fortune ft-full">${wxFxHTML(cw.key)}<div class="ft-top">✦ What’s the Weather? ✦</div>
-    <div class="ft-orb" aria-hidden="true">${w.icon}</div><div class="ft-name">${esc(w.name)}</div>
+    <div class="ft-orb" aria-hidden="true">${wxIconHTML(cw.key)}</div><div class="ft-name">${esc(w.name)}</div>
     ${ev ? `<div class="wx-event"><b>${ev.icon} ${esc(ev.name)}</b><p>${esc(ev.text)}</p></div>` : ''}
     <div class="ft-say">The skies foretell…</div>
     <p class="ft-text">${esc(w.text)}</p>
@@ -145,3 +145,6 @@ export function wxFxHTML(key) {
   const bits = Array.from({ length: n }, (_, i) => `<i class="${kind}" style="--x:${(r(i, 'x') * 100).toFixed(1)}%;--y:${(r(i, 'y') * 100).toFixed(1)}%;--d:${(-r(i, 'd') * 6).toFixed(2)}s;--s:${(0.7 + r(i, 's') * 0.6).toFixed(2)}"></i>`).join('');
   return `<div class="wxfx wxfx-${key}" aria-hidden="true">${bits}${key === 'typhoon' ? '<b class="flash"></b>' : ''}${key === 'harsh' || key === 'sunny' ? '<b class="heat"></b><b class="rays"></b>' : ''}</div>`;
 }
+
+// the weather emoji in a card's orb, moving gently to match its weather (sun spins, rain bobs down, ...)
+export const wxIconHTML = (key) => `<span class="wxo wxo-${esc(key)}">${(WEATHERS[key] || WEATHERS.clear).icon}</span>`;

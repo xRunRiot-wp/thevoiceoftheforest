@@ -1,13 +1,13 @@
 // Training Gym (#/gym): one drill per day per character. Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6adff3ae';
-import { $, $$, esc, num, pool } from './util.js?v=6adff3ae';
-import { modal, diceFaces } from './ui.js?v=6adff3ae';
-import { statVal, logRoll } from './play.js?v=6adff3ae';
-import { myId } from './app.js?v=6adff3ae';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML } from './weather.js?v=6adff3ae';
-import { RESIDENTS } from './chatter.js?v=6adff3ae';
+import * as store from './store.js?v=6adff44c';
+import { $, $$, esc, num, pool } from './util.js?v=6adff44c';
+import { modal, diceFaces } from './ui.js?v=6adff44c';
+import { statVal, logRoll } from './play.js?v=6adff44c';
+import { myId } from './app.js?v=6adff44c';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6adff44c';
+import { RESIDENTS } from './chatter.js?v=6adff44c';
 
 const BAR = 5;
 export const DRILLS = [
@@ -131,7 +131,7 @@ function gymWxHTML(c, wx) {
   const says = wx.lvl === 2 ? 'A storm! Everyone trains indoors and loses a die.' : wx.lvl ? 'Bad weather. The outdoor drills have moved inside.' : 'Good training weather. Every drill runs outside.';
   const mine = wxDice(c, wx);
   return `<div class="fortune gym-wxw">${wxFxHTML(wx.key)}<div class="ft-top">✦ Gym Weather ✦</div>
-    <div class="ft-orb" aria-hidden="true">${wx.w.icon || ''}</div><div class="ft-name">${esc(wx.w.name || '')}</div>
+    <div class="ft-orb" aria-hidden="true">${wxIconHTML(wx.key)}</div><div class="ft-name">${esc(wx.w.name || '')}</div>
     <div class="ft-say">${esc(says)}</div>
     ${PERK[wx.key] ? `<p class="small ft-none">${esc(PERK[wx.key])} types +1 die.</p>` : ''}
     ${mine ? `<p class="small ft-none"><b>${esc(c.nickname)}: ${mine > 0 ? '+' : ''}${mine} die today.</b></p>` : ''}

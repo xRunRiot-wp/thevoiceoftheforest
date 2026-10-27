@@ -1,12 +1,12 @@
 // Rulebook: quick lookup from inside the game. Index of every effect/interaction, rules, story, cast, guild, items, handouts, links, credits.
-import * as store from './store.js?v=6adff3ae';
-import * as sheet from './sheetdata.js?v=6adff3ae';
-import { $, $$, esc } from './util.js?v=6adff3ae';
-import { portrait } from './ui.js?v=6adff3ae';
-import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6adff3ae';
-import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6adff3ae';
-import { merged, editContent } from './content-store.js?v=6adff3ae';
-import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6adff3ae';
+import * as store from './store.js?v=6adff44c';
+import * as sheet from './sheetdata.js?v=6adff44c';
+import { $, $$, esc } from './util.js?v=6adff44c';
+import { portrait } from './ui.js?v=6adff44c';
+import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6adff44c';
+import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6adff44c';
+import { merged, editContent } from './content-store.js?v=6adff44c';
+import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6adff44c';
 
 const gm = () => store.gmUnlocked();
 const editBtn = (attr) => (gm() ? `<button class="btn alt sm" ${attr}>Edit</button>` : '');
@@ -220,7 +220,7 @@ export async function renderRules(main, [sub, arg]) {
   }
 
   async function coverage() {
-    const { shop } = await import('./guild.js?v=6adff3ae');
+    const { shop } = await import('./guild.js?v=6adff44c');
     const [sm, sa, st, g] = await Promise.all([sheet.moves(), sheet.abilities(), sheet.treasure(), sheet.guild().catch(() => ({ chars: [] }))]);
     const party = Object.values(store.get('party') || {});
     const lootNames = [];
