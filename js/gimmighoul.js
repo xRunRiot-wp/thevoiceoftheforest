@@ -1,9 +1,9 @@
 // Hidden Gimmighoul: each day one hides somewhere on one page of the site (same spot for the whole table).
 // Clicking it gives the player's character 1d100 Poké, once per character per day; then it's gone for them.
-import * as store from './store.js?v=6ae014d7';
-import { esc, toast, num, die } from './util.js?v=6ae014d7';
-import { markWinner } from './sparkle.js?v=6ae014d7';
-import { logRoll } from './play.js?v=6ae014d7';
+import * as store from './store.js?v=6ae015d9';
+import { esc, toast, num, die } from './util.js?v=6ae015d9';
+import { markWinner } from './sparkle.js?v=6ae015d9';
+import { logRoll } from './play.js?v=6ae015d9';
 
 const PAGES = [['join', 'Home'], ['play', 'Play'], ['guild', 'Guild'], ['vault', 'Vault'], ['games', 'Games'], ['rules', 'Rulebook']];
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -75,12 +75,12 @@ export function placeGimmighoul(page, sub = '') {
     const amt = die(100);
     store.set(claimPath(id), amt);
     store.update('party/' + id, (x) => ({ ...x, poke: num(x?.poke) + amt }));
-    store.pushLimited('log', { t: Date.now(), text: `${c.nickname} found a hiding Gimmighoul and got ${amt} Poké (1d100)!` });
+    store.pushLimited('log', { t: Date.now(), text: `${c.nickname} found a hiding Gimmighoul and got ${amt} Poké!` });
     store.pushLimited('chatter', { who: 'Gimmighoul', kind: 'do', text: `was found hiding by ${c.nickname} and dropped ${amt} Poké! ✨`, tag: 'gimmighoul', t: Date.now() }, 80);
-    logRoll(c.nickname, 'found a hidden Gimmighoul (1d100)', null, `rolled ${amt} · won ${amt} Poké`, 'note');
+    logRoll(c.nickname, 'found a hidden Gimmighoul', null, `it dropped ${amt} Poké`, 'note');
     markWinner(id);
     coin(false); g.classList.add('gone'); setTimeout(() => g.remove(), 900);
-    toast(`✨ You found Gimmighoul! It dropped ${amt} Poké (1d100: ${amt}).`);
+    toast(`✨ You found Gimmighoul! It dropped ${amt} Poké.`);
   };
 }
 

@@ -946,7 +946,9 @@ a.fact:hover { border-color: var(--orange); }
 .mh-seat:hover .portrait, .mh-seat:focus-visible .portrait { transform: translateY(-4px) scale(1.05); }
 .mh-seat:hover, .mh-seat:focus-visible { z-index: 2; }
 .mh-bubble { position: relative; max-width: 100%; padding: 5px 9px; border-radius: 12px; background: #fffaf0; color: var(--ink); font-size: 13px; line-height: 1.3; text-align: center;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, .3); margin-bottom: 6px; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  box-shadow: 0 2px 0 rgba(0, 0, 0, .3); margin-bottom: 6px; overflow-wrap: anywhere; }
+/* only the words are cut to 3 lines; the "x min ago" line under them always shows (it was being clipped on phones) */
+.mh-bubble .mh-did, .mh-bubble .mh-say { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .mh-bubble::after { content: ''; position: absolute; left: 50%; bottom: -7px; margin-left: -7px; border: 7px solid transparent; border-bottom: 0; border-top-color: #fffaf0; }
 .mh-bubble .mh-did { font-style: italic; } .mh-bubble small { display: block; color: var(--muted); font-size: 11px; }
 .mh-plate { display: block; text-align: center; padding: 2px 9px 4px; border-radius: 8px; background: rgba(30, 16, 6, .85); border: 1px solid #c9a66b; }
@@ -968,6 +970,8 @@ a.fact:hover { border-color: var(--orange); }
   .mh-scene > img { aspect-ratio: 16 / 7; object-position: 40% 60%; }
   .mh-spots { position: static; display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px 10px; padding: 14px 4px 4px; background: linear-gradient(#5a3a1e, #3b2414); }
   .mh-seat, .mh-seat.extra { position: static; transform: none; width: auto; display: flex; min-width: 0; }
+  /* bubbles sit right on top of their own portrait, so the portraits in a row line up whatever the bubble length */
+  .mh-spots .mh-bubble, .mh-more .mh-bubble { margin-top: auto; width: 100%; }
   .mh-empty { position: static; }
   .mh-door { grid-template-columns: 1fr; }
 }
