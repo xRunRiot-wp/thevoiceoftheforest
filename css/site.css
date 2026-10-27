@@ -542,6 +542,14 @@ details.gs h4 { margin: 12px 0 4px; }
 .hotbar .hb-pin { background: rgba(107, 95, 194, .35); }
 .hotbar .hb-pin.gone { opacity: .5; text-decoration: line-through; }
 .hotbar .hb-pin.muted { opacity: .7; font-style: italic; }
+.pinmenu { position: fixed; z-index: 60; width: 260px; max-height: 60vh; overflow-y: auto; background: var(--hotbar); border: 1px solid rgba(233, 196, 106, .7); border-radius: 12px; padding: 6px; box-shadow: 0 8px 24px rgba(0, 0, 0, .45), 0 0 14px rgba(233, 196, 106, .3); color: var(--cream); }
+.pinmenu .pm-head { font-family: var(--pix); font-size: 16px; padding: 4px 8px 6px; color: var(--gold); }
+.pinmenu .pm-head .muted, .pinmenu .muted { color: rgba(255, 243, 214, .6); }
+.pinmenu .pm-item { display: flex; gap: 8px; align-items: center; width: 100%; text-align: left; font: inherit; font-size: 14px; color: inherit; background: none; border: 0; border-radius: 8px; padding: 7px 8px; min-height: 36px; cursor: var(--cur-link, pointer); }
+.pinmenu .pm-item:hover, .pinmenu .pm-item:focus-visible { background: rgba(233, 196, 106, .16); outline: none; }
+.pinmenu .pm-item.on { background: rgba(107, 95, 194, .45); }
+.pinmenu .pm-tick { width: 14px; color: var(--gold); font-weight: bold; }
+.pinmenu .pm-empty { padding: 8px; font-size: 14px; }
 .pinbtn { opacity: .45; } .pinbtn.on { opacity: 1; background: #e6e0ff; }
 .worldmap { width: 100%; border-radius: 10px; display: block; }
 .tri.pair { grid-template-columns: 1fr 1fr; }
