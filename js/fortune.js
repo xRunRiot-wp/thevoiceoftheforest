@@ -1,12 +1,12 @@
 // "What's the Weather?" — Castform's fortune-telling table. Instead of a wheel, the player picks a weather card
 // for the NEXT weather reading (every 6 hours). Once a day per character; a right guess pays the prize.
 // If today's 1d100 sky roll hits 100 the game breaks and Castform stops hosting until the GM reopens it.
-import { markWinner } from './sparkle.js?v=6ae00bca';
-import * as store from './store.js?v=6ae00bca';
-import { $, $$, esc, toast, num } from './util.js?v=6ae00bca';
-import { modal, closeModal, portrait } from './ui.js?v=6ae00bca';
-import { logRoll, me } from './play.js?v=6ae00bca';
-import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6ae00bca';
+import { markWinner } from './sparkle.js?v=6ae00ce6';
+import * as store from './store.js?v=6ae00ce6';
+import { $, $$, esc, toast, num } from './util.js?v=6ae00ce6';
+import { modal, closeModal, portrait } from './ui.js?v=6ae00ce6';
+import { logRoll, me } from './play.js?v=6ae00ce6';
+import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6ae00ce6';
 
 export const isFortune = (g) => g.kind === 'fortune' || g.id === 'what-s-the-weather';
 
@@ -53,7 +53,7 @@ export function resolveFortunes(g = { cost: '', intro: '' }) {
 
 const cardHTML = (k, cls = '', attrs = '') => {
   const [, num_, title] = cardOf(k) || ['', '', WEATHERS[k]?.name || '?']; const w = WEATHERS[k];
-  return `<div class="tarot ${cls}" ${attrs}><span class="tr-n">${num_}</span><span class="tr-ic">${w.icon}</span><span class="tr-t">${esc(title)}</span></div>`;
+  return `<div class="tarot ${cls}" ${attrs}><span class="tr-n">${num_}</span><span class="tr-ic"><span class="wxo wxo-${k}">${w.icon}</span></span><span class="tr-t">${esc(title)}</span></div>`;
 };
 const backHTML = (cls = '') => '<div class="tarot back ' + cls + '"><span class="tr-ic">✦</span></div>';
 

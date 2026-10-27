@@ -1126,6 +1126,10 @@ body[data-sheetonly] .mv-act { margin-top: 14px; }
 .wxo-sandstorm { animation: wo-jitter 1.2s ease-in-out infinite; }
 .wxo-harsh { animation: wo-rumble 3s ease-in-out infinite; }
 .wxo-typhoon { animation: wo-rock 3.2s ease-in-out infinite; }
+/* on the Castform tarot cards the weather only moves while you hover (or keyboard-focus) that card */
+.tarot .wxo { animation-play-state: paused; }
+.tarot:hover .wxo, .tarot:focus-visible .wxo { animation-play-state: running; }
+.tarot .wxo-clear, .tarot .wxo-sunny { animation-duration: 5s; }
 @keyframes wo-spin { to { transform: rotate(360deg); } }
 @keyframes wo-drift { from { transform: translateX(-7px); } to { transform: translateX(7px); } }
 @keyframes wo-fall { 0%, 100% { transform: translateY(-4px); } 50% { transform: translateY(5px); } }
@@ -1297,3 +1301,9 @@ a.ch-chip:hover { background: var(--navy); }
 /* the characters picture fills its tile so both tiles end level */
 .home-tiles .home-chars .navtile-head { flex: 1; }
 .home-tiles .home-chars .navtile-head img { height: 100%; }
+/* Hidden Gimmighoul (gimmighoul.js): one hides on a page each day; click it for 1d100 Poké */
+.gimmi { position: absolute; z-index: 30; width: 45px; height: 57px; margin: -57px 0 0 -22px; padding: 0; border: 0; background: none; cursor: var(--cur-link, pointer); filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); transition: transform .12s; }
+.gimmi img { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
+.gimmi:hover { transform: scale(1.12); }
+.gimmi.gone { pointer-events: none; animation: gimmiGo .9s ease-in forwards; }
+@keyframes gimmiGo { 30% { transform: translateY(-14px) scale(1.15); } 100% { transform: translateY(-40px) scale(.4); opacity: 0; } }

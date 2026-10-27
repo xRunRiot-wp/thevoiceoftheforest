@@ -1,22 +1,23 @@
-import { CONFIG } from './config.js?v=6ae00bca';
-import * as store from './store.js?v=6ae00bca';
-import * as sheet from './sheetdata.js?v=6ae00bca';
-import { $, $$, esc, uid } from './util.js?v=6ae00bca';
-import { closeModal, maxHp } from './ui.js?v=6ae00bca';
-import { renderJoin, renderPlay } from './play.js?v=6ae00bca';
-import { renderGM } from './gm.js?v=6ae00bca';
-import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6ae00bca';
-import { renderRules } from './rulebook.js?v=6ae00bca';
-import { renderVault } from './vault.js?v=6ae00bca';
-import { renderGames } from './games.js?v=6ae00bca';
-import { updateHotbar } from './hotbar.js?v=6ae00bca';
-import { applyTheme, openSettings } from './theme.js?v=6ae00bca';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6ae00bca';
-import { resolveFortunes } from './fortune.js?v=6ae00bca';
-import { updateSparkle } from './sparkle.js?v=6ae00bca';
-import { startDigCursor } from './digcursor.js?v=6ae00bca';
-import { renderFriendZone } from './friendzone.js?v=6ae00bca';
-import { renderGym } from './gym.js?v=6ae00bca';
+import { CONFIG } from './config.js?v=6ae00ce6';
+import * as store from './store.js?v=6ae00ce6';
+import * as sheet from './sheetdata.js?v=6ae00ce6';
+import { $, $$, esc, uid } from './util.js?v=6ae00ce6';
+import { closeModal, maxHp } from './ui.js?v=6ae00ce6';
+import { renderJoin, renderPlay } from './play.js?v=6ae00ce6';
+import { renderGM } from './gm.js?v=6ae00ce6';
+import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6ae00ce6';
+import { renderRules } from './rulebook.js?v=6ae00ce6';
+import { renderVault } from './vault.js?v=6ae00ce6';
+import { renderGames } from './games.js?v=6ae00ce6';
+import { updateHotbar } from './hotbar.js?v=6ae00ce6';
+import { applyTheme, openSettings } from './theme.js?v=6ae00ce6';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6ae00ce6';
+import { resolveFortunes } from './fortune.js?v=6ae00ce6';
+import { updateSparkle } from './sparkle.js?v=6ae00ce6';
+import { startDigCursor } from './digcursor.js?v=6ae00ce6';
+import { renderFriendZone } from './friendzone.js?v=6ae00ce6';
+import { renderGym } from './gym.js?v=6ae00ce6';
+import { placeGimmighoul } from './gimmighoul.js?v=6ae00ce6';
 
 const main = $('#main');
 let current = '';
@@ -106,7 +107,7 @@ async function route() {
   $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : ['friends', 'merchant', 'shop', 'gym'].includes(page) ? 'guild' : page);   // Friend Zone lives under Guild
   window.scrollTo(0, 0);
   const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, merchant: renderMerchant, shop: renderShop, gym: renderGym, vault: renderVault, games: renderGames, friends: renderFriendZone, rules: renderRules }[page] || renderJoin;
-  rerender = () => render(main, rest);
+  rerender = async () => { await render(main, rest); placeGimmighoul(page, rest.filter(Boolean).join('/')); };
   await rerender();
   statusChip(); updateHotbar();
 }
