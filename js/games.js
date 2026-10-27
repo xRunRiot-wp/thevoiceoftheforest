@@ -1,16 +1,17 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6ae1105f';
-import * as store from './store.js?v=6ae1105f';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae1105f';
-import { modal, portrait } from './ui.js?v=6ae1105f';
-import * as sheet from './sheetdata.js?v=6ae1105f';
-import { shop } from './guild.js?v=6ae1105f';
-import { merged, editContent } from './content-store.js?v=6ae1105f';
-import { logRoll, me, addTeamFx } from './play.js?v=6ae1105f';
-import { luckyReaction, gmTodo } from './chatter.js?v=6ae1105f';
-import { ranks } from './rulebook.js?v=6ae1105f';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae1105f';
+import { markWinner } from './sparkle.js?v=6ae113b9';
+import * as store from './store.js?v=6ae113b9';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae113b9';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae113b9';
+import { modal, portrait } from './ui.js?v=6ae113b9';
+import * as sheet from './sheetdata.js?v=6ae113b9';
+import { shop } from './guild.js?v=6ae113b9';
+import { merged, editContent } from './content-store.js?v=6ae113b9';
+import { logRoll, me, addTeamFx } from './play.js?v=6ae113b9';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ae113b9';
+import { ranks } from './rulebook.js?v=6ae113b9';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae113b9';
 
 export const GAMES = [
   {
@@ -218,7 +219,8 @@ export function renderGames(main, [arg]) {
   const isSpecial = () => !!$('#asSpecial', main)?.checked;
   const drawSpinners = () => {
     $('#splist', main).innerHTML = party().map((c) => `<button class="sp ${c.id === spinner ? 'on' : ''}" data-sp="${c.id}">${portrait(c, 'sm')}<span><b>${esc(c.nickname)}</b><small>${num(c.poke).toLocaleString()} Poké${rankLetter(c) ? ' · ' + rankLetter(c) + '-Rank' : ''}</small></span></button>`).join('') || `<p class="small muted">${needMove ? `Only characters who know ${esc(needMove)} can spin this wheel.` : 'No characters at this table yet.'}</p>`;
-    $$('[data-sp]', main).forEach((b) => b.onclick = () => { spinner = b.dataset.sp; free = 0; $('#claims', main).innerHTML = ''; $('#res', main).innerHTML = ''; refreshSpinner(); });
+    $$('[data-sp]', main).forEach((b) => b.onclick = () => { const go = () => { spinner = b.dataset.sp; free = 0; $('#claims', main).innerHTML = ''; $('#res', main).innerHTML = ''; refreshSpinner(); };
+      if (b.dataset.sp === me()?.id || !pinOf(b.dataset.sp) || charOpen(b.dataset.sp)) go(); else unlockChar(b.dataset.sp, go); });
   };
   const drawOdds = () => {
     const c = who(); const t = g.slices.reduce((s, [, w]) => s + w, 0);

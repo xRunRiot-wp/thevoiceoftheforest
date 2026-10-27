@@ -1,25 +1,26 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae1105f';
-import * as sheet from './sheetdata.js?v=6ae1105f';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae1105f';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae1105f';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae1105f';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae1105f';
-import { CONFIG } from './config.js?v=6ae1105f';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae1105f';
-import { merged, editContent } from './content-store.js?v=6ae1105f';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae1105f';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae1105f';
-import { homeHTML } from './sitepages.js?v=6ae1105f';
-import { burstSet } from './burst.js?v=6ae1105f';
-import { pinsOf, showMap } from './hotbar.js?v=6ae1105f';
-import { chatterLatestHTML } from './chatter.js?v=6ae1105f';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae1105f';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae1105f';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae1105f';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae1105f';
-import { find } from './effects.js?v=6ae1105f';
-import * as dice3d from './dice3d.js?v=6ae1105f';
+import * as store from './store.js?v=6ae113b9';
+import * as sheet from './sheetdata.js?v=6ae113b9';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae113b9';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae113b9';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae113b9';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae113b9';
+import { unlockChar } from './charlock.js?v=6ae113b9';
+import { CONFIG } from './config.js?v=6ae113b9';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae113b9';
+import { merged, editContent } from './content-store.js?v=6ae113b9';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae113b9';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae113b9';
+import { homeHTML } from './sitepages.js?v=6ae113b9';
+import { burstSet } from './burst.js?v=6ae113b9';
+import { pinsOf, showMap } from './hotbar.js?v=6ae113b9';
+import { chatterLatestHTML } from './chatter.js?v=6ae113b9';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae113b9';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae113b9';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae113b9';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae113b9';
+import { find } from './effects.js?v=6ae113b9';
+import * as dice3d from './dice3d.js?v=6ae113b9';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -85,9 +86,9 @@ export function renderJoin(main) {
   <div class="grid g2">${QUICK_LINKS.map((l) => `<a class="linkbtn" href="${l.href}" target="_blank" rel="noopener"><b>${esc(l.label)}</b><span>${esc(l.sub)}</span></a>`).join('')}</div>`;
 
 
-  $$('[data-pick]', main).forEach((b) => b.onclick = () => { setMe(b.dataset.pick); setJoined(true); location.hash = '#/play'; });
+  $$('[data-pick]', main).forEach((b) => b.onclick = () => unlockChar(b.dataset.pick, () => { setMe(b.dataset.pick); setJoined(true); location.hash = '#/play'; }));
   $('#watch', main).onclick = () => { setMe(''); setJoined(true); location.hash = '#/play'; };
-  $('#newchar', main).onclick = () => editCharacter(null, (id) => { setMe(id); setJoined(true); location.hash = '#/play'; });
+  $('#newchar', main).onclick = () => editCharacter(null, (id) => unlockChar(id, () => { setMe(id); setJoined(true); location.hash = '#/play'; }));
 }
 
 // Main mission banner: progress bar, the parts checklist and "what to do next" reminders.

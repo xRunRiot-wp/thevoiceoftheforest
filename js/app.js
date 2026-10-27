@@ -1,23 +1,24 @@
-import { CONFIG } from './config.js?v=6ae1105f';
-import * as store from './store.js?v=6ae1105f';
-import * as sheet from './sheetdata.js?v=6ae1105f';
-import { $, $$, esc, uid } from './util.js?v=6ae1105f';
-import { closeModal, maxHp } from './ui.js?v=6ae1105f';
-import { renderJoin, renderPlay } from './play.js?v=6ae1105f';
-import { renderGM } from './gm.js?v=6ae1105f';
-import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6ae1105f';
-import { renderRules } from './rulebook.js?v=6ae1105f';
-import { renderVault } from './vault.js?v=6ae1105f';
-import { renderGames } from './games.js?v=6ae1105f';
-import { updateHotbar } from './hotbar.js?v=6ae1105f';
-import { applyTheme, openSettings } from './theme.js?v=6ae1105f';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6ae1105f';
-import { resolveFortunes } from './fortune.js?v=6ae1105f';
-import { updateSparkle } from './sparkle.js?v=6ae1105f';
-import { startDigCursor } from './digcursor.js?v=6ae1105f';
-import { renderFriendZone } from './friendzone.js?v=6ae1105f';
-import { renderGym } from './gym.js?v=6ae1105f';
-import { placeGimmighoul } from './gimmighoul.js?v=6ae1105f';
+import { CONFIG } from './config.js?v=6ae113b9';
+import * as store from './store.js?v=6ae113b9';
+import * as sheet from './sheetdata.js?v=6ae113b9';
+import { $, $$, esc, uid, toast } from './util.js?v=6ae113b9';
+import { unlockChar, charOpen, pinOf, askForPin } from './charlock.js?v=6ae113b9';
+import { closeModal, maxHp } from './ui.js?v=6ae113b9';
+import { renderJoin, renderPlay } from './play.js?v=6ae113b9';
+import { renderGM } from './gm.js?v=6ae113b9';
+import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6ae113b9';
+import { renderRules } from './rulebook.js?v=6ae113b9';
+import { renderVault } from './vault.js?v=6ae113b9';
+import { renderGames } from './games.js?v=6ae113b9';
+import { updateHotbar } from './hotbar.js?v=6ae113b9';
+import { applyTheme, openSettings } from './theme.js?v=6ae113b9';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6ae113b9';
+import { resolveFortunes } from './fortune.js?v=6ae113b9';
+import { updateSparkle } from './sparkle.js?v=6ae113b9';
+import { startDigCursor } from './digcursor.js?v=6ae113b9';
+import { renderFriendZone } from './friendzone.js?v=6ae113b9';
+import { renderGym } from './gym.js?v=6ae113b9';
+import { placeGimmighoul } from './gimmighoul.js?v=6ae113b9';
 
 const main = $('#main');
 let current = '';
@@ -141,11 +142,15 @@ window.addEventListener('hashchange', route);
   await openTable(code);
   // ?as=<name> opens the table straight as that character (handy links the GM can send each player).
   const as = new URLSearchParams(location.search).get('as');
-  if (as) {
-    const c = Object.values(store.get('party') || {}).find((x) => x.nickname.toLowerCase() === as.toLowerCase());
-    if (c) { setMe(c.id); setJoined(true); if (!location.hash || location.hash === '#/') location.hash = '#/play'; }
-  }
+  const asChar = as && Object.values(store.get('party') || {}).find((x) => String(x.nickname).toLowerCase() === as.toLowerCase());
+  const playAs = (c) => { setMe(c.id); setJoined(true); if (!location.hash || location.hash === '#/') location.hash = '#/play'; else rerender?.(); };
+  if (asChar && charOpen(asChar.id)) playAs(asChar);
+  // this device is set to a character whose password it never typed (set on another device): pick again
+  if (myId() && !charOpen(myId()) && pinOf(myId())) { setMe(''); setJoined(false); toast('Your character has a password now. Pick it again to play.'); }
   await route();
+  // popups wait for the first page draw (it closes any open popup)
+  if (asChar && !charOpen(asChar.id)) unlockChar(asChar.id, () => playAs(asChar));
+  else askForPin(myId());
 })();
 
 export const refresh = () => rerender?.();

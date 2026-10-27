@@ -1,12 +1,13 @@
 // "What's the Weather?" — Castform's fortune-telling table. Instead of a wheel, the player picks a weather card
 // for the NEXT weather reading (every 6 hours). Once a day per character; a right guess pays the prize.
 // If today's 1d100 sky roll hits 100 the game breaks and Castform stops hosting until the GM reopens it.
-import { markWinner } from './sparkle.js?v=6ae1105f';
-import * as store from './store.js?v=6ae1105f';
-import { $, $$, esc, toast, num } from './util.js?v=6ae1105f';
-import { modal, closeModal, portrait } from './ui.js?v=6ae1105f';
-import { logRoll, me } from './play.js?v=6ae1105f';
-import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6ae1105f';
+import { markWinner } from './sparkle.js?v=6ae113b9';
+import * as store from './store.js?v=6ae113b9';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae113b9';
+import { $, $$, esc, toast, num } from './util.js?v=6ae113b9';
+import { modal, closeModal, portrait } from './ui.js?v=6ae113b9';
+import { logRoll, me } from './play.js?v=6ae113b9';
+import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6ae113b9';
 
 export const isFortune = (g) => g.kind === 'fortune' || g.id === 'what-s-the-weather';
 
@@ -78,7 +79,8 @@ export function renderFortune(main, g, gm, onEdit) {
     const closed = checkBroken();
     $('#splist', main).innerHTML = party().map((c) => { const b = store.get(betPath(c.id)); const today = b && b.day === dailyRoll().day;
       return `<button class="sp ${c.id === who ? 'on' : ''}" data-sp="${c.id}">${portrait(c, 'sm')}<span><b>${esc(c.nickname)}</b><small>${num(c.poke).toLocaleString()} Poké${today ? ' · ' + WEATHERS[b.key].icon + (b.done ? '' : ' waiting') : ''}</small></span></button>`; }).join('') || '<p class="small muted">No characters at this table yet.</p>';
-    $$('[data-sp]', main).forEach((b) => b.onclick = () => { who = b.dataset.sp; draw(); });
+    $$('[data-sp]', main).forEach((b) => b.onclick = () => { const go = () => { who = b.dataset.sp; draw(); };
+      if (b.dataset.sp === me()?.id || !pinOf(b.dataset.sp) || charOpen(b.dataset.sp)) go(); else unlockChar(b.dataset.sp, go); });
     const box = $('#ftable', main); const c = (store.get('party') || {})[who];
     const cw = currentWeather(); const b = c && store.get(betPath(c.id));
     const head = `<div class="ft-top">✦ Castform’s Fortune Table ✦</div><div class="ft-orb" aria-hidden="true">🔮</div>`;
