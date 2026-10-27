@@ -1436,3 +1436,6 @@ a.ch-chip:hover { background: var(--navy); }
 .itempop .ip-text { margin: 2px 0 6px; font-size: 14px; line-height: 1.4; }
 .itempop .ip-prev { margin: 0 0 8px; color: var(--gold); }
 .itempop .ip-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* Games tab sections: Chores / Gambling Games */
+.games-h { margin: 22px 0 2px; }
