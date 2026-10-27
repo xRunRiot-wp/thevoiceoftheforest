@@ -1,9 +1,9 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae013a0';
-import { $, $$, esc, toast } from './util.js?v=6ae013a0';
-import { modal, closeModal } from './ui.js?v=6ae013a0';
-import { merged, editContent } from './content-store.js?v=6ae013a0';
+import * as store from './store.js?v=6ae014d7';
+import { $, $$, esc, toast } from './util.js?v=6ae014d7';
+import { modal, closeModal } from './ui.js?v=6ae014d7';
+import { merged, editContent } from './content-store.js?v=6ae014d7';
 
 export const LOCATIONS = [
   {
@@ -132,7 +132,6 @@ export function renderFriendZone(main, [arg]) {
     <a class="btn alt sm" href="#/guild" style="margin-top:12px">← Guild</a>
     <div class="row" style="justify-content:space-between;margin-top:8px"><h1 style="margin:0">Friend Zone</h1>${gm ? `<span class="row"><button class="btn alt sm" id="fzedit">Edit ${esc(loc.name)}</button><button class="btn alt sm" id="fzadd">+ Location</button></span>` : ''}</div>
     <p class="small muted">Where recruited Pokémon live. Each location has its own camp.</p>
-    ${networkHTML(gm)}
     ${list.length > 1 ? `<div class="fz-tabs">${list.map((l) => `<a class="btn ${l.id === loc.id ? '' : 'alt'} sm" href="#/friends/${esc(l.id)}">${esc(l.icon || '📍')} ${esc(l.name)}</a>`).join('')}</div>` : ''}
     <div class="card fz-head"><h2 style="margin:0 0 6px">${esc(loc.icon || '📍')} ${esc(loc.name)} <span class="fz-loyal${Number(loc.loyalty) > 0 ? '' : ' small muted'}" title="Loyalty">${loyaltyLabel(loc.loyalty)}</span></h2>
       <p class="small"><b>On foot:</b> ${esc(loc.onFoot || '—')} · <b>Relay:</b> ${esc(loc.relayTime || '—')}</p>
@@ -143,7 +142,8 @@ export function renderFriendZone(main, [arg]) {
         <button class="btn alt sm" data-recruit="${esc(s.key)}">+ Recruit here</button></div>`; }).join('')}</div>
     <div class="card fz-staff">
       ${loc.awning ? `<p><b>⛺ Central awning:</b> ${esc(loc.awning)}</p>` : ''}${loc.caretaker ? `<p><b>🐝 Caretaker:</b> ${esc(loc.caretaker)}</p>` : ''}
-      ${loc.sentinel ? `<p><b>🛡️ Sentinel:</b> ${esc(loc.sentinel)}</p>` : ''}${loc.relay ? `<p><b>📮 Relay station:</b> ${esc(loc.relay)}</p>` : ''}</div>`;
+      ${loc.sentinel ? `<p><b>🛡️ Sentinel:</b> ${esc(loc.sentinel)}</p>` : ''}${loc.relay ? `<p><b>📮 Relay station:</b> ${esc(loc.relay)}</p>` : ''}</div>
+    ${networkHTML(gm)}`;   // her call: the network explainer sits at the bottom, under the camp
   $$('[data-recruit]', main).forEach((b) => b.onclick = () => {
     const el = modal(`<h2>New recruit</h2><label class="f">Pokémon (name or species)<input id="rcname"></label>
       <label class="f">Personality<select id="rctype"><option value="">—</option>${personalityTypes().map((t) => `<option>${esc(t)}</option>`).join('')}</select></label>
