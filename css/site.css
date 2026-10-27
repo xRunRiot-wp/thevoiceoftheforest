@@ -1274,3 +1274,8 @@ a.ch-chip:hover { background: var(--navy); }
 .home-chars { margin-top: 14px; }
 .home-chars .navtile-head img { aspect-ratio: 4 / 1; object-position: center 55%; }
 @media (max-width: 600px) { .home-chars .navtile-head img { aspect-ratio: 16 / 8; } }
+
+/* Home: Guildmaster welcome on the emblem pattern on top, Around the Guild under it, one card */
+.card.gboard { padding: 0; overflow: hidden; margin-top: 12px; }
+.gboard-top { background: var(--cream2) url('../assets/ui/emblem_pattern.png') center/600px auto; padding: 12px 14px; }
+.gboard .chatter-mini { margin-top: 0; padding: 10px 16px 6px; }

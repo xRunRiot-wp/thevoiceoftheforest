@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6ae0097f';
-import { $, $$, esc, toast } from './util.js?v=6ae0097f';
+import * as store from './store.js?v=6ae009e4';
+import { $, $$, esc, toast } from './util.js?v=6ae009e4';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
@@ -153,11 +153,13 @@ const face = (who) => { const r = RESIDENTS[who] || {}; return r.img ? `<img src
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60e3); return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`; };
 
 // The newest few lines for the home page (it refreshes live with the table)
-export function chatterLatestHTML(n = 3) {
+// Home page: the Guildmaster's welcome and the latest guild chatter in one card (her ask: consolidate)
+export function chatterLatestHTML(n = 3, welcome = '') {
   const feed = Object.entries(store.get('chatter') || {}).sort().reverse().slice(0, n);
-  if (!feed.length) return '';
-  return `<a class="card chatter chatter-mini" href="#/guild"><div class="row" style="justify-content:space-between"><b>🏕️ Around the Guild</b><span class="small">more on the Guild page →</span></div>
-    ${feed.map(([, x]) => lineHTML(x)).join('')}</a>`;
+  const top = welcome ? `<div class="gboard-top">${welcome}</div>` : '';
+  if (!feed.length) return top ? `<div class="card gboard">${top}</div>` : '';
+  return `<div class="card gboard">${top}<a class="chatter chatter-mini" href="#/guild"><div class="row" style="justify-content:space-between"><b>🏕️ Around the Guild</b><span class="small">more on the Guild page →</span></div>
+    ${feed.map(([, x]) => lineHTML(x)).join('')}</a></div>`;
 }
 const lineHTML = (x) => `<div class="line ${x.kind === 'do' ? 'do' : ''} ${x.tag === 'lucky' ? 'lucky' : ''}"><div class="face">${face(x.who)}</div><div class="grow">${x.kind === 'do'
   ? `<i><b>${esc(x.who)}</b> ${esc(x.text)}</i>` : `<b>${esc(x.who)}:</b> “${esc(x.text).replace(/^“|”$/g, '')}”`}<div class="small muted">${ago(x.t)}${x.tag === 'lucky' ? ' · Lucky Den' : ''}</div></div></div>`;

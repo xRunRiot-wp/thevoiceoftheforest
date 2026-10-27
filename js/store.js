@@ -2,8 +2,8 @@
 // Saved on this device; when a Firebase Realtime Database URL is set in config.js the same
 // tree is shared live with everyone at the table (REST + server-sent events, no SDK).
 // GM-only data is encrypted with the GM passcode before it is stored anywhere.
-import { CONFIG } from './config.js?v=6ae0097f';
-import { uid } from './util.js?v=6ae0097f';
+import { CONFIG } from './config.js?v=6ae009e4';
+import { uid } from './util.js?v=6ae009e4';
 
 const LS = 'dc.table.';
 const listeners = new Set();
