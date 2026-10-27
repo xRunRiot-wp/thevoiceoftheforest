@@ -1,7 +1,7 @@
 // Shared bits of UI: modal sheet, portraits, bars, dice faces.
-import { esc } from './util.js?v=6ae08ec8';
+import { esc } from './util.js?v=6ae0d55a';
 
-const PORTRAITS = ['abra', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
+const PORTRAITS = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 
 export function portraitFile(species) {
   const k = String(species || '').toLowerCase().replace(/[^a-z]/g, '');
