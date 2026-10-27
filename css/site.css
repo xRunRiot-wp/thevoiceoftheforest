@@ -1326,3 +1326,19 @@ a.ch-chip:hover { background: var(--navy); }
 .home-handout > summary small { font: 13px var(--sans); color: var(--muted); }
 .home-handout > summary:hover, .home-handout > summary:focus-visible { border-color: var(--gold); box-shadow: 0 0 12px rgba(233, 196, 106, .5); outline: none; }
 .home-handout[open] > summary { margin-bottom: 10px; }
+/* GM screen as compact square tiles (gm.js tileGM), styled like the folded Battle / Actions tabs on Play */
+.gm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); grid-auto-flow: dense; gap: 10px; margin-top: 12px; }
+.gm-grid > .gm-sec { margin: 0; min-width: 0; }
+.gm-grid > .gm-sec:not(.open) { padding: 0; border: 0; background: none; box-shadow: none; }
+.gm-grid > .gm-sec:not(.open) > :not(.gm-tab) { display: none; }
+.gm-grid > .gm-sec.open { grid-column: 1 / -1; }
+.gm-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; width: 100%; aspect-ratio: 1; margin: 0; text-align: center; font-size: 15px; line-height: 1.2;
+  transition: transform .15s, box-shadow .15s, border-color .15s; }
+.gm-tab .gm-ic { font-size: 30px; line-height: 1; }
+.gm-tab .gm-fold { display: none; }
+.gm-tab:hover, .gm-tab:focus-visible { transform: translateY(-3px); border-color: var(--gold); box-shadow: 0 0 14px rgba(233, 196, 106, .55); outline: none; }
+.gm-sec.open > .gm-tab { flex-direction: row; justify-content: flex-start; aspect-ratio: auto; min-height: 0; padding: 8px 12px; margin: -4px 0 10px; font-size: 16px; }
+.gm-sec.open > .gm-tab .gm-ic { font-size: 20px; }
+.gm-sec.open > .gm-tab .gm-fold { display: inline; margin-left: auto; font-size: 13px; color: var(--muted); }
+.gm-sec.open > .gm-tab + h2, .gm-sec.open > .gm-tab + .row > h2:first-child { display: none; }
+@media (prefers-reduced-motion: reduce) { .gm-tab { transition: none; } .gm-tab:hover { transform: none; } }

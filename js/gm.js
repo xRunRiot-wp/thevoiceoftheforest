@@ -1,17 +1,17 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6ae015d9';
-import * as sheet from './sheetdata.js?v=6ae015d9';
-import { ledger } from './vault.js?v=6ae015d9';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ae015d9';
-import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6ae015d9';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ae015d9';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ae015d9';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts } from './play.js?v=6ae015d9';
-import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ae015d9';
-import { merged, editContent } from './content-store.js?v=6ae015d9';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ae015d9';
-import { CONFIG } from './config.js?v=6ae015d9';
-import { gmGimmighoulHTML } from './gimmighoul.js?v=6ae015d9';
+import * as store from './store.js?v=6ae019ae';
+import * as sheet from './sheetdata.js?v=6ae019ae';
+import { ledger } from './vault.js?v=6ae019ae';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ae019ae';
+import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6ae019ae';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ae019ae';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ae019ae';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts } from './play.js?v=6ae019ae';
+import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ae019ae';
+import { merged, editContent } from './content-store.js?v=6ae019ae';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ae019ae';
+import { CONFIG } from './config.js?v=6ae019ae';
+import { gmGimmighoulHTML } from './gimmighoul.js?v=6ae019ae';
 
 const PORTRAIT_LIST = ['abra', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -170,9 +170,36 @@ export async function renderGM(main) {
     <p class="small muted" style="margin-top:10px">The GM passcode scrambles GM-only data (notes, enemy sheets, hidden missions, loot). Anyone who knows the passcode can open the GM screen — don't reuse a real password.</p>
   </section>
 
-  <section class="card"><h2>Dice log</h2>${diceLog(20)}</section>`;
+  <section id="gm-Dicelog" class="card"><h2>Dice log</h2>${diceLog(20)}</section>`;
 
+  tileGM(main);
   bindGM(main);
+}
+
+// Her layout: every GM section is a compact square tile (like the folded Battle / Actions tabs on Play).
+// Tap a tile to open that section full width; tap its title bar to fold it back. Open ones are remembered per device.
+const GM_ICONS = { Battle: '⚔️', Party: '👥', Dungeon: '🏔️', Weather: '🌦️', Loot: '💰', Missions: '📋', Reveal: '👁️', Endsession: '🌙', Notes: '📝', Index: '📚', Editcontent: '✏️', Table: '⚙️', Dicelog: '🎲' };
+const gmOpen = () => { try { return new Set(JSON.parse(localStorage.getItem('dc.gmopen') || '[]')); } catch { return new Set(); } };
+function tileGM(main) {
+  const secs = [...main.querySelectorAll(':scope > section.card[id^="gm-"]')]; if (!secs.length) return;
+  main.querySelector(':scope > .filters')?.remove();   // the tiles replace the jump chips
+  const grid = document.createElement('div'); grid.className = 'gm-grid';
+  secs[0].before(grid);
+  const open = gmOpen();
+  secs.forEach((sec) => {
+    const key = sec.id.slice(3); const h = sec.querySelector('h2');
+    const title = (h?.textContent || key).trim();
+    const tab = document.createElement('button'); tab.type = 'button'; tab.className = 'pane-tab gm-tab';
+    tab.innerHTML = `<span class="gm-ic">${GM_ICONS[key] || '📄'}</span><span class="gm-tt">${esc(title)}</span><span class="gm-fold">Fold ▴</span>`;
+    sec.prepend(tab); sec.classList.add('gm-sec'); sec.classList.toggle('open', open.has(key));
+    tab.onclick = () => {
+      const now = gmOpen(); const on = !sec.classList.contains('open');
+      sec.classList.toggle('open', on); on ? now.add(key) : now.delete(key);
+      try { localStorage.setItem('dc.gmopen', JSON.stringify([...now])); } catch { /* ignore */ }
+      if (on) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    grid.appendChild(sec);
+  });
 }
 
 function lootTable(rows) {
@@ -442,7 +469,7 @@ function bindGM(main) {
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6ae015d9');
+    const { openTable } = await import('./app.js?v=6ae019ae');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));
