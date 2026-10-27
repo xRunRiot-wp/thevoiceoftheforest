@@ -1,19 +1,19 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6adff44c';
-import * as sheet from './sheetdata.js?v=6adff44c';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adff44c';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adff44c';
-import { MISSION_GP } from './content.js?v=6adff44c';
-import { ranks } from './rulebook.js?v=6adff44c';
-import { merged, editContent } from './content-store.js?v=6adff44c';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6adff44c';
-import { myId } from './app.js?v=6adff44c';
-import { lowAlertHTML } from './vault.js?v=6adff44c';
-import { friendZoneSection } from './friendzone.js?v=6adff44c';
-import { ixLink } from './effects.js?v=6adff44c';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adff44c';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6adff44c';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6adff44c';
+import * as store from './store.js?v=6adffa93';
+import * as sheet from './sheetdata.js?v=6adffa93';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6adffa93';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6adffa93';
+import { MISSION_GP } from './content.js?v=6adffa93';
+import { ranks } from './rulebook.js?v=6adffa93';
+import { merged, editContent } from './content-store.js?v=6adffa93';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6adffa93';
+import { myId } from './app.js?v=6adffa93';
+import { lowAlertHTML } from './vault.js?v=6adffa93';
+import { friendZoneSection } from './friendzone.js?v=6adffa93';
+import { ixLink } from './effects.js?v=6adffa93';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6adffa93';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6adffa93';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6adffa93';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -199,7 +199,7 @@ export function renderGuild(main) {
   <p class="small muted">Each guild's storage and Poké activity is on the <a href="#/vault">Vault</a> tab (${storage.length} item${storage.length === 1 ? '' : 's'} stored).</p>
 
   <div class="section-title"><h2>Characters</h2><button class="btn alt sm" id="newchar">+ New character</button></div>
-  <div class="grid g2">${party.map((c) => `<button class="card row nowrap" style="text-align:left;cursor:pointer;margin:0" data-view="${c.id}">${portrait(c, 'sm')}<div class="grow"><div class="char-name" style="font-size:19px">${esc(c.nickname)}${c.id === myId() ? ' <span class="pill">you</span>' : ''}</div><div class="char-sub">${esc(c.pokemon)} · ${esc(guildName(c.guild))}</div><div class="char-sub char-stats"><span>❤️ ${c.hp}/${maxHp(c)} HP</span><span>🎓 ${c.tp || 0} TP</span><span>💰 ${num(c.poke).toLocaleString()} Poké</span></div></div></button>`).join('')}</div>
+  <div class="grid g2">${party.map((c) => `<button class="card row nowrap" style="text-align:left;cursor:var(--cur-link, pointer);margin:0" data-view="${c.id}">${portrait(c, 'sm')}<div class="grow"><div class="char-name" style="font-size:19px">${esc(c.nickname)}${c.id === myId() ? ' <span class="pill">you</span>' : ''}</div><div class="char-sub">${esc(c.pokemon)} · ${esc(guildName(c.guild))}</div><div class="char-sub char-stats"><span>❤️ ${c.hp}/${maxHp(c)} HP</span><span>🎓 ${c.tp || 0} TP</span><span>💰 ${num(c.poke).toLocaleString()} Poké</span></div></div></button>`).join('')}</div>
   <p class="small muted">Making a character? Fill in the <a href="https://forms.gle/GYmxXLQ7a3rcVRoH6" target="_blank" rel="noopener">Background Form</a> first, then read <a href="#/rules/r/new-character">New Character</a>.</p>
 
   <div class="section-title"><h2>Session history</h2></div>
