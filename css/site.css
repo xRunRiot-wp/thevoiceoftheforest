@@ -1219,3 +1219,24 @@ a.ch-chip:hover { background: var(--navy); }
   .ch-quote { font-size: 15px; }
   .ch-wide { grid-template-columns: 1fr; }
 }
+
+/* Mission progress = moving nature energy: flowing greens, light streaks, drifting motes, a glowing tip */
+.mb-bar:not(.floor) { height: 16px; box-shadow: inset 0 1px 3px rgba(0,0,0,.4); }
+.mb-bar:not(.floor) > i { position: relative; overflow: hidden;
+  background:
+    repeating-linear-gradient(110deg, rgba(236,255,190,0) 0, rgba(236,255,190,.28) 12px, rgba(236,255,190,0) 26px, rgba(236,255,190,0) 34px),
+    linear-gradient(90deg, #2f8f46, #6cc35a, #b8e36a, #6cc35a, #2f8f46);
+  background-size: 68px 100%, 240px 100%;
+  animation: natureFlow 2.2s linear infinite;
+  box-shadow: 0 0 10px rgba(150, 230, 110, .75), inset 0 0 6px rgba(230, 255, 190, .5); }
+.mb-bar:not(.floor) > i::before { content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(250,255,220,.95) 0 1.5px, transparent 2.5px), radial-gradient(circle, rgba(210,255,160,.8) 0 1px, transparent 2px);
+  background-size: 37px 16px, 23px 16px; background-position: 0 3px, 11px 9px;
+  animation: natureMotes 3.4s linear infinite; mix-blend-mode: screen; }
+.mb-bar:not(.floor) > i::after { content: ''; position: absolute; top: -4px; bottom: -4px; right: -6px; width: 16px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,255,210,.95), rgba(170,240,120,.5) 45%, transparent 70%);
+  animation: natureTip 1.6s ease-in-out infinite; }
+@keyframes natureFlow { to { background-position: 68px 0, 240px 0; } }
+@keyframes natureMotes { 0% { background-position: 0 4px, 11px 9px; } 50% { background-position: 18px 1px, 22px 11px; } 100% { background-position: 37px 4px, 34px 9px; } }
+@keyframes natureTip { 0%, 100% { opacity: .55; transform: scale(.85); } 50% { opacity: 1; transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .mb-bar:not(.floor) > i, .mb-bar:not(.floor) > i::before, .mb-bar:not(.floor) > i::after { animation: none; } }
