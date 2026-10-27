@@ -1,18 +1,18 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6ae13965';
-import * as store from './store.js?v=6ae13965';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae13965';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13965';
-import { modal, portrait } from './ui.js?v=6ae13965';
-import * as sheet from './sheetdata.js?v=6ae13965';
-import { shop } from './guild.js?v=6ae13965';
-import { merged, editContent } from './content-store.js?v=6ae13965';
-import { logRoll, me, addTeamFx } from './play.js?v=6ae13965';
-import { luckyReaction, gmTodo } from './chatter.js?v=6ae13965';
-import { ranks } from './rulebook.js?v=6ae13965';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae13965';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae13965';
+import { markWinner } from './sparkle.js?v=6ae13a2b';
+import * as store from './store.js?v=6ae13a2b';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae13a2b';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13a2b';
+import { modal, portrait } from './ui.js?v=6ae13a2b';
+import * as sheet from './sheetdata.js?v=6ae13a2b';
+import { shop } from './guild.js?v=6ae13a2b';
+import { merged, editContent } from './content-store.js?v=6ae13a2b';
+import { logRoll, me, addTeamFx } from './play.js?v=6ae13a2b';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ae13a2b';
+import { ranks } from './rulebook.js?v=6ae13a2b';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae13a2b';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae13a2b';
 
 export const GAMES = [
   {

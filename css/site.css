@@ -1428,3 +1428,11 @@ a.ch-chip:hover { background: var(--navy); }
 .due-ribbon { color: transparent; font-size: 0; }
 .due-ribbon::after { content: 'Today’s shift not done yet!'; display: block; margin: 0 auto; width: max-content; max-width: 80%; padding: 4px 14px; background: #e0453a; color: #fff; font: 700 15px var(--pix); letter-spacing: .5px; border-radius: 6px; text-align: center; }
 .gamecard.due:hover .due-ribbon { opacity: .35; transition: opacity .2s; }
+
+/* Pinned items sit in the middle of the top bar; tapping one opens a Use popup */
+.hotbar .hb-pins { display: flex; gap: 6px; flex: none; margin-left: auto; }
+.hotbar .hb-pin.hb-btn { font: inherit; font-size: 14px; }
+.itempop { width: 280px; padding: 8px 10px 10px; }
+.itempop .ip-text { margin: 2px 0 6px; font-size: 14px; line-height: 1.4; }
+.itempop .ip-prev { margin: 0 0 8px; color: var(--gold); }
+.itempop .ip-btns { display: flex; gap: 6px; flex-wrap: wrap; }

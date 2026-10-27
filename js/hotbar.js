@@ -1,9 +1,10 @@
 // Character hotbar in the top banner: money, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6ae13965';
-import { $, esc, num, toast } from './util.js?v=6ae13965';
-import { modal } from './ui.js?v=6ae13965';
-import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae13965';
+import * as store from './store.js?v=6ae13a2b';
+import { $, esc, num, toast } from './util.js?v=6ae13a2b';
+import { modal } from './ui.js?v=6ae13a2b';
+import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae13a2b';
+import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6ae13a2b';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -27,11 +28,11 @@ export function showGarment(c) {
 
 function hotbarHTML(c) {
   const bag = Object.values(store.get('bag') || {}).filter((b) => b.owner === c.id || b.owner === 'team');
-  const pins = pinsOf(c).map((n) => { const qty = bag.filter((b) => b.name === n).reduce((s, b) => s + num(b.qty), 0); return `<a href="#" class="hb hb-pin ${qty ? '' : 'gone'}" data-ixname="${esc(n)}">📌 ${esc(n)}${qty > 1 ? ' ×' + qty : ''}</a>`; }).join('');
+  const pins = pinsOf(c).map((n) => { const qty = bag.filter((b) => b.name === n).reduce((s, b) => s + num(b.qty), 0); return `<button class="hb hb-pin hb-btn ${qty ? '' : 'gone'}" data-pinitem="${esc(n)}" title="Use or look up ${esc(n)}">📌 ${esc(n)}${qty > 1 ? ' ×' + qty : ''}</button>`; }).join('');
   return `<a class="hb hb-me" href="#/play" title="Open your character sheet"><b>${esc(c.nickname)}</b></a>
     <span class="hb" title="Poké">💰 ${num(c.poke).toLocaleString()}</span>
     <a class="hb hb-link" href="#/gym" title="Training Points: open the Training Gym">🎓 ${num(c.tp)} TP 🏋️</a>
-    ${pins || '<button class="hb hb-pin hb-btn muted" id="hbpinadd" title="Quick-pin items from your Bag">📌 Pin items in your Bag ▾</button>'}${pins && pinsOf(c).length < 3 ? '<button class="hb hb-pin hb-btn" id="hbpinadd" title="Quick-pin items from your Bag">📌＋</button>' : ''}
+    <span class="hb-pins">${pins || '<button class="hb hb-pin hb-btn muted" id="hbpinadd" title="Quick-pin items from your Bag">📌 Pin items in your Bag ▾</button>'}${pins && pinsOf(c).length < 3 ? '<button class="hb hb-pin hb-btn" id="hbpinadd" title="Quick-pin items from your Bag">📌＋</button>' : ''}</span>
     <span class="hb hb-right" title="Held item">✋ ${esc(c.held || '—')}</span>
     <button class="hb hb-btn" id="hbgarb" title="Garment">🎀 ${esc(c.garments || '—')}</button>
     <button class="hb hb-btn" id="hbmap">🗺️ Map</button>`;
@@ -55,6 +56,7 @@ export function updateHotbar() {
   $('#hbgarb', el).onclick = () => showGarment((store.get('party') || {})[meId()] || c);
   $('.hb-me', el).onclick = (e) => { e.preventDefault(); openSheet(); };
   const add = $('#hbpinadd', el); if (add) add.onclick = (e) => { e.stopPropagation(); togglePinMenu(add, c.id); };
+  el.querySelectorAll('[data-pinitem]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); openItemPop(b, c.id, b.dataset.pinitem); });
 }
 
 // Daily-mission mailbox: on the Table line of the banner, above the name chip (her ask 10-27)
@@ -82,11 +84,32 @@ function openSheet() {
   setTimeout(go, 50);
 }
 
+// Pinned item popup (her ask 10-27): what it does, Use one (applies the benefit, takes it out of the bag), Unpin.
+async function openItemPop(anchor, id, name) {
+  if (document.getElementById('pinmenu')?.dataset.item === name) { closePinMenu(); return; }
+  closePinMenu();
+  const m = document.createElement('div'); m.id = 'pinmenu'; m.className = 'pinmenu itempop'; m.dataset.item = name; document.body.appendChild(m);
+  const r = anchor.getBoundingClientRect();
+  m.style.top = Math.round(r.bottom + 6) + 'px';
+  m.style.left = Math.round(Math.max(8, Math.min(r.left + r.width / 2 - 140, window.innerWidth - 288))) + 'px';
+  const text = await itemInfo(name);
+  const draw = () => {
+    const c = (store.get('party') || {})[id]; if (!c || !m.isConnected) { closePinMenu(); return; }
+    const qty = Object.values(store.get('bag') || {}).filter((b) => b.name === name && (b.owner === c.id || b.owner === 'team')).reduce((s, b) => s + num(b.qty), 0);
+    m.innerHTML = itemPopHTML(c, name, qty, text);
+    m.querySelector('[data-ipix]').dataset.ixname = name;
+    m.querySelector('[data-ipuse]').onclick = async () => { await useBagItem(c, name); setTimeout(draw, 50); };
+    m.querySelector('[data-ipunpin]').onclick = () => { store.set('party/' + c.id + '/pins', pinsOf(c).filter((x) => x !== name)); closePinMenu(); };
+  };
+  draw();
+  document.addEventListener('pointerdown', outsidePinMenu, true); document.addEventListener('keydown', escPinMenu);
+}
+
 // Quick-pin dropdown: the player's current bag items, tap to pin/unpin (max 3). Lives on <body> so the
 // sideways-scrolling hotbar can't clip it.
 const isBadge = (name) => / (Rank|Guild) Badge$/.test(name || '');
 function closePinMenu() { document.getElementById('pinmenu')?.remove(); document.removeEventListener('pointerdown', outsidePinMenu, true); document.removeEventListener('keydown', escPinMenu); }
-function outsidePinMenu(e) { const m = document.getElementById('pinmenu'); if (m && !m.contains(e.target) && e.target.id !== 'hbpinadd') closePinMenu(); }
+function outsidePinMenu(e) { const m = document.getElementById('pinmenu'); if (m && !m.contains(e.target) && e.target.id !== 'hbpinadd' && !e.target.closest?.('[data-pinitem]')) closePinMenu(); }
 function escPinMenu(e) { if (e.key === 'Escape') closePinMenu(); }
 function togglePinMenu(anchor, id) {
   if (document.getElementById('pinmenu')) { closePinMenu(); return; }
