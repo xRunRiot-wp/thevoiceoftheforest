@@ -1,12 +1,12 @@
 // Rulebook: quick lookup from inside the game. Index of every effect/interaction, rules, story, cast, guild, items, handouts, links, credits.
-import * as store from './store.js?v=6adff0b8';
-import * as sheet from './sheetdata.js?v=6adff0b8';
-import { $, $$, esc } from './util.js?v=6adff0b8';
-import { portrait } from './ui.js?v=6adff0b8';
-import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6adff0b8';
-import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6adff0b8';
-import { merged, editContent } from './content-store.js?v=6adff0b8';
-import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6adff0b8';
+import * as store from './store.js?v=6adff200';
+import * as sheet from './sheetdata.js?v=6adff200';
+import { $, $$, esc } from './util.js?v=6adff200';
+import { portrait } from './ui.js?v=6adff200';
+import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6adff200';
+import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6adff200';
+import { merged, editContent } from './content-store.js?v=6adff200';
+import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6adff200';
 
 const gm = () => store.gmUnlocked();
 const editBtn = (attr) => (gm() ? `<button class="btn alt sm" ${attr}>Edit</button>` : '');
@@ -220,7 +220,7 @@ export async function renderRules(main, [sub, arg]) {
   }
 
   async function coverage() {
-    const { shop } = await import('./guild.js?v=6adff0b8');
+    const { shop } = await import('./guild.js?v=6adff200');
     const [sm, sa, st, g] = await Promise.all([sheet.moves(), sheet.abilities(), sheet.treasure(), sheet.guild().catch(() => ({ chars: [] }))]);
     const party = Object.values(store.get('party') || {});
     const lootNames = [];
@@ -272,6 +272,7 @@ export async function renderRules(main, [sub, arg]) {
         <p>Every game graphic on this site comes from <b>Pokémon Mystery Dungeon: Explorers of Time / Darkness / Sky</b> (Nintendo DS) and the original Rescue Team era, as ripped and shared by fans:</p>
         <ul class="small">
           <li><b>Portraits</b> — original game portraits (credited CHUNSOFT) from the PMD Sprite Repository / SpriteCollab by PMDCollab: <a href="https://sprites.pmdcollab.org" target="_blank" rel="noopener">sprites.pmdcollab.org</a>, taken from the repository's first commit so they are the unedited in-game portraits.</li>
+          <li><b>Explorers-style portraits</b> for Pokémon that aren't in those games (Scolipede, Chandelure, Maushold, Aegislash, Golett, Jangmo-o, Cottonee, Tinkatink) — fan-drawn in the Explorers of Sky style by PMDCollab artists 0palite, Emmuffin, Precascer, G〜, baronessfaron, Soulja and mucrush (<a href="https://sprites.pmdcollab.org" target="_blank" rel="noopener">sprites.pmdcollab.org</a>).</li>
           <li><b>Window and portrait frames</b> — Explorers of Sky interface from Vauxhat's PMD-Text-Generator (<a href="https://github.com/Vauxhat/PMD-Text-Generator" target="_blank" rel="noopener">GitHub</a>).</li>
           <li><b>Treasure Town</b> and <b>Wigglytuff's Guild</b> backgrounds — ripped by redblueyellow, The Spriters Resource (Explorers of Time/Darkness sheets 5979, 5962).</li>
           <li><b>Beach</b> — redblueyellow (sheet 14797); <b>dusk sky</b> — RRen (Explorers of Sky sheet 232235). <b>Temporal Tower</b> — Eeveeloverthespriter8 (Explorers of Sky sheet 146840).</li>

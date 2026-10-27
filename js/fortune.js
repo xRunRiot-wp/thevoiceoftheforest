@@ -1,11 +1,11 @@
 // "What's the Weather?" — Castform's fortune-telling table. Instead of a wheel, the player picks a weather card
 // for the NEXT weather reading (every 6 hours). Once a day per character; a right guess pays the prize.
 // If today's 1d100 sky roll hits 100 the game breaks and Castform stops hosting until the GM reopens it.
-import * as store from './store.js?v=6adff0b8';
-import { $, $$, esc, toast, num } from './util.js?v=6adff0b8';
-import { modal, closeModal, portrait } from './ui.js?v=6adff0b8';
-import { logRoll, me } from './play.js?v=6adff0b8';
-import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6adff0b8';
+import * as store from './store.js?v=6adff200';
+import { $, $$, esc, toast, num } from './util.js?v=6adff200';
+import { modal, closeModal, portrait } from './ui.js?v=6adff200';
+import { logRoll, me } from './play.js?v=6adff200';
+import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6adff200';
 
 export const isFortune = (g) => g.kind === 'fortune' || g.id === 'what-s-the-weather';
 

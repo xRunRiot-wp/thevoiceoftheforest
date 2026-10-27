@@ -1,29 +1,30 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6adff0b8';
-import { $, $$, esc, toast } from './util.js?v=6adff0b8';
+import * as store from './store.js?v=6adff200';
+import { $, $$, esc, toast } from './util.js?v=6adff200';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
-// faces: original Explorers of Sky / Rescue Team portraits; species those games don't have keep an emoji (players without one use their own art)
+// faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
 export const RESIDENTS = {
   'Guildmaster Beautifly': { icon: '🦋', img: 'assets/portraits/beautifly.png' },
-  Chandelure: { icon: '🕯️' },
-  Maushold: { icon: '🐭' },
+  Chandelure: { icon: '🕯️', img: 'assets/portraits/chandelure.png' },
+  Maushold: { icon: '🐭', img: 'assets/portraits/maushold.png' },
   Diglett: { icon: '⛏️', img: 'assets/portraits/diglett.png' },
   'Beedrill (camp caretaker)': { icon: '🐝', img: 'assets/portraits/beedrill.png' },
-  'Bramble the Scolipede': { icon: '🛡️' },
+  'Bramble the Scolipede': { icon: '🛡️', img: 'assets/portraits/scolipede.png' },
   Abra: { icon: '📮', img: 'assets/portraits/abra.png' },
   Ralts: { icon: '📮', img: 'assets/portraits/ralts.png' },
   Magnemite: { icon: '🔩', img: 'assets/portraits/magnemite.png' },
-  Puff: { icon: '☁️', img: 'assets/gs/cast_puff_centered.png' },
-  Rox: { icon: '🐉', img: 'assets/gs/cast_rox_centered.png' },
-  Felicia: { icon: '🔨', img: 'assets/gs/cast_felicia.jpg' },
+  Puff: { icon: '☁️', img: 'assets/portraits/cottonee.png' },
+  Rox: { icon: '🐉', img: 'assets/portraits/jangmoo.png' },
+  Felicia: { icon: '🔨', img: 'assets/portraits/tinkatink.png' },
   Rocky: { icon: '🗿', img: 'assets/portraits/sudowoodo.png' },
   Mimi: { icon: '💧', img: 'assets/portraits/mudkip.png' },   // the Mudkip partner (keeper of the Relic Fragment)
   Kippy: { icon: '⚡', img: 'assets/portraits/pikachu.png' },   // the Pikachu
   'Weather Watch': { icon: '🌦️', img: 'assets/portraits/castform.png' },
-  Golett: { icon: '🐢', img: 'assets/gs/cast_chid.jpg' },
-  Slash: { icon: '⚔️' }, Slice: { icon: '⚔️' }, Sharp: { icon: '⚔️' }, Shank: { icon: '⚔️' },   // the Block Brothers (Aegislash merchants)   // Ground/Ghost, Adamant, he/him; clay reshaped to look like a Squirtle; loves food but has no mouth
+  Castform: { icon: '🔮', img: 'assets/portraits/castform.png' },
+  Golett: { icon: '🐢', img: 'assets/portraits/golett.png' },
+  Slash: { icon: '⚔️', img: 'assets/portraits/aegislash.png' }, Slice: { icon: '⚔️', img: 'assets/portraits/aegislash.png' }, Sharp: { icon: '⚔️', img: 'assets/portraits/aegislash.png' }, Shank: { icon: '⚔️', img: 'assets/portraits/aegislash.png' },   // the Block Brothers (Aegislash merchants)   // Ground/Ghost, Adamant, he/him; clay reshaped to look like a Squirtle; loves food but has no mouth
   Gemini: { icon: '🌟', img: 'assets/portraits/cleffa.png' },
   Slakoth: { icon: '💤', img: 'assets/portraits/slakoth.png' },
   Ludicolo: { icon: '🌧️', img: 'assets/portraits/ludicolo.png' },
