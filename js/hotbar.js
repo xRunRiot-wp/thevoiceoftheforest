@@ -1,9 +1,10 @@
 // Character hotbar in the top banner: money, guild points & rank, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6ae1326e';
-import { $, esc, num, toast } from './util.js?v=6ae1326e';
-import { modal } from './ui.js?v=6ae1326e';
-import { rankFor, guildPath, guildName } from './guild.js?v=6ae1326e';
+import * as store from './store.js?v=6ae1331c';
+import { $, esc, num, toast } from './util.js?v=6ae1331c';
+import { modal } from './ui.js?v=6ae1331c';
+import { rankFor, guildPath, guildName } from './guild.js?v=6ae1331c';
+import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae1331c';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -30,7 +31,10 @@ function hotbarHTML(c) {
   const rank = rankFor(gp)?.name || '';
   const bag = Object.values(store.get('bag') || {}).filter((b) => b.owner === c.id || b.owner === 'team');
   const pins = pinsOf(c).map((n) => { const qty = bag.filter((b) => b.name === n).reduce((s, b) => s + num(b.qty), 0); return `<a href="#" class="hb hb-pin ${qty ? '' : 'gone'}" data-ixname="${esc(n)}">📌 ${esc(n)}${qty > 1 ? ' ×' + qty : ''}</a>`; }).join('');
-  return `<a class="hb hb-me" href="#/play" title="Open your character sheet"><b>${esc(c.nickname)}</b></a>
+  const mail = mailWaiting(c);
+  // her ask 10-27: the daily-mission mailbox sits right above the name chip
+  return `<span class="hb-mestack"><button class="hb-mail ${mail ? 'new' : ''}" id="hbmail" title="${mail ? 'New mail! A mission is waiting' : 'Mailbox: today’s mission is done'}" aria-label="Mailbox">${mail ? '📬' : '📪'}</button>
+    <a class="hb hb-me" href="#/play" title="Open your character sheet"><b>${esc(c.nickname)}</b></a></span>
     <span class="hb" title="Poké">💰 ${num(c.poke).toLocaleString()}</span>
     <span class="hb" title="${esc(guildName(c.guild))}">🏅 ${gp} GP · ${esc(rank)}</span>
     <a class="hb hb-link" href="#/gym" title="Training Points: open the Training Gym">🎓 ${num(c.tp)} TP 🏋️</a>
@@ -54,6 +58,7 @@ export function updateHotbar() {
   lastHTML = html;
   el.innerHTML = html;
   $('#hbmap', el).onclick = showMap;
+  $('#hbmail', el).onclick = openMyMailbox;
   $('#hbgarb', el).onclick = () => showGarment((store.get('party') || {})[meId()] || c);
   $('.hb-me', el).onclick = (e) => { e.preventDefault(); openSheet(); };
   const add = $('#hbpinadd', el); if (add) add.onclick = (e) => { e.stopPropagation(); togglePinMenu(add, c.id); };

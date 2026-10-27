@@ -2,9 +2,9 @@
 // A roll of 100 is a disaster for the whole day: a huge fissure or a tsunami. Players never see who causes them (GM screen only).
 // Every device works out the same weather from the table code and the time, so nothing has to be saved;
 // the GM can still force a weather. Rules are PokéRole 2.0's weather (p.55-57).
-import * as store from './store.js?v=6ae1326e';
-import { esc } from './util.js?v=6ae1326e';
-import { modal } from './ui.js?v=6ae1326e';
+import * as store from './store.js?v=6ae1331c';
+import { esc } from './util.js?v=6ae1331c';
+import { modal } from './ui.js?v=6ae1331c';
 
 export const WEATHERS = {
   clear: { name: 'Clear skies', icon: '☀️', w: 30, text: 'No weather effects.' },
@@ -36,7 +36,7 @@ export const EVENTS = {
 
 const BLOCK = 6;   // hours per weather
 // mixed at the end so days next to each other don't roll nearly the same number (they did: the sky roll sat around 27-35 for weeks)
-const hash = (s) => { let h = 2166136261; for (const ch of s) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); } h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+export const hash = (s) => { let h = 2166136261; for (const ch of s) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); } h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
 
 // Eastern-time day + hour (the campaign's clock)
 function clock(t) {
