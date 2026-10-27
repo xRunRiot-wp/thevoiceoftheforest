@@ -1,9 +1,9 @@
 // Character hotbar in the top banner: money, guild points & rank, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6ae00fd2';
-import { $, esc, num, toast } from './util.js?v=6ae00fd2';
-import { modal } from './ui.js?v=6ae00fd2';
-import { rankFor, guildPath, guildName } from './guild.js?v=6ae00fd2';
+import * as store from './store.js?v=6ae013a0';
+import { $, esc, num, toast } from './util.js?v=6ae013a0';
+import { modal } from './ui.js?v=6ae013a0';
+import { rankFor, guildPath, guildName } from './guild.js?v=6ae013a0';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -40,15 +40,21 @@ function hotbarHTML(c) {
     <button class="hb hb-btn" id="hbmap">🗺️ Map</button>`;
 }
 
+let lastHTML = '';
 // called on every render and table change
 export function updateHotbar() {
   const el = $('#hotbar'); if (!el) return;
   const c = (store.get('party') || {})[meId()];
-  if (!c) { el.hidden = true; el.innerHTML = ''; return; }
+  if (!c) { el.hidden = true; el.innerHTML = ''; lastHTML = ''; return; }
   el.hidden = false;
-  el.innerHTML = hotbarHTML(c);
+  // only redraw when something in the bar changed: redrawing on every table update swapped the buttons out
+  // between a press and its release, so clicks (like the first "Pin items in your Bag") got lost
+  const html = hotbarHTML(c);
+  if (lastHTML === html && el.firstChild) return;
+  lastHTML = html;
+  el.innerHTML = html;
   $('#hbmap', el).onclick = showMap;
-  $('#hbgarb', el).onclick = () => showGarment(c);
+  $('#hbgarb', el).onclick = () => showGarment((store.get('party') || {})[meId()] || c);
   $('.hb-me', el).onclick = (e) => { e.preventDefault(); openSheet(); };
   const add = $('#hbpinadd', el); if (add) add.onclick = (e) => { e.stopPropagation(); togglePinMenu(add, c.id); };
 }
@@ -86,7 +92,7 @@ function togglePinMenu(anchor, id) {
     const names = Object.keys(qty).sort((a, b) => a.localeCompare(b));
     m.innerHTML = `<div class="pm-head">📌 Quick pin <span class="muted">${pins.length}/3</span></div>`
       + (names.length ? names.map((n) => `<button class="pm-item ${pins.includes(n) ? 'on' : ''}" data-n="${esc(n)}"><span class="pm-tick">${pins.includes(n) ? '✓' : ''}</span><span class="grow">${esc(n)}</span>${qty[n] > 1 ? `<span class="muted">×${qty[n]}</span>` : ''}</button>`).join('')
-        : '<div class="pm-empty muted">Your Bag is empty.</div>');
+        : '<div class="pm-empty muted">Nothing to pin yet. Items you or the team find land in your Bag and show up here.</div>');
     m.querySelectorAll('[data-n]').forEach((b) => b.onclick = () => {
       const n = b.dataset.n; const cur = pinsOf(c);
       if (cur.includes(n)) store.set('party/' + c.id + '/pins', cur.filter((x) => x !== n));

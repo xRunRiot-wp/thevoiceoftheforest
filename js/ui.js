@@ -1,5 +1,5 @@
 // Shared bits of UI: modal sheet, portraits, bars, dice faces.
-import { esc } from './util.js?v=6ae00fd2';
+import { esc } from './util.js?v=6ae013a0';
 
 const PORTRAITS = ['abra', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 
@@ -43,7 +43,15 @@ export function modal(html, onMount) {
   const bg = document.createElement('div');
   bg.className = 'sheet-bg';
   bg.innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><button class="btn alt sm x" data-close>Close</button>${html}</div>`;
-  bg.addEventListener('click', (e) => { if (e.target === bg || e.target.closest('[data-close]')) closeModal(); });
+  bg.addEventListener('click', (e) => {
+    if (!(e.target === bg || e.target.closest('[data-close]'))) return;
+    closeModal();
+    // a click on the top bar (hotbar, tabs, settings) behind the popup closes it AND does that thing, so the
+    // first click on e.g. "Pin items in your Bag" works even while the welcome popup is still up
+    if (e.target !== bg) return;
+    const under = document.elementFromPoint(e.clientX, e.clientY)?.closest('a, button');
+    if (under && under.closest('.top')) under.click();
+  });
   document.body.appendChild(bg);
   document.body.style.overflow = 'hidden';
   modalClose = () => { bg.remove(); document.body.style.overflow = ''; modalClose = null; window.dispatchEvent(new Event('modalclosed')); };
