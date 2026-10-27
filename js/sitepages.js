@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6ae006ac';
-import { esc } from './util.js?v=6ae006ac';
-import { LINKS, CAST } from './content.js?v=6ae006ac';
+import { GS_TEXT } from './gstext.js?v=6ae0075a';
+import { esc } from './util.js?v=6ae0075a';
+import { LINKS, CAST } from './content.js?v=6ae0075a';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -139,41 +139,33 @@ function storyRanksHTML(L) {
   const subs = sitePage(STORY)?.kids || [];
   const chs = [];
   for (const [k, t] of b.slice(at + 1)) {
-    if (k === 'img') { chs.push({ img: t, lines: [] }); continue; }
+    if (k === 'img') { chs.push({ img: t }); continue; }
     const c = chs[chs.length - 1]; if (!c) continue;
     if (k === 'h') c.title = t;
     else if (/^\d+ Chapter/.test(t)) c.label = t.replace(/^\d+ /, '');
     else if (/^[“"]/.test(t)) c.quote = t;
     else if (/^Promotion:/.test(t)) c.promo = t;
     else if (/^\w+ Rank$/.test(t)) c.rank = t;
-    else c.lines.push(t);
   }
-  const icon = (t) => /Guild points/.test(t) ? 'woodland' : /^[A-Z] - Rank$/.test(t) ? 'vanguard' : '';
   const card = (c, wide) => {
     const n = (c.title || '').replace(/\D+/g, '');
     const sub = subs.find(([, t]) => t === `Chapter ${n}` || t.startsWith(`Chapter ${n} `));
     const label = c.label ? (sub ? `<a class="ch-chip" href="${href(sub[0])}">${esc(c.label)}</a>` : `<span class="ch-chip">${esc(c.label)}</span>`) : '';
     const text = `${label}<h3 class="ch-title">${esc(c.title || '')}</h3>
       ${c.quote ? `<p class="ch-quote">${esc(c.quote)}</p>` : ''}
-      ${c.lines.map((t) => `<p class="ch-line">${icon(t) ? `<img src="assets/badges/${icon(t)}.png" alt="">` : ''}${L(t)}</p>`).join('')}
       ${c.rank ? `<p class="ch-meta">${L(c.rank)}</p>` : ''}${c.promo ? `<p class="ch-meta">${esc(c.promo)}</p>` : ''}`;
     const pic = `<img class="ch-medal" src="${c.img}" alt="" loading="lazy">`;
     return wide ? `<div class="ch-card ch-wide">${pic}<div>${text}</div></div>` : `<div class="ch-card">${pic}${text}</div>`;
   };
   const last = chs.length > 1 ? chs[chs.length - 1] : null;
-  const first4 = chs.slice(0, 4); const rest = chs.slice(4, last ? -1 : undefined);
-  return `<div class="ch-jump"><a href="#" data-jump="gp-guild">Guild Progression</a><a href="#" data-jump="gp-story">Story Progression</a></div>
-    <h2 class="ch-sect" id="gp-guild">Guild Progression</h2>
-    ${chart ? `<span class="site-img wide"><img src="${chart[1]}" alt="Guild ranks and rewards" loading="lazy"></span>` : ''}
-    <h2 class="ch-sect" id="gp-story">Story Progression</h2>
-    <div class="ch-grid ch4">${first4.map((c) => card(c)).join('')}</div>
-    ${rest.length ? `<div class="ch-grid ch3">${rest.map((c) => card(c)).join('')}</div>` : ''}
-    ${last ? card(last, true) : ''}`;
+  return `<div class="rk-row">
+    <div class="rk-story"><h2 class="ch-sect" id="gp-story">Story Progression</h2>
+      <div class="ch-grid ch3">${chs.slice(0, last ? -1 : undefined).map((c) => card(c)).join('')}</div>
+      ${last ? card(last, true) : ''}</div>
+    <div class="rk-guild"><h2 class="ch-sect" id="gp-guild">Guild Progression</h2>
+      ${chart ? `<span class="site-img wide"><img src="${chart[1]}" alt="Guild ranks and rewards" loading="lazy"></span>` : ''}</div>
+  </div>`;
 }
-document.addEventListener('click', (e) => {
-  const a = e.target.closest?.('[data-jump]'); if (!a) return;
-  e.preventDefault(); document.getElementById(a.dataset.jump)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-});
 
 export function pageHTML(key, L = esc) {
   const p = sitePage(key);

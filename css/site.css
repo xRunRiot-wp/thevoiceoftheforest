@@ -1194,8 +1194,6 @@ body[data-sheetonly] .mv-act { margin-top: 14px; }
 .mv-act[data-fold="both"] .pane-tab { min-height: 64px; text-align: center; font-size: 17px; }
 
 /* Story & Guild Rank Progression: her site's chapter grid */
-.ch-jump { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
-.ch-jump a { font-size: 14px; color: var(--brown2); }
 .ch-sect { font-family: var(--pix); color: var(--navy2); font-size: 32px; margin: 18px 0 12px; padding: 10px 0; border-top: 2px solid var(--cream3); border-bottom: 2px solid var(--cream3); scroll-margin-top: 140px; }
 .ch-grid { display: grid; gap: 18px 14px; margin-bottom: 26px; }
 .ch-grid.ch4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -1206,8 +1204,6 @@ body[data-sheetonly] .mv-act { margin-top: 14px; }
 a.ch-chip:hover { background: var(--navy); }
 .ch-title { font-family: var(--pix); color: var(--navy2); font-size: 30px; margin: 6px 0 10px; line-height: 1.1; }
 .ch-quote { font-size: 17px; line-height: 1.5; margin: 0 6px 10px; }
-.ch-line { margin: 4px 0; font-size: 16px; }
-.ch-line img { width: 20px; height: 20px; vertical-align: -4px; margin-right: 5px; object-fit: contain; }
 .ch-meta { margin: 6px 0; font-size: 14px; color: var(--muted); }
 .ch-meta a { color: inherit; }
 .ch-wide { display: grid; grid-template-columns: 1fr 1.6fr; gap: 20px; align-items: center; margin-bottom: 10px; }
@@ -1240,3 +1236,24 @@ a.ch-chip:hover { background: var(--navy); }
 @keyframes natureMotes { 0% { background-position: 0 4px, 11px 9px; } 50% { background-position: 18px 1px, 22px 11px; } 100% { background-position: 37px 4px, 34px 9px; } }
 @keyframes natureTip { 0%, 100% { opacity: .55; transform: scale(.85); } 50% { opacity: 1; transform: scale(1.15); } }
 @media (prefers-reduced-motion: reduce) { .mb-bar:not(.floor) > i, .mb-bar:not(.floor) > i::before, .mb-bar:not(.floor) > i::after { animation: none; } }
+
+/* Poké bank + Bag share one pouch card: purse on the left, bag list on the right (stacked on phones) */
+.pouch { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 0; padding: 0; overflow: hidden; margin-top: 14px; }
+.pouch > div { padding: 12px 16px 14px; min-width: 0; }
+.pouch .section-title { margin-top: 0; }
+.pouch-bank { background: color-mix(in srgb, var(--paper) 82%, var(--gold)); border-right: 2px dashed var(--cream3); }
+.pouch .pokebank { background: var(--paper); border: 2px solid var(--cream3); border-radius: 12px; padding: 10px 8px 12px; }
+.pouch .pokebank .row { gap: 6px; }
+.pouch-bag .log { margin: 0; }
+@media (max-width: 760px) {
+  .pouch { grid-template-columns: 1fr; }
+  .pouch-bank { border-right: 0; border-bottom: 2px dashed var(--cream3); }
+}
+/* Story (left) and Guild Progression chart (right) share a row; the chart stays in view while scrolling */
+.rk-row { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+.rk-guild { position: sticky; top: 150px; }
+.rk-row .ch-sect { margin-top: 0; }
+@media (max-width: 900px) {
+  .rk-row { grid-template-columns: 1fr; }
+  .rk-guild { position: static; }
+}
