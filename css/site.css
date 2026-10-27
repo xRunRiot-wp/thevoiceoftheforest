@@ -1402,3 +1402,22 @@ a.ch-chip:hover { background: var(--navy); }
 .sentry-mini .fp { width: 36px !important; height: 36px !important; background-size: 2844px 36px !important; }
 .sentry-mini .fp:nth-child(1) { background-position: -180px 0 !important; } .sentry-mini .fp:nth-child(2) { background-position: -1764px 0 !important; } .sentry-mini .fp:nth-child(3) { background-position: -2124px 0 !important; }
 @media (max-width: 420px) { .sentry-mini { width: 104px; height: 104px; } .sentry-mini .fp { width: 28px !important; height: 28px !important; background-size: 2212px 28px !important; } .sentry-mini .fp:nth-child(1) { background-position: -140px 0 !important; } .sentry-mini .fp:nth-child(2) { background-position: -1372px 0 !important; } .sentry-mini .fp:nth-child(3) { background-position: -1652px 0 !important; } }
+
+/* Sentry Duty faces: Diglett reacts to every footprint, characters show how their shift went */
+.sface { width: 40px; height: 40px; border-radius: 8px; border: 2px solid var(--brown, #5a3a1a); image-rendering: pixelated; flex: none; background: #fff; object-fit: cover; }
+.sface.ph { display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+.sface.big { width: 80px; height: 80px; border-radius: 12px; display: block; margin: 0 auto 6px; }
+.sface.dig { width: 56px; height: 56px; }
+.sentry-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.sentry-digg { display: flex; gap: 10px; align-items: flex-start; margin: 6px 0; text-align: left; }
+.sentry-digg .bubble { position: relative; flex: 1; background: #fffaf0; color: #3a2c1a; border: 2px solid #e2c98f; border-radius: 12px; padding: 8px 12px; min-height: 40px; }
+.sentry-digg .bubble::before { content: ''; position: absolute; left: -9px; top: 16px; border: 8px solid transparent; border-right-color: #e2c98f; border-left: 0; }
+.sentry-react { min-height: 78px; }
+.sentry-sand { position: relative; }
+.digsprite { position: absolute; right: 14px; bottom: 10px; width: 48px; height: 48px; background: url('../assets/ui/diglett_cursor.png') 0 0 / 288px 48px no-repeat; image-rendering: pixelated; animation: dig-idle 1.1s steps(1) infinite; }
+.digsprite.hit { animation: dig-idle 1.1s steps(1) infinite, dig-hop .5s ease-out 2; }
+.digsprite.miss, .digsprite.slow { animation: dig-idle 1.1s steps(1) infinite, dig-shake .4s linear 2; }
+@keyframes dig-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-14px); } }
+@keyframes dig-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@media (prefers-reduced-motion: reduce) { .digsprite, .digsprite.hit, .digsprite.miss, .digsprite.slow { animation: none; } }
+.sentry-roster .sface { width: 32px; height: 32px; border-radius: 6px; }

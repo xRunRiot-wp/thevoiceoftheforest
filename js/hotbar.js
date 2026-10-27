@@ -1,10 +1,9 @@
-// Character hotbar in the top banner: money, guild points & rank, training points, held item,
+// Character hotbar in the top banner: money, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6ae136bc';
-import { $, esc, num, toast } from './util.js?v=6ae136bc';
-import { modal } from './ui.js?v=6ae136bc';
-import { rankFor, guildPath, guildName } from './guild.js?v=6ae136bc';
-import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae136bc';
+import * as store from './store.js?v=6ae13844';
+import { $, esc, num, toast } from './util.js?v=6ae13844';
+import { modal } from './ui.js?v=6ae13844';
+import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae13844';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -27,13 +26,10 @@ export function showGarment(c) {
 }
 
 function hotbarHTML(c) {
-  const gp = num((store.get(guildPath(c.guild)) || {}).gp);
-  const rank = rankFor(gp)?.name || '';
   const bag = Object.values(store.get('bag') || {}).filter((b) => b.owner === c.id || b.owner === 'team');
   const pins = pinsOf(c).map((n) => { const qty = bag.filter((b) => b.name === n).reduce((s, b) => s + num(b.qty), 0); return `<a href="#" class="hb hb-pin ${qty ? '' : 'gone'}" data-ixname="${esc(n)}">📌 ${esc(n)}${qty > 1 ? ' ×' + qty : ''}</a>`; }).join('');
   return `<a class="hb hb-me" href="#/play" title="Open your character sheet"><b>${esc(c.nickname)}</b></a>
     <span class="hb" title="Poké">💰 ${num(c.poke).toLocaleString()}</span>
-    <span class="hb" title="${esc(guildName(c.guild))}">🏅 ${gp} GP · ${esc(rank)}</span>
     <a class="hb hb-link" href="#/gym" title="Training Points: open the Training Gym">🎓 ${num(c.tp)} TP 🏋️</a>
     ${pins || '<button class="hb hb-pin hb-btn muted" id="hbpinadd" title="Quick-pin items from your Bag">📌 Pin items in your Bag ▾</button>'}${pins && pinsOf(c).length < 3 ? '<button class="hb hb-pin hb-btn" id="hbpinadd" title="Quick-pin items from your Bag">📌＋</button>' : ''}
     <span class="hb hb-right" title="Held item">✋ ${esc(c.held || '—')}</span>
