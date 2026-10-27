@@ -1,17 +1,19 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6ae08d6b';
-import * as sheet from './sheetdata.js?v=6ae08d6b';
-import { ledger } from './vault.js?v=6ae08d6b';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ae08d6b';
-import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6ae08d6b';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ae08d6b';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ae08d6b';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts } from './play.js?v=6ae08d6b';
-import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ae08d6b';
-import { merged, editContent } from './content-store.js?v=6ae08d6b';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ae08d6b';
-import { CONFIG } from './config.js?v=6ae08d6b';
-import { gmGimmighoulHTML } from './gimmighoul.js?v=6ae08d6b';
+import * as store from './store.js?v=6ae08ec8';
+import * as sheet from './sheetdata.js?v=6ae08ec8';
+import { ledger } from './vault.js?v=6ae08ec8';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ae08ec8';
+import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6ae08ec8';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ae08ec8';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ae08ec8';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts } from './play.js?v=6ae08ec8';
+import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ae08ec8';
+import { merged, editContent } from './content-store.js?v=6ae08ec8';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ae08ec8';
+import { CONFIG } from './config.js?v=6ae08ec8';
+import { gmGimmighoulHTML } from './gimmighoul.js?v=6ae08ec8';
+import { locations, spots, personalityTypes } from './friendzone.js?v=6ae08ec8';
+import { rankFor, guildName } from './guild.js?v=6ae08ec8';
 
 const PORTRAIT_LIST = ['abra', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -56,6 +58,8 @@ export async function renderGM(main) {
       ${Object.entries(G.enemies || {}).map(([id, e]) => `<div class="row nowrap" style="padding:6px 0;border-bottom:1px dashed var(--cream3)">${portrait({ pokemon: e.species, nickname: e.name }, 'xs')}<div class="grow"><b class="pix">${esc(e.name)}</b> <span class="small muted">${esc(e.species || '')} · ${e.hp} HP · Def ${e.def ?? '–'}/${e.sdef ?? '–'}</span></div><button class="btn sm" data-fight="${id}">Fight</button><button class="btn alt sm" data-eedit="${id}">Edit</button></div>`).join('') || '<p class="muted small">No enemy sheets yet.</p>'}
     </details>
   </section>
+
+  <section id="gm-Recruit" class="card"><h2>Recruit</h2>${recruitHTML(G)}</section>
 
   <section id="gm-Party" class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Party</h2><button class="btn alt sm" id="addguest">+ Guest</button></div>
     <div style="margin-top:8px">${partyStrip('')}</div>
@@ -174,11 +178,12 @@ export async function renderGM(main) {
 
   tileGM(main);
   bindGM(main);
+  bindRecruit(main);
 }
 
 // Her layout: every GM section is a compact square tile (like the folded Battle / Actions tabs on Play).
 // Tap a tile to open that section full width; tap its title bar to fold it back. Open ones are remembered per device.
-const GM_ICONS = { Battle: '⚔️', Party: '👥', Dungeon: '🏔️', Weather: '🌦️', Loot: '💰', Missions: '📋', Reveal: '👁️', Endsession: '🌙', Notes: '📝', Index: '📚', Editcontent: '✏️', Table: '⚙️', Dicelog: '🎲' };
+const GM_ICONS = { Battle: '⚔️', Recruit: '🤝', Party: '👥', Dungeon: '🏔️', Weather: '🌦️', Loot: '💰', Missions: '📋', Reveal: '👁️', Endsession: '🌙', Notes: '📝', Index: '📚', Editcontent: '✏️', Table: '⚙️', Dicelog: '🎲' };
 const gmOpen = () => { try { return new Set(JSON.parse(localStorage.getItem('dc.gmopen') || '[]')); } catch { return new Set(); } };
 function tileGM(main) {
   const secs = [...main.querySelectorAll(':scope > section.card[id^="gm-"]')]; if (!secs.length) return;
@@ -469,7 +474,7 @@ function bindGM(main) {
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6ae08d6b');
+    const { openTable } = await import('./app.js?v=6ae08ec8');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));
@@ -649,3 +654,96 @@ function lockScreen(main) {
 }
 
 export { CONFIG };
+
+// ---------------------------------------------------------------- recruiting
+// Supplement p.17: after beating an NPC, roll one approach opposed by its Will. Her ask: help the GM decide if a recruit works,
+// so each approach shows its chance first, then one tap rolls both sides. Ties go to the Pokémon.
+const APPROACHES = [
+  { k: 'dominate', name: 'Dominate', ic: '💪', parts: ['Tough', 'Instinct', 'Intimidate'], text: 'prove you are the strongest' },
+  { k: 'befriend', name: 'Befriend', ic: '💗', parts: ['Cool/Beauty', 'Allure'], text: 'show it is good to be around you' },
+  { k: 'impress', name: 'Impress', ic: '🧠', parts: ['Smart', 'Logic', 'Perform'], text: 'show how your human skills help it survive' },
+];
+const recruiters = () => Object.values(store.get('party') || {}).filter((c) => !c.guest).sort((a, b) => String(a.nickname).localeCompare(b.nickname));
+const partVal = (c, p) => (p === 'Cool/Beauty' ? Math.max(statVal(c, 'Cool'), statVal(c, 'Beauty')) : statVal(c, p));
+const approachDice = (c, a, extra = 0) => Math.max(0, a.parts.reduce((s, p) => s + partVal(c, p), 0) + extra);
+// chance the recruiter's successes beat the Pokémon's Will roll (same dice rules as every pool: 4+, two 1s cancel one)
+function recruitChance(dice, will) {
+  const N = 3000; let win = 0;
+  for (let i = 0; i < N; i++) if (pool(dice).succ > pool(will).succ) win++;
+  return Math.round((win / N) * 100);
+}
+// the GM page redraws on every table change, so the picks and the last result live here between redraws
+const RC = { who: '', target: null, name: '', will: 3, extra: 0, result: '', won: '' };
+const recruitCount = () => locations().reduce((s, l) => s + Object.values(store.get('recruits/' + l.id) || {}).reduce((a, x) => a + Object.keys(x || {}).length, 0), 0);
+
+function recruitHTML(G) {
+  const rs = recruiters(); const ts = Object.entries(G.enemies || {});
+  if (!rs.length) return '<p class="small muted">No characters at the table yet.</p>';
+  return `<p class="small muted">After the team beats a Pokémon, pick who tries and which Pokémon. The odds update as you change things. Only you see the odds and its Will.</p>
+    <div class="rc-form">
+      <label class="f">Who tries<select id="rcwho">${rs.map((c) => `<option value="${esc(c.id)}"${c.id === RC.who ? ' selected' : ''}>${esc(c.nickname)}</option>`).join('')}</select></label>
+      <label class="f">Pokémon<select id="rctarget">${ts.map(([id, e]) => `<option value="${esc(id)}"${id === RC.target ? ' selected' : ''}>${esc(e.name)}${e.will ? ` (Will ${esc(e.will)})` : ''}</option>`).join('')}<option value=""${RC.target === '' ? ' selected' : ''}>Other…</option></select></label>
+      <label class="f rc-other">Name<input id="rcname" placeholder="e.g. Sandile" value="${esc(RC.name)}"></label>
+      <label class="f">Its Will<input id="rcwill" type="number" min="0" max="12" value="${RC.will}"></label>
+      <label class="f">Extra dice<select id="rcextra">${[-3, -2, -1, 0, 1, 2, 3].map((n) => `<option value="${n}"${n === RC.extra ? ' selected' : ''}>${n > 0 ? '+' + n : n}</option>`).join('')}</select></label>
+    </div>
+    <p class="small muted">Extra dice are your call: + if the team fed or healed it, − if they treated it badly.</p>
+    <div id="rcodds" class="rc-odds"></div>
+    <p class="small" id="rccap"></p>
+    <div id="rcresult">${RC.result}</div>`;
+}
+
+function bindRecruit(main) {
+  const sec = $('#gm-Recruit', main); if (!sec || !$('#rcwho', sec)) return;
+  const G = store.gmData() || {};
+  const q = (s) => $(s, sec);
+  const state = () => {
+    const c = (store.get('party') || {})[q('#rcwho').value];
+    const tid = q('#rctarget').value; const e = (G.enemies || {})[tid];
+    Object.assign(RC, { who: q('#rcwho').value, target: tid, name: q('#rcname').value, will: num(q('#rcwill').value, 0), extra: num(q('#rcextra').value, 0) });
+    return { c, tid, name: e ? e.name : (q('#rcname').value.trim() || 'the Pokémon'), will: Math.max(0, num(q('#rcwill').value, 0)), extra: num(q('#rcextra').value, 0) };
+  };
+  const note = (r) => (r.onesPen ? ` (two 1s cancelled ${r.onesPen})` : '');
+  const rollRecruit = (a) => {
+    const s = state(); if (!s.c) return;
+    const me = pool(approachDice(s.c, a, s.extra)); const it = pool(s.will);
+    const won = me.succ > it.succ;
+    logRoll(s.c.nickname, `${a.name} recruit: ${s.name}`, me.dice, `${me.succ} success${me.succ === 1 ? '' : 'es'}${note(me)} vs its ${it.succ}: ${won ? 'it joins!' : 'it refuses'}`);
+    store.pushLimited('log', { t: Date.now(), text: won ? `${s.c.nickname} recruited ${s.name} (${a.name})!` : `${s.name} refused to join ${s.c.nickname}.` });
+    RC.won = won ? s.name : '';
+    RC.result = `<div class="rc-res ${won ? 'good' : 'low'}"><b>${won ? `🎉 ${esc(s.name)} wants to join!` : `✋ ${esc(s.name)} says no.`}</b>
+      <div class="small">${esc(s.c.nickname)} got ${me.succ}${esc(note(me))} vs its Will roll of ${it.succ}${it.succ === me.succ ? ' (ties go to the Pokémon)' : ''}.</div>
+      ${won ? '<button class="btn sm" id="rcmove" style="margin-top:8px">Move into the Friend Zone…</button>' : ''}</div>`;
+    q('#rcresult').innerHTML = RC.result; bindMove();
+  };
+  const draw = () => {
+    const s = state(); if (!s.c) return;
+    q('.rc-other').style.display = s.tid ? 'none' : '';
+    q('#rcodds').innerHTML = APPROACHES.map((a) => {
+      const dice = approachDice(s.c, a, s.extra); const pct = recruitChance(dice, s.will);
+      return `<div class="rc-row ${pct >= 60 ? 'good' : pct >= 35 ? 'mid' : 'low'}"><div class="grow"><b>${a.ic} ${a.name}</b> <span class="small muted">${a.parts.map((p) => `${p} ${partVal(s.c, p)}`).join(' + ')}${s.extra ? ` ${s.extra > 0 ? '+' : '−'} ${Math.abs(s.extra)}` : ''} = ${dice} dice vs Will ${s.will}</span><div class="small">${esc(a.text)}</div></div>
+        <span class="rc-pct">${pct}%</span><button class="btn sm" data-rcroll="${a.k}">Roll</button></div>`;
+    }).join('');
+    const r = rankFor(((store.get(s.c.guild === 'vanguard' ? 'vanguard' : 'guild') || {}).gp) || 0); const cap = r?.recruit ?? 0; const have = recruitCount();
+    q('#rccap').innerHTML = `<b>Recruiting power:</b> ${esc(guildName(s.c.guild))} is ${esc(r?.name || '')}, so up to ${cap === Infinity ? 'any number of' : cap} permanent recruit${cap === 1 ? '' : 's'}. Friend Zone recruits now: ${have}.${cap !== Infinity && have >= cap ? ' <b>Full:</b> a new one can only be a temporary ally until the rank goes up.' : ''}`;
+    $$('[data-rcroll]', sec).forEach((b) => b.onclick = () => rollRecruit(APPROACHES.find((a) => a.k === b.dataset.rcroll)));
+  };
+  const bindMove = () => { const mv = q('#rcmove'); if (mv) mv.onclick = () => moveIn(RC.won); };
+  const moveIn = (name) => {
+    const opts = locations().flatMap((l) => spots(l).filter((x) => !x.limit).map((x) => `<option value="${esc(l.id)}|${esc(x.key)}">${esc(l.name)}: ${esc(x.name)}</option>`)).join('');
+    if (!opts) { toast('No Friend Zone spots set up yet.'); return; }
+    const el = modal(`<h2>Move in ${esc(name)}</h2><label class="f">Where<select id="rcspot">${opts}</select></label>
+      <label class="f">Personality<select id="rctype"><option value="">—</option>${personalityTypes().map((t) => `<option>${esc(t)}</option>`).join('')}</select></label>
+      <button class="btn block" id="rcgo" style="margin-top:10px">Move in</button>`);
+    $('#rcgo', el).onclick = () => {
+      const [lid, key] = $('#rcspot', el).value.split('|'); const loc = locations().find((l) => l.id === lid);
+      store.set(`recruits/${lid}/${key}/${store.tid()}`, { name, type: $('#rctype', el).value, t: Date.now() });
+      store.pushLimited('log', { t: Date.now(), text: `${name} joined ${loc ? loc.name + '’s' : 'the'} Friend Zone.` });
+      RC.result = `<div class="rc-res good"><b>🏡 ${esc(name)} moved into ${esc(loc ? loc.name : 'the Friend Zone')}.</b></div>`; RC.won = '';
+      closeModal(); toast(`${name} moved in!`); q('#rcresult').innerHTML = RC.result; draw();
+    };
+  };
+  const pick = () => { const e = (G.enemies || {})[q('#rctarget').value]; if (e) q('#rcwill').value = num(e.will, 3); RC.result = ''; RC.won = ''; q('#rcresult').innerHTML = ''; draw(); };
+  q('#rctarget').onchange = pick; ['#rcwho', '#rcextra'].forEach((x) => q(x).onchange = draw); q('#rcwill').oninput = draw;
+  if (RC.target === null) pick(); else { draw(); bindMove(); }
+}

@@ -1348,3 +1348,15 @@ a.ch-chip:hover { background: var(--navy); }
 .fz-room p { margin: 0; }
 .fz-room-hd { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; justify-content: space-between; }
 .fz-lock { font-size: 11px; background: #f3e6c8; border-color: #8a6a3c; }
+
+/* GM Recruit: odds per approach */
+.rc-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.rc-odds { display: grid; gap: 8px; margin: 10px 0; }
+.rc-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; border: 2px solid var(--cream3); background: var(--cream); }
+.rc-row .grow { min-width: 0; }
+.rc-pct { font: 700 22px var(--pix); min-width: 52px; text-align: right; }
+.rc-row.good { border-color: #6fae5a; } .rc-row.good .rc-pct { color: #3f7d2e; }
+.rc-row.mid { border-color: #d8a93a; } .rc-row.mid .rc-pct { color: #9a6d10; }
+.rc-row.low { border-color: #c96a5a; } .rc-row.low .rc-pct { color: #a23f2f; }
+.rc-res { padding: 10px; border-radius: 10px; border: 2px solid var(--cream3); margin-top: 6px; }
+.rc-res.good { border-color: #6fae5a; background: color-mix(in srgb, #6fae5a 14%, var(--paper)); } .rc-res.low { border-color: #c96a5a; background: color-mix(in srgb, #c96a5a 14%, var(--paper)); }
