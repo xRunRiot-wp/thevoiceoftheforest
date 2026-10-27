@@ -1,13 +1,13 @@
 // Training Gym (#/gym): one drill per day per character. Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6ae019ae';
-import { $, $$, esc, num, pool } from './util.js?v=6ae019ae';
-import { modal, diceFaces } from './ui.js?v=6ae019ae';
-import { statVal, logRoll } from './play.js?v=6ae019ae';
-import { myId } from './app.js?v=6ae019ae';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae019ae';
-import { RESIDENTS } from './chatter.js?v=6ae019ae';
+import * as store from './store.js?v=6ae08bf1';
+import { $, $$, esc, num, pool } from './util.js?v=6ae08bf1';
+import { modal, diceFaces } from './ui.js?v=6ae08bf1';
+import { statVal, logRoll } from './play.js?v=6ae08bf1';
+import { myId } from './app.js?v=6ae08bf1';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae08bf1';
+import { RESIDENTS } from './chatter.js?v=6ae08bf1';
 
 const BAR = 5;
 export const DRILLS = [
@@ -204,12 +204,13 @@ function train(id, drillId) {
   store.set(`party/${id}/gym/bars/${d.id}`, total % BAR);
   if (tp) store.set(`party/${id}/tp`, num(c.tp) + tp);
   const story = STORY[Math.min(3, r.succ)];
-  logRoll(c.nickname, `Training: ${d.name} (${drillAttr(c, d)} + ${d.skill})`, r.dice, `${r.succ} success${r.succ === 1 ? '' : 'es'} · +${gain} progress${tp ? ` · +${tp} Training Point${tp > 1 ? 's' : ''}!` : ''}`);
+  logRoll(c.nickname, `Training: ${d.name} (${drillAttr(c, d)} + ${d.skill})`, r.dice, `${r.succ} success${r.succ === 1 ? '' : 'es'}${r.onesPen ? ` (two 1s cancelled ${r.onesPen > 1 ? r.onesPen : 'one'})` : ''} · +${gain} progress${tp ? ` · +${tp} Training Point${tp > 1 ? 's' : ''}!` : ''}`);
   modal(`<h2>${d.icon} ${esc(d.name)}</h2>
     <div class="result">${diceFaces(r.dice)}<div class="big">${r.succ} success${r.succ === 1 ? '' : 'es'}</div></div>
+    ${r.onesPen ? `<p class="small">🎲 ${r.raw} ${r.raw === 1 ? 'die' : 'dice'} hit, but every two 1s cancel a success (−${r.onesPen}).</p>` : ''}
     <p>${esc(story)}</p>
     ${d.id === loved ? `<p class="small">💖 ${esc(c.nickname)} loves this drill! ${r.succ ? '+1 bonus progress.' : ''}</p>` : d.id === hated ? `<p class="small">💢 ${esc(c.nickname)} hated every second of it (−1 Will).</p>` : ''}
-    <p><b>+${gain} progress</b> · bar ${total % BAR}/${BAR}</p>
+    <p><b>+${gain} progress</b> · bar ${total % BAR}/${BAR}${tp && total % BAR ? ` (${total % BAR} carried over)` : ''}</p>
     ${tp ? `<div class="win tight" style="font-size:18px">🎉 Bar full! +${tp} Training Point${tp > 1 ? 's' : ''} (now ${num(c.tp) + tp})</div>` : ''}
     <div class="row" style="margin-top:10px"><button class="btn" data-close>Done</button></div>`);
 }
