@@ -1,11 +1,12 @@
 // "What's the Weather?" — Castform's fortune-telling table. Instead of a wheel, the player picks a weather card
 // for the NEXT weather reading (every 6 hours). Once a day per character; a right guess pays the prize.
 // If today's 1d100 sky roll hits 100 the game breaks and Castform stops hosting until the GM reopens it.
-import * as store from './store.js?v=6adffa93';
-import { $, $$, esc, toast, num } from './util.js?v=6adffa93';
-import { modal, closeModal, portrait } from './ui.js?v=6adffa93';
-import { logRoll, me } from './play.js?v=6adffa93';
-import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6adffa93';
+import { markWinner } from './sparkle.js?v=6adffbfe';
+import * as store from './store.js?v=6adffbfe';
+import { $, $$, esc, toast, num } from './util.js?v=6adffbfe';
+import { modal, closeModal, portrait } from './ui.js?v=6adffbfe';
+import { logRoll, me } from './play.js?v=6adffbfe';
+import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6adffbfe';
 
 export const isFortune = (g) => g.kind === 'fortune' || g.id === 'what-s-the-weather';
 
@@ -41,8 +42,8 @@ export function resolveFortunes(g = { cost: '', intro: '' }) {
   store.set(betPath(mine.id), { ...b, done: true, actual, res });
   const pick = WEATHERS[b.key];
   if (res === 'win') {
-    givePoke(mine.id, b.prize);
-    say(`reads the sky for ${mine.nickname}: ${w.icon} ${w.name}! The card was right. +${b.prize} Poké.`);
+    givePoke(mine.id, b.prize); markWinner(mine.id);
+    say(`reads the sky for ${mine.nickname}: ${w.icon} ${w.name}! The card was right. +${b.prize} Poké and a sparkly cursor for a day!`);
   } else if (res === 'refund') {
     givePoke(mine.id, b.cost);
     say(`couldn’t read the sky for ${mine.nickname}: ${w.icon} ${w.name} came instead. ${b.cost} Poké given back.`);

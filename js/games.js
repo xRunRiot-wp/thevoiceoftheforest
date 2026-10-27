@@ -1,15 +1,16 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import * as store from './store.js?v=6adffa93';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6adffa93';
-import { modal, portrait } from './ui.js?v=6adffa93';
-import * as sheet from './sheetdata.js?v=6adffa93';
-import { shop } from './guild.js?v=6adffa93';
-import { merged, editContent } from './content-store.js?v=6adffa93';
-import { logRoll, me, addTeamFx } from './play.js?v=6adffa93';
-import { luckyReaction, gmTodo } from './chatter.js?v=6adffa93';
-import { ranks } from './rulebook.js?v=6adffa93';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6adffa93';
+import { markWinner } from './sparkle.js?v=6adffbfe';
+import * as store from './store.js?v=6adffbfe';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6adffbfe';
+import { modal, portrait } from './ui.js?v=6adffbfe';
+import * as sheet from './sheetdata.js?v=6adffbfe';
+import { shop } from './guild.js?v=6adffbfe';
+import { merged, editContent } from './content-store.js?v=6adffbfe';
+import { logRoll, me, addTeamFx } from './play.js?v=6adffbfe';
+import { luckyReaction, gmTodo } from './chatter.js?v=6adffbfe';
+import { ranks } from './rulebook.js?v=6adffbfe';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6adffbfe';
 
 export const GAMES = [
   {
@@ -274,6 +275,7 @@ export function renderGames(main, [arg]) {
     let pickers = '';
     for (let k = 0; k < items; k++) pickers += `<div class="claim pick" data-pick="${k}"><label class="f">Choose free item ${items > 1 ? k + 1 : ''}<select><option value="">Loading…</option></select></label><button class="btn sm">Put in bag</button></div>`;
     const lunch = /lunch with the guild leader/i.test(p) ? `<div class="claim lunch"><b>🍽️ When is lunch with the Guild Leader?</b><div class="row">${Object.entries(LUNCH).map(([k, v]) => `<button class="btn alt sm" data-lunch="${k}">${esc(v)}</button>`).join('')}</div></div>` : '';
+    if (poke || items || lunch || /spin again/i.test(p)) { markWinner(c.id); parts.push(`<p class="claim ok">✨ Winner! ${esc(c.nickname)}’s cursor sparkles for the next day.</p>`); }
     box.innerHTML = capNote + parts.join('') + pickers + lunch + (free ? `<p class="claim ok">🎟️ ${esc(c.nickname)} has <b>${free}</b> free spin${free > 1 ? 's' : ''} — tap the button above.</p>` : '');
     drawSpinBtn(); drawSpinners();
     if (items) {

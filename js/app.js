@@ -1,20 +1,21 @@
-import { CONFIG } from './config.js?v=6adffa93';
-import * as store from './store.js?v=6adffa93';
-import * as sheet from './sheetdata.js?v=6adffa93';
-import { $, $$, esc, uid } from './util.js?v=6adffa93';
-import { closeModal, maxHp } from './ui.js?v=6adffa93';
-import { renderJoin, renderPlay } from './play.js?v=6adffa93';
-import { renderGM } from './gm.js?v=6adffa93';
-import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6adffa93';
-import { renderRules } from './rulebook.js?v=6adffa93';
-import { renderVault } from './vault.js?v=6adffa93';
-import { renderGames } from './games.js?v=6adffa93';
-import { updateHotbar } from './hotbar.js?v=6adffa93';
-import { applyTheme, openSettings } from './theme.js?v=6adffa93';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6adffa93';
-import { resolveFortunes } from './fortune.js?v=6adffa93';
-import { renderFriendZone } from './friendzone.js?v=6adffa93';
-import { renderGym } from './gym.js?v=6adffa93';
+import { CONFIG } from './config.js?v=6adffbfe';
+import * as store from './store.js?v=6adffbfe';
+import * as sheet from './sheetdata.js?v=6adffbfe';
+import { $, $$, esc, uid } from './util.js?v=6adffbfe';
+import { closeModal, maxHp } from './ui.js?v=6adffbfe';
+import { renderJoin, renderPlay } from './play.js?v=6adffbfe';
+import { renderGM } from './gm.js?v=6adffbfe';
+import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6adffbfe';
+import { renderRules } from './rulebook.js?v=6adffbfe';
+import { renderVault } from './vault.js?v=6adffbfe';
+import { renderGames } from './games.js?v=6adffbfe';
+import { updateHotbar } from './hotbar.js?v=6adffbfe';
+import { applyTheme, openSettings } from './theme.js?v=6adffbfe';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6adffbfe';
+import { resolveFortunes } from './fortune.js?v=6adffbfe';
+import { updateSparkle } from './sparkle.js?v=6adffbfe';
+import { renderFriendZone } from './friendzone.js?v=6adffbfe';
+import { renderGym } from './gym.js?v=6adffbfe';
 
 const main = $('#main');
 let current = '';
@@ -84,6 +85,7 @@ function statusChip() {
   }
   else if ($('#tjcode') && document.activeElement !== $('#tjcode')) $('#tjcode').value = store.tableCode();
   updateWeatherChip();
+  updateSparkle(myId());
   const s = store.status;
   const el = $('#tablechip');
   if (!el) return;
