@@ -1001,3 +1001,13 @@ a.fact:hover { border-color: var(--orange); }
 .pg-woodland .pg-h { color: #2f7a3e; }
 .hotbar .hb-link { text-decoration: none; cursor: pointer; }
 .hotbar .hb-link:hover { filter: brightness(1.15); }
+
+/* Character sheet only (Settings, per device): stats + moves to read, no rolling or extras */
+body[data-sheetonly] .so-hide, body[data-sheetonly] .mv-act .act-col, body[data-sheetonly] .fold-btn, body[data-sheetonly] .pane-tab,
+body[data-sheetonly] #evaderoll, body[data-sheetonly] #clashroll, body[data-sheetonly] .movecard .btn, body[data-sheetonly] .memory,
+body[data-sheetonly] #wxcard, body[data-sheetonly] .sleep, body[data-sheetonly] .actgroup small { display: none !important; }
+body[data-sheetonly] .mv-act { grid-template-columns: 1fr !important; }
+body[data-sheetonly] .mv-act .mv-col .pane-body { display: block !important; }
+body[data-sheetonly] .mv-act .moves { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important; }
+body[data-sheetonly] .pane-head.battle h3::after { content: ' & Moves'; }
+body[data-sheetonly] .mv-act { margin-top: 14px; }

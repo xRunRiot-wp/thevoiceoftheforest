@@ -1,9 +1,9 @@
 // Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
 // and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
-import * as store from './store.js?v=6adfe7c2';
-import { $, $$, esc, toast } from './util.js?v=6adfe7c2';
-import { modal } from './ui.js?v=6adfe7c2';
-import { skinPicker } from './dice3d.js?v=6adfe7c2';
+import * as store from './store.js?v=6adfeadd';
+import { $, $$, esc, toast } from './util.js?v=6adfeadd';
+import { modal } from './ui.js?v=6adfeadd';
+import { skinPicker } from './dice3d.js?v=6adfeadd';
 
 export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
   Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',
@@ -50,7 +50,14 @@ export function diceUnlocked(c = me()) {
   return new Set(['classic', 'pokeball', ...own, ...(c && Array.isArray(c.dice) ? c.dice : [])]);
 }
 
+// "Character sheet only" view (per device): body[data-sheetonly] hides rolling and extras.
+export const sheetOnly = () => { try { return localStorage.getItem('dc.sheetonly') === '1'; } catch { return false; } };
+export function setSheetOnly(on) {
+  try { localStorage.setItem('dc.sheetonly', on ? '1' : ''); } catch { /* ignore */ }
+  document.body.toggleAttribute('data-sheetonly', on);
+}
 export function applyTheme() {
+  document.body.toggleAttribute('data-sheetonly', sheetOnly());
   window.diceAllowed = store.gmUnlocked() ? null : diceUnlocked();
   let k = 'woodland'; try { k = localStorage.getItem(KEY()) || 'woodland'; } catch { /* default */ }
   if (!unlocked().includes(k)) k = 'woodland';
@@ -68,6 +75,8 @@ export function openSettings() {
   const gm = store.gmUnlocked(); const party = Object.entries(store.get('party') || {}).filter(([, x]) => !x.guest);
   const el = modal(`<h2>⚙️ Settings</h2>
     <h3>🎲 Dice skin</h3><p class="small muted">How your 3D dice look when you roll. You start with Classic, Poké Ball and your type’s set; the GM hands out more as rewards.</p><button class="btn alt" id="setdice">Change dice skin</button>
+    <h3 style="margin-top:14px">📄 Character sheet only</h3>
+    <label class="check"><input type="checkbox" id="setsheetonly" ${sheetOnly() ? 'checked' : ''}> Just show my stats, moves and items. Hides the roll buttons, actions and extras, for players who roll at the table or on Roll20. (This device only.)</label>
     <h3 style="margin-top:14px">🎨 Theme</h3>
     <p class="small muted">${c ? `Everyone has Woodland Base. ${esc(c.nickname)} also has their type’s theme. The GM can give out more as rewards.` : 'Pick a character to unlock your type’s theme.'}</p>
     <div class="themes">${unlocked(c).map((k) => `<button class="th ${k === cur ? 'sel' : ''}" data-th="${k}">${swatch(THEMES[k])}<span>${THEMES[k].icon} ${esc(THEMES[k].name)}</span></button>`).join('')}</div>
@@ -79,6 +88,7 @@ export function openSettings() {
       <select id="gdwhat">${Object.entries(DICE_REWARDS).map(([k, n]) => `<option value="${k}">🎲 ${esc(n)}</option>`).join('')}</select></div>
       <button class="btn alt sm" id="gdgo" style="margin-top:6px">🎁 Give dice</button></details>` : ''}`);
   $('#setdice', el).onclick = () => skinPicker();
+  $('#setsheetonly', el).onchange = (e) => { setSheetOnly(e.target.checked); window.dispatchEvent(new Event('refreshpage')); };
   $$('[data-th]', el).forEach((b) => b.onclick = () => { setTheme(b.dataset.th); $$('[data-th]', el).forEach((x) => x.classList.toggle('sel', x === b)); });
   const gd = $('#gdgo', el);
   if (gd) gd.onclick = () => {

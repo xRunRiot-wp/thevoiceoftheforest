@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6adfe7c2';
-import * as sheet from './sheetdata.js?v=6adfe7c2';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfe7c2';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfe7c2';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfe7c2';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfe7c2';
-import { CONFIG } from './config.js?v=6adfe7c2';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfe7c2';
-import { merged, editContent } from './content-store.js?v=6adfe7c2';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfe7c2';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfe7c2';
-import { homeHTML } from './sitepages.js?v=6adfe7c2';
-import { pinsOf, showMap } from './hotbar.js?v=6adfe7c2';
-import { chatterLatestHTML } from './chatter.js?v=6adfe7c2';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfe7c2';
-import { locations, spots } from './friendzone.js?v=6adfe7c2';
-import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfe7c2';
-import { TYPE_COLORS, TYPE_ICONS, palette } from './theme.js?v=6adfe7c2';
-import { find } from './effects.js?v=6adfe7c2';
-import * as dice3d from './dice3d.js?v=6adfe7c2';
+import * as store from './store.js?v=6adfeadd';
+import * as sheet from './sheetdata.js?v=6adfeadd';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6adfeadd';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6adfeadd';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6adfeadd';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6adfeadd';
+import { CONFIG } from './config.js?v=6adfeadd';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6adfeadd';
+import { merged, editContent } from './content-store.js?v=6adfeadd';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6adfeadd';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6adfeadd';
+import { homeHTML } from './sitepages.js?v=6adfeadd';
+import { pinsOf, showMap } from './hotbar.js?v=6adfeadd';
+import { chatterLatestHTML } from './chatter.js?v=6adfeadd';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6adfeadd';
+import { locations, spots } from './friendzone.js?v=6adfeadd';
+import { currentWeather, weatherFor, showWeather, WEATHERS } from './weather.js?v=6adfeadd';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6adfeadd';
+import { find } from './effects.js?v=6adfeadd';
+import * as dice3d from './dice3d.js?v=6adfeadd';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -181,8 +181,8 @@ export function renderPlay(main) {
   <div class="section-title"><h3>Party</h3></div>
   ${partyStrip(c?.id)}
 
-  <div class="section-title"><h3>Dice log</h3><button class="btn alt sm" id="freeroll">Roll dice</button></div>
-  <div class="card">${diceLog()}</div>
+  <div class="so-hide"><div class="section-title"><h3>Dice log</h3><button class="btn alt sm" id="freeroll">Roll dice</button></div>
+  <div class="card">${diceLog()}</div></div>
   <a class="btn dark fab" href="#/rules">Rulebook</a>`;
 
   if (c) bindCharCard(main, c);
@@ -376,7 +376,8 @@ function charCard(c) {
         <div class="v-btns"><button class="btn alt" data-will="-1">Spend</button><button class="btn alt" data-will="1">+1</button></div></div>
     </div>
     </div>
-    <div class="mv-act" data-fold="${foldPref()}"><div class="mv-col pane">
+    ${sheetOnly() ? `<div class="section-title"><h3>Stats &amp; skills</h3></div>${statGrids(c)}` : ''}
+    <div class="mv-act" data-fold="${sheetOnly() ? '' : foldPref()}"><div class="mv-col pane">
     <button class="pane-tab" data-unfold>⚔️ Battle &amp; Moves</button><div class="pane-body">
     <div class="pane-head battle"><h3>⚔️ Battle</h3><button class="btn alt sm fold-btn" data-fold="moves" title="Hide this side">◀ Hide</button></div>
     <h4 class="actgroup">🛡️ Defenses <small class="muted">what foes roll against</small></h4>
@@ -406,7 +407,7 @@ function charCard(c) {
     ${bagList(c)}
     <div class="pair-row">${sleepHTML(c)}<div id="wxcard"></div></div>
 
-    <details open style="margin-top:12px"><summary class="pix" style="font-size:18px;cursor:pointer;min-height:40px">Stats &amp; skills</summary>
+    <details open class="so-hide" style="margin-top:12px"><summary class="pix" style="font-size:18px;cursor:pointer;min-height:40px">Stats &amp; skills</summary>
       ${statGrids(c)}
       ${c.notes ? `<h4>Notes</h4><p class="small" style="white-space:pre-wrap">${esc(c.notes)}</p>` : ''}
     </details>
