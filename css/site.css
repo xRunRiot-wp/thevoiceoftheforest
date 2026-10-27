@@ -1156,3 +1156,17 @@ body[data-sheetonly] .mv-act { margin-top: 14px; }
 @keyframes dig-down { 0% { background-position-x: -96px; } 4% { background-position-x: -144px; } 8% { background-position-x: -192px; } 12% { background-position-x: -240px; }
   70% { background-position-x: -192px; } 74% { background-position-x: -144px; } 78% { background-position-x: -96px; } 82%, 100% { background-position-x: 0; } }
 @media (prefers-reduced-motion: reduce) { .digcur, .digcur.act, .digcur.act::after { animation: none !important; } }
+
+/* Battle + Actions: both can fold at once; faded guild badge watermark behind each (play.js --guild-badge) */
+.mv-act .pane-body, .mv-act .pane-tab { position: relative; isolation: isolate; }
+.mv-act .pane-body::before, .mv-act .pane-tab::before { content: ''; position: absolute; z-index: -1; pointer-events: none;
+  background: var(--guild-badge) center / contain no-repeat; opacity: .1; }
+.mv-act .pane-body::before { inset: 70px 10% 20px; background-position: center 30%; }
+.mv-act .pane-tab::before { inset: 6px; opacity: .2; }
+.mv-act[data-fold="both"] .pane-body { display: none; }
+.mv-act[data-fold="both"] .pane-tab { display: block; }
+@media (min-width: 900px) {
+  .mv-act[data-fold="both"] { grid-template-columns: 1fr 1fr !important; gap: 0 18px; }
+  .mv-act[data-fold="both"] .pane-tab { writing-mode: horizontal-tb; transform: none; min-height: 64px; position: relative; top: 0; text-align: center; padding: 18px 14px; margin: 6px 0 14px; }
+}
+.mv-act[data-fold="both"] .pane-tab { min-height: 64px; text-align: center; font-size: 17px; }
