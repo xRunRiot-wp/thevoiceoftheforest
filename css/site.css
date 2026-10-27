@@ -1106,6 +1106,11 @@ body[data-sheetonly] .mv-act { margin-top: 14px; }
 .continue-btn:hover, .continue-btn:focus-visible { transform: translateY(-3px); filter: brightness(1.12); outline: none;
   box-shadow: inset 0 0 0 2px rgba(233, 196, 106, .9), 0 0 18px rgba(233, 196, 106, .65); }
 @media (prefers-reduced-motion: reduce) { .continue-btn { transition: none; } .continue-btn:hover { transform: none; } }
+/* Quick-link boxes light up like the top tabs */
+.toc a { transition: transform .15s, box-shadow .15s, border-color .15s; }
+.toc a:hover, .toc a:focus-visible { transform: translateY(-3px); outline: none; border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold), 0 0 16px rgba(233, 196, 106, .6); background: color-mix(in srgb, var(--paper) 88%, var(--gold)); }
+@media (prefers-reduced-motion: reduce) { .toc a { transition: none; } .toc a:hover { transform: none; } }
 
 /* The weather emoji in the orb moves slowly with its weather (weather.js wxIconHTML) */
 .wxo { display: inline-block; line-height: 1; }
