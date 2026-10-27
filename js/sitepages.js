@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6ae00ce6';
-import { esc } from './util.js?v=6ae00ce6';
-import { LINKS, CAST } from './content.js?v=6ae00ce6';
+import { GS_TEXT } from './gstext.js?v=6ae00f47';
+import { esc } from './util.js?v=6ae00f47';
+import { LINKS, CAST } from './content.js?v=6ae00f47';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -61,14 +61,24 @@ export function blocksHTML(key, L = esc, { skipImgs = [] } = {}) {
 }
 
 // Home page: Humanity and Instinct side by side, then the team picture (no menu text, no Discord icon)
+// remember the handout's open/closed state (toggle doesn't bubble, so listen while capturing; works on Home and the Rulebook copy)
+document.addEventListener('toggle', (e) => {
+  const ho = e.target; if (!ho.classList?.contains('home-handout')) return;
+  try { localStorage.setItem('dc.homehandout', ho.open ? '1' : ''); } catch { /* ignore */ }
+  ho.querySelector('summary small').textContent = ho.open ? 'Tap to fold away' : 'Tap to open the handout';
+  dispatchEvent(new Event('resize'));   // the hidden Gimmighoul re-finds its spot
+}, true);
 export function homeHTML() {
   const b = GS_TEXT.home || [];
   const text = (label) => { const i = b.findIndex(([k, t]) => k === 'p' && t === label); return i >= 0 && b[i + 1] ? b[i + 1][1] : ''; };
   const col = (title, img, body, ask) => `<div class="home-col"><h3>${esc(title)}</h3>
     <span class="site-img wide"><img src="${img}" alt="${esc(title)}" loading="lazy"></span>
     <p>${esc(body)}</p><h3>${esc(ask)}</h3></div>`;
-  return `<div class="home-row">${col('Your Humanity', 'assets/gs/home_1.jpg', text('Your Humanity:'), 'What will you choose?')}${col('Your Instinct', 'assets/gs/home_5.png', text('Your Instinct:'), 'Will it consume you?')}</div>
-    <span class="site-img"><img src="assets/gs/home_team_hd.webp" alt="" loading="lazy"></span>`;
+  // the Humanity / Instinct handout folds away (her ask); open or closed is remembered on this device
+  let open = false; try { open = localStorage.getItem('dc.homehandout') === '1'; } catch { /* closed */ }
+  return `<details class="home-handout" ${open ? 'open' : ''}><summary><span>📜 Your Humanity &amp; Your Instinct</span><small>${open ? 'Tap to fold away' : 'Tap to open the handout'}</small></summary>
+    <div class="home-row">${col('Your Humanity', 'assets/gs/home_1.jpg', text('Your Humanity:'), 'What will you choose?')}${col('Your Instinct', 'assets/gs/home_5.png', text('Your Instinct:'), 'Will it consume you?')}</div>
+    <span class="site-img"><img src="assets/gs/home_team_hd.webp" alt="" loading="lazy"></span></details>`;
 }
 
 // Rulebook hub: each section of her site as a picture tile in rows, its pages as buttons underneath

@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6ae00ce6';
-import { $, $$, esc, toast } from './util.js?v=6ae00ce6';
+import * as store from './store.js?v=6ae00f47';
+import { $, $$, esc, toast } from './util.js?v=6ae00f47';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
@@ -23,6 +23,7 @@ export const RESIDENTS = {
   Kippy: { icon: '⚡', img: 'assets/portraits/pikachu.png' },   // the Pikachu
   'Weather Watch': { icon: '🌦️', img: 'assets/portraits/castform.png' },
   Castform: { icon: '🔮', img: 'assets/portraits/castform.png' },
+  Gimmighoul: { icon: '✨', img: 'assets/portraits/gimmighoul.png' },   // the hidden one (gimmighoul.js)
   Golett: { icon: '🐢', img: 'assets/portraits/golett.png' },
   Slash: { icon: '⚔️', img: 'assets/portraits/aegislash.png' }, Slice: { icon: '⚔️', img: 'assets/portraits/aegislash.png' }, Sharp: { icon: '⚔️', img: 'assets/portraits/aegislash.png' }, Shank: { icon: '⚔️', img: 'assets/portraits/aegislash.png' },   // the Block Brothers (Aegislash merchants)   // Ground/Ghost, Adamant, he/him; clay reshaped to look like a Squirtle; loves food but has no mouth
   Gemini: { icon: '🌟', img: 'assets/portraits/cleffa.png' },

@@ -954,6 +954,13 @@ a.fact:hover { border-color: var(--orange); }
 .mh-door { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
 .mh-chair { text-align: left; padding: 10px 12px; border-radius: 12px; border: 2px dashed #c9a66b; background: rgba(0, 0, 0, .25); color: #ffd67a; font: 700 16px var(--pix); cursor: var(--cur-link, pointer); }
 .mh-chair small { display: block; font: 13px var(--sans); color: #f6e7c8; margin-top: 2px; }
+/* the chair / eyes emoji move while you hover the button (her ask) */
+.mh-chair .mh-ic { display: inline-block; transform-origin: 50% 90%; }
+.mh-chair:hover .mh-ic-chair, .mh-chair:focus-visible .mh-ic-chair { animation: ic-scoot .7s ease-in-out infinite; }
+.mh-chair:hover .mh-ic-eyes, .mh-chair:focus-visible .mh-ic-eyes { animation: ic-look 1.4s ease-in-out infinite; }
+@keyframes ic-scoot { 0%, 100% { transform: translateX(0) rotate(0); } 30% { transform: translateX(3px) rotate(8deg); } 60% { transform: translateX(-2px) rotate(-6deg); } }
+@keyframes ic-look { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 50% { transform: translateX(0) scaleY(.15); } 55% { transform: translateX(0); } 80% { transform: translateX(3px); } }
+@media (prefers-reduced-motion: reduce) { .mh-chair .mh-ic { animation: none !important; } }
 .mh-empty { position: absolute; left: 0; right: 0; top: 45%; text-align: center; font: 700 18px var(--pix); color: #ffd67a; text-shadow: 0 2px 6px #000; }
 .mh-table-note { text-align: center; font-size: 13px; opacity: .8; margin: 10px 0 0; }
 /* narrow screens: the hall is the backdrop at the top, everyone sits in a row of seats underneath */
@@ -1302,8 +1309,16 @@ a.ch-chip:hover { background: var(--navy); }
 .home-tiles .home-chars .navtile-head { flex: 1; }
 .home-tiles .home-chars .navtile-head img { height: 100%; }
 /* Hidden Gimmighoul (gimmighoul.js): one hides on a page each day; click it for 1d100 Poké */
-.gimmi { position: absolute; z-index: 30; width: 45px; height: 57px; margin: -57px 0 0 -22px; padding: 0; border: 0; background: none; cursor: var(--cur-link, pointer); filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); transition: transform .12s; }
+.gimmi { position: absolute; z-index: 30; width: 30px; height: 38px; margin: -38px 0 0 -15px; padding: 0; border: 0; background: none; cursor: var(--cur-link, pointer); filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); transition: transform .12s; }
 .gimmi img { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
 .gimmi:hover { transform: scale(1.12); }
 .gimmi.gone { pointer-events: none; animation: gimmiGo .9s ease-in forwards; }
 @keyframes gimmiGo { 30% { transform: translateY(-14px) scale(1.15); } 100% { transform: translateY(-40px) scale(.4); opacity: 0; } }
+/* Home: the Humanity / Instinct handout folds away (sitepages.js homeHTML) */
+.home-handout > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; list-style: none; cursor: var(--cur-link, pointer); padding: 10px 14px; border-radius: 10px; background: var(--cream2); border: 2px solid var(--cream3); font: 700 16px var(--pix); color: var(--ink); transition: border-color .15s, box-shadow .15s; }
+.home-handout > summary::-webkit-details-marker { display: none; }
+.home-handout > summary span::before { content: '▸ '; display: inline-block; transition: transform .15s; }
+.home-handout[open] > summary span::before { transform: rotate(90deg); }
+.home-handout > summary small { font: 13px var(--sans); color: var(--muted); }
+.home-handout > summary:hover, .home-handout > summary:focus-visible { border-color: var(--gold); box-shadow: 0 0 12px rgba(233, 196, 106, .5); outline: none; }
+.home-handout[open] > summary { margin-bottom: 10px; }

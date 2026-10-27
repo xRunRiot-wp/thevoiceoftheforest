@@ -1,25 +1,25 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae00ce6';
-import * as sheet from './sheetdata.js?v=6ae00ce6';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae00ce6';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae00ce6';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae00ce6';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae00ce6';
-import { CONFIG } from './config.js?v=6ae00ce6';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae00ce6';
-import { merged, editContent } from './content-store.js?v=6ae00ce6';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae00ce6';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae00ce6';
-import { homeHTML } from './sitepages.js?v=6ae00ce6';
-import { burstSet } from './burst.js?v=6ae00ce6';
-import { pinsOf, showMap } from './hotbar.js?v=6ae00ce6';
-import { chatterLatestHTML } from './chatter.js?v=6ae00ce6';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae00ce6';
-import { locations, spots } from './friendzone.js?v=6ae00ce6';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae00ce6';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae00ce6';
-import { find } from './effects.js?v=6ae00ce6';
-import * as dice3d from './dice3d.js?v=6ae00ce6';
+import * as store from './store.js?v=6ae00f47';
+import * as sheet from './sheetdata.js?v=6ae00f47';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae00f47';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae00f47';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae00f47';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae00f47';
+import { CONFIG } from './config.js?v=6ae00f47';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae00f47';
+import { merged, editContent } from './content-store.js?v=6ae00f47';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae00f47';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae00f47';
+import { homeHTML } from './sitepages.js?v=6ae00f47';
+import { burstSet } from './burst.js?v=6ae00f47';
+import { pinsOf, showMap } from './hotbar.js?v=6ae00f47';
+import { chatterLatestHTML } from './chatter.js?v=6ae00f47';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae00f47';
+import { locations, spots } from './friendzone.js?v=6ae00f47';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae00f47';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae00f47';
+import { find } from './effects.js?v=6ae00f47';
+import * as dice3d from './dice3d.js?v=6ae00f47';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -59,7 +59,7 @@ function messSeatsHTML(p) {
     <div class="mh-pick-head"><h2>Who are you playing?</h2><p>Supper's on after a long day. Pick your seat.</p></div>
     <div class="mh-scene"><img src="assets/banners/messhall.jpg" alt="The guild mess hall"><div class="mh-spots">${p.slice(0, MESS_SPOTS.length).map(seat).join('') || '<p class="mh-empty">The hall is empty. Pull up a chair!</p>'}</div></div>
     ${p.length > MESS_SPOTS.length ? `<div class="mh-more">${p.slice(MESS_SPOTS.length).map((c, i) => seat(c, MESS_SPOTS.length + i)).join('')}</div>` : ''}
-    <div class="mh-door"><button class="mh-chair" id="newchar">🪑 Pull up a chair<small>New character</small></button><button class="mh-chair" id="watch">👀 Just watching<small>See the table without a character</small></button></div>
+    <div class="mh-door"><button class="mh-chair" id="newchar"><span class="mh-ic mh-ic-chair">🪑</span> Pull up a chair<small>New character</small></button><button class="mh-chair" id="watch"><span class="mh-ic mh-ic-eyes">👀</span> Just watching<small>See the table without a character</small></button></div>
     <p class="mh-table-note">Table ${esc(store.tableCode())} · change it with the <b>Table</b> box at the top</p>
   </div>`;
 }
