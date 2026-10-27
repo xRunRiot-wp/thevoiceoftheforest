@@ -168,7 +168,7 @@ export const GS_TEXT = {
 ],
 [
 "img",
-"assets/gs/home_team.png"
+"assets/gs/home_team_hd.webp"
 ],
 [
 "img",

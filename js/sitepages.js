@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6ae009e4';
-import { esc } from './util.js?v=6ae009e4';
-import { LINKS, CAST } from './content.js?v=6ae009e4';
+import { GS_TEXT } from './gstext.js?v=6ae00ac2';
+import { esc } from './util.js?v=6ae00ac2';
+import { LINKS, CAST } from './content.js?v=6ae00ac2';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -68,11 +68,11 @@ export function homeHTML() {
     <span class="site-img wide"><img src="${img}" alt="${esc(title)}" loading="lazy"></span>
     <p>${esc(body)}</p><h3>${esc(ask)}</h3></div>`;
   return `<div class="home-row">${col('Your Humanity', 'assets/gs/home_1.jpg', text('Your Humanity:'), 'What will you choose?')}${col('Your Instinct', 'assets/gs/home_5.png', text('Your Instinct:'), 'Will it consume you?')}</div>
-    <span class="site-img"><img src="assets/gs/home_team.png" alt="" loading="lazy"></span>`;
+    <span class="site-img"><img src="assets/gs/home_team_hd.webp" alt="" loading="lazy"></span>`;
 }
 
 // Rulebook hub: each section of her site as a picture tile in rows, its pages as buttons underneath
-const TILE_ART = { 'meet-the-characters': 'assets/gs/home_team.png', 'story-guild-rank-progression': 'assets/banners/chapter_0.jpg' };
+const TILE_ART = { 'meet-the-characters': 'assets/gs/home_team_hd.webp', 'story-guild-rank-progression': 'assets/banners/chapter_0.jpg' };
 export function navTilesHTML() {
   // only a section's own pages here; their sub-pages show when that page is opened
   // (her call: the villain teams stay off the Guilds quick links; their pages are still on the Guilds page)
