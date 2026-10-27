@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6ae005bd';
-import { esc } from './util.js?v=6ae005bd';
-import { LINKS, CAST } from './content.js?v=6ae005bd';
+import { GS_TEXT } from './gstext.js?v=6ae0066f';
+import { esc } from './util.js?v=6ae0066f';
+import { LINKS, CAST } from './content.js?v=6ae0066f';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -126,17 +126,63 @@ export function navHTML(current) {
 // Her site's own page banners (the header picture on each Google Site page)
 const BANNERS = [['guilds_team-meanies', 'team_meanies'], ['guilds_team-skull', 'team_skull'], ['guilds_mission-ranks_', 'home'], ['guilds', 'guilds'],
   ['how-to-play_new-character', 'new_character'], ['how-to-play', 'how_to_play'], ['items_', 'items_treasure'], ['items', 'items'],
-  ['story-guild-rank-progression_chapter-0', 'chapter_0'], ['story-guild-rank-progression_chapter-1', 'chapter_1'], ['', 'home']];
+  ['story-guild-rank-progression_chapter-0', 'chapter_0'], ['story-guild-rank-progression_chapter-1', 'chapter_1'], ['story-guild-rank-progression', 'story_ranks'], ['', 'home']];
 export const bannerFor = (key) => `assets/banners/${BANNERS.find(([k]) => key.startsWith(k))[1]}.jpg`;
+
+// Story & Guild Rank Progression in her site's layout: rank chart, then chapter medal cards in a grid
+// (4 across, then 3 across, Chapter 10 wide), each with a chapter label, big title, quote, rank, promotion.
+const STORY = 'story-guild-rank-progression';
+function storyRanksHTML(L) {
+  const b = GS_TEXT[STORY] || [];
+  const at = b.findIndex(([k, t]) => k === 'h' && /Story Progression/.test(t));
+  const chart = b.slice(0, at).find(([k]) => k === 'img');
+  const subs = sitePage(STORY)?.kids || [];
+  const chs = [];
+  for (const [k, t] of b.slice(at + 1)) {
+    if (k === 'img') { chs.push({ img: t, lines: [] }); continue; }
+    const c = chs[chs.length - 1]; if (!c) continue;
+    if (k === 'h') c.title = t;
+    else if (/^\d+ Chapter/.test(t)) c.label = t.replace(/^\d+ /, '');
+    else if (/^[“"]/.test(t)) c.quote = t;
+    else if (/^Promotion:/.test(t)) c.promo = t;
+    else if (/^\w+ Rank$/.test(t)) c.rank = t;
+    else c.lines.push(t);
+  }
+  const icon = (t) => /Guild points/.test(t) ? 'woodland' : /^[A-Z] - Rank$/.test(t) ? 'vanguard' : '';
+  const card = (c, wide) => {
+    const n = (c.title || '').replace(/\D+/g, '');
+    const sub = subs.find(([, t]) => t === `Chapter ${n}` || t.startsWith(`Chapter ${n} `));
+    const label = c.label ? (sub ? `<a class="ch-chip" href="${href(sub[0])}">${esc(c.label)}</a>` : `<span class="ch-chip">${esc(c.label)}</span>`) : '';
+    const text = `${label}<h3 class="ch-title">${esc(c.title || '')}</h3>
+      ${c.quote ? `<p class="ch-quote">${esc(c.quote)}</p>` : ''}
+      ${c.lines.map((t) => `<p class="ch-line">${icon(t) ? `<img src="assets/badges/${icon(t)}.png" alt="">` : ''}${L(t)}</p>`).join('')}
+      ${c.rank ? `<p class="ch-meta">${L(c.rank)}</p>` : ''}${c.promo ? `<p class="ch-meta">${esc(c.promo)}</p>` : ''}`;
+    const pic = `<img class="ch-medal" src="${c.img}" alt="" loading="lazy">`;
+    return wide ? `<div class="ch-card ch-wide">${pic}<div>${text}</div></div>` : `<div class="ch-card">${pic}${text}</div>`;
+  };
+  const last = chs.length > 1 ? chs[chs.length - 1] : null;
+  const first4 = chs.slice(0, 4); const rest = chs.slice(4, last ? -1 : undefined);
+  return `<div class="ch-jump"><a href="#" data-jump="gp-guild">Guild Progression</a><a href="#" data-jump="gp-story">Story Progression</a></div>
+    <h2 class="ch-sect" id="gp-guild">Guild Progression</h2>
+    ${chart ? `<span class="site-img wide"><img src="${chart[1]}" alt="Guild ranks and rewards" loading="lazy"></span>` : ''}
+    <h2 class="ch-sect" id="gp-story">Story Progression</h2>
+    <div class="ch-grid ch4">${first4.map((c) => card(c)).join('')}</div>
+    ${rest.length ? `<div class="ch-grid ch3">${rest.map((c) => card(c)).join('')}</div>` : ''}
+    ${last ? card(last, true) : ''}`;
+}
+document.addEventListener('click', (e) => {
+  const a = e.target.closest?.('[data-jump]'); if (!a) return;
+  e.preventDefault(); document.getElementById(a.dataset.jump)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 export function pageHTML(key, L = esc) {
   const p = sitePage(key);
   if (!p) return '<p>That page is not on the campaign site.</p>';
   const parent = p.parent && sitePage(p.parent);
-  const body = key === 'home' ? homeHTML() : key === 'meet-the-characters' ? messHallHTML() : blocksHTML(key, L);   // same layout as the site's home page
+  const body = key === 'home' ? homeHTML() : key === 'meet-the-characters' ? messHallHTML() : key === STORY ? storyRanksHTML(L) : blocksHTML(key, L);   // same layout as the site's home page
   // sub-pages as picture cards with a short preview, so a menu page shows what is inside
   const peek = (k) => { const t = (GS_TEXT[k] || []).find(([kind, x]) => kind === 'p' && x.length > 40); return t ? (t[1].length > 150 ? t[1].slice(0, 150).replace(/\s+\S*$/, '') + '…' : t[1]) : ''; };
-  const kids = p.kids.length ? `<div class="subcards">${p.kids.map(([k, t]) => `<a class="subcard" href="${href(k)}"><img src="${TILE_ART[k] || ((GS_TEXT[k] || []).find(([kind, x]) => kind === 'img' && !/home_3\./.test(x)) || [])[1] || bannerFor(k)}" alt="" loading="lazy"><b>${esc(t)}</b>${peek(k) ? `<span>${esc(peek(k))}</span>` : ''}<em>Read more ›</em></a>`).join('')}</div>` : '';
+  const kids = p.kids.length && key !== STORY ? `<div class="subcards">${p.kids.map(([k, t]) => `<a class="subcard" href="${href(k)}"><img src="${TILE_ART[k] || ((GS_TEXT[k] || []).find(([kind, x]) => kind === 'img' && !/home_3\./.test(x)) || [])[1] || bannerFor(k)}" alt="" loading="lazy"><b>${esc(t)}</b>${peek(k) ? `<span>${esc(peek(k))}</span>` : ''}<em>Read more ›</em></a>`).join('')}</div>` : '';
   return `<div class="hero banner"><img class="hdr" src="${bannerFor(key)}" alt=""></div>
     <p class="small muted" style="margin:10px 0 0">${parent ? `<a href="${href(parent.key)}">${esc(parent.title)}</a> › ` : ''}Campaign site</p>
     <h1 style="margin-top:4px">${esc(p.title)}</h1>
