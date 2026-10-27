@@ -1,9 +1,9 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae08cda';
-import { $, $$, esc, toast } from './util.js?v=6ae08cda';
-import { modal, closeModal } from './ui.js?v=6ae08cda';
-import { merged, editContent } from './content-store.js?v=6ae08cda';
+import * as store from './store.js?v=6ae08d6b';
+import { $, $$, esc, toast } from './util.js?v=6ae08d6b';
+import { modal, closeModal } from './ui.js?v=6ae08d6b';
+import { merged, editContent } from './content-store.js?v=6ae08d6b';
 
 export const LOCATIONS = [
   {
@@ -16,12 +16,12 @@ export const LOCATIONS = [
     sentinel: 'Bramble the Scolipede',
     relay: 'Rootpost Relay — Abra and Ralts rotate shifts beside the guild’s main mission board.',
     spotsText: [
-      '🌟 Gravity Falls Guild | Fast responders and last line of defense. | Diglett, Vanguard Guild, the Guildmaster’s team and high-ranking members',
+      '🌟 Gravity Falls Guild | Fast responders and last line of defense. | Vanguard Guild, the Guildmaster’s team and high-ranking members',
       '↳ 🕯️ The Cellar | A cool, quiet stone room beneath the Guild, lit by a single lantern. Only one character can bed down here at a time. | | 1',
       '1. Mossy Hollow | Soft moss beds, shade tarps, and leafy shelters. Relaxed Pokémon care for plants and share herbal remedies. |',
       '2. Acorn Grove | Tree-root sleeping nooks and hanging hammocks. Energetic residents gather supplies and welcome visitors. | Gemini',
       '3. Fernshade Camp | Protected fern tents and woven resting mats. Patient caretakers look after smaller or newly recruited Pokémon. |',
-      '4. Watcher’s Grove | Elevated lookout perches and lightweight canopy shelters. Disciplined scouts maintain patrol rotations. | Sandile',
+      '4. Watcher’s Grove | Elevated lookout perches and lightweight canopy shelters. Disciplined scouts maintain patrol rotations. |',
       '5. Hearthstone Circle | Warm sleeping rolls around a safely enclosed camp lantern. Loyal companions enjoy social gatherings and guard duty. |',
       '6. Mushroom Rest | Shaded mushroom-themed tents with dim lanterns. Quiet residents offer rest and nighttime hospitality. | Nidorino',
     ].join('\n'),
