@@ -1011,3 +1011,15 @@ body[data-sheetonly] .mv-act .mv-col .pane-body { display: block !important; }
 body[data-sheetonly] .mv-act .moves { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important; }
 body[data-sheetonly] .pane-head.battle h3::after { content: ' & Moves'; }
 body[data-sheetonly] .mv-act { margin-top: 14px; }
+
+/* Training Gym: weather + chatter */
+.gym-wx { border-color: #6d8bb8; background: linear-gradient(180deg, #e8eef8, var(--paper)); }
+.gym-wx.severe { border-color: #b8452f; background: linear-gradient(180deg, #f8e6e0, var(--paper)); }
+.gym-card.indoor { background-image: linear-gradient(180deg, #ece6f3, transparent 60%); }
+.gym-in { font: 600 11px var(--sans); color: #6d5a8c; margin-left: 4px; }
+.gym-chat { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.gc-line { display: flex; gap: 10px; align-items: flex-start; }
+.gc-line p { margin: 2px 0 0; background: var(--cream); border: 1px solid var(--cream3); border-radius: 4px 14px 14px 14px; padding: 6px 10px; }
+.gc-line b { font-size: 13px; color: var(--brown); }
+.gc-line.coach p { background: #fbe7d2; border-color: #e0a56a; font-weight: 600; }
+.gc-face { width: 36px; height: 36px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 20px; background: var(--cream2); object-fit: cover; }

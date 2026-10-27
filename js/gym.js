@@ -1,11 +1,13 @@
 // Training Gym (#/gym): one drill per day per character. Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6adfeadd';
-import { $, $$, esc, num, pool } from './util.js?v=6adfeadd';
-import { modal, diceFaces } from './ui.js?v=6adfeadd';
-import { statVal, logRoll } from './play.js?v=6adfeadd';
-import { myId } from './app.js?v=6adfeadd';
+import * as store from './store.js?v=6adfecd7';
+import { $, $$, esc, num, pool } from './util.js?v=6adfecd7';
+import { modal, diceFaces } from './ui.js?v=6adfecd7';
+import { statVal, logRoll } from './play.js?v=6adfecd7';
+import { myId } from './app.js?v=6adfecd7';
+import { currentWeather, WEATHERS } from './weather.js?v=6adfecd7';
+import { RESIDENTS } from './chatter.js?v=6adfecd7';
 
 const BAR = 5;
 export const DRILLS = [
@@ -43,6 +45,83 @@ const STORY = [
   'Amazing! The coach stops to watch. That was your best yet!',
 ];
 
+// ---- weather: bad weather moves the outdoor drills inside; storms cost everyone a die (except types at home in it)
+const BAD = { rain: 1, fog: 1, wind: 1, sandstorm: 2, hail: 2, harsh: 2, typhoon: 2 };   // 2 = severe
+const AT_HOME = { sandstorm: ['Rock', 'Ground', 'Steel'], hail: ['Ice'], harsh: ['Fire'], typhoon: ['Water'] };
+const PERK = { rain: 'Water', typhoon: 'Water', sandstorm: 'Rock', hail: 'Ice', harsh: 'Fire', wind: 'Flying', fog: 'Ghost' };
+const INDOOR = {
+  agility: { name: 'Tunnel Crawl', skill: 'Stealth', text: 'The course is a mess, so the coach sends everyone racing through the guild tunnels instead.' },
+  waterfall: { name: 'Plunge Pool', text: 'Too wild outside. Hold steady in the cave pool while the coach counts.' },
+  targets: { name: 'Candle Targets', text: 'Indoors: snuff the candle flames from across the room without knocking a single candle over.' },
+  contest: { name: 'Rainy Day Rehearsal', text: 'Rehearse in the mess hall while the weather howls outside.' },
+};
+function gymWx() { const w = currentWeather(); return { key: w.key, w: WEATHERS[w.key] || {}, lvl: BAD[w.key] || 0, next: w.next }; }
+const drillNow = (d, wx = gymWx()) => (wx.lvl && INDOOR[d.id] ? { ...d, ...INDOOR[d.id], indoor: true } : d);
+const types = (c) => [c.type1, c.type2].filter(Boolean);
+function wxDice(c, wx = gymWx()) {
+  let n = 0;
+  if (PERK[wx.key] && types(c).includes(PERK[wx.key])) n += 1;
+  if (wx.lvl === 2 && !types(c).some((t) => (AT_HOME[wx.key] || []).includes(t))) n -= 1;
+  return n;
+}
+function wxNoteHTML(c, wx) {
+  if (!wx.lvl && !PERK[wx.key]) return '';
+  const moved = Object.keys(INDOOR).map((id) => `${DRILLS.find((d) => d.id === id).name} → ${INDOOR[id].name}`).join(' · ');
+  const bits = [];
+  if (wx.lvl) bits.push(`Training has moved indoors: ${moved}.`);
+  if (wx.lvl === 2) bits.push(`The storm shakes everyone: −1 die on every drill${AT_HOME[wx.key] ? ` (except ${AT_HOME[wx.key].join(', ')} types)` : ''}.`);
+  if (PERK[wx.key]) bits.push(`${PERK[wx.key]} types feel right at home: +1 die.`);
+  const mine = wxDice(c, wx);
+  return `<div class="card gym-wx ${wx.lvl === 2 ? 'severe' : ''}"><b>${wx.w.icon || ''} ${esc(wx.w.name || '')} at the gym</b><p class="small" style="margin:4px 0 0">${esc(bits.join(' '))}${mine ? ` <b>${esc(c.nickname)}: ${mine > 0 ? '+' : ''}${mine} die today.</b>` : ''}</p></div>`;
+}
+
+// ---- gym chat: the guild's own members (never player characters) react to the coach and their drills; new lines every 3 hours
+const COACH = () => store.get('gym/coach') || 'Coach Hariyama';
+const MEMBERS = ['Diglett', 'Mimi & Kippy', 'Bramble the Scolipede', 'Abra & Ralts', 'Beedrill (camp caretaker)'];
+const SHORT = { 'Bramble the Scolipede': 'Bramble', 'Beedrill (camp caretaker)': 'Beedrill' };
+const COACH_GOOD = ['Warm up! Ten laps of the clearing, and I want to hear you counting!', 'Today we work on the {d}. Nobody leaves until they beat yesterday.', 'Form first, power second. Show me slow and perfect.', 'Great weather for sweat! Line up for the {d}!', 'Water break in five. Then the {d} again, twice as fast.'];
+const COACH_BAD = ['{w} outside, so we train inside. No complaining, the tunnels build character!', 'Nobody goes near the cliffs in this {w}. Everyone to the {d}, indoors!', 'A real explorer trains in any weather. But not in THIS weather. Inside, now.', 'Listen to that {w}. That is the sound of you getting tougher in here.'];
+const COACH_END = ['Good work today. Stretch, eat, sleep. Same time tomorrow.', 'Not bad! I saw real progress on the {d}.', 'Whoever left the boulder at the bottom of the ramp: I know it was you.', 'Hydrate! A tired explorer is a lost explorer.'];
+const WHINE = ['My legs are jelly. Is the {d} supposed to feel like this?', 'I think the {d} hates me personally.', 'Coach, can we do the {d} tomorrow instead? Asking for a friend.', 'Five more minutes... the coach said five more minutes an hour ago.', 'If I fall asleep on the {d}, just roll me home.'];
+const FOCUS = ['Okay. Breathe. One more round of the {d}.', 'Beat my best time on the {d}! Did anyone see that?', 'I am not stopping until the {d} is easy.', 'Quiet, please. I am concentrating on the {d}.', 'Again! I almost had it that time!'];
+const WHINE_BAD = ['It is so damp in here. Even my snacks are soggy.', 'I miss the sky. The tunnels smell like old socks.', 'Every time the thunder booms I drop my weights.', 'Indoor training means no breeze. I am melting.'];
+const hash = (s) => { let h = 2166136261; for (const ch of s) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); } h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+function slotOf(t = Date.now()) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(t)).map((x) => [x.type, x.value]));
+  const h = Number(p.hour); const m = Number(p.minute);
+  return { key: `${p.year}-${p.month}-${p.day}#${Math.floor(h / 3)}`, next: t + ((3 - (h % 3)) * 60 - m) * 60e3 };
+}
+function gymChat(wx) {
+  const { key, next } = slotOf();
+  const r = (i) => hash(`${store.tableCode()}|gym|${key}|${i}`);
+  const pick = (arr, i) => arr[Math.floor(r(i) * arr.length)];
+  const drill = (i) => drillNow(pick(DRILLS, i), wx).name;
+  const fill = (txt, i) => txt.replace('{d}', drill(i)).replace('{w}', (wx.w.name || 'weather').toLowerCase());
+  const lines = [[COACH(), fill(pick(wx.lvl ? COACH_BAD : COACH_GOOD, 1), 2)]];
+  const who = [...MEMBERS].sort((a, b) => r('m' + a) - r('m' + b)).slice(0, 4);
+  const used = new Set();
+  who.forEach((m, i) => {
+    const list = wx.lvl && r(10 + i) < 0.4 ? WHINE_BAD : r(20 + i) < 0.5 ? WHINE : FOCUS;
+    let k = Math.floor(r(30 + i) * list.length);
+    for (let tries = 0; used.has(list[k]) && tries < list.length; tries++) k = (k + 1) % list.length;   // no two members say the same thing
+    used.add(list[k]);
+    lines.push([m, fill(list[k], 40 + i)]);
+  });
+  lines.push([COACH(), fill(pick(COACH_END, 50), 51)]);
+  return { lines, next };
+}
+function faceOf(name) {
+  if (name === COACH()) return '<span class="gc-face">🥊</span>';
+  const r = RESIDENTS[name] || {};
+  return r.img ? `<img class="gc-face" src="${r.img}" alt="">` : `<span class="gc-face">${r.icon || '💬'}</span>`;
+}
+function gymChatHTML(wx) {
+  const { lines, next } = gymChat(wx);
+  const at = new Date(next).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return `<div class="card gym-chat"><div class="row" style="justify-content:space-between"><h3 style="margin:0">💬 Gym chatter</h3><span class="small muted">new chatter at ${at}${store.gmUnlocked() ? ' · <a href="#" id="gcoach">rename coach</a>' : ''}</span></div>
+    ${lines.map(([who, text]) => `<div class="gc-line ${who === COACH() ? 'coach' : ''}">${faceOf(who)}<div><b>${esc(SHORT[who] || who)}</b><p>${esc(text)}</p></div></div>`).join('')}</div>`;
+}
+
 const easternDay = (t) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(t));
 const party = () => store.get('party') || {};
 export function natureLikes(nature) {
@@ -53,7 +132,7 @@ const drillAttr = (c, d) => (d.attr === 'best social' ? SOCIALS.reduce((b, s) =>
 function drillDice(c, d) {
   const { loved, hated } = natureLikes(c.nature);
   const base = statVal(c, drillAttr(c, d)) + statVal(c, d.skill);
-  return Math.max(1, base + (d.id === loved ? 1 : 0) - (d.id === hated ? 1 : 0));
+  return Math.max(1, base + (d.id === loved ? 1 : 0) - (d.id === hated ? 1 : 0) + wxDice(c));
 }
 const trainedToday = (c) => c.gym?.day === easternDay(Date.now());
 
@@ -66,26 +145,31 @@ export function renderGym(main) {
   if (!c) { main.innerHTML = head + '<div class="card"><p>Pick your character on the Play page first, then come back to train.</p><a class="btn" href="#/join">Choose a character</a></div>'; return; }
   const { loved, hated } = natureLikes(c.nature);
   const done = trainedToday(c);
-  const lname = (id) => DRILLS.find((d) => d.id === id)?.name;
+  const wx = gymWx();
+  const lname = (id) => drillNow(DRILLS.find((d) => d.id === id) || {}, wx).name;
   main.innerHTML = head + `
     <div class="card gym-who"><div class="grow"><b class="pix">${esc(c.nickname)}</b> <span class="small muted">${esc(c.pokemon || '')} · ${esc(c.nature || 'no nature')} · ${num(c.tp)} Training Points</span>
       <p class="small" style="margin:4px 0 0">${loved ? `💖 Loves <b>${esc(lname(loved))}</b> · 💢 Hates <b>${esc(lname(hated))}</b>` : `${esc(c.nature || 'This nature')} has no favourite. Every drill feels the same.`}</p>
       ${TYPE_FLAVOR[c.type1] ? `<p class="small muted" style="margin:4px 0 0">🗣️ ${esc(TYPE_FLAVOR[c.type1])}</p>` : ''}</div>
       <div class="gym-today ${done ? 'rested' : ''}">${done ? '😴 Trained today<br><small>back tomorrow</small>' : '💪 Ready to train'}</div></div>
-    <div class="gym-grid">${DRILLS.map((d) => {
+    ${wxNoteHTML(c, wx)}
+    <div class="gym-grid">${DRILLS.map((d0) => { const d = drillNow(d0, wx);
       const prog = num(c.gym?.bars?.[d.id]); const dice = drillDice(c, d); const tag = d.id === loved ? 'loved' : d.id === hated ? 'hated' : '';
-      return `<div class="gym-card ${tag}"><div class="gym-top"><span class="gym-ic">${d.icon}</span><div class="grow"><b>${esc(d.name)}</b><small>${esc(drillAttr(c, d))} + ${esc(d.skill)} · ${dice} ${dice === 1 ? 'die' : 'dice'}</small></div>
+      return `<div class="gym-card ${tag} ${d.indoor ? 'indoor' : ''}"><div class="gym-top"><span class="gym-ic">${d.icon}</span><div class="grow"><b>${esc(d.name)}${d.indoor ? ' <span class="gym-in">🏠 indoors</span>' : ''}</b><small>${esc(drillAttr(c, d))} + ${esc(d.skill)} · ${dice} ${dice === 1 ? 'die' : 'dice'}</small></div>
         ${tag ? `<span class="gym-tag">${tag === 'loved' ? '💖 Loves it' : '💢 Hates it'}</span>` : ''}</div>
         <p class="small">${esc(d.text)}${tag === 'loved' ? ' <b>+1 die, +1 progress.</b>' : tag === 'hated' ? ' <b>−1 die, costs 1 Will.</b>' : ''}</p>
         <div class="gym-bar" title="${prog}/${BAR}">${Array.from({ length: BAR }, (_, i) => `<i class="${i < prog ? 'on' : ''}"></i>`).join('')}<span>${prog}/${BAR}</span></div>
         <button class="btn block" data-train="${d.id}" ${done && !gm ? 'disabled' : ''}>${done ? (gm ? 'Train again (GM)' : 'Rested') : 'Train'}</button></div>`;
     }).join('')}</div>
-    <p class="small muted">Training Points are spent with the GM's OK to raise stats.</p>`;
+    <p class="small muted">Training Points are spent with the GM's OK to raise stats.</p>
+    ${gymChatHTML(wx)}`;
   $$('[data-train]', main).forEach((b) => b.onclick = () => train(c.id, b.dataset.train));
+  const gc = $('#gcoach', main);
+  if (gc) gc.onclick = (e) => { e.preventDefault(); const n = prompt('Coach name', COACH()); if (n && n.trim()) store.set('gym/coach', n.trim()); };
 }
 
 function train(id, drillId) {
-  const c = party()[id]; const d = DRILLS.find((x) => x.id === drillId);
+  const c = party()[id]; const d0 = DRILLS.find((x) => x.id === drillId); const d = d0 && drillNow(d0);
   if (!c || !d) return;
   if (trainedToday(c) && !store.gmUnlocked()) return;
   const { loved, hated } = natureLikes(c.nature);
