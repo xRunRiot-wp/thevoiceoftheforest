@@ -1,13 +1,14 @@
 // "What's the Weather?" — Castform's fortune-telling table. Instead of a wheel, the player picks a weather card
 // for the NEXT weather reading (every 6 hours). Once a day per character; a right guess pays the prize.
 // If today's 1d100 sky roll hits 100 the game breaks and Castform stops hosting until the GM reopens it.
-import { markWinner } from './sparkle.js?v=6ae12ebd';
-import * as store from './store.js?v=6ae12ebd';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae12ebd';
-import { $, $$, esc, toast, num } from './util.js?v=6ae12ebd';
-import { modal, closeModal, portrait } from './ui.js?v=6ae12ebd';
-import { logRoll, me } from './play.js?v=6ae12ebd';
-import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6ae12ebd';
+import { markWinner } from './sparkle.js?v=6ae1326e';
+import * as store from './store.js?v=6ae1326e';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae1326e';
+import { $, $$, esc, toast, num } from './util.js?v=6ae1326e';
+import { modal, closeModal, portrait } from './ui.js?v=6ae1326e';
+import { logRoll, me } from './play.js?v=6ae1326e';
+import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6ae1326e';
+import { gameSay } from './chatter.js?v=6ae1326e';
 
 export const isFortune = (g) => g.kind === 'fortune' || g.id === 'what-s-the-weather';
 
@@ -21,7 +22,8 @@ const costOf = (g) => num(g.cost) || 25;
 const prizeOf = (g) => num(((g.intro || '').match(/win\s+([\d,]+)/i) || [])[1]) || 100;
 const timeOf = (t) => new Date(t).toLocaleString([], { ...(t - Date.now() > 12 * 3600e3 ? { weekday: 'short' } : {}), hour: 'numeric', minute: '2-digit' });
 const givePoke = (id, amt) => store.update('party/' + id, (x) => ({ ...x, poke: num(x?.poke) + amt }));
-const say = (text) => store.pushLimited('chatter', { who: 'Castform', kind: 'do', text, tag: 'fortune', t: Date.now() }, 80);
+const say = (text, player) => player ? gameSay('Castform', 'do', text, 'fortune', player)
+  : store.pushLimited('chatter', { who: 'Castform', kind: 'do', text, tag: 'fortune', t: Date.now() }, 80);
 
 // a disaster day (sky roll 100) breaks the game for good, until the GM reopens it
 function checkBroken() {
@@ -44,11 +46,11 @@ export function resolveFortunes(g = { cost: '', intro: '' }) {
   const pick = WEATHERS[b.key];
   if (res === 'win') {
     givePoke(mine.id, b.prize); markWinner(mine.id);
-    say(`reads the sky for ${mine.nickname}: ${w.icon} ${w.name}! The card was right. +${b.prize} Poké and a sparkly cursor for a day!`);
+    say(`reads the sky for ${mine.nickname}: ${w.icon} ${w.name}! The card was right. +${b.prize} Poké and a sparkly cursor for a day!`, mine.nickname);
   } else if (res === 'refund') {
     givePoke(mine.id, b.cost);
-    say(`couldn’t read the sky for ${mine.nickname}: ${w.icon} ${w.name} came instead. ${b.cost} Poké given back.`);
-  } else say(`reads the sky for ${mine.nickname}: ${w.icon} ${w.name}, not ${pick.icon} ${pick.name}. Better luck tomorrow!`);
+    say(`couldn’t read the sky for ${mine.nickname}: ${w.icon} ${w.name} came instead. ${b.cost} Poké given back.`, mine.nickname);
+  } else say(`reads the sky for ${mine.nickname}: ${w.icon} ${w.name}, not ${pick.icon} ${pick.name}. Better luck tomorrow!`, mine.nickname);
   logRoll(mine.nickname, `${g.name || 'What’s the Weather?'} — reading`, null, `guessed ${pick.name}, the sky showed ${w.name}${res === 'win' ? ` · won ${b.prize} Poké` : res === 'refund' ? ' · cost given back' : ''}`, 'note');
 }
 
@@ -119,7 +121,7 @@ export function renderFortune(main, g, gm, onEdit) {
         givePoke(c.id, -cost);
         store.set(betPath(c.id), { day: dailyRoll().day, key: k, target, cost, prize, t: Date.now() });
         logRoll(c.nickname, `${g.name} — card`, null, `paid ${cost} Poké · drew ${cardOf(k)[2]} (${w.name}) for the ${timeOf(cw.next)} reading`, 'note');
-        say(`turns a card for ${c.nickname}: ${w.icon} ${cardOf(k)[2]}. "We’ll see at ${timeOf(cw.next)}…"`);
+        say(`turns a card for ${c.nickname}: ${w.icon} ${cardOf(k)[2]}. "We’ll see at ${timeOf(cw.next)}…"`, c.nickname);
         closeModal(); draw();
       };
     });

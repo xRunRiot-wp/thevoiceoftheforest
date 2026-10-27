@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6ae12ebd';
-import { $, $$, esc, toast } from './util.js?v=6ae12ebd';
+import * as store from './store.js?v=6ae1326e';
+import { $, $$, esc, toast } from './util.js?v=6ae1326e';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
@@ -117,8 +117,21 @@ const ADVENTURERS = new Set(['gemini', 'rox', 'felicia', 'puff', 'golett']);
 const players = () => new Set(Object.values(store.get('party') || {}).map((c) => (c.nickname || '').toLowerCase()));
 const fill = (t, vars) => t.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
 
-export function guildSay(who, kind, text, tag = '') {
-  store.pushLimited('chatter', { who, kind, text, tag, t: Date.now() }, 80);
+export function guildSay(who, kind, text, tag = '', player = '') {
+  store.pushLimited('chatter', { who, kind, text, tag, t: Date.now(), ...(player ? { p: player.toLowerCase() } : {}) }, 80);
+}
+
+// Game posts (Lucky Den, Castform, Gimmighoul): only a couple per player, however many games or tries (her ask 10-27).
+// Returns false when the post was skipped.
+const GAME_TAGS = new Set(['lucky', 'fortune', 'gimmighoul']);
+const GAME_POSTS = 2; const GAME_WINDOW = 3 * 3600e3;
+export function gameSay(who, kind, text, tag, player) {
+  const pl = (player || '').toLowerCase(); const since = Date.now() - GAME_WINDOW;
+  const mine = Object.values(store.get('chatter') || {}).filter((x) => GAME_TAGS.has(x.tag) && x.t > since
+    && (x.p ? x.p === pl : (x.text || '').toLowerCase().includes(pl)));
+  if (mine.length >= GAME_POSTS || mine.some((x) => x.text === text)) return false;
+  guildSay(who, kind, text, tag, player);
+  return true;
 }
 
 // What the guild says when someone spins the Lucky Den. Never speaks for the spinner themselves.
@@ -129,7 +142,7 @@ export function luckyReaction(spinner, slice, prize) {
   const pl = players();
   const options = set.filter(([w]) => w.toLowerCase() !== spinner.toLowerCase() && !(w === 'Gemini' && pl.has('gemini') && spinner.toLowerCase() !== 'gemini'));
   const [w, k, t] = pick(options.length ? options : set);
-  guildSay(w, k, fill(t, { who: spinner, prize }), 'lucky');
+  gameSay(w, k, fill(t, { who: spinner, prize }), 'lucky', spinner);
 }
 
 // A new everyday moment about every 40 minutes while someone has the Guild page open.
