@@ -1,14 +1,14 @@
 // Pelipper Post: a little mailbox above each player's name. Once a day every character gets one letter with a
 // small solo mission; they roll for it and can earn an item, Poké, a recruit chance or a new place to explore.
 // Letters are GM-editable (content/mail). Recruits and new places go on the GM checklist for the GM to play out.
-import * as store from './store.js?v=6ae1331c';
-import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae1331c';
-import { modal, closeModal } from './ui.js?v=6ae1331c';
-import { merged, editContent } from './content-store.js?v=6ae1331c';
-import { logRoll, statVal } from './play.js?v=6ae1331c';
-import { dailyRoll, hash } from './weather.js?v=6ae1331c';
-import { gameSay, gmTodo } from './chatter.js?v=6ae1331c';
-import { markWinner } from './sparkle.js?v=6ae1331c';
+import * as store from './store.js?v=6ae13449';
+import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae13449';
+import { modal, closeModal } from './ui.js?v=6ae13449';
+import { merged, editContent } from './content-store.js?v=6ae13449';
+import { logRoll, statVal } from './play.js?v=6ae13449';
+import { dailyRoll, hash } from './weather.js?v=6ae13449';
+import { gameSay, gmTodo } from './chatter.js?v=6ae13449';
+import { markWinner } from './sparkle.js?v=6ae13449';
 
 const KINDS = { item: ['🎁', 'Item'], poke: ['💰', 'Poké'], recruit: ['🤝', 'Recruit chance'], place: ['🧭', 'New place'] };
 export const MAIL_SCHEMA = [['title', 'Title'], ['from', 'From'], ['text', 'Letter', 'area'], ['attr', 'Roll: attribute (e.g. Insight)'], ['skill', 'Roll: skill (e.g. Alert)'],
@@ -16,29 +16,29 @@ export const MAIL_SCHEMA = [['title', 'Title'], ['from', 'From'], ['text', 'Lett
 
 const LETTERS = [
   { id: 'lost-scarf', title: 'A Scarf in the Wind', from: 'Azurill', attr: 'Insight', skill: 'Alert', need: 1, kind: 'item', reward: 'Oran Berry ×2',
-    text: 'My favourite scarf blew away near Blossom Meadow! Could you look for it? I’ll share my berries with you!' },
+    text: 'My favourite scarf blew away somewhere around Acorn Grove! Could you look for it? I’ll share my berries with you!' },
   { id: 'berry-run', title: 'Berry Delivery', from: 'Kecleon Shop', attr: 'Dexterity', skill: 'Athletic', need: 1, kind: 'poke', reward: '150',
-    text: 'A crate of berries needs to reach the far side of Woodland Base before they spoil. Quick feet, please!' },
-  { id: 'echo-noise', title: 'Noises in Echo Cavern', from: 'Whismur', attr: 'Insight', skill: 'Nature', need: 2, kind: 'place', reward: 'A hidden chamber deep in Echo Cavern',
-    text: 'Something keeps humming inside Echo Cavern at night. I’m too scared to look. Will you find out what it is?' },
+    text: 'A crate of berries needs to get from the gate to the Miltankshake Shack before they spoil. Quick feet, please!' },
+  { id: 'echo-noise', title: 'Humming Under the Roots', from: 'Whismur', attr: 'Insight', skill: 'Nature', need: 2, kind: 'place', reward: 'A hollow under the great tree’s roots at Acorn Grove',
+    text: 'Something keeps humming under the big tree roots at Acorn Grove at night. I’m too scared to look. Will you find out what it is?' },
   { id: 'shy-visitor', title: 'A Shy Visitor', from: 'Chansey', attr: 'Cute', skill: 'Allure', need: 2, kind: 'recruit', reward: 'Pichu',
     text: 'A little Pichu keeps peeking into the infirmary but runs off whenever anyone says hello. Maybe you can make friends?' },
-  { id: 'tide-shells', title: 'Shells at Low Tide', from: 'Shellos', attr: 'Dexterity', skill: 'Nature', need: 1, kind: 'item', reward: 'Pecha Berry',
-    text: 'The tide at Sunshell Beach is out today! Help me gather pretty shells before the water comes back?' },
+  { id: 'tide-shells', title: 'Pretty Pebbles', from: 'Shellos', attr: 'Dexterity', skill: 'Nature', need: 1, kind: 'item', reward: 'Pecha Berry',
+    text: 'The stream by Fernshade Camp is low today! Help me gather shiny pebbles before it fills back up?' },
   { id: 'stuck-cart', title: 'Stuck Cart', from: 'Bidoof', attr: 'Strength', skill: 'Athletic', need: 2, kind: 'poke', reward: '250',
-    text: 'Golly, my cart’s wheel is stuck in the mud on the road to Crystal Lake. Could you give it a big push, yup yup?' },
-  { id: 'falls-path', title: 'The Path Behind the Falls', from: 'Old Torkoal', attr: 'Insight', skill: 'Stealth', need: 2, kind: 'place', reward: 'A cave path behind Whispering Falls',
-    text: 'When I was young there was a path behind Whispering Falls. My eyes are too smoky to find it now. Is it still there?' },
+    text: 'Golly, my cart’s wheel is stuck in the mud right outside the Woodland Base gate. Could you give it a big push, yup yup?' },
+  { id: 'falls-path', title: 'The Old Lookout', from: 'Old Torkoal', attr: 'Insight', skill: 'Stealth', need: 2, kind: 'place', reward: 'An old lookout hidden above Woodland Base',
+    text: 'When I was young there was a lookout up in the trees above Woodland Base. My eyes are too smoky to find it now. Is it still there?' },
   { id: 'lost-egg', title: 'The Lost Egg', from: 'Happiny', attr: 'Vitality', skill: 'Alert', need: 1, kind: 'item', reward: 'Reviver Seed',
-    text: 'I was looking after a round white stone and now it’s gone! Please help me find it. It’s very important (it might be an egg)!' },
-  { id: 'cliff-song', title: 'A Song on Mooncliff', from: 'Jigglypuff', attr: 'Cool', skill: 'Perform', need: 2, kind: 'recruit', reward: 'Swablu',
-    text: 'A Swablu sings on Mooncliff Mountains every evening, all alone. I think it wants someone to sing back!' },
+    text: 'I was looking after a round white stone in Fernshade Camp and now it’s gone! Please help me find it. It’s very important (it might be an egg)!' },
+  { id: 'cliff-song', title: 'A Song at Dusk', from: 'Jigglypuff', attr: 'Cool', skill: 'Perform', need: 2, kind: 'recruit', reward: 'Swablu',
+    text: 'A Swablu sings on the mess hall roof every evening, all alone. I think it wants someone to sing back!' },
   { id: 'mail-mixup', title: 'Mail Mix-up', from: 'Pelipper Post', attr: 'Clever', skill: 'Etiquette', need: 1, kind: 'poke', reward: '100',
-    text: 'Oh dear, a whole bag of letters got muddled in the rain. Could you help sort them back to the right homes?' },
-  { id: 'ruins-glow', title: 'A Glow in the Ruins', from: 'Natu', attr: 'Special', skill: 'Channel', need: 2, kind: 'place', reward: 'A glowing doorway in the Ancient Ruins',
-    text: 'I saw a light flicker in the Ancient Ruins where there were only stones before. The future feels… curious.' },
+    text: 'Oh dear, a whole bag of letters got muddled in the rain. Could you help sort them back to the right homes around Woodland Base?' },
+  { id: 'ruins-glow', title: 'A Glow in the Ferns', from: 'Natu', attr: 'Special', skill: 'Channel', need: 2, kind: 'place', reward: 'A glowing clearing hidden past Fernshade Camp',
+    text: 'I saw a light flicker deep in the ferns past Fernshade Camp, where there was only shade before. The future feels… curious.' },
   { id: 'bully-trouble', title: 'Trouble at the Pond', from: 'Lotad', attr: 'Tough', skill: 'Intimidate', need: 1, kind: 'item', reward: 'Apple ×2',
-    text: 'Some big Pokémon keep splashing us out of our pond. Could you ask them nicely (or not so nicely) to stop?' },
+    text: 'Some big Pokémon keep splashing us out of the little pond behind storage. Could you ask them nicely (or not so nicely) to stop?' },
 ];
 export const letters = () => merged('mail', LETTERS);
 
