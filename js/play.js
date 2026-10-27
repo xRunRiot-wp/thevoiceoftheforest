@@ -1,24 +1,24 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae0050b';
-import * as sheet from './sheetdata.js?v=6ae0050b';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae0050b';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae0050b';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae0050b';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae0050b';
-import { CONFIG } from './config.js?v=6ae0050b';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae0050b';
-import { merged, editContent } from './content-store.js?v=6ae0050b';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae0050b';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae0050b';
-import { homeHTML } from './sitepages.js?v=6ae0050b';
-import { pinsOf, showMap } from './hotbar.js?v=6ae0050b';
-import { chatterLatestHTML } from './chatter.js?v=6ae0050b';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae0050b';
-import { locations, spots } from './friendzone.js?v=6ae0050b';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae0050b';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae0050b';
-import { find } from './effects.js?v=6ae0050b';
-import * as dice3d from './dice3d.js?v=6ae0050b';
+import * as store from './store.js?v=6ae00559';
+import * as sheet from './sheetdata.js?v=6ae00559';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae00559';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae00559';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae00559';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae00559';
+import { CONFIG } from './config.js?v=6ae00559';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae00559';
+import { merged, editContent } from './content-store.js?v=6ae00559';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae00559';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae00559';
+import { homeHTML } from './sitepages.js?v=6ae00559';
+import { pinsOf, showMap } from './hotbar.js?v=6ae00559';
+import { chatterLatestHTML } from './chatter.js?v=6ae00559';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae00559';
+import { locations, spots } from './friendzone.js?v=6ae00559';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae00559';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae00559';
+import { find } from './effects.js?v=6ae00559';
+import * as dice3d from './dice3d.js?v=6ae00559';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -70,7 +70,7 @@ export function renderJoin(main) {
   ${chatterLatestHTML(3)}
   <div class="card emblem"><div class="win"><span class="who">Guildmaster Beautifly:</span> ${store.get('session/live') ? "Welcome, explorer! The game is live. Join your table to begin today's adventure." : 'Welcome, explorer! No game is running right now. Look around, and come back when your GM goes live.'}</div></div>
   ${store.status.mode === 'local' ? `<p class="small muted" style="margin-top:8px">Live sharing between phones isn't switched on yet, so this table saves on this device. Your GM can move it with Export / Import.</p>` : ''}
-  ${joined() && me() ? `<a class="btn block" href="#/play" style="margin-top:12px">Continue as ${esc(me().nickname)}</a>` : ''}
+  ${joined() && me() ? `<a class="btn block continue-btn" href="#/play" style="margin-top:12px">Continue as ${esc(me().nickname)}</a>` : ''}
   ${messSeatsHTML(p)}
   <div class="row" style="margin-top:14px"><a class="btn dark" href="#/gm">I'm the GM</a></div>
   <details class="card" style="margin-top:14px"><summary><b>Watch the player trailer</b></summary><video src="assets/discord/player_trailer.mp4" controls playsinline preload="none" style="width:100%;border-radius:10px;margin-top:8px"></video></details>
