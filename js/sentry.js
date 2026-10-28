@@ -1,14 +1,14 @@
 // Sentry Duty (from Explorers of Time/Sky): stand watch at the Woodland Base gate with Diglett and name each visitor
 // from their footprint. A daily guild chore every character is expected to do, not a gamble: an okay shift is just
 // doing your duty, a great shift pays Poké and can turn up a rare item. One shift per character per day.
-import * as store from './store.js?v=6ae13b5c';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13b5c';
-import { me, logRoll } from './play.js?v=6ae13b5c';
-import { dailyRoll } from './weather.js?v=6ae13b5c';
-import { gameSay } from './chatter.js?v=6ae13b5c';
-import { markWinner } from './sparkle.js?v=6ae13b5c';
-import * as sheet from './sheetdata.js?v=6ae13b5c';
-import { portraitFile } from './ui.js?v=6ae13b5c';
+import * as store from './store.js?v=6ae13d0d';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13d0d';
+import { me, logRoll } from './play.js?v=6ae13d0d';
+import { dailyRoll } from './weather.js?v=6ae13d0d';
+import { gameSay } from './chatter.js?v=6ae13d0d';
+import { markWinner } from './sparkle.js?v=6ae13d0d';
+import * as sheet from './sheetdata.js?v=6ae13d0d';
+import { portraitFile } from './ui.js?v=6ae13d0d';
 
 export const isSentry = (g) => g.kind === 'sentry' || g.id === 'sentry-duty';
 
@@ -27,7 +27,7 @@ const moodOf = (grade) => (GRADES.find((x) => x[1] === grade) || [])[5] || 'wait
 // Faces (her ask 10-27): Explorers-style emotion portraits from PMDCollab, assets/portraits/emo/<species>/<Emotion>.png.
 // Diglett reacts to every footprint; each character's face shows how their shift went.
 const FULL = ['Normal', 'Happy', 'Joyous', 'Inspired', 'Determined', 'Sad', 'Teary-Eyed', 'Sigh', 'Worried', 'Surprised', 'Dizzy', 'Stunned', 'Pain', 'Angry', 'Shouting'];
-const EMO = { ralts: FULL, diglett: FULL, sudowoodo: FULL, swablu: FULL, magnemite: FULL, cleffa: FULL, golett: FULL, tinkatink: FULL, jangmoo: FULL, slakoth: ['Normal', 'Happy', 'Inspired', 'Sad', 'Sigh'], cottonee: ['Normal'] };
+const EMO = { spinda: FULL, ralts: FULL, diglett: FULL, sudowoodo: FULL, swablu: FULL, magnemite: FULL, cleffa: FULL, golett: FULL, tinkatink: FULL, jangmoo: FULL, slakoth: ['Normal', 'Happy', 'Inspired', 'Sad', 'Sigh'], cottonee: ['Normal'] };
 const MOODS = { great: ['Joyous', 'Inspired', 'Happy'], good: ['Happy', 'Joyous'], duty: ['Determined', 'Normal'], sloppy: ['Sad', 'Teary-Eyed', 'Sigh', 'Worried'],
   hit: ['Happy', 'Joyous'], miss: ['Surprised', 'Worried', 'Sad'], slow: ['Dizzy', 'Stunned', 'Sigh'], wait: ['Normal'] };
 const DIG = { great: ['Inspired', 'Joyous'], good: ['Happy'], duty: ['Normal'], sloppy: ['Sigh', 'Sad'], hit: ['Joyous', 'Happy'], miss: ['Shouting', 'Angry'], slow: ['Teary-Eyed', 'Sad'], wait: ['Normal'] };

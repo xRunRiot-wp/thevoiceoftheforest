@@ -1468,3 +1468,56 @@ a.ch-chip:hover { background: var(--navy); }
 .dance-pad .btn.wrong { background: #c0453a; color: #fff; border-color: #8a2a22; }
 .dance-react { min-height: 78px; }
 .due-ribbon.dance::after { content: 'Today’s practice not done yet!'; }
+
+/* Ralts glows during a dance streak: 3+ / 6+ / 10+ steps in a row */
+.dance-stage { position: relative; overflow: hidden; }
+.dance-stage::before, .dance-stage::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .4s; }
+.dance-stage::before { background: radial-gradient(circle at 50% 45%, rgba(255, 140, 220, .55) 0%, rgba(186, 120, 255, .35) 30%, transparent 60%); animation: aura-pulse 1.6s ease-in-out infinite; }
+.dance-stage::after { background-image: radial-gradient(circle, #fff 1.5px, transparent 2.5px), radial-gradient(circle, #ffc6f0 1.5px, transparent 2.5px), radial-gradient(circle, #d6b4ff 2px, transparent 3px);
+  background-size: 46px 46px, 62px 62px, 80px 80px; background-position: 0 0, 20px 30px, 40px 10px; animation: sparkle-rise 3s linear infinite; }
+.dance-stage.glow1::before { opacity: .55; } .dance-stage.glow2::before, .dance-stage.glow3::before { opacity: 1; }
+.dance-stage.glow2::after { opacity: .6; } .dance-stage.glow3::after { opacity: 1; }
+.dance-stage.glow1 .ralts-spr { filter: drop-shadow(0 0 6px #ff9be6); }
+.dance-stage.glow2 .ralts-spr { filter: drop-shadow(0 0 8px #ff9be6) drop-shadow(0 0 14px #b88cff); }
+.dance-stage.glow3 .ralts-spr { filter: drop-shadow(0 0 10px #fff) drop-shadow(0 0 18px #ff9be6) drop-shadow(0 0 28px #b88cff); }
+.dance-stage.glow3 { box-shadow: inset 0 0 30px rgba(255, 170, 235, .8), 0 0 18px rgba(186, 120, 255, .7); }
+@keyframes aura-pulse { 0%, 100% { transform: scale(.9); } 50% { transform: scale(1.08); } }
+@keyframes sparkle-rise { from { background-position: 0 0, 20px 30px, 40px 10px; } to { background-position: 0 -92px, 20px -94px, 40px -150px; } }
+@media (prefers-reduced-motion: reduce) { .dance-stage::before, .dance-stage::after { animation: none; } }
+.dance-stage > * { position: relative; z-index: 1; }
+
+/* Spinda's Kitchen: sheet assets/ui/spinda_kitchen.png = 56x64 cells, rows idle(9) / walk left(11) / eat(4) / hurt(2) / twirl(9) */
+.spinda-spr { display: block; width: 112px; height: 128px; background: url('../assets/ui/spinda_kitchen.png') 0 0 / 1232px 640px no-repeat; image-rendering: pixelated; animation: spinda-idle 1.2s steps(9, jump-none) infinite; }
+.spinda-spr.walk { background-position-y: -128px; animation: spinda-walk .9s steps(11, jump-none) infinite, spinda-in 1.7s linear forwards; }
+.spinda-spr.eat { background-position-y: -256px; animation: spinda-eat .5s steps(4, jump-none) infinite; }
+.spinda-spr.hurt { background-position-y: -384px; animation: spinda-hurt .4s steps(1) forwards, dig-shake .4s linear 3; }
+.spinda-spr.twirl { background-position-y: -512px; animation: spinda-twirl .7s steps(9, jump-none) infinite; }
+@keyframes spinda-idle { from { background-position-x: 0; } to { background-position-x: -896px; } }
+@keyframes spinda-walk { from { background-position-x: 0; } to { background-position-x: -1120px; } }
+@keyframes spinda-eat { from { background-position-x: 0; } to { background-position-x: -336px; } }
+@keyframes spinda-hurt { 0% { background-position-x: 0; } 20%, 100% { background-position-x: -112px; } }
+@keyframes spinda-twirl { from { background-position-x: 0; } to { background-position-x: -896px; } }
+@keyframes spinda-in { from { transform: translateX(160px); } to { transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .spinda-spr, .spinda-spr.walk, .spinda-spr.eat, .spinda-spr.hurt, .spinda-spr.twirl { animation: none; } }
+.kitchen-mini { width: 132px; height: 132px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: radial-gradient(circle at 50% 70%, #ffe2b8 0%, #e0a46a 55%, #8a4f2a 100%); filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
+.kitchen-mini .spinda-spr { transform: scale(.75); }
+@media (max-width: 420px) { .kitchen-mini { width: 104px; height: 104px; } .kitchen-mini .spinda-spr { transform: scale(.6); } }
+.kitchen-stage { display: flex; justify-content: center; align-items: flex-end; gap: 12px; padding: 8px; margin: 8px 0; border-radius: 14px; overflow: hidden; background: linear-gradient(180deg, #f7e2c2 0%, #e8c393 70%, #b98652 100%); box-shadow: inset 0 2px 8px rgba(60, 35, 10, .35); }
+.kitchen-stage .pot-big { font-size: 56px; line-height: 1; margin-bottom: 14px; }
+.recipe-card { background: #fff8e6; color: #3a2c1a; border: 2px dashed #c9a06a; border-radius: 12px; padding: 10px 14px; margin: 8px 0; }
+.recipe-card .rc-title { font: 700 16px var(--pix); margin-bottom: 4px; }
+.recipe-card ul { list-style: none; padding: 0; margin: 0; } .recipe-card li { padding: 2px 0; } .recipe-card li.ok { color: #2f6d2b; font-weight: 700; }
+.pot { border-radius: 12px; padding: 8px 12px; background: rgba(90, 58, 26, .12); }
+.pot-title { font-weight: 700; margin-bottom: 4px; }
+.pot-in { display: flex; flex-wrap: wrap; gap: 6px; }
+.pot-b { cursor: var(--cur-link, pointer); border: 0; }
+.pantry { display: flex; flex-wrap: wrap; gap: 6px; }
+.pan-b.want { border-color: #4f9d4a; }
+.stir-bar { position: relative; height: 34px; margin: 14px 4px 6px; border-radius: 99px; background: #e8c393; box-shadow: inset 0 2px 6px rgba(60, 35, 10, .35); }
+.stir-bar .zone { position: absolute; left: 38%; width: 24%; top: 0; bottom: 0; background: rgba(79, 157, 74, .55); border-radius: 8px; }
+.stir-bar .spoon { position: absolute; top: 3px; font-size: 22px; line-height: 1; }
+.stir-bar.hit { animation: stir-ok .35s; } .stir-bar.miss { animation: dig-shake .3s linear; }
+@keyframes stir-ok { 50% { box-shadow: 0 0 0 4px #4f9d4a; } }
+.taste-meter { height: 12px; border-radius: 99px; background: rgba(0, 0, 0, .12); overflow: hidden; margin: 6px 0 10px; }
+.taste-meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #c0453a, #f2c14e 55%, #4f9d4a 90%); transition: width 1s ease-out; }
+.due-ribbon.stew::after { content: 'Today’s stew not made yet!'; }

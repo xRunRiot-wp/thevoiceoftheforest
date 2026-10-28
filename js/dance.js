@@ -1,13 +1,13 @@
 // Dance Practice with Ralts (her ask 10-27): Ralts dances a short routine of up / down / left / right steps and the
 // player copies it with the arrow buttons (or arrow keys). Rounds grow from 3 to 8 steps. Ralts and the player's own
 // face react to every hit or missed step. A daily chore like Sentry Duty: a great practice pays Poké and maybe a rare item.
-import * as store from './store.js?v=6ae13b5c';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13b5c';
-import { me, logRoll } from './play.js?v=6ae13b5c';
-import { dailyRoll } from './weather.js?v=6ae13b5c';
-import { gameSay } from './chatter.js?v=6ae13b5c';
-import { markWinner } from './sparkle.js?v=6ae13b5c';
-import { faceHTML, faceSrc, spKey, rareItem } from './sentry.js?v=6ae13b5c';
+import * as store from './store.js?v=6ae13d0d';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13d0d';
+import { me, logRoll } from './play.js?v=6ae13d0d';
+import { dailyRoll } from './weather.js?v=6ae13d0d';
+import { gameSay } from './chatter.js?v=6ae13d0d';
+import { markWinner } from './sparkle.js?v=6ae13d0d';
+import { faceHTML, faceSrc, spKey, rareItem } from './sentry.js?v=6ae13d0d';
 
 export const isDance = (g) => g.kind === 'dance' || g.id === 'ralts-dance';
 
@@ -20,7 +20,7 @@ const GRADES = [
   [30, 'Dazzling!', 250, 0.5, 'You matched me almost perfectly! I could feel your joy from across the hall!', 'great'],
   [24, 'Nice moves', 100, 0, 'That was lovely. Your steps are getting so light!', 'good'],
   [15, 'Practice done', 0, 0, 'Thank you for dancing with me. Practice makes perfect!', 'duty'],
-  [0, 'Two left feet', 0, 0, 'Um… that’s okay! Everyone stumbles. Let’s practise again tomorrow.', 'sloppy'],
+  [0, 'Two left feet', 0, 0, 'Um… that’s okay! Everyone stumbles. Let’s practice again tomorrow.', 'sloppy'],
 ];
 const gradeOf = (n) => GRADES.find(([min]) => n >= min);
 const moodOf = (grade) => (GRADES.find((x) => x[1] === grade) || [])[5] || 'wait';
@@ -55,7 +55,7 @@ function finish(c, hits, box, onDone) {
 }
 
 function play(c, box, onDone) {
-  let round = 0; let hits = 0; let seq = []; let at = 0; let busy = true; let timer = 0;
+  let round = 0; let hits = 0; let seq = []; let at = 0; let busy = true; let timer = 0; let streak = 0;
   box.innerHTML = `<div class="dance">
     <div class="sentry-top">${faceHTML(c, 'wait', 'me')}<span class="small muted dance-count"></span></div>
     <div class="dance-react">${raltsFace('show', 'Watch closely!')}</div>
@@ -69,6 +69,7 @@ function play(c, box, onDone) {
   const count = () => { $('.dance-count', box).textContent = `${c.nickname} · round ${round + 1} of ${LENGTHS.length} · ${hits} steps matched`; };
   const dots = (n, cls = '') => { steps.innerHTML = Array.from({ length: n }, (_, i) => `<i class="${i < at ? 'ok' : ''} ${cls}"></i>`).join(''); };
   const flash = (d, cls) => { const b = $(`[data-dir="${d}"]`, box); if (!b) return; b.classList.add(cls); setTimeout(() => b.classList.remove(cls), 320); };
+  const glow = () => { const st = $('.dance-stage', box); st.classList.remove('glow1', 'glow2', 'glow3'); if (streak >= 3) st.classList.add(streak >= 10 ? 'glow3' : streak >= 6 ? 'glow2' : 'glow1'); };
   const wait = () => { clearTimeout(timer); timer = setTimeout(() => press(null), WAIT_S * 1000); };
 
   const show = () => {
@@ -97,12 +98,12 @@ function play(c, box, onDone) {
     clearTimeout(timer);
     const want = seq[at];
     if (d === want) {
-      hits++; at++; setSpr('hop-' + d); flash(d, 'right'); myFace('hit'); dots(seq.length); count();
-      if (at === seq.length) { busy = true; react('clear', `The whole round! ${pickOne(HIT)}`); next(); }
+      hits++; at++; streak++; glow(); setSpr('hop-' + d); flash(d, 'right'); myFace('hit'); dots(seq.length); count();
+      if (at === seq.length) { busy = true; react('clear', streak >= 6 ? `${streak} in a row! I’m glowing! ✨` : `The whole round! ${pickOne(HIT)}`); next(); }
       else { react('hit', pickOne(HIT)); wait(); }
       return;
     }
-    busy = true; setSpr('hurt'); if (d) flash(d, 'wrong');
+    busy = true; streak = 0; glow(); setSpr('hurt'); if (d) flash(d, 'wrong');
     const kind = d ? 'miss' : 'slow';
     myFace(kind); react(kind, pickOne(d ? MISS : SLOW).replace('{d}', DIRS[want][0]));
     next();
@@ -126,12 +127,12 @@ export function renderDance(main, g, gm, onEdit) {
   const roster = () => {
     $('#droster', main).innerHTML = party.map((x) => { const s = done(x.id); const on = s.day === today();
       return `<li>${faceHTML(x, on ? moodOf(s.grade) : 'wait')}<span class="grow">${esc(x.nickname)}</span>${on ? `<b>${esc(s.grade)}</b> <span class="small muted">${s.score}/${TOTAL}</span>` : '<span class="small muted">not yet</span>'}<span class="small muted"> · ${num(s.times)} practice${num(s.times) === 1 ? '' : 's'}</span>${gm && on ? ` <button class="btn alt sm" data-dreset="${esc(x.id)}">Redo</button>` : ''}</li>`; }).join('') || '<li class="muted">No characters yet.</li>';
-    $$('[data-dreset]', main).forEach((b) => b.onclick = () => { store.set(`dance/${b.dataset.dreset}/day`, null); toast('They can practise again today'); renderDance(main, g, gm, onEdit); });
+    $$('[data-dreset]', main).forEach((b) => b.onclick = () => { store.set(`dance/${b.dataset.dreset}/day`, null); toast('They can practice again today'); renderDance(main, g, gm, onEdit); });
   };
   roster();
   const box = $('#dancebox', main);
   if (!c) box.innerHTML = '<p>Pick your character first (Play tab), then come and dance.</p>';
-  else if (done(c.id).day === today()) { const s = done(c.id); box.innerHTML = `<div class="sentry-end">${faceHTML(c, moodOf(s.grade), 'big')}<div class="big">${esc(s.grade)}</div><p>${esc(c.nickname)} already practised today: ${s.score} of ${TOTAL} steps.</p><p class="small muted">Next practice tomorrow.</p></div>`; }
+  else if (done(c.id).day === today()) { const s = done(c.id); box.innerHTML = `<div class="sentry-end">${faceHTML(c, moodOf(s.grade), 'big')}<div class="big">${esc(s.grade)}</div><p>${esc(c.nickname)} already practiced today: ${s.score} of ${TOTAL} steps.</p><p class="small muted">Next practice tomorrow.</p></div>`; }
   else {
     box.innerHTML = `<div class="sentry-start">${raltsFace('wait', `Oh, ${c.nickname}! Will you dance with me today? Just copy my steps: up, down, left and right. I’ll start slow!`)}
       <div class="dance-stage small-stage">${sprite()}</div>
