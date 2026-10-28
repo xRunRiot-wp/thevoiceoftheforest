@@ -1,13 +1,13 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6ae15bb0';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae15bb0';
-import { GUILDS2, guildName } from './guild.js?v=6ae15bb0';
-import { addItem, me } from './play.js?v=6ae15bb0';
-import { ixLink } from './effects.js?v=6ae15bb0';
-import { gmTodo } from './chatter.js?v=6ae15bb0';
-import { palette } from './theme.js?v=6ae15bb0';
-import { modal, closeModal } from './ui.js?v=6ae15bb0';
+import * as store from './store.js?v=6ae15d35';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae15d35';
+import { GUILDS2, guildName } from './guild.js?v=6ae15d35';
+import { addItem, me } from './play.js?v=6ae15d35';
+import { ixLink } from './effects.js?v=6ae15d35';
+import { gmTodo } from './chatter.js?v=6ae15d35';
+import { palette } from './theme.js?v=6ae15d35';
+import { modal, closeModal } from './ui.js?v=6ae15d35';
 
 // Each guild's own colours on this page, so players can tell at a glance whose storage they're looking at.
 const GUILD_TINT = { woodland: '#4f8a2e', vanguard: '#2f5fb8' };
@@ -62,9 +62,12 @@ export const lowAlertHTML = () => {
 
 const guildOfItem = (b) => (b.guild === 'vanguard' ? 'vanguard' : 'woodland');
 let tab = null;   // which guild is showing (stays while the page refreshes live)
+let tabFrom = ''; // the player + guild the default came from
 
 export function renderVault(main) {
-  tab ||= me()?.guild === 'vanguard' ? 'vanguard' : 'woodland';
+  // opens on the guild the player is working for right now (her ask 10-27), and follows them if they switch guilds or characters
+  const c = me(); const works = c?.guild === 'vanguard' ? 'vanguard' : 'woodland'; const from = `${c?.id || ''}|${works}`;
+  if (!tab || from !== tabFrom) { tab = works; tabFrom = from; }
   const g = store.get('guild') || {};
   const lines = Object.values(store.get('ledger') || {}).filter((l) => (l.guild || 'woodland') === tab).sort((a, b) => b.t - a.t);
   const pin = lines.filter((l) => l.amt > 0).reduce((s, l) => s + l.amt, 0);

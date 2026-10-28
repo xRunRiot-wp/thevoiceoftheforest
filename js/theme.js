@@ -1,12 +1,12 @@
 // Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
 // and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
-import { CURSORS, cursorKind, setCursorKind } from './digcursor.js?v=6ae15bb0';
-import * as store from './store.js?v=6ae15bb0';
-import { $, $$, esc, toast } from './util.js?v=6ae15bb0';
-import { giftNote } from './mailbox.js?v=6ae15bb0';
-import { unlockChar } from './charlock.js?v=6ae15bb0';
-import { modal, closeModal, portrait } from './ui.js?v=6ae15bb0';
-import { skinPicker } from './dice3d.js?v=6ae15bb0';
+import { CURSORS, REWARD_CURSORS, cursorKind, cursorChoices, setCursorKind, refreshCursor } from './digcursor.js?v=6ae15d35';
+import * as store from './store.js?v=6ae15d35';
+import { $, $$, esc, toast } from './util.js?v=6ae15d35';
+import { giftNote } from './mailbox.js?v=6ae15d35';
+import { unlockChar } from './charlock.js?v=6ae15d35';
+import { modal, closeModal, portrait } from './ui.js?v=6ae15d35';
+import { skinPicker } from './dice3d.js?v=6ae15d35';
 
 export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
   Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',
@@ -65,6 +65,7 @@ export function setSheetOnly(on) {
 export function applyTheme() {
   document.body.toggleAttribute('data-sheetonly', sheetOnly());
   window.diceAllowed = store.gmUnlocked() ? null : diceUnlocked();
+  { const c = me(); window.cursorAllowed = store.gmUnlocked() ? null : new Set(c && Array.isArray(c.cursors) ? c.cursors : []); refreshCursor(); }
   let k = 'woodland'; try { k = localStorage.getItem(KEY()) || 'woodland'; } catch { /* default */ }
   if (!unlocked().includes(k)) k = 'woodland';
   const root = document.documentElement; const vars = THEMES[k].vars || {};
@@ -85,7 +86,7 @@ export function openSettings() {
     <h3 style="margin-top:14px">📄 Character sheet only</h3>
     <label class="check"><input type="checkbox" id="setsheetonly" ${sheetOnly() ? 'checked' : ''}> Just show my stats, moves and items. Hides the roll buttons, actions and extras, for players who roll at the table or on Roll20. (This device only.)</label>
     <h3 style="margin-top:14px">🖱️ Cursor</h3><p class="small muted">Who follows your mouse around the site. (This device only; phones don't show it.)</p>
-    <div class="themes">${Object.entries(CURSORS).map(([k, n]) => `<button class="th ${k === cursorKind() ? 'sel' : ''}" data-cur="${k}"><span>${esc(n)}</span></button>`).join('')}</div>
+    <div class="themes">${cursorChoices().map((k) => [k, CURSORS[k]]).map(([k, n]) => `<button class="th ${k === cursorKind() ? 'sel' : ''}" data-cur="${k}"><span>${esc(n)}</span></button>`).join('')}</div>
     <h3 style="margin-top:14px">🎨 Theme</h3>
     <p class="small muted">${c ? `Everyone has Woodland Base. ${esc(c.nickname)} also has their type’s theme. The GM can give out more as rewards.` : 'Pick a character to unlock your type’s theme.'}</p>
     <div class="themes">${unlocked(c).map((k) => `<button class="th ${k === cur ? 'sel' : ''}" data-th="${k}">${swatch(THEMES[k])}<span>${THEMES[k].icon} ${esc(THEMES[k].name)}</span></button>`).join('')}</div>
@@ -95,7 +96,10 @@ export function openSettings() {
       <button class="btn alt sm" id="gtgo" style="margin-top:6px">🎁 Give theme</button>
       <div class="grid g2" style="margin-top:10px"><select id="gdwho">${party.map(([id, x]) => `<option value="${id}">${esc(x.nickname)}</option>`).join('')}</select>
       <select id="gdwhat">${Object.entries(DICE_REWARDS).map(([k, n]) => `<option value="${k}">🎲 ${esc(n)}</option>`).join('')}</select></div>
-      <button class="btn alt sm" id="gdgo" style="margin-top:6px">🎁 Give dice</button></details>` : ''}`);
+      <button class="btn alt sm" id="gdgo" style="margin-top:6px">🎁 Give dice</button>
+      <div class="grid g2" style="margin-top:10px"><select id="gcwho">${party.map(([id, x]) => `<option value="${id}">${esc(x.nickname)}</option>`).join('')}</select>
+      <select id="gcwhat">${Object.entries(REWARD_CURSORS).map(([k, n]) => `<option value="${k}">🖱️ ${esc(n)}</option>`).join('')}</select></div>
+      <button class="btn alt sm" id="gcgo" style="margin-top:6px">🎁 Give cursor</button></details>` : ''}`);
   // Switch Character: show the characters you can pick right here instead of leaving for the Home page.
   $('#setswitch', el).onclick = () => {
     const box = $('#setwho', el); if (!box.hidden) { box.hidden = true; return; }
@@ -123,6 +127,15 @@ export function openSettings() {
     store.pushLimited('log', { t: Date.now(), text: `${x.nickname} earned ${DICE_REWARDS[k]}!` });
     giftNote(id, '🎲', `New dice: ${DICE_REWARDS[k]}`, k === 'custom' ? 'You can now make your own dice colours! Open ⚙️ Settings → Dice to try them.' : `The GM gave you ${DICE_REWARDS[k]}! Open ⚙️ Settings → Dice to switch to them.`);
     toast(`${x.nickname} can now use ${DICE_REWARDS[k]}`);
+  };
+  const gc = $('#gcgo', el);
+  if (gc) gc.onclick = () => {
+    const id = $('#gcwho', el).value; const k = $('#gcwhat', el).value; const x = (store.get('party') || {})[id];
+    if (!x) return;
+    store.set(`party/${id}/cursors`, [...new Set([...(x.cursors || []), k])]);
+    store.pushLimited('log', { t: Date.now(), text: `${x.nickname} earned the ${REWARD_CURSORS[k]}!` });
+    giftNote(id, '🖱️', `New cursor: ${REWARD_CURSORS[k]}`, `The GM gave you the ${REWARD_CURSORS[k]}! Open ⚙️ Settings → Cursor to use it (on a computer with a mouse).`);
+    toast(`${x.nickname} can now use the ${REWARD_CURSORS[k]}`);
   };
   const g = $('#gtgo', el);
   if (g) g.onclick = () => {

@@ -1193,6 +1193,10 @@ body[data-sheetonly] .mv-act { margin-top: 14px; }
 .digcur.pokeball::after { content: ''; position: absolute; inset: 0; background: inherit; background-position-x: -32px; opacity: 0; }
 .digcur.pokeball.act { animation: pb-wobble 2.6s ease-in-out forwards; transform-origin: 50% 100%; }
 .digcur.pokeball.act::after { animation: pb-click 2.6s steps(1) forwards; }
+/* Time Gear (reward cursor): turns slowly with a soft cyan glow; now and then it spins up fast */
+.digcur.timegear { width: 32px; height: 32px; margin: 6px 0 0 8px; background: url('../assets/ui/timegear_cursor.png') 0 0 / 128px 32px no-repeat; filter: drop-shadow(0 0 4px rgba(95, 242, 255, .8)); animation: tg-turn .9s steps(4) infinite; }
+.digcur.timegear.act { animation: tg-turn .18s steps(4) 12; }
+@keyframes tg-turn { to { background-position-x: -128px; } }
 @keyframes dig-idle { 0% { background-position-x: 0; } 50% { background-position-x: -48px; } }
 @keyframes pb-wobble { 0%, 100% { rotate: 0deg; } 8% { rotate: -22deg; } 18% { rotate: 18deg; } 28% { rotate: 0deg; } 42% { rotate: -16deg; } 52% { rotate: 12deg; } 62% { rotate: 0deg; } 72% { rotate: -10deg; } 80% { rotate: 0deg; } }
 @keyframes pb-click { 0%, 84% { opacity: 0; } 86%, 92% { opacity: 1; } 89% { opacity: 0; } 100% { opacity: 0; } }
