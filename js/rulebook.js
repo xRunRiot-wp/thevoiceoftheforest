@@ -1,12 +1,12 @@
 // Rulebook: quick lookup from inside the game. Index of every effect/interaction, rules, story, cast, guild, items, handouts, links, credits.
-import * as store from './store.js?v=6ae145f4';
-import * as sheet from './sheetdata.js?v=6ae145f4';
-import { $, $$, esc } from './util.js?v=6ae145f4';
-import { portrait } from './ui.js?v=6ae145f4';
-import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ae145f4';
-import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ae145f4';
-import { merged, editContent } from './content-store.js?v=6ae145f4';
-import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ae145f4';
+import * as store from './store.js?v=6ae14747';
+import * as sheet from './sheetdata.js?v=6ae14747';
+import { $, $$, esc } from './util.js?v=6ae14747';
+import { portrait } from './ui.js?v=6ae14747';
+import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ae14747';
+import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ae14747';
+import { merged, editContent } from './content-store.js?v=6ae14747';
+import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ae14747';
 
 const gm = () => store.gmUnlocked();
 const editBtn = (attr) => (gm() ? `<button class="btn alt sm" ${attr}>Edit</button>` : '');
@@ -221,7 +221,7 @@ export async function renderRules(main, [sub, arg]) {
   }
 
   async function coverage() {
-    const { shop } = await import('./guild.js?v=6ae145f4');
+    const { shop } = await import('./guild.js?v=6ae14747');
     const [sm, sa, st, g] = await Promise.all([sheet.moves(), sheet.abilities(), sheet.treasure(), sheet.guild().catch(() => ({ chars: [] }))]);
     const party = Object.values(store.get('party') || {});
     const lootNames = [];
@@ -277,6 +277,7 @@ export async function renderRules(main, [sub, arg]) {
           <li><b>Hidden Gimmighoul</b> — its Roaming Form idle animation, an Explorers-style sprite by the PMDCollab artists (<a href="https://sprites.pmdcollab.org" target="_blank" rel="noopener">sprites.pmdcollab.org</a>).</li>
           <li><b>Berries</b> — Explorers-style berry sprites from PMDCollab’s RawAsset (<a href="https://github.com/PMDCollab/RawAsset" target="_blank" rel="noopener">GitHub</a>); berries Explorers doesn’t have (Pecha, Cheri, Chesto, Rawst, Aspear, Persim and more) use the main-series bag icons from PokéAPI’s sprite collection (<a href="https://github.com/PokeAPI/sprites" target="_blank" rel="noopener">GitHub</a>).</li>
           <li><b>Nursery egg and grass</b> — the egg is the Ruby &amp; Sapphire egg sprite (via PokéAPI’s sprite collection); the grass is the Tiny Woods tileset from Explorers of Sky (PMDCollab RawAsset). The twig nest was drawn for this site in the Explorers style, since the games don’t have one.</li>
+          <li><b>Rayson’s Mail Run</b> — Explorers of Sky skies and clouds (The Spriters Resource sheet 59281, ripped by Hawaltuck) and the Sunshell Beach sea and sand strips (sheet 14797, redblueyellow); Wingull, Taillow and Starly sprites from SpriteCollab; the letter and Woodland Base signpost from PMDCollab’s RawAsset.</li>
           <li><b>Fernshade Nursery</b> — the baby Pokémon’s idle, hop and sleep sprites and their faces, plus Beatrice’s (Beedrill’s) faces, from the PMD Sprite Repository / SpriteCollab (original Explorers sprites credited CHUNSOFT, many faces fan-drawn by PMDCollab artists; <a href="https://sprites.pmdcollab.org" target="_blank" rel="noopener">sprites.pmdcollab.org</a>).</li>
           <li><b>Spinda’s Kitchen</b> — Spinda’s idle, walk, twirl and hurt animations (original Explorers sprites credited CHUNSOFT) and eating animation by PMDCollab, from the PMD Sprite Repository / SpriteCollab (<a href="https://sprites.pmdcollab.org" target="_blank" rel="noopener">sprites.pmdcollab.org</a>).</li>
           <li><b>Ralts’s dance music</b> — an original little 8-bit tune written for this site and played live in your browser.</li>

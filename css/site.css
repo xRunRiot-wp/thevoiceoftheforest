@@ -1672,3 +1672,13 @@ a.ch-chip:hover { background: var(--navy); }
 .nest img { width: 210px; height: 108px; }
 .nest .egg { left: 63px; bottom: 30px; }
 .n-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .n-choice .btn { min-height: 52px; } @media (max-width: 420px) { .n-choice { grid-template-columns: 1fr; } }
+
+/* Rayson's Mail Run */
+.mailrun canvas { display: block; width: 100%; height: auto; aspect-ratio: 480 / 270; image-rendering: pixelated; border-radius: 12px; touch-action: manipulation; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, .25); user-select: none; -webkit-user-select: none; }
+.mr-hud { display: flex; justify-content: space-between; gap: 8px; font: 700 13px var(--pix); margin-bottom: 6px; flex-wrap: wrap; }
+.mailrun-mini { width: 132px; height: 132px; flex: none; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: url('../assets/mailrun/sky.png') center / cover; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
+.mr-bird { width: 96px; height: 144px; background: url('../assets/mailrun/rayson.png') 0 0 / 384px 288px no-repeat; image-rendering: pixelated; animation: mr-flap .5s steps(4, jump-none) infinite, mr-bob 1.6s ease-in-out infinite; }
+@keyframes mr-flap { from { background-position-x: 0; } to { background-position-x: -288px; } }
+@keyframes mr-bob { 50% { transform: translateY(-8px); } }
+@media (max-width: 420px) { .mailrun-mini { width: 104px; height: 104px; } .mr-bird { transform: scale(.8); } }
+@media (prefers-reduced-motion: reduce) { .mr-bird { animation: none; } }

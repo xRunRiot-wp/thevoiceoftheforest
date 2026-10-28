@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6ae145f4';
-import { $, $$, esc, toast } from './util.js?v=6ae145f4';
+import * as store from './store.js?v=6ae14747';
+import { $, $$, esc, toast } from './util.js?v=6ae14747';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
@@ -123,7 +123,7 @@ export function guildSay(who, kind, text, tag = '', player = '') {
 
 // Game posts (Lucky Den, Castform, Gimmighoul, Pelipper Post): only a couple per player, however many games or tries (her ask 10-27).
 // Returns false when the post was skipped.
-const GAME_TAGS = new Set(['lucky', 'fortune', 'gimmighoul', 'mail', 'sentry', 'dance', 'stew', 'nursery']);
+const GAME_TAGS = new Set(['lucky', 'fortune', 'gimmighoul', 'mail', 'sentry', 'dance', 'stew', 'nursery', 'mailrun']);
 const GAME_POSTS = 2; const GAME_WINDOW = 3 * 3600e3;
 export function gameSay(who, kind, text, tag, player) {
   const pl = (player || '').toLowerCase(); const since = Date.now() - GAME_WINDOW;

@@ -46,6 +46,8 @@ function pump() {
     nextAt += EIGHTH; stepIdx++;
   }
 }
+// sound effects without the dance tune (the Mail Run): make sure audio is ready after a tap
+export function ensureAudio() { if (init()) ctx.resume?.(); }
 export function startMusic() {
   if (!init()) return;
   ctx.resume?.();

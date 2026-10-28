@@ -3,12 +3,12 @@
 // clean every day. Each day the buddy is fully cared for counts toward growing up: Egg → Baby → Kid → Teen.
 // A teen can be asked to join the team (it goes on the GM checklist as a recruit).
 // Stats drop in real time from when you last did each thing. State: nursery/<charId>.
-import * as store from './store.js?v=6ae145f4';
-import { $, $$, esc, toast, num } from './util.js?v=6ae145f4';
-import { me, logRoll } from './play.js?v=6ae145f4';
-import { dailyRoll } from './weather.js?v=6ae145f4';
-import { gameSay, gmTodo } from './chatter.js?v=6ae145f4';
-import { markWinner } from './sparkle.js?v=6ae145f4';
+import * as store from './store.js?v=6ae14747';
+import { $, $$, esc, toast, num } from './util.js?v=6ae14747';
+import { me, logRoll } from './play.js?v=6ae14747';
+import { dailyRoll } from './weather.js?v=6ae14747';
+import { gameSay, gmTodo } from './chatter.js?v=6ae14747';
+import { markWinner } from './sparkle.js?v=6ae14747';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
