@@ -7,12 +7,12 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae15448';
-import { $, $$, esc, toast, num } from './util.js?v=6ae15448';
-import { me, logRoll } from './play.js?v=6ae15448';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae15448';
-import { gameSay, gmTodo } from './chatter.js?v=6ae15448';
-import { markWinner } from './sparkle.js?v=6ae15448';
+import * as store from './store.js?v=6ae15590';
+import { $, $$, esc, toast, num } from './util.js?v=6ae15590';
+import { me, logRoll } from './play.js?v=6ae15590';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae15590';
+import { gameSay, gmTodo } from './chatter.js?v=6ae15590';
+import { markWinner } from './sparkle.js?v=6ae15590';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -92,10 +92,10 @@ function startPet(root, b, scene) {
   const maxX = () => Math.max(10, roomEl.clientWidth - pw - 10);
   pet.style.left = x + 'px';
   const fx = (ch, dx = 0) => { const e = document.createElement('span'); e.className = 'pet-fx'; e.textContent = ch; e.style.left = (x + pw / 2 - 12 + dx) + 'px'; roomEl.appendChild(e); setTimeout(() => e.remove(), 1400); };
-  const walkTo = async (tx) => {
+  const walkTo = async (tx, sp = 75) => {
     tx = Math.max(10, Math.min(maxX(), tx)); const d = Math.abs(tx - x); if (d < 4) return;
-    row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / 75).toFixed(2)}s linear`; pet.style.left = tx + 'px'; x = tx;
-    await wait(d / 75 * 1000); row('idle');
+    row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / sp).toFixed(2)}s linear`; pet.style.left = tx + 'px'; x = tx;
+    await wait(d / sp * 1000); row('idle');
   };
   const mood = () => { const k = Object.keys(needsOf(b)); return k.reduce((t, n) => t + stat(b, n), 0) / k.length; };
   const need = () => { const low = Object.keys(needsOf(b)).filter((n) => stat(b, n) < 40).sort((p, q) => stat(b, p) - stat(b, q))[0]; return low ? lab(low)[0] : ''; };
@@ -104,12 +104,15 @@ function startPet(root, b, scene) {
   pet.onclick = async () => {
     if (busy) return; busy = true; think.className = 'pet-think';
     const [want, text] = feeling(b); const sleeping = asleep();
-    if (!sleeping) await walkTo(roomEl.clientWidth / 2 - pw / 2);
+    if (!sleeping) await walkTo(roomEl.clientWidth / 2 - pw / 2, 260); // hurries over when tapped
     if (!alive()) return;
     if (!sleeping) { row('idle'); pet.classList.add('close'); }
-    roomEl.insertAdjacentHTML('beforeend', `<div class="emo-pane" role="status"><img src="${faceOf(b, want)}" alt=""><p>${esc(text)}</p></div>`);
+    // her ask: the window looks like Pikachu's frames in Pokémon Yellow (square double-line frame with corner knobs,
+    // a mood mark over the head) and nearly fills the nursery room
+    const sym = sleeping ? 'z Z' : /Joyous|Happy|Inspired/.test(want[0]) ? '♥' : /Crying|Teary/.test(want[0]) ? '…' : /Sad|Worried/.test(want[0]) ? '?' : '♪';
+    roomEl.insertAdjacentHTML('beforeend', `<div class="emo-pane yf" role="status"><div class="yf-pic"><span class="yf-sym ${sym === '♥' ? 'heart' : ''}">${sym}</span><img src="${faceOf(b, want)}" alt=""></div><p>${esc(text)}</p></div>`);
     const pane = $('.emo-pane', roomEl);
-    await Promise.race([wait(3600), new Promise((ok) => { pane.onclick = ok; })]);
+    await Promise.race([wait(4200), new Promise((ok) => { pane.onclick = ok; })]);
     pane.classList.add('bye'); pet.classList.remove('close'); setTimeout(() => pane.remove(), 300);
     if (!sleeping) { await wait(450); fx('💕', -14); fx('💗', 14); row('nod', false); await wait(900); row('idle'); } else row('sleep', true, 1.6);
     busy = false;

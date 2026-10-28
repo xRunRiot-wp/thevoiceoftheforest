@@ -1800,3 +1800,20 @@ a.ch-chip:hover { background: var(--navy); }
 @media (prefers-reduced-motion: reduce) { .n-sky i { animation: none; left: 20%; } }
 /* Mail Run: the day's weather and what it does (her ask 10-27) */
 .mr-wx { margin: 0 0 6px; padding: 6px 10px; border-radius: 10px; background: #eaf3ff; border: 1px solid #b9d3f0; font-size: 14px; }
+/* Nursery feelings window, Pokémon Yellow frame style (her ask 10-27): square double-line frame with knobs on the corners,
+   big face, a mood mark over its head; nearly fills the room */
+.emo-pane.yf { left: 50%; top: 50%; bottom: auto; translate: -50% -50%; width: auto; height: 88%; aspect-ratio: 1 / 1; max-width: 92%; max-height: 88%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 18px 16px 14px; box-sizing: border-box;
+  background: #fbfbf2; color: #282828; border: 3px solid #282828; border-radius: 3px; box-shadow: inset 0 0 0 5px #fbfbf2, inset 0 0 0 8px #282828, 0 6px 0 rgba(0, 0, 0, .25); animation: yf-in .3s steps(5, end); }
+.emo-pane.yf::before { content: ''; position: absolute; inset: -9px; pointer-events: none;
+  background: radial-gradient(circle, #fbfbf2 0 3px, #282828 3.5px 6px, transparent 6.5px) 0 0 / 16px 16px no-repeat, radial-gradient(circle, #fbfbf2 0 3px, #282828 3.5px 6px, transparent 6.5px) 100% 0 / 16px 16px no-repeat,
+    radial-gradient(circle, #fbfbf2 0 3px, #282828 3.5px 6px, transparent 6.5px) 0 100% / 16px 16px no-repeat, radial-gradient(circle, #fbfbf2 0 3px, #282828 3.5px 6px, transparent 6.5px) 100% 100% / 16px 16px no-repeat; }
+.emo-pane.yf { container-type: size; }
+.yf-pic { position: relative; flex: none; width: 72cqh; height: 72cqh; max-width: 100%; display: grid; place-items: center; }
+.yf-pic img { width: 100%; height: 100%; border: 0; background: none; image-rendering: pixelated; object-fit: contain; }
+.yf-sym { position: absolute; top: 3%; right: 5%; z-index: 1; font: 700 clamp(28px, 8vw, 44px)/1 var(--pix); color: #282828; text-shadow: 0 0 3px #fbfbf2, 0 0 3px #fbfbf2, 0 0 6px #fbfbf2; animation: yf-bob 1s ease-in-out infinite; }
+.yf-sym.heart { color: #e8702a; }
+.emo-pane.yf p { margin: 0; text-align: center; font: 700 clamp(13px, 3.6vw, 17px)/1.3 var(--pix); }
+@keyframes yf-in { from { scale: .3; opacity: 0; } to { scale: 1; opacity: 1; } }
+@keyframes yf-bob { 50% { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .emo-pane.yf, .yf-sym { animation: none; } }
