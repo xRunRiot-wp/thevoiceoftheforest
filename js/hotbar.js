@@ -1,10 +1,13 @@
 // Character hotbar in the top banner: money, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6ae14a7a';
-import { $, esc, num, toast } from './util.js?v=6ae14a7a';
-import { modal } from './ui.js?v=6ae14a7a';
-import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae14a7a';
-import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6ae14a7a';
+import * as store from './store.js?v=6ae14af8';
+import { $, esc, num, toast } from './util.js?v=6ae14af8';
+import { modal } from './ui.js?v=6ae14af8';
+import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae14af8';
+import { sentryDue } from './sentry.js?v=6ae14af8';
+import { kitchenDue } from './kitchen.js?v=6ae14af8';
+import { nurseryDue } from './nursery.js?v=6ae14af8';
+import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6ae14af8';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -29,7 +32,9 @@ export function showGarment(c) {
 function hotbarHTML(c) {
   const bag = Object.values(store.get('bag') || {}).filter((b) => b.owner === c.id || b.owner === 'team');
   const pins = pinsOf(c).map((n) => { const qty = bag.filter((b) => b.name === n).reduce((s, b) => s + num(b.qty), 0); return `<button class="hb hb-pin hb-btn ${qty ? '' : 'gone'}" data-pinitem="${esc(n)}" title="Use or look up ${esc(n)}">📌 ${esc(n)}${qty > 1 ? ' ×' + qty : ''}</button>`; }).join('');
+  const due = choresFor(c).filter((x) => x.due).length;
   return `<a class="hb hb-me" href="#/play" title="Open your character sheet"><b>${esc(c.nickname)}</b></a>
+    <button class="hb hb-btn hb-chores ${due ? 'due' : 'done'}" id="hbchores" title="Today’s chores">📋 Chores ${due ? `<b class="hb-count">${due}</b>` : '✓'} ▾</button>
     <span class="hb" title="Poké">💰 ${num(c.poke).toLocaleString()}</span>
     <a class="hb hb-link" href="#/gym" title="Training Points: open the Training Gym">${num(c.tp)} Training Points (TP) 🏋️</a>
     <span class="hb-pins">${pins || '<button class="hb hb-pin hb-btn muted" id="hbpinadd" title="Quick-pin items from your Bag">📌 Pin items in your Bag ▾</button>'}${pins && pinsOf(c).length < 3 ? '<button class="hb hb-pin hb-btn" id="hbpinadd" title="Quick-pin items from your Bag">📌＋</button>' : ''}</span>
@@ -56,6 +61,7 @@ export function updateHotbar() {
   $('#hbgarb', el).onclick = () => showGarment((store.get('party') || {})[meId()] || c);
   $('.hb-me', el).onclick = (e) => { e.preventDefault(); openSheet(); };
   const add = $('#hbpinadd', el); if (add) add.onclick = (e) => { e.stopPropagation(); togglePinMenu(add, c.id); };
+  const ch = $('#hbchores', el); if (ch) ch.onclick = (e) => { e.stopPropagation(); toggleChores(ch, c.id); };
   el.querySelectorAll('[data-pinitem]').forEach((b) => b.onclick = (e) => { e.stopPropagation(); openItemPop(b, c.id, b.dataset.pinitem); });
 }
 
@@ -105,11 +111,36 @@ async function openItemPop(anchor, id, name) {
   document.addEventListener('pointerdown', outsidePinMenu, true); document.addEventListener('keydown', escPinMenu);
 }
 
+// Today's chores (her ask 10-27): a quick list of the daily jobs, what still needs doing, one tap to go there.
+const gymDay = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+function choresFor(c) {
+  return [
+    ['📬', 'Read today’s mail mission', mailWaiting(c), null],
+    ['👣', 'Sentry Duty with Diglett', sentryDue(), '#/games/sentry-duty'],
+    ['🍲', 'Help in Spinda’s Kitchen', kitchenDue(), '#/games/spinda-kitchen'],
+    ['🥚', 'Care for your nursery buddy', nurseryDue(), '#/games/fernshade-nursery'],
+    ['🏋️', 'Today’s drill at the Training Gym', c.gym?.day !== gymDay(), '#/gym'],
+  ].map(([icon, label, due, href]) => ({ icon, label, due: !!due, href }));
+}
+function toggleChores(anchor, id) {
+  if (document.getElementById('pinmenu')?.dataset.chores) { closePinMenu(); return; }
+  closePinMenu();
+  const c = (store.get('party') || {})[id]; if (!c) return;
+  const m = document.createElement('div'); m.id = 'pinmenu'; m.className = 'pinmenu chores-menu'; m.dataset.chores = '1'; document.body.appendChild(m);
+  const r = anchor.getBoundingClientRect();
+  m.style.top = Math.round(r.bottom + 6) + 'px'; m.style.left = Math.round(Math.max(8, Math.min(r.left, window.innerWidth - 268))) + 'px';
+  const list = choresFor(c); const left = list.filter((x) => x.due).length;
+  m.innerHTML = `<div class="pm-head">📋 Today’s chores <span class="muted">${left ? `${left} to do` : 'all done!'}</span></div>`
+    + list.map((x, i) => `<button class="pm-item ch-item ${x.due ? 'due' : 'ok'}" data-ci="${i}"><span class="pm-tick">${x.due ? '○' : '✓'}</span><span>${x.icon}</span><span class="grow">${esc(x.label)}</span>${x.due ? '<span class="muted">Go ›</span>' : ''}</button>`).join('');
+  m.querySelectorAll('[data-ci]').forEach((b) => b.onclick = () => { const x = list[+b.dataset.ci]; closePinMenu(); if (!x.href) openMyMailbox(); else location.hash = x.href; });
+  document.addEventListener('pointerdown', outsidePinMenu, true); document.addEventListener('keydown', escPinMenu);
+}
+
 // Quick-pin dropdown: the player's current bag items, tap to pin/unpin (max 3). Lives on <body> so the
 // sideways-scrolling hotbar can't clip it.
 const isBadge = (name) => / (Rank|Guild) Badge$/.test(name || '');
 function closePinMenu() { document.getElementById('pinmenu')?.remove(); document.removeEventListener('pointerdown', outsidePinMenu, true); document.removeEventListener('keydown', escPinMenu); }
-function outsidePinMenu(e) { const m = document.getElementById('pinmenu'); if (m && !m.contains(e.target) && e.target.id !== 'hbpinadd' && !e.target.closest?.('[data-pinitem]')) closePinMenu(); }
+function outsidePinMenu(e) { const m = document.getElementById('pinmenu'); if (m && !m.contains(e.target) && e.target.id !== 'hbpinadd' && !e.target.closest?.('[data-pinitem], #hbchores')) closePinMenu(); }
 function escPinMenu(e) { if (e.key === 'Escape') closePinMenu(); }
 function togglePinMenu(anchor, id) {
   if (document.getElementById('pinmenu')) { closePinMenu(); return; }

@@ -1720,3 +1720,11 @@ a.ch-chip:hover { background: var(--navy); }
 .mrp-bird { position: absolute; top: 50%; width: 36px; height: 54px; translate: -50% -55%; background: url('../assets/mailrun/rayson.png') 0 0 / 144px 108px no-repeat; image-rendering: pixelated; animation: mrp-flap .4s steps(4, jump-none) infinite; }
 @keyframes mrp-flap { from { background-position-x: 0; } to { background-position-x: -108px; } }
 .mrp-labels { display: flex; justify-content: space-between; font: 700 11px var(--pix); color: #6b5638; margin: 2px 26px 6px; }
+
+/* Today's chores chip + dropdown on the top bar */
+.hotbar .hb-chores.due { background: rgba(224, 69, 58, .35); border-color: #e0453a; }
+.hotbar .hb-chores.done { background: rgba(79, 157, 74, .35); border-color: #4f9d4a; }
+.hb-count { display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 99px; background: #e0453a; color: #fff; font-size: 12px; line-height: 18px; text-align: center; }
+.chores-menu { width: 280px; }
+.chores-menu .ch-item.ok { opacity: .6; } .chores-menu .ch-item.ok .grow { text-decoration: line-through; }
+.chores-menu .ch-item.due .pm-tick { color: #ffb0a8; }

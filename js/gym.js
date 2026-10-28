@@ -1,13 +1,13 @@
 // Training Gym (#/gym): one drill per day per character. Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6ae14a7a';
-import { $, $$, esc, num, pool } from './util.js?v=6ae14a7a';
-import { modal, diceFaces } from './ui.js?v=6ae14a7a';
-import { statVal, logRoll } from './play.js?v=6ae14a7a';
-import { myId } from './app.js?v=6ae14a7a';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae14a7a';
-import { RESIDENTS } from './chatter.js?v=6ae14a7a';
+import * as store from './store.js?v=6ae14af8';
+import { $, $$, esc, num, pool } from './util.js?v=6ae14af8';
+import { modal, diceFaces } from './ui.js?v=6ae14af8';
+import { statVal, logRoll } from './play.js?v=6ae14af8';
+import { myId } from './app.js?v=6ae14af8';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae14af8';
+import { RESIDENTS } from './chatter.js?v=6ae14af8';
 
 const BAR = 5;
 export const DRILLS = [
