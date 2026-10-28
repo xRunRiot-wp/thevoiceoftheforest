@@ -3,14 +3,14 @@
 // storm clouds and rival bird flocks, and catch the letters the wind blew away. 3 hearts; a hit costs a heart and
 // a letter. Reaching Woodland Base delivers the mail. The first delivery each day pays Poké (+ a perfect-run bonus).
 // Art: Explorers of Sky skies/clouds and Sunshell beach strips (TSR rips), Wingull/Taillow/Starly sprites (SpriteCollab).
-import * as store from './store.js?v=6ae14af8';
-import { $, esc, num, uid } from './util.js?v=6ae14af8';
-import { me, logRoll } from './play.js?v=6ae14af8';
-import { dailyRoll } from './weather.js?v=6ae14af8';
-import { gameSay } from './chatter.js?v=6ae14af8';
-import { markWinner } from './sparkle.js?v=6ae14af8';
-import { rareItem } from './sentry.js?v=6ae14af8';
-import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae14af8';
+import * as store from './store.js?v=6ae14c87';
+import { $, esc, num, uid } from './util.js?v=6ae14c87';
+import { me, logRoll } from './play.js?v=6ae14c87';
+import { dailyRoll } from './weather.js?v=6ae14c87';
+import { gameSay } from './chatter.js?v=6ae14c87';
+import { markWinner } from './sparkle.js?v=6ae14c87';
+import { rareItem } from './sentry.js?v=6ae14c87';
+import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae14c87';
 
 export const isMailRun = (g) => g.kind === 'mailrun' || g.id === 'rayson-mail-run';
 
@@ -24,7 +24,7 @@ export const mailRunMini = () => `<div class="mailrun-mini"><span class="mr-bird
 
 const A = {};
 const loadImg = (k, src) => new Promise((ok) => { const im = new Image(); im.onload = () => { A[k] = im; ok(); }; im.onerror = ok; im.src = src; });
-const assets = () => Promise.all(Object.entries({ sky: 'sky', c0: 'cloud0', c1: 'cloud1', c2: 'cloud2', sea: 'sea', sand: 'sand', rocks: 'rocks', bird: 'rayson', taillow: 'taillow', starly: 'starly', letter: 'letter', sign: 'sign', skyday: 'sky_day', skydusk: 'sky_dusk', sun: 'sun', d0: 'dcloud0', d2: 'dcloud2' })
+const assets = () => Promise.all(Object.entries({ sky: 'sky', c0: 'cloud0', c1: 'cloud1', c2: 'cloud2', sea: 'sea', sand: 'sand', rocks: 'rocks', bird: 'rayson', taillow: 'taillow', starly: 'starly', letter: 'letter', sign: 'sign', tent: 'tent', skyday: 'sky_day', skydusk: 'sky_dusk', sun: 'sun', d0: 'dcloud0', d2: 'dcloud2' })
   .map(([k, f]) => loadImg(k, `assets/mailrun/${f}.png`)).concat(loadImg('grass', 'assets/nursery/grass.png')));
 
 function phaseAt(x) { const p = x / LENGTH; return p < 0.4 ? 'sea' : p < 0.72 ? 'beach' : 'meadow'; }
@@ -114,9 +114,10 @@ function play(c, box, onDone) {
     if (ph === 'sea') { tile(A.sea, x * 1.2, seaY, H - GROUND + 10); g.fillStyle = 'rgba(255,255,255,.75)'; for (let i = 0; i < 9; i++) { const sx = ((i * 61 - x * 1.2) % W + W) % W; if (Math.sin(performance.now() / 180 + i * 2) > 0.6) g.fillRect(sx, GROUND + 6 + (i * 7) % 20, 3, 2); } }
     else if (ph === 'beach') tile(A.sand, x, GROUND - 4, H - GROUND + 4);
     else { if (A.grass) { const pat = g.createPattern(A.grass, 'repeat'); g.save(); g.translate(-(x % 24), 0); g.fillStyle = pat; g.fillRect(0, GROUND, W + 24, H - GROUND); g.restore(); } }
-    // finish sign
-    const fx = LENGTH - x + 80;
-    if (fx < W + 60 && A.sign) { g.drawImage(A.sign, fx, GROUND - 70, 72, 72); g.fillStyle = '#3a2c1a'; g.font = 'bold 11px sans-serif'; g.fillText('Woodland Base', fx - 10, GROUND - 76); }
+    // the finish: the Woodland Base tent (the GM's own art, her ask 10-27) glides in and Rayson flies right into it
+    const tw = 400; const th = tw * (A.tent ? A.tent.height / A.tent.width : 0.53); const tcx = LENGTH - x + 90;
+    if (A.tent && tcx - tw / 2 < W) g.drawImage(A.tent, tcx - tw / 2, GROUND + 10 - th, tw, th);
+    else if (!A.tent && tcx < W + 60 && A.sign) g.drawImage(A.sign, tcx, GROUND - 70, 72, 72);
     // obstacles
     const time = performance.now() / 1000;
     for (const o of obs) {

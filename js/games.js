@@ -1,24 +1,30 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6ae14af8';
-import * as store from './store.js?v=6ae14af8';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae14af8';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae14af8';
-import { modal, portrait } from './ui.js?v=6ae14af8';
-import * as sheet from './sheetdata.js?v=6ae14af8';
-import { shop } from './guild.js?v=6ae14af8';
-import { merged, editContent } from './content-store.js?v=6ae14af8';
-import { logRoll, me, addTeamFx } from './play.js?v=6ae14af8';
-import { luckyReaction, gmTodo } from './chatter.js?v=6ae14af8';
-import { ranks } from './rulebook.js?v=6ae14af8';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae14af8';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae14af8';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae14af8';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae14af8';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae14af8';
-import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6ae14af8';
+import { markWinner } from './sparkle.js?v=6ae14c87';
+import * as store from './store.js?v=6ae14c87';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae14c87';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae14c87';
+import { modal, portrait } from './ui.js?v=6ae14c87';
+import * as sheet from './sheetdata.js?v=6ae14c87';
+import { shop } from './guild.js?v=6ae14c87';
+import { merged, editContent } from './content-store.js?v=6ae14c87';
+import { logRoll, me, addTeamFx } from './play.js?v=6ae14c87';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ae14c87';
+import { ranks } from './rulebook.js?v=6ae14c87';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae14c87';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae14c87';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae14c87';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae14c87';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae14c87';
+import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6ae14c87';
+import { isTruck, renderTruck, truckMini } from './truck.js?v=6ae14c87';
 
 export const GAMES = [
+  {
+    id: 'machamp-wagon', kind: 'truck', group: 'Skill Games', name: 'Supply Wagon with Machamp', host: 'Machamp',
+    intro: 'The supply wagon just rolled into Woodland Base and Machamp is tossing everything off it with all four arms. Run back and forth to catch it all: food goes in the pantry basket, gear goes in the storage chest. Just don’t catch the Voltorb.',
+    cost: '', slices: [],
+  },
   {
     id: 'rayson-mail-run', kind: 'mailrun', group: 'Skill Games', name: 'Rayson’s Mail Run', host: 'Rayson the Wingull',
     intro: 'The wind scattered the guild’s mail all over Sunshell Beach. Help Rayson the Wingull fly it home to Woodland Base: tap to flap, dodge sea rocks, storm clouds and rival flocks, and catch every letter you can.',
@@ -116,7 +122,7 @@ const parse = (g) => {
   return { ...g, slices, colors, twists };
 };
 // her asks 10-27: Chores, Skill Games (Ralts's dance) and Gambling Games; the GM can move any game in Edit
-const sectionOf = (g) => g.group || (isDance(g) || isMailRun(g) ? 'Skill Games' : isSentry(g) || isKitchen(g) || isNursery(g) ? 'Chores' : 'Gambling Games');
+const sectionOf = (g) => g.group || (isDance(g) || isMailRun(g) || isTruck(g) ? 'Skill Games' : isSentry(g) || isKitchen(g) || isNursery(g) ? 'Chores' : 'Gambling Games');
 export const games = () => merged('games', GAMES).map(parse);
 const forEdit = (g) => ({ ...g, slicesText: g.slices.map(([n, w, p]) => `${n} | ${w}${p ? ' | ' + p : ''}`).join('\n'), colorsText: g.colors.join(', '),
   twistsText: g.twists.map(([n, k, t]) => `${n} | ${k} | ${t}`).join('\n') });
@@ -207,11 +213,11 @@ export function renderGames(main, [arg]) {
   if (!arg) {
     // her ask 10-27: Chores (daily guild jobs) and Gambling Games in their own sections; the GM picks a game's section in Edit
     const card = (g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''} ${(isSentry(g) && sentryDue()) || (isDance(g) && danceDue()) || (isKitchen(g) && kitchenDue()) || (isNursery(g) && nurseryDue()) ? 'due' : ''}" href="#/games/${esc(g.id)}">${isSentry(g) && sentryDue() ? '<span class="due-ribbon">⚠️ Today’s shift not done yet!</span>' : isDance(g) && danceDue() ? '<span class="due-ribbon dance">⚠️ Today’s practice not done yet!</span>' : isKitchen(g) && kitchenDue() ? '<span class="due-ribbon stew">⚠️ Today’s stew not made yet!</span>' : isNursery(g) && nurseryDue() ? '<span class="due-ribbon nursery">⚠️ Your buddy needs care today!</span>' : ''}
-        ${isSentry(g) ? sentryMini() : isDance(g) ? danceMini() : isKitchen(g) ? kitchenMini() : isMailRun(g) ? mailRunMini() : isNursery(g) ? '<div class="nursery-mini"><img class="egg" src="assets/nursery/egg.png" alt=""></div>' : isFortune(g) ? fortuneMini() : `<canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>`}
+        ${isSentry(g) ? sentryMini() : isDance(g) ? danceMini() : isKitchen(g) ? kitchenMini() : isTruck(g) ? truckMini() : isMailRun(g) ? mailRunMini() : isNursery(g) ? '<div class="nursery-mini"><img class="egg" src="assets/nursery/egg.png" alt=""></div>' : isFortune(g) ? fortuneMini() : `<canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>`}
         <div class="gc-text"><h3>${esc(g.name)}</h3>
           <p class="gc-host">${esc(g.host ? (g.only ? '' : 'Run by ') + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}${g.only ? ` · <b>${esc(g.only)} only</b>` : ''}${g.special && g.twists.length ? ` · <b>✨ ${esc(g.special)} twists</b>` : ''}</p>
           <p class="gc-intro">${esc((g.intro || '').split('. ')[0].replace(/\.$/, ''))}.</p>
-          <span class="gc-play">${isSentry(g) ? 'Take your shift →' : isDance(g) ? 'Dance with Ralts →' : isKitchen(g) ? 'Start cooking →' : isNursery(g) ? 'Visit your buddy →' : isMailRun(g) ? 'Fly the mail →' : isFortune(g) ? 'Draw a card →' : 'Spin the wheel →'}</span></div></a>`;
+          <span class="gc-play">${isSentry(g) ? 'Take your shift →' : isDance(g) ? 'Dance with Ralts →' : isKitchen(g) ? 'Start cooking →' : isNursery(g) ? 'Visit your buddy →' : isMailRun(g) ? 'Fly the mail →' : isTruck(g) ? 'Start unloading →' : isFortune(g) ? 'Draw a card →' : 'Spin the wheel →'}</span></div></a>`;
     const chores = list.filter((g) => sectionOf(g) === 'Chores'); const skill = list.filter((g) => sectionOf(g) === 'Skill Games'); const gambling = list.filter((g) => sectionOf(g) === 'Gambling Games');
     main.innerHTML = `<div class="hero"><img class="hdr" src="assets/banners/items_orbs.jpg" alt=""></div>
       <div class="row" style="justify-content:space-between;margin-top:12px"><h1 style="margin:0">Games</h1>${gm ? '<button class="btn alt sm" id="add">+ Game</button>' : ''}</div>
@@ -227,6 +233,7 @@ export function renderGames(main, [arg]) {
   const g = list.find((x) => x.id === arg);
   if (!g) { main.innerHTML = '<p>That game is gone. <a href="#/games">Back</a></p>'; return; }
   // Castform's weather fortune table: cards instead of a wheel
+  if (isTruck(g)) { renderTruck(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }
   if (isMailRun(g)) { renderMailRun(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }
   if (isNursery(g)) { renderNursery(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }
   if (isKitchen(g)) { renderKitchen(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }

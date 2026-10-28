@@ -1728,3 +1728,14 @@ a.ch-chip:hover { background: var(--navy); }
 .chores-menu { width: 280px; }
 .chores-menu .ch-item.ok { opacity: .6; } .chores-menu .ch-item.ok .grow { text-decoration: line-through; }
 .chores-menu .ch-item.due .pm-tick { color: #ffb0a8; }
+
+/* Supply Wagon with Machamp */
+.tk-say { font: 700 13px var(--pix); background: #fff8e6; color: #3a2c1a; border: 2px solid #e2c98f; border-radius: 10px; padding: 4px 10px; margin-bottom: 6px; min-height: 22px; }
+.tk-pad { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.tk-pad .btn { min-width: 64px; min-height: 48px; font-size: 20px; touch-action: none; }
+.tk-pad span { flex: 1; text-align: center; }
+.truck-mini { width: 132px; height: 132px; flex: none; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: url('../assets/banners/guilds.jpg') 35% center / cover; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
+.tm-champ { width: 96px; height: 128px; background: url('../assets/truck/machamp.png') 0 0 / 960px 384px no-repeat; image-rendering: pixelated; animation: tm-idle 1.4s steps(10, jump-none) infinite; }
+@keyframes tm-idle { from { background-position-x: 0; } to { background-position-x: -864px; } }
+@media (max-width: 420px) { .truck-mini { width: 104px; height: 104px; } .tm-champ { transform: scale(.8); } }
+@media (prefers-reduced-motion: reduce) { .tm-champ { animation: none; } }
