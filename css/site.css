@@ -1741,14 +1741,14 @@ a.ch-chip:hover { background: var(--navy); }
 @media (prefers-reduced-motion: reduce) { .tm-champ { animation: none; } }
 
 /* Game card pictures (her ask 10-27: "background is bland, one is too busy"): real Explorers scenery behind each moving
-   Pokémon, drifting slowly; the Machamp tent art is a softened copy so Machamp stands out */
-.sentry-mini, .dance-mini, .kitchen-mini, .nursery-mini, .mailrun-mini, .truck-mini { background-size: 128% auto; background-repeat: no-repeat; image-rendering: pixelated; box-shadow: inset 0 0 0 3px rgba(255, 224, 150, .55), inset 0 0 22px rgba(20, 8, 30, .55); animation: gc-pan 16s ease-in-out infinite alternate; }
+   Pokémon, drifting slowly; her follow-up: drift slower, and Machamp gets the Treasure Town log-and-crate yard instead of the busy tent art */
+.sentry-mini, .dance-mini, .kitchen-mini, .nursery-mini, .mailrun-mini, .truck-mini { background-size: 128% auto; background-repeat: no-repeat; image-rendering: pixelated; box-shadow: inset 0 0 0 3px rgba(255, 224, 150, .55), inset 0 0 22px rgba(20, 8, 30, .55); animation: gc-pan 45s ease-in-out infinite alternate; }
 .sentry-mini { background-image: url('../assets/cards/sentry.png'); }
 .dance-mini { background-image: url('../assets/cards/dance.png'); }
 .kitchen-mini { background-image: url('../assets/cards/kitchen.png'); }
 .nursery-mini { background-image: url('../assets/cards/nursery.png'); }
-.mailrun-mini { background-image: url('../assets/cards/beach.png'); background-size: 112% auto; animation-duration: 9s; }
-.truck-mini { background-image: url('../assets/cards/wagon.jpg'); image-rendering: auto; }
+.mailrun-mini { background-image: url('../assets/cards/beach.png'); background-size: 112% auto; animation-duration: 30s; }
+.truck-mini { background-image: url('../assets/cards/wagon.png'); }
 @keyframes gc-pan { from { background-position: 0% 20%; } to { background-position: 100% 80%; } }
 .sentry-mini .fp, .ralts-spr, .spinda-spr, .nursery-mini .egg, .mr-bird, .tm-champ { filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .45)); }
 @media (prefers-reduced-motion: reduce) { .sentry-mini, .dance-mini, .kitchen-mini, .nursery-mini, .mailrun-mini, .truck-mini { animation: none; background-position: center; } }
