@@ -1,14 +1,15 @@
 // Dance Practice with Ralts (her ask 10-27): Ralts dances a short routine of up / down / left / right steps and the
 // player copies it with the arrow buttons (or arrow keys). Rounds grow from 3 to 8 steps. Ralts and the player's own
 // face react to every hit or missed step. A daily chore like Sentry Duty: a great practice pays Poké and maybe a rare item.
-import * as store from './store.js?v=6ae164f4';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae164f4';
-import { me, logRoll } from './play.js?v=6ae164f4';
-import { dailyRoll } from './weather.js?v=6ae164f4';
-import { gameSay } from './chatter.js?v=6ae164f4';
-import { markWinner } from './sparkle.js?v=6ae164f4';
-import { faceHTML, faceSrc, spKey, rareItem } from './sentry.js?v=6ae164f4';
-import { startMusic, stopMusic, stepSound, missSound, jingle, muted, setMuted } from './chiptune.js?v=6ae164f4';
+import * as store from './store.js?v=6ae166c0';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae166c0';
+import { me, logRoll } from './play.js?v=6ae166c0';
+import { dailyRoll } from './weather.js?v=6ae166c0';
+import { gameSay } from './chatter.js?v=6ae166c0';
+import { markWinner } from './sparkle.js?v=6ae166c0';
+import { faceHTML, faceSrc, spKey, rareItem } from './sentry.js?v=6ae166c0';
+import { startMusic, stopMusic, stepSound, missSound, jingle, muted, setMuted } from './chiptune.js?v=6ae166c0';
+import { startBroadcast } from './watch.js?v=6ae166c0';
 
 export const isDance = (g) => g.kind === 'dance' || g.id === 'ralts-dance';
 
@@ -68,6 +69,7 @@ function play(c, box, onDone) {
   // the tune stops if they leave the page mid-dance
   const leave = () => { if (!box.isConnected) { stopMusic(); window.removeEventListener('hashchange', leave); } };
   window.addEventListener('hashchange', () => setTimeout(leave, 0));
+  const stopWatch = startBroadcast('ralts-dance', 'Dance Practice with Ralts', { el: $('.dance', box), box }); // friends can watch live
   const spr = $('.ralts-spr', box); const steps = $('.dance-steps', box);
   const setSpr = (cls) => { spr.className = 'ralts-spr'; void spr.offsetWidth; spr.className = 'ralts-spr ' + cls; };
   const react = (mood, line) => { $('.dance-react', box).innerHTML = raltsFace(mood, line); };
@@ -95,7 +97,7 @@ function play(c, box, onDone) {
 
   const next = () => {
     round++;
-    if (round >= LENGTHS.length) { document.removeEventListener('keydown', onKey); stopMusic(); jingle(hits >= 24); finish(c, hits, box, onDone); return; }
+    if (round >= LENGTHS.length) { document.removeEventListener('keydown', onKey); stopMusic(); stopWatch(`${hits} steps matched`); jingle(hits >= 24); finish(c, hits, box, onDone); return; }
     setTimeout(show, 1400);
   };
 

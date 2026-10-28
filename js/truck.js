@@ -7,14 +7,15 @@
 // Run's day sky) above a soft, faded Woodland Base picture; bins at their old size but smoother (basket_hd/chest_hd = Scale4x of
 // the sprites, the chest recoloured to wood and gold).
 // Art: the Woodland Base tent (GM's campaign art) backdrop, Machamp / Voltorb / runner sprites (SpriteCollab), items, basket, chest and logs (PMDCollab RawAsset).
-import * as store from './store.js?v=6ae164f4';
-import { $, esc, num, uid } from './util.js?v=6ae164f4';
-import { me, logRoll } from './play.js?v=6ae164f4';
-import { dailyRoll } from './weather.js?v=6ae164f4';
-import { gameSay } from './chatter.js?v=6ae164f4';
-import { markWinner } from './sparkle.js?v=6ae164f4';
-import { rareItem } from './sentry.js?v=6ae164f4';
-import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae164f4';
+import * as store from './store.js?v=6ae166c0';
+import { $, esc, num, uid } from './util.js?v=6ae166c0';
+import { me, logRoll } from './play.js?v=6ae166c0';
+import { dailyRoll } from './weather.js?v=6ae166c0';
+import { gameSay } from './chatter.js?v=6ae166c0';
+import { markWinner } from './sparkle.js?v=6ae166c0';
+import { rareItem } from './sentry.js?v=6ae166c0';
+import { startBroadcast } from './watch.js?v=6ae166c0';
+import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae166c0';
 
 export const isTruck = (g) => g.kind === 'truck' || g.id === 'machamp-wagon';
 
@@ -40,12 +41,13 @@ function play(c, box, onDone) {
     <div class="tk-pad"><button class="btn alt" data-mv="-1">◀</button><span class="small muted">Drag, tap a side, or use ← →. Food in the 🧺 basket, gear in the chest.</span><button class="btn alt" data-mv="1">▶</button></div></div>`;
   const cv = $('#tkc', box); const g = cv.getContext('2d'); g.setTransform(2, 0, 0, 2, 0, 0); g.imageSmoothingEnabled = false;
   const rk = runnerKey(c); const [rw, rh, rfr] = RUNNERS[rk];
+  const stopWatch = startBroadcast('machamp-wagon', 'Supply Wagon with Machamp', { canvas: cv, box }); // friends can watch live
   let px = 220; let dir = 0; let face = -1; let carry = []; let stored = 0; let strikes = 0; let t = 0; let last = 0; let nextThrow = 1.2; let over = false; let raf = 0;
   let throwAnim = 0; let zapT = 0; let started = false; const flying = []; const pops = []; let target = null;
   const say = (line) => { const e = $('#tksay', box); if (e) e.textContent = 'Machamp: “' + line + '”'; };
   const hud = () => { $('#tks', box).textContent = '❌'.repeat(3 - strikes) + '⭕'.repeat(strikes); $('#tkn', box).textContent = `📦 ${stored} stored · 🎒 ${carry.length}/${MAXCARRY}`; $('#tkt', box).textContent = `⏱ ${Math.max(0, Math.ceil(SHIFT - t))}s`; };
   const strike = (why) => { strikes++; missSound(); say(why); hud(); if (strikes >= 3) end(); };
-  const end = () => { if (over) return; over = true; cancelAnimationFrame(raf); cleanup(); jingle(stored >= 20); setTimeout(() => finish(c, box, stored, strikes, onDone), 700); };
+  const end = () => { if (over) return; over = true; stopWatch(`${stored} things stored`); cancelAnimationFrame(raf); cleanup(); jingle(stored >= 20); setTimeout(() => finish(c, box, stored, strikes, onDone), 700); };
   // controls: drag / tap sides / keys / buttons
   const toX = (e) => { const r = cv.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; };
   const down = (e) => { e.preventDefault(); if (!started) { started = true; ensureAudio(); } target = toX(e); cv.setPointerCapture?.(e.pointerId); };

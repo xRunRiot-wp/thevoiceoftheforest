@@ -6,14 +6,15 @@
 // (Rayson loves rain: letters pay extra), strong wind = faster tailwind with gusts, fog = short sight, sandstorm = slower + hazy,
 // hail = heavy wings.
 // Art: Explorers of Sky skies/clouds and Sunshell beach strips (TSR rips), Wingull/Taillow/Starly sprites (SpriteCollab).
-import * as store from './store.js?v=6ae164f4';
-import { $, esc, num, uid } from './util.js?v=6ae164f4';
-import { me, logRoll } from './play.js?v=6ae164f4';
-import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6ae164f4';
-import { gameSay } from './chatter.js?v=6ae164f4';
-import { markWinner } from './sparkle.js?v=6ae164f4';
-import { rareItem } from './sentry.js?v=6ae164f4';
-import { stepSound, missSound, jingle, ensureAudio, startMusic, stopMusic, muted, setMuted } from './chiptune.js?v=6ae164f4';
+import * as store from './store.js?v=6ae166c0';
+import { $, esc, num, uid } from './util.js?v=6ae166c0';
+import { me, logRoll } from './play.js?v=6ae166c0';
+import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6ae166c0';
+import { gameSay } from './chatter.js?v=6ae166c0';
+import { markWinner } from './sparkle.js?v=6ae166c0';
+import { rareItem } from './sentry.js?v=6ae166c0';
+import { startBroadcast } from './watch.js?v=6ae166c0';
+import { stepSound, missSound, jingle, ensureAudio, startMusic, stopMusic, muted, setMuted } from './chiptune.js?v=6ae166c0';
 
 export const isMailRun = (g) => g.kind === 'mailrun' || g.id === 'rayson-mail-run';
 
@@ -87,6 +88,7 @@ function play(c, box, onDone) {
     <canvas id="mrc" width="${W}" height="${H}"></canvas><p class="small muted" style="text-align:center">Tap the sky (or press Space / ↑) to flap. <button class="btn alt sm" id="mrmusic">${muted() ? '🔇 Music off' : '🔊 Music on'}</button></p></div>`;
   $('#mrmusic', box).onclick = (e) => { const m = !muted(); setMuted(m); e.target.textContent = m ? '🔇 Music off' : '🔊 Music on'; };
   const cv = $('#mrc', box); const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
+  const stopWatch = startBroadcast('rayson-mail-run', 'Rayson’s Mail Run', { canvas: cv, box }); // friends can watch live
   const { obs, lets } = course(seedOf());
   if (wx.bolt) obs.forEach((o) => { if (o.k === 'storm') o.every *= wx.bolt; });
   // weather particles (fixed spots, moved each frame)
@@ -108,7 +110,7 @@ function play(c, box, onDone) {
     hud(); if (hearts <= 0) end(false);
   };
   const end = (made) => {
-    over = true; stopMusic(); cancelAnimationFrame(raf); cv.removeEventListener('pointerdown', flap); document.removeEventListener('keydown', key);
+    over = true; stopMusic(); stopWatch(made ? `Delivered the mail with ${got} letters!` : 'Rayson had to turn back.'); cancelAnimationFrame(raf); cv.removeEventListener('pointerdown', flap); document.removeEventListener('keydown', key);
     jingle(made); setTimeout(() => finish(c, box, made, got, hearts, onDone), 600);
   };
   const tile = (im, off, yy, hgt) => { if (!im) return; const w = im.width * (hgt / im.height); for (let px = -((off % w) + w) % w; px < W; px += w) g.drawImage(im, px, yy, w + 1, hgt); };
