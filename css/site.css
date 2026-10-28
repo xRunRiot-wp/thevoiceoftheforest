@@ -1817,3 +1817,9 @@ a.ch-chip:hover { background: var(--navy); }
 @keyframes yf-in { from { scale: .3; opacity: 0; } to { scale: 1; opacity: 1; } }
 @keyframes yf-bob { 50% { transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) { .emo-pane.yf, .yf-sym { animation: none; } }
+
+/* Pelipper Post gift notes (themes / dice the GM gave) */
+.gift-notes { display: grid; gap: 8px; margin: 8px 0 12px; }
+.gift-note { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--cream); border: 2px solid var(--line); }
+.gift-note.new { border-color: var(--orange); box-shadow: 0 0 0 3px color-mix(in srgb, var(--orange) 25%, transparent); }
+.gift-note .gn-icon { font-size: 28px; line-height: 1; }

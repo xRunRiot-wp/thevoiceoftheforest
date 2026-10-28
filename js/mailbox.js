@@ -1,14 +1,14 @@
 // Pelipper Post: a little mailbox above each player's name. Once a day every character gets one letter with a
 // small solo mission; they roll for it and can earn an item, Poké, a recruit chance or a new place to explore.
 // Letters are GM-editable (content/mail). Recruits and new places go on the GM checklist for the GM to play out.
-import * as store from './store.js?v=6ae15aae';
-import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae15aae';
-import { modal, closeModal } from './ui.js?v=6ae15aae';
-import { merged, editContent } from './content-store.js?v=6ae15aae';
-import { logRoll, statVal } from './play.js?v=6ae15aae';
-import { dailyRoll, hash } from './weather.js?v=6ae15aae';
-import { gameSay, gmTodo } from './chatter.js?v=6ae15aae';
-import { markWinner } from './sparkle.js?v=6ae15aae';
+import * as store from './store.js?v=6ae15bb0';
+import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae15bb0';
+import { modal, closeModal } from './ui.js?v=6ae15bb0';
+import { merged, editContent } from './content-store.js?v=6ae15bb0';
+import { logRoll, statVal } from './play.js?v=6ae15bb0';
+import { dailyRoll, hash } from './weather.js?v=6ae15bb0';
+import { gameSay, gmTodo } from './chatter.js?v=6ae15bb0';
+import { markWinner } from './sparkle.js?v=6ae15bb0';
 
 const KINDS = { item: ['🎁', 'Item'], poke: ['💰', 'Poké'], recruit: ['🤝', 'Recruit chance'], place: ['🧭', 'New place'] };
 export const MAIL_SCHEMA = [['title', 'Title'], ['from', 'From'], ['text', 'Letter', 'area'], ['attr', 'Roll: attribute (e.g. Insight)'], ['skill', 'Roll: skill (e.g. Alert)'],
@@ -50,7 +50,11 @@ export function letterFor(c, day = today()) {
   const all = letters().filter((l) => l.title); if (!all.length) return null;
   return all[Math.floor(hash(`${store.tableCode()}|mail|${day}|${c.id}`) * all.length)];
 }
-export const mailWaiting = (c) => !!c && !!letterFor(c) && slot(c.id).day !== today();
+// gift notes (her ask 10-27): when the GM gives a theme or dice, a note lands in that player's mailbox (giftmail/<id>/<note>)
+export function giftNote(id, icon, title, text) { store.set(`giftmail/${id}/${uid()}`, { t: Date.now(), icon, title, text }); }
+const giftsOf = (c) => Object.entries(store.get('giftmail/' + c.id) || {}).filter(([, n]) => n && n.title).sort((a, b) => num(b[1].t) - num(a[1].t));
+const unreadGifts = (c) => giftsOf(c).filter(([, n]) => !n.read);
+export const mailWaiting = (c) => !!c && ((!!letterFor(c) && slot(c.id).day !== today()) || unreadGifts(c).length > 0);
 
 const rewardText = (l) => l.kind === 'poke' ? `${num(l.reward).toLocaleString()} Poké` : l.kind === 'recruit' ? `A chance to recruit ${l.reward}` : l.reward;
 const letterHTML = (l) => `<div class="mail-letter"><div class="mail-from">✉️ From <b>${esc(l.from || 'Someone')}</b></div>
@@ -90,12 +94,14 @@ export function openMailbox(c) {
   if (!c) return;
   const l = letterFor(c); const s = slot(c.id); const done = s.day === today();
   const gm = store.gmUnlocked();
-  const box = modal(`<h2>📬 Pelipper Post</h2><p class="small muted">One letter a day for ${esc(c.nickname)}. Help out and earn a reward!</p>
+  const gifts = giftsOf(c).slice(0, 5); const fresh = new Set(unreadGifts(c).map(([k]) => k));
+  const box = modal(`<h2>📬 Pelipper Post</h2>${gifts.length ? `<div class="gift-notes">${gifts.map(([k, n]) => `<div class="gift-note ${fresh.has(k) ? 'new' : ''}"><span class="gn-icon">${esc(n.icon || '🎁')}</span><span class="grow"><b>${esc(n.title)}</b>${fresh.has(k) ? ' <span class="pill">New!</span>' : ''}<br><span class="small">${esc(n.text)}</span></span></div>`).join('')}</div>` : ''}<p class="small muted">One letter a day for ${esc(c.nickname)}. Help out and earn a reward!</p>
     ${l ? letterHTML(l) : '<p class="muted">No mail today.</p>'}
     <div class="mail-act result">${!l ? '' : done ? resultHTML(letters().find((x) => x.id === s.id) || l, s.res) : '<button class="btn block" id="mailgo">Take the mission 🎲</button>'}</div>
     ${gm ? `<h3 style="margin-top:16px">Letters (GM)</h3><ul class="mail-list">${letters().map((x) => `<li><span class="grow">${KINDS[x.kind]?.[0] || '🎁'} ${esc(x.title || '(untitled)')}</span><button class="btn alt sm" data-mailed="${esc(x.id)}">Edit</button></li>`).join('')}</ul>
       <button class="btn alt" id="mailadd">Add a letter</button>${done ? ' <button class="btn alt" id="mailreset">Let them try again today</button>' : ''}` : ''}`);
   box.classList.add('mail-sheet');
+  fresh.forEach((k) => store.set(`giftmail/${c.id}/${k}/read`, true));
   const g = $('#mailgo', box); if (g) g.onclick = () => { g.disabled = true; go(c, l, box); };
   $$('[data-mailed]', box).forEach((b) => b.onclick = () => editContent('mail', MAIL_SCHEMA, letters().find((x) => x.id === b.dataset.mailed), { title: 'Edit letter' }));
   const a = $('#mailadd', box); if (a) a.onclick = () => editContent('mail', MAIL_SCHEMA, null, { title: 'New letter' });

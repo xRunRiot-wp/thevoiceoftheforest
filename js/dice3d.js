@@ -1,8 +1,8 @@
 // 3D dice: every d6 roll on this device plays as tumbling dice over the screen, then shows the result.
 // Results always come from the site's own roller; the animation just lands each die on its value.
 // Skins are per device (each player picks their own) and saved in this browser.
-import { $, $$, esc } from './util.js?v=6ae15aae';
-import { modal } from './ui.js?v=6ae15aae';
+import { $, $$, esc } from './util.js?v=6ae15bb0';
+import { modal } from './ui.js?v=6ae15bb0';
 
 const THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 const KEY = 'dc.dice';
@@ -19,8 +19,11 @@ export const PRESETS = {
   night: { name: 'Night', body: '#2a2440', pip: '#c9b8ff', style: 'gem' },
   gold: { name: 'Gold', body: '#d6a93a', pip: '#4a3008', style: 'metal' },
   oak: { name: 'Oak', body: '#9a6b3c', pip: '#2b1a0c', style: 'wood' },
+  // her asks 10-27: Time Gear dice (Nimbi, Magnemite) and rune dice (Golett)
+  timegear: { name: 'Time Gear', body: '#13284a', pip: '#5ff2ff', style: 'timegear' },
+  runes: { name: 'Runes', body: '#6d6a66', pip: '#ffb84a', style: 'rune' },
 };
-const STYLES = [['solid', 'Solid'], ['pokeball', 'Poké Ball band'], ['marble', 'Marble'], ['gem', 'Gem (see-through)'], ['metal', 'Metal'], ['wood', 'Wood']];
+const STYLES = [['solid', 'Solid'], ['pokeball', 'Poké Ball band'], ['marble', 'Marble'], ['gem', 'Gem (see-through)'], ['metal', 'Metal'], ['wood', 'Wood'], ['timegear', 'Time Gear'], ['rune', 'Carved runes']];
 
 export function skin() {
   let s = {};
@@ -63,9 +66,23 @@ export function drawFace(v, s, size = 128) {
     for (let i = 0; i < 14; i++) { g.strokeStyle = `rgba(40,20,5,${.12 + (i % 3) * .05})`; g.lineWidth = 1 + (i % 2); g.beginPath(); const y0 = i * S / 14; g.moveTo(0, y0); g.bezierCurveTo(S * .3, y0 + 6, S * .6, y0 - 6, S, y0 + 3); g.stroke(); }
   } else if (s.style === 'metal') {
     const m = g.createLinearGradient(0, 0, 0, S); m.addColorStop(0, 'rgba(255,255,255,.45)'); m.addColorStop(.5, 'rgba(255,255,255,0)'); m.addColorStop(1, 'rgba(0,0,0,.25)'); g.fillStyle = m; g.fillRect(0, 0, S, S);
+  } else if (s.style === 'timegear') {
+    // a faint glowing cog, turned a little differently on every face, and a bright rim
+    const r1 = S * .42; const r0 = S * .33;
+    g.save(); g.translate(S / 2, S / 2); g.rotate(v * .4); g.strokeStyle = s.pip; g.globalAlpha = .28; g.lineWidth = S * .03; g.beginPath();
+    for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI * 2; const r = i % 2 ? r0 : r1; const a2 = a + Math.PI / 24; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); g.lineTo(Math.cos(a2) * r, Math.sin(a2) * r); }
+    g.closePath(); g.stroke(); g.beginPath(); g.arc(0, 0, S * .18, 0, Math.PI * 2); g.stroke(); g.restore();
+    g.save(); g.strokeStyle = s.pip; g.globalAlpha = .55; g.lineWidth = S * .025; g.shadowColor = s.pip; g.shadowBlur = S * .06; g.strokeRect(S * .06, S * .06, S * .88, S * .88); g.restore();
+  } else if (s.style === 'rune') {
+    // worn stone: speckles, a crack and a carved border
+    for (let i = 0; i < 70; i++) { const x = ((i * 53 + v * 17) % 97) / 97 * S; const y = ((i * 31 + v * 41) % 89) / 89 * S; g.fillStyle = i % 3 ? 'rgba(0,0,0,.16)' : 'rgba(255,255,255,.12)'; g.fillRect(x, y, 2 + (i % 3), 2 + (i % 2)); }
+    g.strokeStyle = 'rgba(30,25,20,.35)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(S * ((v * 13) % 7) / 7, 0); g.lineTo(S * .4, S * .25); g.lineTo(S * .55, S * .2); g.stroke();
+    g.strokeStyle = 'rgba(25,20,15,.45)'; g.lineWidth = S * .025; g.strokeRect(S * .08, S * .08, S * .84, S * .84);
   }
   g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = S * .05; g.strokeRect(0, 0, S, S); // edge
   g.fillStyle = s.pip;
+  if (s.style === 'rune' && !s.numbers) { runeFace(g, v, s, S); return c; }
+  if (s.style === 'timegear') { g.shadowColor = s.pip; g.shadowBlur = S * .08; }
   if (s.numbers) {
     g.font = `bold ${S * .55}px Georgia, serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(v), S / 2, S * .54);
     if (v === 6 || v === 9) g.fillRect(S * .38, S * .8, S * .24, S * .04);
@@ -73,6 +90,20 @@ export function drawFace(v, s, size = 128) {
     for (const [x, y] of PIPS[v]) { g.beginPath(); g.arc(x * S, y * S, S * (v === 1 ? .12 : .085), 0, Math.PI * 2); g.fill(); }
   }
   return c;
+}
+
+// Rune dice: every pip is a small carved, glowing rune (so the count still reads at a glance)
+const RUNES = [[[0, -1, 0, 1], [0, -1, .6, -.3]], [[0, -1, 0, 1], [0, -.2, .6, -.8], [0, -.2, .6, .4]], [[-.5, -1, .5, 1], [.5, -1, -.5, 1]],
+  [[0, -1, 0, 1], [-.6, -1, 0, -.4], [.6, -1, 0, -.4]], [[-.5, -1, -.5, 1], [.5, -1, .5, 1], [-.5, -.4, .5, .4]], [[0, -1, .6, 0], [.6, 0, 0, 1], [0, 1, -.6, 0], [-.6, 0, 0, -1]]];
+function runeFace(g, v, s, S) {
+  const r = S * (v === 1 ? .18 : .12);
+  PIPS[v].forEach(([x, y], i) => {
+    const strokes = RUNES[(v + i * 2) % RUNES.length]; const cx = x * S; const cy = y * S;
+    const path = () => { g.beginPath(); for (const [a, b, c2, d] of strokes) { g.moveTo(cx + a * r, cy + b * r); g.lineTo(cx + c2 * r, cy + d * r); } };
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    g.strokeStyle = 'rgba(20,14,8,.7)'; g.lineWidth = S * .05; path(); g.stroke(); // the carved groove
+    g.save(); g.strokeStyle = s.pip; g.shadowColor = s.pip; g.shadowBlur = S * .07; g.lineWidth = S * .025; path(); g.stroke(); g.restore(); // the glow inside
+  });
 }
 
 // A 1x1x1 box with rounded edges and corners (radius r): a finely split box whose points are
@@ -134,7 +165,7 @@ export async function show(values, { kind = 'pool', sides = 6 } = {}) {
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(span * 4, span * 4), new THREE.ShadowMaterial({ opacity: .28 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
 
-  const look = { gem: { transparent: true, opacity: .82, roughness: .08, metalness: .1 }, metal: { roughness: .25, metalness: .75 }, wood: { roughness: .85 } }[s.style] || { roughness: .45 };
+  const look = { gem: { transparent: true, opacity: .82, roughness: .08, metalness: .1 }, metal: { roughness: .25, metalness: .75 }, wood: { roughness: .85 }, timegear: { roughness: .2, metalness: .6, emissive: 0x0a2a3a }, rune: { roughness: .95 } }[s.style] || { roughness: .45 };
   const mats = FACE_VALUES.map((v) => { const t = new THREE.CanvasTexture(drawFace(v, s)); t.anisotropy = 4; return new THREE.MeshStandardMaterial({ map: t, ...look }); });
   const geo = roundedBox(THREE, 0.14, 10);
   const up = new THREE.Vector3(0, 1, 0);
