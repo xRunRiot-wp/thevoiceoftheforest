@@ -1742,13 +1742,41 @@ a.ch-chip:hover { background: var(--navy); }
 
 /* Game card pictures (her ask 10-27: "background is bland, one is too busy"): real Explorers scenery behind each moving
    Pokémon, drifting slowly; her follow-up: drift slower, and Machamp gets the Treasure Town log-and-crate yard instead of the busy tent art */
-.sentry-mini, .dance-mini, .kitchen-mini, .nursery-mini, .mailrun-mini, .truck-mini { background-size: 128% auto; background-repeat: no-repeat; image-rendering: pixelated; box-shadow: inset 0 0 0 3px rgba(255, 224, 150, .55), inset 0 0 22px rgba(20, 8, 30, .55); animation: gc-pan 45s ease-in-out infinite alternate; }
+.sentry-mini, .dance-mini, .kitchen-mini, .nursery-mini, .mailrun-mini, .truck-mini { background-size: 180px 180px; background-repeat: no-repeat; image-rendering: auto; box-shadow: inset 0 0 0 3px rgba(255, 224, 150, .55), inset 0 0 22px rgba(20, 8, 30, .55); animation: gc-pan 45s ease-in-out infinite alternate; }
 .sentry-mini { background-image: url('../assets/cards/sentry.png'); }
 .dance-mini { background-image: url('../assets/cards/dance.png'); }
 .kitchen-mini { background-image: url('../assets/cards/kitchen.png'); }
 .nursery-mini { background-image: url('../assets/cards/nursery.png'); }
-.mailrun-mini { background-image: url('../assets/cards/beach.png'); background-size: 112% auto; animation-duration: 30s; }
-.truck-mini { background-image: url('../assets/cards/wagon.png'); }
+.mailrun-mini { background-image: url('../assets/cards/beach.png'); background-size: 150px 150px; animation-duration: 30s; }
+/* Machamp stands on the caravan bed, so this one stays still (sharp 4x art, drawn at its own size) */
+.truck-mini { background-image: url('../assets/cards/wagon.png'); background-size: 100% 100%; background-position: center; animation: none; }
+.truck-mini .tm-champ { translate: 0 16px; }
+@media (max-width: 420px) { .truck-mini .tm-champ { translate: 0 12px; } }
 @keyframes gc-pan { from { background-position: 0% 20%; } to { background-position: 100% 80%; } }
 .sentry-mini .fp, .ralts-spr, .spinda-spr, .nursery-mini .egg, .mr-bird, .tm-champ { filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .45)); }
 @media (prefers-reduced-motion: reduce) { .sentry-mini, .dance-mini, .kitchen-mini, .nursery-mini, .mailrun-mini, .truck-mini { animation: none; background-position: center; } }
+
+/* Nursery round 2 (her asks 10-27): tap = buddy walks up close + Yellow-style feelings window; weather cover item over
+   its head; the room is tinted to the player's own time of day; the table's weather falls in the room */
+.pet .baby-spr { transition: scale .45s ease; transform-origin: 50% 80%; }
+.pet.close .baby-spr { scale: 1.7; }
+.pet-cover { position: absolute; left: 50%; top: 14%; translate: -50% 0; font-size: 44px; line-height: 1; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 4; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .35)); }
+.pet-cover.show { opacity: 1; }
+.pet-cover.pop { animation: cov-pop .5s ease-out; }
+@keyframes cov-pop { from { transform: translateY(-40px) scale(.4); } 70% { transform: translateY(4px) scale(1.1); } to { transform: none; } }
+.emo-pane { position: absolute; left: 10px; top: 10px; z-index: 7; display: flex; gap: 10px; align-items: center; max-width: min(320px, calc(100% - 20px)); padding: 8px 12px 8px 8px; background: #f8f8f0; color: #181818;
+  border: 4px solid #181818; border-radius: 6px; box-shadow: inset 0 0 0 3px #f8f8f0, inset 0 0 0 5px #181818, 0 4px 0 rgba(0, 0, 0, .3); cursor: pointer; animation: emo-in .25s steps(4, end); }
+.emo-pane img { width: 64px; height: 64px; flex: none; image-rendering: pixelated; border: 3px solid #181818; background: #fff; }
+.emo-pane p { margin: 0; font: 700 15px/1.35 var(--pix); }
+.emo-pane.bye { opacity: 0; transition: opacity .25s; }
+@keyframes emo-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+.nursery-room::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.nursery-room.tod-dawn::after { background: linear-gradient(180deg, rgba(255, 160, 190, .26), rgba(255, 214, 150, .12)); }
+.nursery-room.tod-dusk::after { background: linear-gradient(180deg, rgba(255, 120, 40, .30), rgba(130, 40, 110, .22)); }
+.nursery-room.tod-night::after { background: radial-gradient(circle at 50% 70%, rgba(40, 60, 140, .25), rgba(8, 12, 50, .62) 75%); }
+.nursery-room.tod-night::before { content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  background: radial-gradient(3px 3px at 14% 30%, #fbffa0, transparent), radial-gradient(3px 3px at 78% 22%, #fbffa0, transparent), radial-gradient(3px 3px at 62% 64%, #fbffa0, transparent), radial-gradient(3px 3px at 28% 72%, #fbffa0, transparent), radial-gradient(3px 3px at 88% 58%, #fbffa0, transparent);
+  animation: fireflies 3s ease-in-out infinite alternate; }
+@keyframes fireflies { from { opacity: .25; transform: translate(0, 0); } to { opacity: 1; transform: translate(6px, -8px); } }
+.nursery-room .wxfx { z-index: 4; }
+@media (prefers-reduced-motion: reduce) { .pet .baby-spr, .pet-cover, .emo-pane, .nursery-room::before { animation: none !important; transition: none !important; } }
