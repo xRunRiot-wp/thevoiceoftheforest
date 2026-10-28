@@ -7,21 +7,21 @@
 // Run's day sky) above a soft, faded Woodland Base picture; bins at their old size but smoother (basket_hd/chest_hd = Scale4x of
 // the sprites, the chest recoloured to wood and gold).
 // Art: the Woodland Base tent (GM's campaign art) backdrop, Machamp / Voltorb / runner sprites (SpriteCollab), items, basket, chest and logs (PMDCollab RawAsset).
-import * as store from './store.js?v=6ae2885f';
-import { $, esc, num, uid } from './util.js?v=6ae2885f';
-import { me, logRoll } from './play.js?v=6ae2885f';
-import { dailyRoll } from './weather.js?v=6ae2885f';
-import { gameSay } from './chatter.js?v=6ae2885f';
-import { markWinner } from './sparkle.js?v=6ae2885f';
-import { rareItem } from './sentry.js?v=6ae2885f';
-import { startBroadcast } from './watch.js?v=6ae2885f';
-import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae2885f';
+import * as store from './store.js?v=6ae288fa';
+import { $, esc, num, uid } from './util.js?v=6ae288fa';
+import { me, logRoll } from './play.js?v=6ae288fa';
+import { dailyRoll } from './weather.js?v=6ae288fa';
+import { gameSay } from './chatter.js?v=6ae288fa';
+import { markWinner } from './sparkle.js?v=6ae288fa';
+import { rareItem } from './sentry.js?v=6ae288fa';
+import { startBroadcast } from './watch.js?v=6ae288fa';
+import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae288fa';
 
 export const isTruck = (g) => g.kind === 'truck' || g.id === 'machamp-wagon';
 
 const W = 480; const H = 270; const GROUND = 236; const SHIFT = 90; const MAXCARRY = 5;
 const RUNNERS = { swablu: [56, 72, [9, 6, 6, 2]], sudowoodo: [48, 64, [1, 4, 4, 2]], golett: [40, 56, [5, 4, 4, 2]], tinkatink: [40, 40, [4, 4, 4, 2]], jangmoo: [32, 48, [4, 4, 4, 2]],
-  magnemite: [48, 56, [4, 6, 6, 2]], slakoth: [48, 48, [2, 4, 4, 2]], cleffa: [48, 56, [2, 8, 8, 2]], cottonee: [48, 56, [4, 6, 6, 2]], pichu: [40, 48, [4, 8, 8, 2]] };
+  magnemite: [48, 56, [4, 6, 6, 2]], slakoth: [48, 48, [2, 4, 4, 2]], cleffa: [48, 56, [2, 8, 8, 2]], cottonee: [48, 56, [4, 6, 6, 2]], cottoneeshiny: [48, 56, [4, 6, 6, 2]], pichu: [40, 48, [4, 8, 8, 2]] };
 const ITEMS = [['i_oran', 'food'], ['i_sitrus', 'food'], ['i_apple', 'food'], ['i_banana', 'food'], ['i_box', 'gear'], ['i_orb', 'gear'], ['i_paper', 'gear'], ['i_stick', 'gear']];
 const BASKET = { x: 18, w: 54 }; const CHEST = { x: 84, w: 60 };
 const today = () => dailyRoll().day;
@@ -30,7 +30,7 @@ export const truckMini = () => '<div class="truck-mini"><span class="tm-champ"><
 
 const A = {};
 const loadImg = (k, src) => new Promise((ok) => { const im = new Image(); im.onload = () => { A[k] = im; ok(); }; im.onerror = ok; im.src = src; });
-const runnerKey = (c) => { const k = String(c?.species || c?.pokemon || '').toLowerCase().replace(/[^a-z]/g, ''); return RUNNERS[k] ? k : 'pichu'; };
+const runnerKey = (c) => { const k = String(c?.species || c?.pokemon || '').toLowerCase().replace(/[^a-z]/g, ''); return c?.shiny && RUNNERS[k + 'shiny'] ? k + 'shiny' : RUNNERS[k] ? k : 'pichu'; };
 const assets = (rk) => Promise.all(['machamp', 'voltorb', 'basket_hd', 'chest_hd', 'caravan', ...ITEMS.map((x) => x[0])].map((k) => loadImg(k, `assets/truck/${k}.png`))
   .concat(loadImg('runner', `assets/truck/run_${rk}.png`), loadImg('bg', 'assets/banners/guilds.jpg'), loadImg('sky', 'assets/mailrun/sky_day.png'), ...[0, 1, 2].map((i) => loadImg('cloud' + i, `assets/mailrun/cloud${i}.png`)), loadImg('grass', 'assets/nursery/grass.png')));
 

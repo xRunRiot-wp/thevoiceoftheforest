@@ -1,7 +1,7 @@
 // Shared bits of UI: modal sheet, portraits, bars, dice faces.
-import { esc } from './util.js?v=6ae2885f';
+import { esc } from './util.js?v=6ae288fa';
 
-const PORTRAITS = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
+const PORTRAITS = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'cottoneeshiny', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 
 export function portraitFile(species) {
   const k = String(species || '').toLowerCase().replace(/[^a-z]/g, '');
@@ -20,7 +20,8 @@ export function artFile(c) {
 export function portrait(c, size = '') {
   const art = c?.art || artFile(c);
   if (art) return `<div class="portrait art ${size}"><img src="${esc(art)}" alt="${esc(c?.nickname || c?.name || '')}"></div>`;
-  const f = c?.portrait ? `assets/portraits/${c.portrait}.png` : portraitFile(c?.pokemon || c?.species);
+  // shiny characters (party/<id>/shiny) use the shiny portrait when there is one
+  const f = c?.portrait ? `assets/portraits/${c.portrait}.png` : (c?.shiny && portraitFile(String(c?.pokemon || c?.species || '') + 'shiny')) || portraitFile(c?.pokemon || c?.species);
   const inner = f ? `<img src="${f}" alt="${esc(c?.pokemon || c?.species || '')}">` : `<div class="ph">${esc((c?.nickname || c?.name || '?')[0])}</div>`;
   return `<div class="portrait ${size}">${inner}</div>`;
 }

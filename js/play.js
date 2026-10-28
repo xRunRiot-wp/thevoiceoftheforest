@@ -1,26 +1,26 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae2885f';
-import * as sheet from './sheetdata.js?v=6ae2885f';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae2885f';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae2885f';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae2885f';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae2885f';
-import { unlockChar } from './charlock.js?v=6ae2885f';
-import { CONFIG } from './config.js?v=6ae2885f';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae2885f';
-import { merged, editContent } from './content-store.js?v=6ae2885f';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae2885f';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae2885f';
-import { homeHTML } from './sitepages.js?v=6ae2885f';
-import { burstSet } from './burst.js?v=6ae2885f';
-import { pinsOf, showMap } from './hotbar.js?v=6ae2885f';
-import { chatterLatestHTML } from './chatter.js?v=6ae2885f';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae2885f';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae2885f';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae2885f';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae2885f';
-import { find } from './effects.js?v=6ae2885f';
-import * as dice3d from './dice3d.js?v=6ae2885f';
+import * as store from './store.js?v=6ae288fa';
+import * as sheet from './sheetdata.js?v=6ae288fa';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae288fa';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae288fa';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae288fa';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae288fa';
+import { unlockChar } from './charlock.js?v=6ae288fa';
+import { CONFIG } from './config.js?v=6ae288fa';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae288fa';
+import { merged, editContent } from './content-store.js?v=6ae288fa';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae288fa';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae288fa';
+import { homeHTML } from './sitepages.js?v=6ae288fa';
+import { burstSet } from './burst.js?v=6ae288fa';
+import { pinsOf, showMap } from './hotbar.js?v=6ae288fa';
+import { chatterLatestHTML } from './chatter.js?v=6ae288fa';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae288fa';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae288fa';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae288fa';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae288fa';
+import { find } from './effects.js?v=6ae288fa';
+import * as dice3d from './dice3d.js?v=6ae288fa';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -852,6 +852,7 @@ export function editCharacter(id, onCreated) {
     ${isNew ? `<div class="win tight small" style="font-size:16px;margin-bottom:10px">1. Fill in the <a href="https://forms.gle/GYmxXLQ7a3rcVRoH6" target="_blank" rel="noopener">Background Form</a> first (who you were).<br>2. Build your Pokémon below using the Rulebook for stat points — starter rank, non-legendary, lives mostly on land.<br>3. Logic and Instinct start at 1; add +1 to one of them. Humanity 6 with Logic 2/Instinct 1, or 4 with Logic 1/Instinct 2.</div>` : ''}
     <div class="grid g2">
       ${FIELD('nickname', 'Name', c.nickname)}${FIELD('pokemon', 'Pokémon', c.pokemon)}
+      <label class="check" style="grid-column:1/-1"><input type="checkbox" id="isshiny" ${c.shiny ? 'checked' : ''}> ✨ Shiny (uses the shiny sprite where the site has one)</label>
       ${SELECT('nature', 'Nature', c.nature, NATURES)}${SELECT('rank', 'Rank', c.rank, RANK_NAMES)}
       ${SELECT('type1', 'Type 1', c.type1, TYPES)}${SELECT('type2', 'Type 2', c.type2, TYPES)}
       ${FIELD('ability', 'Ability', c.ability)}${SELECT('instinctRank', 'Instinct rank', c.instinctRank, ['Prey', 'Cub', 'Beta', 'Hunter', 'Alpha', 'Predator'])}
@@ -885,6 +886,7 @@ export function editCharacter(id, onCreated) {
     if (c.hp == null) c.hp = maxHp(c);
     c.hp = clamp(c.hp, 0, maxHp(c));
     if (c.willCur == null || c.willCur > c.will) c.willCur = c.will;
+    c.shiny = $('#isshiny', sheetEl)?.checked || null;
     const gEl = $('#isguest', sheetEl);
     if (gEl) c.guest = gEl.checked ? { leaves: $('#gleave', sheetEl).value, controller: $('#gctl', sheetEl).value, since: c.guest?.since || Date.now() } : null;
     if (isNew) store.set('party/' + nid, c);
