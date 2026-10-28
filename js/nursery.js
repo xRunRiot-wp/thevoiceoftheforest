@@ -6,12 +6,12 @@
 // Her asks 10-27 (round 2): needs come up more often; tap the buddy and it walks up to the screen and a Yellow-style
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
-import * as store from './store.js?v=6ae151f7';
-import { $, $$, esc, toast, num } from './util.js?v=6ae151f7';
-import { me, logRoll } from './play.js?v=6ae151f7';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae151f7';
-import { gameSay, gmTodo } from './chatter.js?v=6ae151f7';
-import { markWinner } from './sparkle.js?v=6ae151f7';
+import * as store from './store.js?v=6ae152d5';
+import { $, $$, esc, toast, num } from './util.js?v=6ae152d5';
+import { me, logRoll } from './play.js?v=6ae152d5';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae152d5';
+import { gameSay, gmTodo } from './chatter.js?v=6ae152d5';
+import { markWinner } from './sparkle.js?v=6ae152d5';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
