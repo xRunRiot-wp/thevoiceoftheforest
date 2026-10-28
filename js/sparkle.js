@@ -1,6 +1,6 @@
 // Winner's sparkle: anyone who wins something in a Guild game gets a sparkly cursor for a day.
 // Saved per character (sparkle/<id> = until); shown on whatever device is playing that character, mouse only.
-import * as store from './store.js?v=6ae15356';
+import * as store from './store.js?v=6ae153a7';
 
 const DAY = 24 * 3600e3;
 const MARKS = ['✦', '✧', '⋆', '✨'];

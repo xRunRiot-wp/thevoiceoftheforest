@@ -3,17 +3,18 @@
 // food goes in the pantry basket, gear goes in the storage chest. A dropped item or a caught Voltorb is a strike;
 // 3 strikes or the end of the 90-second shift ends it. The first shift each day pays Poké.
 // Her ask 10-27: Machamp stands on a caravan (assets/truck/caravan.png, pixel-built from Treasure Town wood), the canvas draws at
-// double resolution so the backdrop is sharp, and the basket and chest sit on the grass with shadows. Follow-up: bigger bins,
-// and open sky (Mail Run's day sky) above a shorter Woodland Base picture whose top fades into it.
+// double resolution so the backdrop is sharp, and the basket and chest sit on the grass with shadows. Follow-ups: open sky (Mail
+// Run's day sky) above a soft, faded Woodland Base picture; bins at their old size but smoother (basket_hd/chest_hd = Scale4x of
+// the sprites, the chest recoloured to wood and gold).
 // Art: the Woodland Base tent (GM's campaign art) backdrop, Machamp / Voltorb / runner sprites (SpriteCollab), items, basket, chest and logs (PMDCollab RawAsset).
-import * as store from './store.js?v=6ae15356';
-import { $, esc, num, uid } from './util.js?v=6ae15356';
-import { me, logRoll } from './play.js?v=6ae15356';
-import { dailyRoll } from './weather.js?v=6ae15356';
-import { gameSay } from './chatter.js?v=6ae15356';
-import { markWinner } from './sparkle.js?v=6ae15356';
-import { rareItem } from './sentry.js?v=6ae15356';
-import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae15356';
+import * as store from './store.js?v=6ae153a7';
+import { $, esc, num, uid } from './util.js?v=6ae153a7';
+import { me, logRoll } from './play.js?v=6ae153a7';
+import { dailyRoll } from './weather.js?v=6ae153a7';
+import { gameSay } from './chatter.js?v=6ae153a7';
+import { markWinner } from './sparkle.js?v=6ae153a7';
+import { rareItem } from './sentry.js?v=6ae153a7';
+import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae153a7';
 
 export const isTruck = (g) => g.kind === 'truck' || g.id === 'machamp-wagon';
 
@@ -21,7 +22,7 @@ const W = 480; const H = 270; const GROUND = 236; const SHIFT = 90; const MAXCAR
 const RUNNERS = { swablu: [56, 72, [9, 6, 6, 2]], sudowoodo: [48, 64, [1, 4, 4, 2]], golett: [40, 56, [5, 4, 4, 2]], tinkatink: [40, 40, [4, 4, 4, 2]], jangmoo: [32, 48, [4, 4, 4, 2]],
   magnemite: [48, 56, [4, 6, 6, 2]], slakoth: [48, 48, [2, 4, 4, 2]], cleffa: [48, 56, [2, 8, 8, 2]], cottonee: [48, 56, [4, 6, 6, 2]], pichu: [40, 48, [4, 8, 8, 2]] };
 const ITEMS = [['i_oran', 'food'], ['i_sitrus', 'food'], ['i_apple', 'food'], ['i_banana', 'food'], ['i_box', 'gear'], ['i_orb', 'gear'], ['i_paper', 'gear'], ['i_stick', 'gear']];
-const BASKET = { x: 14, w: 60 }; const CHEST = { x: 88, w: 80 };
+const BASKET = { x: 18, w: 54 }; const CHEST = { x: 84, w: 60 };
 const today = () => dailyRoll().day;
 const runOf = (id) => store.get('truck/' + id) || {};
 export const truckMini = () => '<div class="truck-mini"><span class="tm-champ"></span></div>';
@@ -29,7 +30,7 @@ export const truckMini = () => '<div class="truck-mini"><span class="tm-champ"><
 const A = {};
 const loadImg = (k, src) => new Promise((ok) => { const im = new Image(); im.onload = () => { A[k] = im; ok(); }; im.onerror = ok; im.src = src; });
 const runnerKey = (c) => { const k = String(c?.species || c?.pokemon || '').toLowerCase().replace(/[^a-z]/g, ''); return RUNNERS[k] ? k : 'pichu'; };
-const assets = (rk) => Promise.all(['machamp', 'voltorb', 'basket', 'chest', 'caravan', ...ITEMS.map((x) => x[0])].map((k) => loadImg(k, `assets/truck/${k}.png`))
+const assets = (rk) => Promise.all(['machamp', 'voltorb', 'basket_hd', 'chest_hd', 'caravan', ...ITEMS.map((x) => x[0])].map((k) => loadImg(k, `assets/truck/${k}.png`))
   .concat(loadImg('runner', `assets/truck/run_${rk}.png`), loadImg('bg', 'assets/banners/guilds.jpg'), loadImg('sky', 'assets/mailrun/sky_day.png'), ...[0, 1, 2].map((i) => loadImg('cloud' + i, `assets/mailrun/cloud${i}.png`)), loadImg('grass', 'assets/nursery/grass.png')));
 
 function play(c, box, onDone) {
@@ -106,11 +107,11 @@ function play(c, box, onDone) {
     if (!over) raf = requestAnimationFrame(step);
   };
   const jingleSmall = () => stepSound('up');
-  // the Woodland Base picture at 170px tall (x2 for the sharp canvas), its top 45% fading out so the sky shows above it
+  // the Woodland Base picture at 170px tall (x2 for the sharp canvas), softened and faded: its top 75% fades into the sky
   let base = null;
   const fadedBase = (im) => { const h = 340; const w = Math.round(im.width * h / im.height); const o = document.createElement('canvas'); o.width = w; o.height = h;
-    const q = o.getContext('2d'); q.imageSmoothingQuality = 'high'; q.drawImage(im, 0, 0, w, h); q.globalCompositeOperation = 'destination-in';
-    const gr = q.createLinearGradient(0, 0, 0, h * 0.45); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, '#000'); q.fillStyle = gr; q.fillRect(0, 0, w, h); return o; };
+    const q = o.getContext('2d'); q.imageSmoothingQuality = 'high'; q.filter = 'blur(2px) saturate(0.75)'; q.drawImage(im, 0, 0, w, h); q.filter = 'none'; q.globalCompositeOperation = 'destination-in';
+    const gr = q.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.75, 'rgba(0,0,0,.6)'); gr.addColorStop(1, 'rgba(0,0,0,.75)'); q.fillStyle = gr; q.fillRect(0, 0, w, h); return o; };
   const draw = () => {
     const time = performance.now() / 1000;
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
@@ -126,10 +127,12 @@ function play(c, box, onDone) {
     // bins drawn at exactly 2x, their bottoms resting on the grass (the chest sprite has 8px of empty space under it)
     const shadow = (x, w) => { g.fillStyle = 'rgba(30,20,5,.35)'; g.beginPath(); g.ellipse(x + w / 2, GROUND + 3, w / 2 + 2, 5, 0, 0, Math.PI * 2); g.fill(); };
     shadow(BASKET.x, BASKET.w); shadow(CHEST.x, CHEST.w);
-    if (A.basket) g.drawImage(A.basket, BASKET.x - 6, GROUND - 68, 72, 72);
-    if (A.chest) g.drawImage(A.chest, CHEST.x - 10, GROUND - 77, 100, 100);
-    g.font = 'bold 12px sans-serif'; g.fillStyle = '#fff'; g.strokeStyle = '#3a2c1a'; g.lineWidth = 3;
-    [['FOOD', BASKET.x + 18, GROUND - 74], ['GEAR', CHEST.x + 27, GROUND - 82]].forEach(([s, x, y]) => { g.strokeText(s, x, y); g.fillText(s, x, y); });
+    g.imageSmoothingEnabled = true;
+    if (A.basket_hd) g.drawImage(A.basket_hd, BASKET.x, GROUND - 51, 54, 54);
+    if (A.chest_hd) g.drawImage(A.chest_hd, CHEST.x - 6, GROUND - 45, 60, 60);
+    g.imageSmoothingEnabled = false;
+    g.font = 'bold 10px sans-serif'; g.fillStyle = '#fff'; g.strokeStyle = '#3a2c1a'; g.lineWidth = 3;
+    [['FOOD', BASKET.x + 12, GROUND - 56], ['GEAR', CHEST.x + 12, GROUND - 50]].forEach(([s, x, y]) => { g.strokeText(s, x, y); g.fillText(s, x, y); });
     // the caravan with Machamp standing on its bed (bed top = Machamp's feet, GROUND - 84)
     g.fillStyle = 'rgba(30,20,5,.35)'; g.beginPath(); g.ellipse(408, GROUND + 3, 70, 6, 0, 0, Math.PI * 2); g.fill();
     if (A.caravan) g.drawImage(A.caravan, 336, GROUND - 142, 144, 144);
