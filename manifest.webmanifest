@@ -9,8 +9,38 @@
   "background_color": "#4a2f17",
   "theme_color": "#4a2f17",
   "icons": [
-    { "src": "assets/ui/app_icon_192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "assets/ui/app_icon_512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "assets/ui/app_icon_512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "assets/ui/app_icon_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/ui/app_icon_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/ui/app_icon_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Fernshade Nursery",
+      "short_name": "Nursery",
+      "description": "Check on your nursery buddy",
+      "url": "./#/games/fernshade-nursery",
+      "icons": [
+        {
+          "src": "assets/ui/app_nursery_192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }
