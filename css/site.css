@@ -1622,3 +1622,34 @@ a.ch-chip:hover { background: var(--navy); }
 @keyframes swirl-l { 50% { filter: hue-rotate(-25deg) brightness(1.15); transform: rotate(-4deg) scaleX(1.04); } }
 .k-miss { color: #8a2a22; margin: 8px 0 0; }
 @media (max-width: 420px) { .help-pad [data-stir="right"] { order: 2; } .help-pad [data-heat="-1"] { order: 3; } .help-pad [data-heat="1"] { order: 4; } }
+
+/* Fernshade Nursery */
+.nursery-room { position: relative; display: flex; justify-content: center; align-items: flex-end; min-height: 230px; margin: 8px 0; border-radius: 14px; overflow: hidden;
+  background: linear-gradient(180deg, #d8f0ff 0%, #eaf7e0 55%, #b9dc8f 56%, #8fbf68 100%); box-shadow: inset 0 2px 8px rgba(30, 60, 20, .3); }
+.baby-spr { display: block; image-rendering: pixelated; background-repeat: no-repeat; margin-bottom: -40px; animation: baby-anim 1s steps(var(--n), jump-none) infinite; }
+.baby-spr.r1 { animation: baby-anim .6s steps(var(--n), jump-none) 3; }
+@keyframes baby-anim { from { background-position-x: 0; } to { background-position-x: calc(var(--fw) * (1 - var(--n))); } }
+.egg { position: relative; display: block; width: 70px; height: 90px; margin-bottom: 18px; border-radius: 50% 50% 46% 46% / 60% 60% 40% 40%; background: radial-gradient(ellipse at 35% 30%, #fff 0%, var(--egg) 45%, color-mix(in srgb, var(--egg) 80%, #000) 100%); box-shadow: 0 6px 6px rgba(0, 0, 0, .25); animation: egg-rock 3s ease-in-out infinite; }
+.egg i { position: absolute; border-radius: 50%; background: var(--spot); opacity: .85; }
+.egg i:nth-child(1) { width: 18px; height: 14px; left: 14px; top: 26px; } .egg i:nth-child(2) { width: 12px; height: 12px; left: 42px; top: 44px; } .egg i:nth-child(3) { width: 16px; height: 12px; left: 22px; top: 62px; }
+.egg.wiggle { animation: egg-wiggle .5s ease-in-out 3; }
+.egg.mini { width: 26px; height: 34px; margin: 0; animation: none; box-shadow: none; flex: none; }
+.egg.mini i { display: none; }
+@keyframes egg-rock { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes egg-wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
+.n-fx, .n-burst { position: absolute; top: 20%; left: 50%; font-size: 30px; animation: fx-float 1.2s ease-out forwards; }
+.n-burst { font-size: 54px; top: 10%; animation-duration: 1.6s; }
+@keyframes fx-float { from { transform: translate(-50%, 20px) scale(.6); opacity: 0; } 30% { opacity: 1; } to { transform: translate(-50%, -30px) scale(1.2); opacity: 0; } }
+.n-head { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.n-stats { display: grid; gap: 6px; margin: 8px 0; }
+.n-stat { display: grid; grid-template-columns: 110px 1fr auto; gap: 8px; align-items: center; }
+.n-bar { height: 12px; border-radius: 99px; background: rgba(0, 0, 0, .12); overflow: hidden; }
+.n-bar i { display: block; height: 100%; background: linear-gradient(90deg, #4f9d4a, #8fd18a); transition: width .4s; }
+.n-bar.low i { background: linear-gradient(90deg, #c0453a, #f08a7a); }
+.n-acts { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 6px; }
+.n-acts .btn { min-height: 48px; }
+.nursery-mini { width: 132px; height: 132px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 70%, #eaf7e0 0%, #b9dc8f 60%, #5f8f40 100%); filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
+.nursery-mini .egg { margin: 0; }
+@media (max-width: 420px) { .nursery-mini { width: 104px; height: 104px; } .nursery-mini .egg { transform: scale(.8); } }
+.due-ribbon.nursery::after { content: 'Your buddy needs care today!'; }
+@media (prefers-reduced-motion: reduce) { .egg, .baby-spr { animation: none; } }
