@@ -1758,8 +1758,10 @@ a.ch-chip:hover { background: var(--navy); }
 
 /* Nursery round 2 (her asks 10-27): tap = buddy walks up close + Yellow-style feelings window; weather cover item over
    its head; the room is tinted to the player's own time of day; the table's weather falls in the room */
-.pet .baby-spr { transition: scale .45s ease; transform-origin: 50% 80%; }
-.pet.close .baby-spr { scale: 1.7; }
+.pet .baby-spr { transition: scale .45s ease, translate .45s ease; transform-origin: 50% 80%; }
+.pet.close .baby-spr { scale: 1.6; translate: 0 52px; }
+.pet-cover { transition: opacity .3s, scale .45s ease, top .45s ease, left .45s ease; }
+.pet.close .pet-cover { scale: 1.4; top: 16%; left: 112%; }
 .pet-cover { position: absolute; left: 50%; top: 14%; translate: -50% 0; font-size: 44px; line-height: 1; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 4; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .35)); }
 .pet-cover.show { opacity: 1; }
 .pet-cover.pop { animation: cov-pop .5s ease-out; }

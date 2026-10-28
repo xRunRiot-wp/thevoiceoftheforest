@@ -3,14 +3,14 @@
 // storm clouds and rival bird flocks, and catch the letters the wind blew away. 3 hearts; a hit costs a heart and
 // a letter. Reaching Woodland Base delivers the mail. The first delivery each day pays Poké (+ a perfect-run bonus).
 // Art: Explorers of Sky skies/clouds and Sunshell beach strips (TSR rips), Wingull/Taillow/Starly sprites (SpriteCollab).
-import * as store from './store.js?v=6ae150a5';
-import { $, esc, num, uid } from './util.js?v=6ae150a5';
-import { me, logRoll } from './play.js?v=6ae150a5';
-import { dailyRoll } from './weather.js?v=6ae150a5';
-import { gameSay } from './chatter.js?v=6ae150a5';
-import { markWinner } from './sparkle.js?v=6ae150a5';
-import { rareItem } from './sentry.js?v=6ae150a5';
-import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae150a5';
+import * as store from './store.js?v=6ae151f7';
+import { $, esc, num, uid } from './util.js?v=6ae151f7';
+import { me, logRoll } from './play.js?v=6ae151f7';
+import { dailyRoll } from './weather.js?v=6ae151f7';
+import { gameSay } from './chatter.js?v=6ae151f7';
+import { markWinner } from './sparkle.js?v=6ae151f7';
+import { rareItem } from './sentry.js?v=6ae151f7';
+import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae151f7';
 
 export const isMailRun = (g) => g.kind === 'mailrun' || g.id === 'rayson-mail-run';
 
