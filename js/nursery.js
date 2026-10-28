@@ -3,21 +3,17 @@
 // clean every day. Each day the buddy is fully cared for counts toward growing up: Egg → Baby → Kid → Teen.
 // A teen can be asked to join the team (it goes on the GM checklist as a recruit).
 // Stats drop in real time from when you last did each thing. State: nursery/<charId>.
-import * as store from './store.js?v=6ae143ba';
-import { $, $$, esc, toast, num } from './util.js?v=6ae143ba';
-import { me, logRoll } from './play.js?v=6ae143ba';
-import { dailyRoll } from './weather.js?v=6ae143ba';
-import { gameSay, gmTodo } from './chatter.js?v=6ae143ba';
-import { markWinner } from './sparkle.js?v=6ae143ba';
+import * as store from './store.js?v=6ae14507';
+import { $, $$, esc, toast, num } from './util.js?v=6ae14507';
+import { me, logRoll } from './play.js?v=6ae14507';
+import { dailyRoll } from './weather.js?v=6ae14507';
+import { gameSay, gmTodo } from './chatter.js?v=6ae14507';
+import { markWinner } from './sparkle.js?v=6ae14507';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
 // baby sprites: assets/nursery/<key>.png, rows Idle / Hop / Sleep (facing down), cells cw×ch; faces in assets/portraits/emo/<key>/
 const BABIES = {pichu: { name: 'Pichu', cw: 32, ch: 88, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, cleffa: { name: 'Cleffa', cw: 24, ch: 80, idle: 2, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, igglybuff: { name: 'Igglybuff', cw: 24, ch: 72, idle: 2, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, togepi: { name: 'Togepi', cw: 24, ch: 72, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, tyrogue: { name: 'Tyrogue', cw: 24, ch: 88, idle: 7, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, smoochum: { name: 'Smoochum', cw: 24, ch: 80, idle: 5, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, elekid: { name: 'Elekid', cw: 32, ch: 96, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, magby: { name: 'Magby', cw: 24, ch: 88, idle: 6, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, azurill: { name: 'Azurill', cw: 48, ch: 88, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, wynaut: { name: 'Wynaut', cw: 24, ch: 80, idle: 6, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, budew: { name: 'Budew', cw: 24, ch: 80, idle: 8, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, chingling: { name: 'Chingling', cw: 32, ch: 80, idle: 2, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, bonsly: { name: 'Bonsly', cw: 24, ch: 88, idle: 5, emo: ['Normal', 'Sad'] }, mimejr: { name: 'Mime Jr.', cw: 24, ch: 88, idle: 8, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, happiny: { name: 'Happiny', cw: 32, ch: 80, idle: 5, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, munchlax: { name: 'Munchlax', cw: 32, ch: 88, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, riolu: { name: 'Riolu', cw: 32, ch: 88, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }};
-// egg shell colours hint at who's inside
-const EGG = { pichu: ['#fff3a6', '#e8b830'], cleffa: ['#ffe0ea', '#f08fb0'], igglybuff: ['#ffe0ea', '#f5a3c7'], togepi: ['#fffaf0', '#e05050'], tyrogue: ['#f3e0d0', '#9b6a8f'], smoochum: ['#ffe0ea', '#7a5fd0'],
-  elekid: ['#fff3a6', '#3a3a3a'], magby: ['#ffd9b0', '#e8601f'], azurill: ['#d6ecff', '#4a90d9'], wynaut: ['#d6ecff', '#e05050'], budew: ['#e0f5d0', '#4f9d4a'], chingling: ['#fff3a6', '#d04040'],
-  bonsly: ['#f0e0c0', '#4f9d4a'], mimejr: ['#ffe0ea', '#4a90d9'], happiny: ['#ffe0ea', '#f5a3c7'], munchlax: ['#d6ecff', '#2f4f6f'], riolu: ['#d6ecff', '#2f4f6f'] };
 const STAGES = ['Egg', 'Baby', 'Kid', 'Teen'];
 const DAYS_TO_GROW = [1, 2, 2]; // cared-for days to leave Egg, Baby, Kid
 const NEEDS = { egg: { warm: 3 }, baby: { feed: 2, play: 2, clean: 1 } };
@@ -45,9 +41,12 @@ function buddyFace(b) {
 function spriteHTML(b, row = 0) {
   const B = BABIES[b.sp]; const n = row === 1 ? 10 : row === 2 ? 2 : B.idle;
   const S = 3;
-  return `<span class="baby-spr r${row}" style="--fw:${B.cw * S}px;--n:${n};width:${B.cw * S}px;height:${B.ch * S}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${B.cw * 10 * S}px ${B.ch * 3 * S}px;background-position-y:-${row * B.ch * S}px"></span>`;
+  return `<span class="baby-spr r${row}" style="bottom:${Math.round(66 - B.ch * S / 2)}px;--fw:${B.cw * S}px;--n:${n};width:${B.cw * S}px;height:${B.ch * S}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${B.cw * 10 * S}px ${B.ch * 3 * S}px;background-position-y:-${row * B.ch * S}px"></span>`;
 }
-const eggHTML = (b, cls = '') => { const [a, s] = EGG[b.sp] || ['#fffaf0', '#c9a06a']; return `<span class="egg ${cls}" style="--egg:${a};--spot:${s}"><i></i><i></i><i></i></span>`; };
+// the egg is the Ruby & Sapphire egg sprite (her ask 10-27), assets/nursery/egg.png
+const eggHTML = (b, cls = '') => `<img class="egg ${cls}" src="assets/nursery/egg.png" alt="An egg">`;
+// her ask 10-27: the egg (and later the baby) sits in a nest on Tiny Woods grass. Nest = two layers so the front rim covers the egg.
+const nestHTML = (inner) => `<div class="nest"><img class="nest-b" src="assets/nursery/nest_back.png" alt="">${inner}<img class="nest-f" src="assets/nursery/nest_front.png" alt=""></div>`;
 const nameOf = (b) => b.name || (b.stage === 0 ? 'your egg' : BABIES[b.sp]?.name || 'your buddy');
 
 function adopt(c) {
@@ -84,7 +83,7 @@ function room(c, box, anim) {
   const b = buddyOf(c.id);
   if (!b) {
     box.innerHTML = `<div class="sentry-start">${bea('happy', `Oh, ${c.nickname}, dear! The nursery has more eggs than I have arms. Would you look after one for me? Keep it warm, and once it hatches, feed it, play with it and give it baths. Raise it to a teen, and maybe it’ll want to join your team!`)}
-      <div class="nursery-room">${eggHTML({ sp: '' })}</div><button class="btn block" id="nadopt">Take an egg home 🥚</button></div>`;
+      <div class="nursery-room">${nestHTML(eggHTML({ sp: '' }))}</div><button class="btn block" id="nadopt">Take an egg home 🥚</button></div>`;
     $('#nadopt', box).onclick = () => { adopt(c); room(c, box, 'new'); };
     return;
   }
@@ -99,7 +98,7 @@ function room(c, box, anim) {
   box.innerHTML = `<div class="nursery">
     ${bea(b.recruited || b.stage === 3 ? 'proud' : low.length ? 'worry' : 'happy', line)}
     <div class="nursery-room ${egg ? 'is-egg' : ''}">
-      ${egg ? eggHTML(b, anim === 'warm' ? 'wiggle' : '') : spriteHTML(b, anim === 'play' ? 1 : 0)}
+      ${nestHTML(egg ? eggHTML(b, anim === 'warm' ? 'wiggle' : '') : spriteHTML(b, anim === 'play' ? 1 : 0))}
       ${anim === 'grew' ? '<span class="n-burst">✨</span>' : ''}${anim === 'feed' ? '<span class="n-fx">🍼</span>' : anim === 'clean' ? '<span class="n-fx">✨</span>' : anim === 'play' ? '<span class="n-fx">💕</span>' : ''}
     </div>
     <div class="n-head">${egg ? '' : `<img class="sface" src="${buddyFace(b)}" alt="">`}<div class="grow"><b>${esc(b.name || (egg ? 'Mystery egg' : B.name))}</b> <span class="pill">${STAGES[b.stage]}</span>

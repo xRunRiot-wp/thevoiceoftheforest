@@ -1653,3 +1653,17 @@ a.ch-chip:hover { background: var(--navy); }
 @media (max-width: 420px) { .nursery-mini { width: 104px; height: 104px; } .nursery-mini .egg { transform: scale(.8); } }
 .due-ribbon.nursery::after { content: 'Your buddy needs care today!'; }
 @media (prefers-reduced-motion: reduce) { .egg, .baby-spr { animation: none; } }
+
+/* Nursery egg = the Ruby & Sapphire egg sprite, 3x pixel art */
+.egg { width: 84px; height: 90px; background: none; border-radius: 0; box-shadow: none; image-rendering: pixelated; filter: drop-shadow(0 6px 3px rgba(0, 0, 0, .25)); transform-origin: 50% 90%; }
+.egg.mini { width: 28px; height: 30px; filter: none; }
+.nursery-mini .egg { width: 70px; height: 75px; }
+
+/* Nursery room: Tiny Woods grass (Explorers of Sky tileset) with a twig nest */
+.nursery-room { background: url('../assets/nursery/grass.png') 0 0 / 72px 72px repeat; image-rendering: pixelated; align-items: center; min-height: 250px; box-shadow: inset 0 0 24px rgba(30, 60, 0, .45); }
+.nest { position: relative; width: 186px; height: 150px; }
+.nest img { image-rendering: pixelated; position: absolute; left: 0; bottom: 0; width: 186px; height: 90px; }
+.nest .nest-b { z-index: 0; } .nest .nest-f { z-index: 2; pointer-events: none; }
+.nest .egg { position: absolute; left: 51px; bottom: 24px; margin: 0; z-index: 1; width: 84px; height: 90px; }
+.nest .baby-spr { position: absolute; left: 50%; translate: -50% 0; margin: 0; z-index: 1; }
+.nursery-room .n-fx, .nursery-room .n-burst { z-index: 3; }
