@@ -3,12 +3,12 @@
 // second round of betting and the showdown: the best total without going over 21 takes the pot (ties split it).
 // One shared table per campaign table (c21/table), so friends can play together live. Each device only acts for its own
 // character; Noctowl's moves and slow players' turns are played by the first seated player's device (or anyone's after a wait).
-import * as store from './store.js?v=6ae15f1c';
-import { portrait } from './ui.js?v=6ae15f1c';
-import { $, $$, esc, toast, num } from './util.js?v=6ae15f1c';
-import { logRoll, me } from './play.js?v=6ae15f1c';
-import { gameSay } from './chatter.js?v=6ae15f1c';
-import { markWinner } from './sparkle.js?v=6ae15f1c';
+import * as store from './store.js?v=6ae15f5c';
+import { portrait } from './ui.js?v=6ae15f5c';
+import { $, $$, esc, toast, num } from './util.js?v=6ae15f5c';
+import { logRoll, me } from './play.js?v=6ae15f5c';
+import { gameSay } from './chatter.js?v=6ae15f5c';
+import { markWinner } from './sparkle.js?v=6ae15f5c';
 
 export const isCards21 = (g) => g.kind === 'cards21' || g.id === 'noctowl-21';
 export const cards21Mini = () => '<div class="c21-mini"><img src="assets/cards21/noctowl_Normal.png" alt=""><span class="c21-card r">A♥</span><span class="c21-card">K♠</span></div>';
