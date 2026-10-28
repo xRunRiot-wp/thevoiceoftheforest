@@ -1,20 +1,20 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6ae13d0d';
-import * as store from './store.js?v=6ae13d0d';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae13d0d';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13d0d';
-import { modal, portrait } from './ui.js?v=6ae13d0d';
-import * as sheet from './sheetdata.js?v=6ae13d0d';
-import { shop } from './guild.js?v=6ae13d0d';
-import { merged, editContent } from './content-store.js?v=6ae13d0d';
-import { logRoll, me, addTeamFx } from './play.js?v=6ae13d0d';
-import { luckyReaction, gmTodo } from './chatter.js?v=6ae13d0d';
-import { ranks } from './rulebook.js?v=6ae13d0d';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae13d0d';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae13d0d';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae13d0d';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae13d0d';
+import { markWinner } from './sparkle.js?v=6ae13e16';
+import * as store from './store.js?v=6ae13e16';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae13e16';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13e16';
+import { modal, portrait } from './ui.js?v=6ae13e16';
+import * as sheet from './sheetdata.js?v=6ae13e16';
+import { shop } from './guild.js?v=6ae13e16';
+import { merged, editContent } from './content-store.js?v=6ae13e16';
+import { logRoll, me, addTeamFx } from './play.js?v=6ae13e16';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ae13e16';
+import { ranks } from './rulebook.js?v=6ae13e16';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae13e16';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae13e16';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae13e16';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae13e16';
 
 export const GAMES = [
   {

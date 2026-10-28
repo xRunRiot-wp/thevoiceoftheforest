@@ -1,13 +1,14 @@
 // Dance Practice with Ralts (her ask 10-27): Ralts dances a short routine of up / down / left / right steps and the
 // player copies it with the arrow buttons (or arrow keys). Rounds grow from 3 to 8 steps. Ralts and the player's own
 // face react to every hit or missed step. A daily chore like Sentry Duty: a great practice pays Poké and maybe a rare item.
-import * as store from './store.js?v=6ae13d0d';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13d0d';
-import { me, logRoll } from './play.js?v=6ae13d0d';
-import { dailyRoll } from './weather.js?v=6ae13d0d';
-import { gameSay } from './chatter.js?v=6ae13d0d';
-import { markWinner } from './sparkle.js?v=6ae13d0d';
-import { faceHTML, faceSrc, spKey, rareItem } from './sentry.js?v=6ae13d0d';
+import * as store from './store.js?v=6ae13e16';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13e16';
+import { me, logRoll } from './play.js?v=6ae13e16';
+import { dailyRoll } from './weather.js?v=6ae13e16';
+import { gameSay } from './chatter.js?v=6ae13e16';
+import { markWinner } from './sparkle.js?v=6ae13e16';
+import { faceHTML, faceSrc, spKey, rareItem } from './sentry.js?v=6ae13e16';
+import { startMusic, stopMusic, stepSound, missSound, jingle, muted, setMuted } from './chiptune.js?v=6ae13e16';
 
 export const isDance = (g) => g.kind === 'dance' || g.id === 'ralts-dance';
 
@@ -61,7 +62,12 @@ function play(c, box, onDone) {
     <div class="dance-react">${raltsFace('show', 'Watch closely!')}</div>
     <div class="dance-stage">${sprite()}<div class="dance-steps"></div></div>
     <div class="dance-pad">${['up', 'left', 'down', 'right'].map((d) => `<button class="btn alt dpad-${d}" data-dir="${d}" aria-label="${d}">${DIRS[d][0]}</button>`).join('')}</div>
-    <p class="small muted" style="text-align:center">Tap the arrows (or use your arrow keys) to copy Ralts.</p></div>`;
+    <p class="small muted" style="text-align:center">Tap the arrows (or use your arrow keys) to copy Ralts. <button class="btn alt sm" id="dmusic">${muted() ? '🔇 Music off' : '🔊 Music on'}</button></p></div>`;
+  $('#dmusic', box).onclick = (e) => { const m = !muted(); setMuted(m); e.target.textContent = m ? '🔇 Music off' : '🔊 Music on'; };
+  startMusic();
+  // the tune stops if they leave the page mid-dance
+  const leave = () => { if (!box.isConnected) { stopMusic(); window.removeEventListener('hashchange', leave); } };
+  window.addEventListener('hashchange', () => setTimeout(leave, 0));
   const spr = $('.ralts-spr', box); const steps = $('.dance-steps', box);
   const setSpr = (cls) => { spr.className = 'ralts-spr'; void spr.offsetWidth; spr.className = 'ralts-spr ' + cls; };
   const react = (mood, line) => { $('.dance-react', box).innerHTML = raltsFace(mood, line); };
@@ -79,7 +85,7 @@ function play(c, box, onDone) {
     myFace('wait'); dots(seq.length);
     seq.forEach((d, i) => setTimeout(() => {
       if (!box.isConnected) return;
-      setSpr('hop-' + d); flash(d, 'lit'); steps.children[i]?.classList.add('shown');
+      setSpr('hop-' + d); flash(d, 'lit'); stepSound(d); steps.children[i]?.classList.add('shown');
     }, 900 + i * STEP_MS));
     setTimeout(() => {
       if (!box.isConnected) return;
@@ -89,7 +95,7 @@ function play(c, box, onDone) {
 
   const next = () => {
     round++;
-    if (round >= LENGTHS.length) { document.removeEventListener('keydown', onKey); finish(c, hits, box, onDone); return; }
+    if (round >= LENGTHS.length) { document.removeEventListener('keydown', onKey); stopMusic(); jingle(hits >= 24); finish(c, hits, box, onDone); return; }
     setTimeout(show, 1400);
   };
 
@@ -98,12 +104,12 @@ function play(c, box, onDone) {
     clearTimeout(timer);
     const want = seq[at];
     if (d === want) {
-      hits++; at++; streak++; glow(); setSpr('hop-' + d); flash(d, 'right'); myFace('hit'); dots(seq.length); count();
+      hits++; at++; streak++; glow(); stepSound(d); setSpr('hop-' + d); flash(d, 'right'); myFace('hit'); dots(seq.length); count();
       if (at === seq.length) { busy = true; react('clear', streak >= 6 ? `${streak} in a row! I’m glowing! ✨` : `The whole round! ${pickOne(HIT)}`); next(); }
       else { react('hit', pickOne(HIT)); wait(); }
       return;
     }
-    busy = true; streak = 0; glow(); setSpr('hurt'); if (d) flash(d, 'wrong');
+    busy = true; streak = 0; glow(); missSound(); setSpr('hurt'); if (d) flash(d, 'wrong');
     const kind = d ? 'miss' : 'slow';
     myFace(kind); react(kind, pickOne(d ? MISS : SLOW).replace('{d}', DIRS[want][0]));
     next();
