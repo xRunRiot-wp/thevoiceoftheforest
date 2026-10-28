@@ -1829,8 +1829,9 @@ a.ch-chip:hover { background: var(--navy); }
 .gift-note .gn-icon { font-size: 28px; line-height: 1; }
 
 /* Noctowl's 21 (cards21.js) */
-.c21-mini { position: relative; display: grid; place-items: center; }
-.c21-mini img { width: 64%; border-radius: 50%; image-rendering: pixelated; }
+.c21-mini { position: relative; width: 132px; height: 132px; flex: none; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #3f7a52, #183424 75%); border: 3px solid #e8c56a; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
+.c21-mini img { width: 56%; border-radius: 10px; image-rendering: pixelated; margin-top: -18%; }
+@media (max-width: 420px) { .c21-mini { width: 104px; height: 104px; } }
 .c21-mini .c21-card { position: absolute; bottom: 8%; transform: rotate(-12deg); left: 18%; }
 .c21-mini .c21-card + .c21-card { left: auto; right: 18%; transform: rotate(10deg); }
 .c21-table { background: radial-gradient(ellipse at 50% 30%, #2f5a3c, #183424 75%); color: #f4f0e2; border-color: #6b4a1e; }
