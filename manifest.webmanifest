@@ -1,0 +1,16 @@
+{
+  "name": "The Voice of the Forest",
+  "short_name": "Voice of the Forest",
+  "description": "Table companion for the Voice of the Forest campaign: character sheets, dice, battles, missions and the rulebook.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#4a2f17",
+  "theme_color": "#4a2f17",
+  "icons": [
+    { "src": "assets/ui/app_icon_192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/ui/app_icon_512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/ui/app_icon_512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

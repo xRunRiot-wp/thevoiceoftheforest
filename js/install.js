@@ -1,0 +1,48 @@
+// The site as an app (her ask 10-28): it can be added to a phone's home screen and opens full screen with its own icon.
+// Android/computers get a real Install button; iPhones need Share → Add to Home Screen, so we show how.
+import { $ } from './util.js?v=6ae284fd';
+
+let prompt = null;
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const ios = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const phone = () => matchMedia('(pointer: coarse)').matches;
+const NAG = 'dc.app.asked';
+
+export function startInstall() {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); prompt = e; offer(); });
+  addEventListener('appinstalled', () => { prompt = null; document.querySelector('.app-pop')?.remove(); });
+  if (ios()) setTimeout(offer, 4000);
+}
+
+// a one-time invite on phones; after that it lives in ⚙️ Settings
+function offer() {
+  let asked = false; try { asked = !!localStorage.getItem(NAG); } catch { /* ignore */ }
+  if (asked || standalone() || !phone() || document.querySelector('.app-pop')) return;
+  if (document.querySelector('.sheet-bg')) { setTimeout(offer, 5000); return; } // wait until other pop-ups are closed
+  const el = document.createElement('div'); el.className = 'app-pop';
+  el.innerHTML = `<img src="assets/ui/app_icon_192.png" alt=""><div><b>Get the Voice of the Forest app!</b><br><span class="small">Opens full screen from your home screen.</span><div class="row"><button class="btn sm" data-yes>📱 Get the app</button><button class="btn alt sm" data-no>Not now</button></div></div>`;
+  document.body.appendChild(el);
+  const close = () => { el.remove(); try { localStorage.setItem(NAG, '1'); } catch { /* ignore */ } };
+  $('[data-no]', el).onclick = close;
+  $('[data-yes]', el).onclick = () => { close(); install(); };
+}
+
+export const appSection = () => standalone() ? '<p class="small muted">✅ You’re using the app.</p>'
+  : `<p class="small muted">Put the site on your home screen with its own icon. It opens full screen, like any other app.</p><button class="btn alt" id="setapp">📱 Get the app</button><div id="setapphow" hidden></div>`;
+export function wireAppSection(el) {
+  const b = $('#setapp', el); if (!b) return;
+  b.onclick = () => install($('#setapphow', el));
+}
+
+async function install(where) {
+  if (prompt) {
+    try { await prompt.prompt(); const r = await prompt.userChoice; if (r?.outcome === 'accepted') prompt = null; return; } catch { /* the browser said no: show the steps instead */ }
+  }
+  const how = ios()
+    ? '<b>On iPhone/iPad (Safari):</b><ol><li>Tap the <b>Share</b> button (the square with the arrow).</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>.</li></ol>'
+    : '<b>To install:</b><ol><li>Open the browser menu (<b>⋮</b> at the top right).</li><li>Tap <b>Install app</b> or <b>Add to Home screen</b>.</li></ol><p class="small muted">On a computer, look for the install icon at the right end of the address bar.</p>';
+  if (where) { where.innerHTML = how; where.hidden = false; return; }
+  const { modal } = await import('./ui.js?v=6ae284fd');
+  modal(`<h2>📱 Get the app</h2>${how}`);
+}

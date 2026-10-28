@@ -1,12 +1,13 @@
 // Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
 // and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
-import { CURSORS, REWARD_CURSORS, cursorKind, cursorChoices, setCursorKind, refreshCursor } from './digcursor.js?v=6ae1690f';
-import * as store from './store.js?v=6ae1690f';
-import { $, $$, esc, toast } from './util.js?v=6ae1690f';
-import { giftNote } from './mailbox.js?v=6ae1690f';
-import { unlockChar } from './charlock.js?v=6ae1690f';
-import { modal, closeModal, portrait } from './ui.js?v=6ae1690f';
-import { skinPicker } from './dice3d.js?v=6ae1690f';
+import { CURSORS, REWARD_CURSORS, cursorKind, cursorChoices, setCursorKind, refreshCursor } from './digcursor.js?v=6ae284fd';
+import * as store from './store.js?v=6ae284fd';
+import { $, $$, esc, toast } from './util.js?v=6ae284fd';
+import { giftNote } from './mailbox.js?v=6ae284fd';
+import { unlockChar } from './charlock.js?v=6ae284fd';
+import { modal, closeModal, portrait } from './ui.js?v=6ae284fd';
+import { skinPicker } from './dice3d.js?v=6ae284fd';
+import { appSection, wireAppSection } from './install.js?v=6ae284fd';
 
 export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
   Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',
@@ -82,6 +83,7 @@ export function openSettings() {
   const gm = store.gmUnlocked(); const party = Object.entries(store.get('party') || {}).filter(([, x]) => !x.guest);
   const el = modal(`<h2>⚙️ Settings</h2>
     <h3>👤 Character</h3><p class="small muted">${c ? `Playing as <b>${esc(c.nickname)}</b>.` : 'No character picked on this device.'}</p><button class="btn alt" id="setswitch">🔁 Switch Character</button><div class="themes who-list" id="setwho" hidden></div>
+    <h3 style="margin-top:14px">📱 App</h3>${appSection()}
     <h3 style="margin-top:14px">🎲 Dice skin</h3><p class="small muted">How your 3D dice look when you roll. You start with Classic, Poké Ball and your type’s set; the GM hands out more as rewards.</p><button class="btn alt" id="setdice">Change dice skin</button>
     <h3 style="margin-top:14px">📄 Character sheet only</h3>
     <label class="check"><input type="checkbox" id="setsheetonly" ${sheetOnly() ? 'checked' : ''}> Just show my stats, moves and items. Hides the roll buttons, actions and extras, for players who roll at the table or on Roll20. (This device only.)</label>
@@ -116,6 +118,7 @@ export function openSettings() {
     }); });
   };
   $('#setdice', el).onclick = () => skinPicker();
+  wireAppSection(el);
   $('#setsheetonly', el).onchange = (e) => { setSheetOnly(e.target.checked); window.dispatchEvent(new Event('refreshpage')); };
   $$('[data-cur]', el).forEach((b) => b.onclick = () => { setCursorKind(b.dataset.cur); $$('[data-cur]', el).forEach((x) => x.classList.toggle('sel', x === b)); });
   $$('[data-th]', el).forEach((b) => b.onclick = () => { setTheme(b.dataset.th); $$('[data-th]', el).forEach((x) => x.classList.toggle('sel', x === b)); });
