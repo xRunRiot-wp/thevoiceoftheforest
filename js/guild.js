@@ -1,20 +1,20 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ae153a7';
-import * as sheet from './sheetdata.js?v=6ae153a7';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae153a7';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae153a7';
-import { MISSION_GP } from './content.js?v=6ae153a7';
-import { ranks } from './rulebook.js?v=6ae153a7';
-import { merged, editContent } from './content-store.js?v=6ae153a7';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae153a7';
-import { myId } from './app.js?v=6ae153a7';
-import { lowAlertHTML } from './vault.js?v=6ae153a7';
-import { friendZoneSection } from './friendzone.js?v=6ae153a7';
-import { ixLink } from './effects.js?v=6ae153a7';
-import { burstSet } from './burst.js?v=6ae153a7';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae153a7';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6ae153a7';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6ae153a7';
+import * as store from './store.js?v=6ae15448';
+import * as sheet from './sheetdata.js?v=6ae15448';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae15448';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae15448';
+import { MISSION_GP } from './content.js?v=6ae15448';
+import { ranks } from './rulebook.js?v=6ae15448';
+import { merged, editContent } from './content-store.js?v=6ae15448';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae15448';
+import { myId } from './app.js?v=6ae15448';
+import { lowAlertHTML } from './vault.js?v=6ae15448';
+import { friendZoneSection } from './friendzone.js?v=6ae15448';
+import { ixLink } from './effects.js?v=6ae15448';
+import { burstSet } from './burst.js?v=6ae15448';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae15448';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6ae15448';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6ae15448';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],

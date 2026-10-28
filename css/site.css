@@ -1798,3 +1798,5 @@ a.ch-chip:hover { background: var(--navy); }
   radial-gradient(1.5px 1.5px at 74% 40%, #fff 99%, transparent), radial-gradient(1.5px 1.5px at 90% 18%, #fff 99%, transparent), radial-gradient(14px 14px at 82% 30%, #fff8d8 60%, transparent 70%), linear-gradient(180deg, #081038 0%, #1c2a66 100%); }
 .tod-night .n-sky i { opacity: .25; }
 @media (prefers-reduced-motion: reduce) { .n-sky i { animation: none; left: 20%; } }
+/* Mail Run: the day's weather and what it does (her ask 10-27) */
+.mr-wx { margin: 0 0 6px; padding: 6px 10px; border-radius: 10px; background: #eaf3ff; border: 1px solid #b9d3f0; font-size: 14px; }

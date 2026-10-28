@@ -2,15 +2,18 @@
 // back to Woodland Base: tap (or Space / ↑) to flap. Fly over the sea, the beach and the meadow, dodge sea rocks,
 // storm clouds and rival bird flocks, and catch the letters the wind blew away. 3 hearts; a hit costs a heart and
 // a letter. Reaching Woodland Base delivers the mail. The first delivery each day pays Poké (+ a perfect-run bonus).
+// Her ask 10-27: the table's weather roll changes the flight (MRWX below): sun = floatier, rain/typhoon = rain + more lightning
+// (Rayson loves rain: letters pay extra), strong wind = faster tailwind with gusts, fog = short sight, sandstorm = slower + hazy,
+// hail = heavy wings.
 // Art: Explorers of Sky skies/clouds and Sunshell beach strips (TSR rips), Wingull/Taillow/Starly sprites (SpriteCollab).
-import * as store from './store.js?v=6ae153a7';
-import { $, esc, num, uid } from './util.js?v=6ae153a7';
-import { me, logRoll } from './play.js?v=6ae153a7';
-import { dailyRoll } from './weather.js?v=6ae153a7';
-import { gameSay } from './chatter.js?v=6ae153a7';
-import { markWinner } from './sparkle.js?v=6ae153a7';
-import { rareItem } from './sentry.js?v=6ae153a7';
-import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae153a7';
+import * as store from './store.js?v=6ae15448';
+import { $, esc, num, uid } from './util.js?v=6ae15448';
+import { me, logRoll } from './play.js?v=6ae15448';
+import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6ae15448';
+import { gameSay } from './chatter.js?v=6ae15448';
+import { markWinner } from './sparkle.js?v=6ae15448';
+import { rareItem } from './sentry.js?v=6ae15448';
+import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae15448';
 
 export const isMailRun = (g) => g.kind === 'mailrun' || g.id === 'rayson-mail-run';
 
@@ -19,6 +22,19 @@ const LENGTH = 7600; const SPEED = 125; // px of course, px per second (~60 s)
 const GRAV = 820; const FLAP = -245; const MAXFALL = 330;
 const LETTERS = 14;
 const today = () => dailyRoll().day;
+// weather: speed / gravity multipliers, gust strength, lightning (storm 'every' multiplier), particles, tint, Poké bonus per letter
+const MRWX = {
+  clear: {}, cloudy: { tint: 'rgba(80,90,110,.22)', note: 'A grey sky today. Nice and calm.' },
+  sunny: { grav: 0.9, tint: 'rgba(255,220,120,.12)', note: 'Warm air lifts Rayson: every flap floats a little longer.' },
+  harsh: { grav: 0.8, tint: 'rgba(255,130,50,.2)', haze: true, note: 'Hot rising air makes Rayson really floaty, and the heat makes everything shimmer.' },
+  rain: { rain: 70, bolt: 0.7, bonus: 5, note: 'Rayson loves the rain (+5 Poké a letter), but the storm clouds flash more often.' },
+  typhoon: { rain: 150, bolt: 0.45, gust: 260, speed: 1.1, tint: 'rgba(20,30,70,.35)', flash: true, bonus: 10, note: 'Huge gusts toss Rayson around and lightning is everywhere. +10 Poké a letter if you make it!' },
+  wind: { speed: 1.3, gust: 190, streaks: 26, note: 'Tailwind! Rayson flies faster, but gusts push him up and down.' },
+  fog: { fog: true, note: 'You can only see a little way ahead.' },
+  sandstorm: { sand: 90, speed: 0.88, tint: 'rgba(205,160,80,.3)', note: 'Sand slows Rayson down and makes it hard to see.' },
+  hail: { hail: 45, grav: 1.12, note: 'Hail makes Rayson’s wings heavy, so he sinks faster.' },
+};
+const mrWx = () => { const k = currentWeather().key; return { key: k, name: WEATHERS[k]?.name || 'Clear skies', icon: WEATHERS[k]?.icon || '☀️', ...(MRWX[k] || {}) }; };
 const runOf = (id) => store.get('mailrun/' + id) || {};
 export const mailRunMini = () => `<div class="mailrun-mini"><span class="mr-bird"></span></div>`;
 
@@ -63,12 +79,18 @@ function hitBoxes(o, time) {
 }
 
 function play(c, box, onDone) {
+  const wx = mrWx(); const SPD = SPEED * (wx.speed || 1); const GRV = GRAV * (wx.grav || 1);
   box.innerHTML = `<div class="mailrun"><div class="mr-hud"><span id="mrh">❤️❤️❤️</span><span id="mrl">✉️ 0/${LETTERS}</span><span id="mrd">Sunshell Beach</span></div>
     <div class="mr-prog" aria-label="Distance to Woodland Base"><span class="mrp-end">🏖️</span><div class="mrp-track"><i class="mrp-fill"></i><span class="mrp-mark" style="left:40%"></span><span class="mrp-mark" style="left:72%"></span><b class="mrp-bird"></b></div><span class="mrp-end">🏡</span></div>
     <div class="mrp-labels"><span>Sunshell Beach</span><span>Woodland Base</span></div>
+    ${wx.note ? `<p class="mr-wx">${wx.icon} <b>${esc(wx.name)}:</b> ${esc(wx.note)}</p>` : ''}
     <canvas id="mrc" width="${W}" height="${H}"></canvas><p class="small muted" style="text-align:center">Tap the sky (or press Space / ↑) to flap.</p></div>`;
   const cv = $('#mrc', box); const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
   const { obs, lets } = course(seedOf());
+  if (wx.bolt) obs.forEach((o) => { if (o.k === 'storm') o.every *= wx.bolt; });
+  // weather particles (fixed spots, moved each frame)
+  const nP = wx.rain || wx.sand || wx.hail || wx.streaks || 0;
+  const parts = Array.from({ length: nP }, (_, i) => ({ x: (i * 97.3) % W, y: (i * 53.7) % H, s: 0.6 + ((i * 37) % 10) / 10 }));
   let x = 0; let y = 120; let vy = 0; let hearts = 3; let got = 0; let hurtT = 0; let t0 = 0; let last = 0; let started = false; let over = false; let raf = 0;
   const flap = (e) => { e?.preventDefault?.(); if (over) return; if (!started) { started = true; ensureAudio(); } vy = FLAP; };
   const key = (e) => { if (e.code === 'Space' || e.key === 'ArrowUp') flap(e); };
@@ -142,18 +164,36 @@ function play(c, box, onDone) {
       else { const im = A[o.k]; const [fw, fh, nf] = BIRD[o.k]; if (im) { for (let i = 0; i < o.n; i++) { const f = (Math.floor(time * 14) + i * 3) % nf; g.drawImage(im, f * fw, 0, fw, fh, ox + i * 42, o.y + (i % 2) * 24 + Math.sin(time * 5 + i) * 4, fw * 1.6, fh * 1.6); } } }
     }
     for (const l of lets) { if (l.got || !l.on) continue; const lx = l.x - x + Math.sin(time * 1.8 + l.x) * 10; if (lx < -30 || lx > W + 30 || l.y > H) continue; if (A.letter) { g.save(); g.translate(lx + 15, l.y + 15); g.rotate(Math.sin(time * 2.2 + l.x) * 0.35); g.drawImage(A.letter, -15, -15, 30, 30); g.restore(); } }
+    // weather over the world (under Rayson): tint, particles, fog with a clear patch around him, typhoon flashes
+    if (wx.tint) { g.fillStyle = wx.tint; g.fillRect(0, 0, W, H); }
+    if (nP) {
+      const wind = wx.gust ? 0.35 : wx.speed > 1 ? 0.5 : 0.12;
+      for (const q of parts) {
+        if (wx.rain) { q.y += 520 * q.s * dt; q.x -= (120 + SPD * wind) * dt; } else if (wx.hail) { q.y += 300 * q.s * dt; q.x -= 60 * dt; }
+        else if (wx.sand) { q.x -= (260 + 160 * q.s) * dt; q.y += Math.sin(time * 3 + q.s * 9) * 30 * dt; } else { q.x -= (420 + 200 * q.s) * dt; }
+        if (q.y > H) { q.y -= H + 10; } if (q.x < -20) { q.x += W + 40; }
+        if (wx.rain) { g.strokeStyle = 'rgba(210,230,255,.75)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(q.x, q.y); g.lineTo(q.x - 4 - wind * 6, q.y + 12 * q.s); g.stroke(); }
+        else if (wx.hail) { g.fillStyle = 'rgba(240,248,255,.95)'; g.beginPath(); g.arc(q.x, q.y, 1.5 + q.s * 1.5, 0, Math.PI * 2); g.fill(); }
+        else if (wx.sand) { g.fillStyle = 'rgba(230,190,110,.8)'; g.fillRect(q.x, q.y, 2 + q.s * 2, 1.5); }
+        else { g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(q.x, q.y); g.lineTo(q.x + 26 * q.s, q.y); g.stroke(); }
+      }
+    }
+    if (wx.haze) { g.fillStyle = `rgba(255,200,120,${0.05 + 0.04 * Math.sin(time * 3)})`; g.fillRect(0, 0, W, H); }
+    if (wx.fog) { const fg = g.createRadialGradient(90, y, 50, 90, y, 230); fg.addColorStop(0, 'rgba(228,232,238,0)'); fg.addColorStop(1, 'rgba(228,232,238,.95)'); g.fillStyle = fg; g.fillRect(0, 0, W, H); }
+    if (wx.flash && (time % 5.3) < 0.08) { g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(0, 0, W, H); }
     // Rayson: 48x72 cells, row 0 flap (4), row 1 hurt (2)
     if (A.bird) { const hurt = hurtT > 0.9; const f = hurt ? Math.floor(time * 8) % 2 : Math.floor(time * (vy < 0 ? 14 : 7)) % 4;
       if (!(hurtT > 0 && Math.floor(time * 12) % 2)) { g.save(); g.translate(90, y); g.rotate(Math.max(-0.4, Math.min(0.5, vy / 600))); g.drawImage(A.bird, f * 48, hurt ? 72 : 0, 48, 72, -36, -54, 72, 108); g.restore(); } }
-    if (!started) { g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, 0, W, H); g.fillStyle = '#fff'; g.font = 'bold 18px sans-serif'; g.textAlign = 'center'; g.fillText('Tap to flap!', W / 2, H / 2 - 6); g.font = '12px sans-serif'; g.fillText('Fly the mail home to Woodland Base', W / 2, H / 2 + 14); g.textAlign = 'start'; }
+    if (!started) { g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, 0, W, H); g.fillStyle = '#fff'; g.font = 'bold 18px sans-serif'; g.textAlign = 'center'; g.fillText('Tap to flap!', W / 2, H / 2 - 6); g.font = '12px sans-serif'; g.fillText('Fly the mail home to Woodland Base', W / 2, H / 2 + 14); if (wx.note) { g.font = 'bold 12px sans-serif'; g.fillText(`${wx.icon} ${wx.name} today`, W / 2, H / 2 + 34); } g.textAlign = 'start'; }
   };
   const step = (now) => {
     if (!box.isConnected) { end(false); return; }
     const dt = Math.min(0.05, last ? (now - last) / 1000 : 0); last = now;
     if (started && !over) {
-      x += SPEED * dt; vy = Math.min(MAXFALL, vy + GRAV * dt); y += vy * dt; hurtT = Math.max(0, hurtT - dt);
+      x += SPD * dt; vy = Math.min(MAXFALL, vy + GRV * dt); y += vy * dt; hurtT = Math.max(0, hurtT - dt);
       for (const o of obs) { if (o.vy) o.y = Math.max(20, Math.min(GROUND - 70, o.y + o.vy * dt)); if (o.vx && o.x - x < W + 40) o.x += o.vx * dt; }
       for (const l of lets) { if (!l.on && l.x - x < W - 20) { l.on = true; l.y = -30; } if (l.on && !l.got) l.y += l.fall * dt; }
+      if (wx.gust) { const tg = performance.now() / 1000; vy += wx.gust * Math.sin(tg * 0.9) * Math.sin(tg * 2.3 + 1) * dt; }
       if (y < 16) { y = 16; vy = 0; }
       if (y > GROUND - 14) { y = GROUND - 22; vy = FLAP * 0.8; hit(); }
       const me = { x: 90 - 17, y: y - 14, w: 34, h: 28 };
@@ -172,7 +212,7 @@ function play(c, box, onDone) {
 function finish(c, box, made, got, hearts, onDone) {
   const r = runOf(c.id); const first = made && r.paidDay !== today();
   const perfect = made && got === LETTERS;
-  const poke = first ? got * 15 + (perfect ? 100 : 0) : 0;
+  const wx = mrWx(); const poke = first ? got * (15 + (wx.bonus || 0)) + (perfect ? 100 : 0) : 0;
   const best = Math.max(num(r.best), made ? got : 0);
   store.set('mailrun/' + c.id, { ...r, best, last: { made, got, hearts, t: Date.now() }, ...(first ? { paidDay: today() } : {}), runs: num(r.runs) + 1 });
   const pay = (item) => {
@@ -180,7 +220,7 @@ function finish(c, box, made, got, hearts, onDone) {
     if (item) store.set('bag/' + uid(), { name: item, qty: 1, owner: c.id });
     if (poke || item) markWinner(c.id);
     const reward = [poke ? `${poke} Poké` : '', item ? `a rare ${item}` : ''].filter(Boolean).join(' and ');
-    logRoll(c.nickname, 'Rayson’s Mail Run', null, `${made ? 'delivered' : 'turned back'} · ${got}/${LETTERS} letters · ${hearts} ❤️${reward ? ' · ' + reward : ''}`, 'note');
+    logRoll(c.nickname, 'Rayson’s Mail Run', null, `${made ? 'delivered' : 'turned back'} in ${wx.name.toLowerCase()} · ${got}/${LETTERS} letters · ${hearts} ❤️${reward ? ' · ' + reward : ''}`, 'note');
     if (perfect) gameSay('Rayson the Wingull', 'say', `${c.nickname} helped me bring every single letter home! I wasn’t even scared. Okay, a little.`, 'mailrun', c.nickname);
     box.innerHTML = `<div class="sentry-end"><img class="sface big" src="assets/portraits/wingull.png" alt="Rayson">
       <div class="big">${made ? (perfect ? 'Perfect delivery!' : 'Mail delivered!') : 'Rayson turned back…'}</div>
