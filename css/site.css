@@ -1859,6 +1859,10 @@ a.ch-chip:hover { background: var(--navy); }
 .fr-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #9a9a9a; margin-right: 5px; vertical-align: 1px; }
 .fr-dot.on { background: #3fbf5a; box-shadow: 0 0 6px #3fbf5a; }
 .fr-list li { flex-wrap: wrap; }
+/* phone fix (her report 10-27): name + status get the whole line; the buttons sit on their own row under them */
+.fr-list .grow { flex: 1 1 0; min-width: 0; overflow-wrap: break-word; }
+.fr-acts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-left: auto; }
+@media (max-width: 560px) { .fr-acts { flex-basis: 100%; justify-content: flex-start; padding-left: 50px; } }
 .hb-count.on { background: #3fbf5a; }
 .invite-pop { position: fixed; z-index: 9000; left: 50%; bottom: 18px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 12px 14px; border-radius: 14px; background: var(--paper); color: var(--ink); border: 3px solid var(--orange); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
 .invite-pop .row { margin-top: 8px; gap: 8px; }
