@@ -1,13 +1,14 @@
 // Character hotbar in the top banner: money, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6ae15d35';
-import { $, esc, num, toast } from './util.js?v=6ae15d35';
-import { modal } from './ui.js?v=6ae15d35';
-import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae15d35';
-import { sentryDue } from './sentry.js?v=6ae15d35';
-import { kitchenDue } from './kitchen.js?v=6ae15d35';
-import { nurseryDue } from './nursery.js?v=6ae15d35';
-import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6ae15d35';
+import * as store from './store.js?v=6ae15ecb';
+import { $, esc, num, toast } from './util.js?v=6ae15ecb';
+import { modal } from './ui.js?v=6ae15ecb';
+import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae15ecb';
+import { sentryDue } from './sentry.js?v=6ae15ecb';
+import { kitchenDue } from './kitchen.js?v=6ae15ecb';
+import { nurseryDue } from './nursery.js?v=6ae15ecb';
+import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6ae15ecb';
+import { openFriends, friendsOf, isOnline } from './friends.js?v=6ae15ecb';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -34,6 +35,7 @@ function hotbarHTML(c) {
   const pins = pinsOf(c).map((n) => { const qty = bag.filter((b) => b.name === n).reduce((s, b) => s + num(b.qty), 0); return `<button class="hb hb-pin hb-btn ${qty ? '' : 'gone'}" data-pinitem="${esc(n)}" title="Use or look up ${esc(n)}">📌 ${esc(n)}${qty > 1 ? ' ×' + qty : ''}</button>`; }).join('');
   const due = choresFor(c).filter((x) => x.due).length;
   return `<a class="hb hb-me" href="#/play" title="Open your character sheet"><b>${esc(c.nickname)}</b></a>
+    <button class="hb hb-btn hb-friends" id="hbfriends" title="Friends: who's online, invite them to play">👥 Friends${(() => { const n = friendsOf(c).filter(isOnline).length; return n ? ` <b class="hb-count on">${n}</b>` : ''; })()}</button>
     <button class="hb hb-btn hb-chores ${due ? 'due' : 'done'}" id="hbchores" title="Today’s chores">📋 Chores ${due ? `<b class="hb-count">${due}</b>` : '✓'} ▾</button>
     <span class="hb" title="Poké">💰 ${num(c.poke).toLocaleString()}</span>
     <a class="hb hb-link" href="#/gym" title="Training Points: open the Training Gym">${num(c.tp)} Training Points (TP) 🏋️</a>
@@ -58,6 +60,7 @@ export function updateHotbar() {
   lastHTML = html;
   el.innerHTML = html;
   $('#hbmap', el).onclick = showMap;
+  $('#hbfriends', el).onclick = openFriends;
   $('#hbgarb', el).onclick = () => showGarment((store.get('party') || {})[meId()] || c);
   $('.hb-me', el).onclick = (e) => { e.preventDefault(); openSheet(); };
   const add = $('#hbpinadd', el); if (add) add.onclick = (e) => { e.stopPropagation(); togglePinMenu(add, c.id); };
@@ -115,7 +118,6 @@ async function openItemPop(anchor, id, name) {
 const gymDay = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
 function choresFor(c) {
   return [
-    ['📬', 'Read today’s mail mission', mailWaiting(c), null],
     ['👣', 'Sentry Duty with Diglett', sentryDue(), '#/games/sentry-duty'],
     ['🍲', 'Help in Spinda’s Kitchen', kitchenDue(), '#/games/spinda-kitchen'],
     ['🥚', 'Care for your nursery buddy', nurseryDue(), '#/games/fernshade-nursery'],

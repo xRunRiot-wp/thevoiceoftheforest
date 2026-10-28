@@ -1,24 +1,25 @@
-import { CONFIG } from './config.js?v=6ae15d35';
-import * as store from './store.js?v=6ae15d35';
-import * as sheet from './sheetdata.js?v=6ae15d35';
-import { $, $$, esc, uid, toast } from './util.js?v=6ae15d35';
-import { unlockChar, charOpen, pinOf, askForPin } from './charlock.js?v=6ae15d35';
-import { closeModal, maxHp } from './ui.js?v=6ae15d35';
-import { renderJoin, renderPlay } from './play.js?v=6ae15d35';
-import { renderGM } from './gm.js?v=6ae15d35';
-import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6ae15d35';
-import { renderRules } from './rulebook.js?v=6ae15d35';
-import { renderVault } from './vault.js?v=6ae15d35';
-import { renderGames } from './games.js?v=6ae15d35';
-import { updateHotbar } from './hotbar.js?v=6ae15d35';
-import { applyTheme, openSettings } from './theme.js?v=6ae15d35';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6ae15d35';
-import { resolveFortunes } from './fortune.js?v=6ae15d35';
-import { updateSparkle } from './sparkle.js?v=6ae15d35';
-import { startDigCursor } from './digcursor.js?v=6ae15d35';
-import { renderFriendZone } from './friendzone.js?v=6ae15d35';
-import { renderGym } from './gym.js?v=6ae15d35';
-import { placeGimmighoul } from './gimmighoul.js?v=6ae15d35';
+import { CONFIG } from './config.js?v=6ae15ecb';
+import * as store from './store.js?v=6ae15ecb';
+import * as sheet from './sheetdata.js?v=6ae15ecb';
+import { $, $$, esc, uid, toast } from './util.js?v=6ae15ecb';
+import { unlockChar, charOpen, pinOf, askForPin } from './charlock.js?v=6ae15ecb';
+import { closeModal, maxHp } from './ui.js?v=6ae15ecb';
+import { renderJoin, renderPlay } from './play.js?v=6ae15ecb';
+import { renderGM } from './gm.js?v=6ae15ecb';
+import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6ae15ecb';
+import { renderRules } from './rulebook.js?v=6ae15ecb';
+import { renderVault } from './vault.js?v=6ae15ecb';
+import { renderGames } from './games.js?v=6ae15ecb';
+import { updateHotbar } from './hotbar.js?v=6ae15ecb';
+import { applyTheme, openSettings } from './theme.js?v=6ae15ecb';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6ae15ecb';
+import { resolveFortunes } from './fortune.js?v=6ae15ecb';
+import { updateSparkle } from './sparkle.js?v=6ae15ecb';
+import { startDigCursor } from './digcursor.js?v=6ae15ecb';
+import { renderFriendZone } from './friendzone.js?v=6ae15ecb';
+import { renderGym } from './gym.js?v=6ae15ecb';
+import { placeGimmighoul } from './gimmighoul.js?v=6ae15ecb';
+import { startFriends } from './friends.js?v=6ae15ecb';
 
 const main = $('#main');
 let current = '';
@@ -148,6 +149,7 @@ window.addEventListener('hashchange', route);
   // this device is set to a character whose password it never typed (set on another device): pick again
   if (myId() && !charOpen(myId()) && pinOf(myId())) { setMe(''); setJoined(false); toast('Your character has a password now. Pick it again to play.'); }
   await route();
+  startFriends();
   // popups wait for the first page draw (it closes any open popup)
   if (asChar && !charOpen(asChar.id)) unlockChar(asChar.id, () => playAs(asChar));
   else askForPin(myId());

@@ -1827,3 +1827,37 @@ a.ch-chip:hover { background: var(--navy); }
 .gift-note { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--cream); border: 2px solid var(--line); }
 .gift-note.new { border-color: var(--orange); box-shadow: 0 0 0 3px color-mix(in srgb, var(--orange) 25%, transparent); }
 .gift-note .gn-icon { font-size: 28px; line-height: 1; }
+
+/* Noctowl's 21 (cards21.js) */
+.c21-mini { position: relative; display: grid; place-items: center; }
+.c21-mini img { width: 64%; border-radius: 50%; image-rendering: pixelated; }
+.c21-mini .c21-card { position: absolute; bottom: 8%; transform: rotate(-12deg); left: 18%; }
+.c21-mini .c21-card + .c21-card { left: auto; right: 18%; transform: rotate(10deg); }
+.c21-table { background: radial-gradient(ellipse at 50% 30%, #2f5a3c, #183424 75%); color: #f4f0e2; border-color: #6b4a1e; }
+.c21-table .muted { color: #c9d8c4; }
+.c21-owl { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.c21-owl .sface.big { width: 64px; height: 64px; border-radius: 10px; image-rendering: pixelated; border: 2px solid #e8c56a; }
+.c21-owl .bubble { color: var(--ink); }
+.c21-pot { text-align: center; font-weight: 700; margin: 6px 0 10px; color: #ffe08a; }
+.c21-seats { display: grid; gap: 8px; }
+.c21-seat { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: rgba(0, 0, 0, .22); border: 2px solid transparent; }
+.c21-seat.turn { border-color: #ffe08a; box-shadow: 0 0 10px rgba(255, 224, 138, .45); }
+.c21-seat.me { background: rgba(255, 255, 255, .1); }
+.c21-seat.out { opacity: .55; }
+.c21-seat .sface { width: 40px; height: 40px; border-radius: 8px; image-rendering: pixelated; }
+.c21-av { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; background: #e8c56a; color: #3a2a10; font-weight: 800; flex: none; }
+.c21-hand { display: flex; gap: 4px; margin: 4px 0 2px; flex-wrap: wrap; }
+.c21-card { display: inline-grid; place-items: center; width: 34px; height: 48px; border-radius: 6px; background: #fffdf6; color: #1b1b1b; font: 800 15px/1 Georgia, serif; border: 1px solid #b9ad92; box-shadow: 0 2px 3px rgba(0, 0, 0, .35); }
+.c21-card.r { color: #c4271e; }
+.c21-card.back { background: repeating-linear-gradient(45deg, #3b2a6b 0 5px, #4b378a 5px 10px); border: 2px solid #e8c56a; }
+.c21-acts { margin-top: 12px; padding: 10px; border-radius: 12px; background: rgba(255, 224, 138, .14); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.c21-acts p { width: 100%; margin: 0 0 4px; }
+.c21-result { margin-top: 12px; padding: 10px; border-radius: 12px; background: rgba(0, 0, 0, .3); text-align: center; color: #ffe08a; }
+.c21-lobby { margin-top: 12px; }
+/* Friends (friends.js) */
+.fr-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #9a9a9a; margin-right: 5px; vertical-align: 1px; }
+.fr-dot.on { background: #3fbf5a; box-shadow: 0 0 6px #3fbf5a; }
+.fr-list li { flex-wrap: wrap; }
+.hb-count.on { background: #3fbf5a; }
+.invite-pop { position: fixed; z-index: 9000; left: 50%; bottom: 18px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 12px 14px; border-radius: 14px; background: var(--paper); color: var(--ink); border: 3px solid var(--orange); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); }
+.invite-pop .row { margin-top: 8px; gap: 8px; }
