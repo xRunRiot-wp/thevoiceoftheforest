@@ -1,14 +1,14 @@
 // Sentry Duty (from Explorers of Time/Sky): stand watch at the Woodland Base gate with Diglett and name each visitor
 // from their footprint. A daily guild chore every character is expected to do, not a gamble: an okay shift is just
 // doing your duty, a great shift pays Poké and can turn up a rare item. One shift per character per day.
-import * as store from './store.js?v=6ae158bf';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae158bf';
-import { me, logRoll } from './play.js?v=6ae158bf';
-import { dailyRoll } from './weather.js?v=6ae158bf';
-import { gameSay } from './chatter.js?v=6ae158bf';
-import { markWinner } from './sparkle.js?v=6ae158bf';
-import * as sheet from './sheetdata.js?v=6ae158bf';
-import { portraitFile } from './ui.js?v=6ae158bf';
+import * as store from './store.js?v=6ae1592b';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae1592b';
+import { me, logRoll } from './play.js?v=6ae1592b';
+import { dailyRoll } from './weather.js?v=6ae1592b';
+import { gameSay } from './chatter.js?v=6ae1592b';
+import { markWinner } from './sparkle.js?v=6ae1592b';
+import * as sheet from './sheetdata.js?v=6ae1592b';
+import { portraitFile } from './ui.js?v=6ae1592b';
 
 export const isSentry = (g) => g.kind === 'sentry' || g.id === 'sentry-duty';
 
@@ -126,7 +126,7 @@ export function renderSentry(main, g, gm, onEdit) {
     <div class="card" style="margin-top:12px"><h3 style="margin-top:0">Today’s gate roster</h3><ul class="sentry-roster" id="sroster"></ul></div>`;
   const roster = () => {
     $('#sroster', main).innerHTML = party.map((x) => { const s = shift(x.id); const on = s.day === today();
-      return `<li>${faceHTML(x, on ? moodOf(s.grade) : 'wait')}<span class="grow">${esc(x.nickname)}</span>${on ? `<b>${esc(s.grade)}</b> <span class="small muted">${s.score}/${ROUNDS}</span>` : '<span class="small muted">not yet</span>'}<span class="small muted"> · ${num(s.shifts)} shift${num(s.shifts) === 1 ? '' : 's'}</span>${gm && on ? ` <button class="btn alt sm" data-sreset="${esc(x.id)}">Redo</button>` : ''}</li>`; }).join('') || '<li class="muted">No characters yet.</li>';
+      return `<li>${faceHTML(x, on ? moodOf(s.grade) : 'wait')}<span class="grow">${esc(x.nickname)}<br><span class="small">${on ? `<b>${esc(s.grade)}</b> <span class="muted">${s.score}/${ROUNDS}</span>` : '<span class="muted">not yet</span>'}<span class="muted"> · ${num(s.shifts)} shift${num(s.shifts) === 1 ? '' : 's'}</span></span></span>${gm && on ? ` <button class="btn alt sm" data-sreset="${esc(x.id)}">Redo</button>` : ''}</li>`; }).join('') || '<li class="muted">No characters yet.</li>';
     $$('[data-sreset]', main).forEach((b) => b.onclick = () => { store.set(`sentry/${b.dataset.sreset}/day`, null); toast('They can do today’s shift again'); renderSentry(main, g, gm, onEdit); });
   };
   roster();

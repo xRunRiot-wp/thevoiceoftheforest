@@ -1,14 +1,14 @@
 // Dance Practice with Ralts (her ask 10-27): Ralts dances a short routine of up / down / left / right steps and the
 // player copies it with the arrow buttons (or arrow keys). Rounds grow from 3 to 8 steps. Ralts and the player's own
 // face react to every hit or missed step. A daily chore like Sentry Duty: a great practice pays Poké and maybe a rare item.
-import * as store from './store.js?v=6ae158bf';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae158bf';
-import { me, logRoll } from './play.js?v=6ae158bf';
-import { dailyRoll } from './weather.js?v=6ae158bf';
-import { gameSay } from './chatter.js?v=6ae158bf';
-import { markWinner } from './sparkle.js?v=6ae158bf';
-import { faceHTML, faceSrc, spKey, rareItem } from './sentry.js?v=6ae158bf';
-import { startMusic, stopMusic, stepSound, missSound, jingle, muted, setMuted } from './chiptune.js?v=6ae158bf';
+import * as store from './store.js?v=6ae1592b';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae1592b';
+import { me, logRoll } from './play.js?v=6ae1592b';
+import { dailyRoll } from './weather.js?v=6ae1592b';
+import { gameSay } from './chatter.js?v=6ae1592b';
+import { markWinner } from './sparkle.js?v=6ae1592b';
+import { faceHTML, faceSrc, spKey, rareItem } from './sentry.js?v=6ae1592b';
+import { startMusic, stopMusic, stepSound, missSound, jingle, muted, setMuted } from './chiptune.js?v=6ae1592b';
 
 export const isDance = (g) => g.kind === 'dance' || g.id === 'ralts-dance';
 
@@ -132,7 +132,7 @@ export function renderDance(main, g, gm, onEdit) {
     <div class="card" style="margin-top:12px"><h3 style="margin-top:0">Today’s dancers</h3><ul class="sentry-roster" id="droster"></ul></div>`;
   const roster = () => {
     $('#droster', main).innerHTML = party.map((x) => { const s = done(x.id); const on = s.day === today();
-      return `<li>${faceHTML(x, on ? moodOf(s.grade) : 'wait')}<span class="grow">${esc(x.nickname)}</span>${on ? `<b>${esc(s.grade)}</b> <span class="small muted">${s.score}/${TOTAL}</span>` : '<span class="small muted">not yet</span>'}<span class="small muted"> · ${num(s.times)} practice${num(s.times) === 1 ? '' : 's'}</span>${gm && on ? ` <button class="btn alt sm" data-dreset="${esc(x.id)}">Redo</button>` : ''}</li>`; }).join('') || '<li class="muted">No characters yet.</li>';
+      return `<li>${faceHTML(x, on ? moodOf(s.grade) : 'wait')}<span class="grow">${esc(x.nickname)}<br><span class="small">${on ? `<b>${esc(s.grade)}</b> <span class="muted">${s.score}/${TOTAL}</span>` : '<span class="muted">not yet</span>'}<span class="muted"> · ${num(s.times)} practice${num(s.times) === 1 ? '' : 's'}</span></span></span>${gm && on ? ` <button class="btn alt sm" data-dreset="${esc(x.id)}">Redo</button>` : ''}</li>`; }).join('') || '<li class="muted">No characters yet.</li>';
     $$('[data-dreset]', main).forEach((b) => b.onclick = () => { store.set(`dance/${b.dataset.dreset}/day`, null); toast('They can practice again today'); renderDance(main, g, gm, onEdit); });
   };
   roster();
