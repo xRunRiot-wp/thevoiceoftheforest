@@ -1710,3 +1710,13 @@ a.ch-chip:hover { background: var(--navy); }
 .drops i { position: absolute; bottom: 80px; width: 6px; height: 10px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: #7ec8ff; z-index: 4; animation: drop-fly .7s ease-out forwards; transform: rotate(var(--a)); }
 @keyframes drop-fly { to { translate: calc(cos(var(--a)) * 70px) calc(sin(var(--a)) * 50px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .pet .baby-spr, .ball-wrap, .suds i, .props .prop { animation: none !important; transition: none !important; } }
+
+/* Mail Run progress bar: Sunshell Beach to Woodland Base */
+.mr-prog { display: flex; align-items: center; gap: 6px; margin: 2px 0 0; }
+.mrp-end { font-size: 20px; }
+.mrp-track { position: relative; flex: 1; height: 14px; border-radius: 99px; background: linear-gradient(90deg, #8fd3f5 0 40%, #f2dc9a 40% 72%, #a8d870 72%); box-shadow: inset 0 2px 4px rgba(0, 0, 0, .3); border: 2px solid #3a2c1a; }
+.mrp-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 99px; background: repeating-linear-gradient(45deg, rgba(255, 255, 255, .55) 0 6px, rgba(255, 255, 255, .25) 6px 12px); }
+.mrp-mark { position: absolute; top: -3px; bottom: -3px; width: 2px; background: rgba(58, 44, 26, .5); }
+.mrp-bird { position: absolute; top: 50%; width: 36px; height: 54px; translate: -50% -55%; background: url('../assets/mailrun/rayson.png') 0 0 / 144px 108px no-repeat; image-rendering: pixelated; animation: mrp-flap .4s steps(4, jump-none) infinite; }
+@keyframes mrp-flap { from { background-position-x: 0; } to { background-position-x: -108px; } }
+.mrp-labels { display: flex; justify-content: space-between; font: 700 11px var(--pix); color: #6b5638; margin: 2px 26px 6px; }
