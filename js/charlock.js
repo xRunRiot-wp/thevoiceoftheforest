@@ -1,9 +1,9 @@
 // Character passwords (her ask): a simple word or number per character so nobody plays as someone else by an accidental tap.
 // Not real security, like the GM passcode. Stored on the table at pins/<id>; a device that typed it once remembers it.
 // The GM (unlocked) can open any character and see / change / remove every password on the GM page.
-import * as store from './store.js?v=6ae14747';
-import { $, esc, toast } from './util.js?v=6ae14747';
-import { modal, closeModal } from './ui.js?v=6ae14747';
+import * as store from './store.js?v=6ae14856';
+import { $, esc, toast } from './util.js?v=6ae14856';
+import { modal, closeModal } from './ui.js?v=6ae14856';
 
 const norm = (s) => String(s ?? '').trim().toLowerCase();
 const key = (id) => `dc.pinok.${store.tableCode()}.${id}`;

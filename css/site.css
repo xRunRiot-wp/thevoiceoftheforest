@@ -1682,3 +1682,31 @@ a.ch-chip:hover { background: var(--navy); }
 @keyframes mr-bob { 50% { transform: translateY(-8px); } }
 @media (max-width: 420px) { .mailrun-mini { width: 104px; height: 104px; } .mr-bird { transform: scale(.8); } }
 @media (prefers-reduced-motion: reduce) { .mr-bird { animation: none; } }
+
+/* Nursery pet: wandering buddy, props and effects */
+.nursery-room:not(.is-egg) { justify-content: flex-start; min-height: 260px; }
+.nest-spot { position: absolute; left: 50%; bottom: 8px; translate: -50% 0; opacity: .95; }
+.nest-spot .nest { height: 110px; }
+.pet { position: absolute; z-index: 3; cursor: pointer; }
+.pet .baby-spr { display: block; image-rendering: pixelated; background-repeat: no-repeat; margin: 0; position: static; translate: none; }
+.pet.shake { animation: pet-shake .12s linear 6; }
+@keyframes pet-shake { 25% { transform: translateX(-6px) rotate(-4deg); } 75% { transform: translateX(6px) rotate(4deg); } }
+.pet-think { position: absolute; left: 60%; top: 30%; min-width: 34px; height: 30px; padding: 0 6px; border-radius: 16px; background: #fff; border: 2px solid #3a2c1a; font-size: 16px; line-height: 26px; text-align: center; opacity: 0; transform: scale(.4); transition: .25s; z-index: 4; pointer-events: none; }
+.pet-think::after { content: ''; position: absolute; left: 4px; bottom: -8px; width: 8px; height: 8px; border-radius: 50%; background: #fff; border: 2px solid #3a2c1a; }
+.pet-think.show { opacity: 1; transform: scale(1); }
+.pet-think.zz { font: 700 13px var(--pix); color: #4a5fa8; }
+.pet-fx { position: absolute; bottom: 120px; z-index: 5; font-size: 24px; pointer-events: none; animation: fx-float 1.3s ease-out forwards; }
+.props .prop { position: absolute; image-rendering: pixelated; z-index: 2; }
+.props .prop.drop { width: 36px; height: 36px; bottom: 30px; animation: prop-drop .6s cubic-bezier(.4, 0, .9, .6); }
+@keyframes prop-drop { from { transform: translateY(-160px) rotate(-90deg); } 80% { transform: translateY(0) rotate(0); } 90% { transform: translateY(-8px); } }
+.props .prop.eaten { animation: prop-eat 2.2s steps(4) forwards; }
+@keyframes prop-eat { to { transform: scale(.1); opacity: 0; } }
+.ball-wrap { position: absolute; bottom: 28px; left: 50%; transition: left .9s cubic-bezier(.3, .1, .4, 1); z-index: 4; }
+.props .prop.ball { position: static; display: block; width: 36px; height: 36px; animation: ball-bounce .45s ease-in infinite alternate; }
+@keyframes ball-bounce { from { transform: translateY(-46px) rotate(0); } to { transform: translateY(0) rotate(180deg); } }
+.suds i { position: absolute; bottom: 30px; width: calc(22px * var(--s)); height: calc(22px * var(--s)); border-radius: 50%; z-index: 4;
+  background: radial-gradient(circle at 35% 30%, #fff, rgba(200, 235, 255, .7) 45%, rgba(160, 210, 255, .35) 70%); border: 1px solid rgba(255, 255, 255, .9); animation: suds-up 1.6s ease-out infinite; }
+@keyframes suds-up { from { transform: translateY(0) scale(.5); opacity: 0; } 20% { opacity: 1; } to { transform: translateY(-110px) scale(1.1); opacity: 0; } }
+.drops i { position: absolute; bottom: 80px; width: 6px; height: 10px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: #7ec8ff; z-index: 4; animation: drop-fly .7s ease-out forwards; transform: rotate(var(--a)); }
+@keyframes drop-fly { to { translate: calc(cos(var(--a)) * 70px) calc(sin(var(--a)) * 50px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .pet .baby-spr, .ball-wrap, .suds i, .props .prop { animation: none !important; transition: none !important; } }

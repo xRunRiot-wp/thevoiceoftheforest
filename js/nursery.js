@@ -3,17 +3,18 @@
 // clean every day. Each day the buddy is fully cared for counts toward growing up: Egg → Baby → Kid → Teen.
 // A teen can be asked to join the team (it goes on the GM checklist as a recruit).
 // Stats drop in real time from when you last did each thing. State: nursery/<charId>.
-import * as store from './store.js?v=6ae14747';
-import { $, $$, esc, toast, num } from './util.js?v=6ae14747';
-import { me, logRoll } from './play.js?v=6ae14747';
-import { dailyRoll } from './weather.js?v=6ae14747';
-import { gameSay, gmTodo } from './chatter.js?v=6ae14747';
-import { markWinner } from './sparkle.js?v=6ae14747';
+import * as store from './store.js?v=6ae14856';
+import { $, $$, esc, toast, num } from './util.js?v=6ae14856';
+import { me, logRoll } from './play.js?v=6ae14856';
+import { dailyRoll } from './weather.js?v=6ae14856';
+import { gameSay, gmTodo } from './chatter.js?v=6ae14856';
+import { markWinner } from './sparkle.js?v=6ae14856';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
-// baby sprites: assets/nursery/<key>.png, rows Idle / Hop / Sleep (facing down), cells cw×ch; faces in assets/portraits/emo/<key>/
-const BABIES = {pichu: { name: 'Pichu', cw: 32, ch: 88, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, cleffa: { name: 'Cleffa', cw: 24, ch: 80, idle: 2, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, igglybuff: { name: 'Igglybuff', cw: 24, ch: 72, idle: 2, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, togepi: { name: 'Togepi', cw: 24, ch: 72, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, tyrogue: { name: 'Tyrogue', cw: 24, ch: 88, idle: 7, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, smoochum: { name: 'Smoochum', cw: 24, ch: 80, idle: 5, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, elekid: { name: 'Elekid', cw: 32, ch: 96, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, magby: { name: 'Magby', cw: 24, ch: 88, idle: 6, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, azurill: { name: 'Azurill', cw: 48, ch: 88, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, wynaut: { name: 'Wynaut', cw: 24, ch: 80, idle: 6, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, budew: { name: 'Budew', cw: 24, ch: 80, idle: 8, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, chingling: { name: 'Chingling', cw: 32, ch: 80, idle: 2, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, bonsly: { name: 'Bonsly', cw: 24, ch: 88, idle: 5, emo: ['Normal', 'Sad'] }, mimejr: { name: 'Mime Jr.', cw: 24, ch: 88, idle: 8, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, happiny: { name: 'Happiny', cw: 32, ch: 80, idle: 5, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, munchlax: { name: 'Munchlax', cw: 32, ch: 88, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, riolu: { name: 'Riolu', cw: 32, ch: 88, idle: 4, emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }};
+// baby sprites: assets/nursery/<key>.png, 10 frames wide, rows Idle / Hop / Sleep / Walk right / Walk left / Eat / Nod (fr = frames per row),
+// cells cw×ch; faces in assets/portraits/emo/<key>/
+const BABIES = {pichu: { name: 'Pichu', cw: 32, ch: 88, fr: [4, 10, 2, 8, 8, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, cleffa: { name: 'Cleffa', cw: 32, ch: 80, fr: [2, 10, 2, 8, 8, 2, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, igglybuff: { name: 'Igglybuff', cw: 24, ch: 72, fr: [2, 10, 2, 5, 5, 2, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, togepi: { name: 'Togepi', cw: 24, ch: 72, fr: [4, 10, 2, 6, 6, 4, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, tyrogue: { name: 'Tyrogue', cw: 24, ch: 88, fr: [7, 10, 2, 4, 4, 4, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, smoochum: { name: 'Smoochum', cw: 32, ch: 80, fr: [5, 10, 2, 4, 4, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, elekid: { name: 'Elekid', cw: 32, ch: 96, fr: [4, 10, 2, 4, 4, 4, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, magby: { name: 'Magby', cw: 24, ch: 88, fr: [6, 10, 2, 4, 4, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, azurill: { name: 'Azurill', cw: 48, ch: 88, fr: [4, 10, 2, 7, 7, 4, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, wynaut: { name: 'Wynaut', cw: 24, ch: 80, fr: [6, 10, 2, 8, 8, 6, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, budew: { name: 'Budew', cw: 24, ch: 80, fr: [8, 10, 2, 8, 8, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, chingling: { name: 'Chingling', cw: 40, ch: 80, fr: [2, 10, 2, 9, 9, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, bonsly: { name: 'Bonsly', cw: 24, ch: 88, fr: [5, 10, 2, 4, 4, 5, 10], emo: ['Normal', 'Sad'] }, mimejr: { name: 'Mime Jr.', cw: 24, ch: 88, fr: [8, 10, 2, 10, 10, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, happiny: { name: 'Happiny', cw: 32, ch: 80, fr: [5, 10, 2, 8, 8, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, munchlax: { name: 'Munchlax', cw: 32, ch: 88, fr: [4, 10, 2, 4, 4, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, riolu: { name: 'Riolu', cw: 32, ch: 88, fr: [4, 10, 2, 4, 4, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }};
 const STAGES = ['Egg', 'Baby', 'Kid', 'Teen'];
 const DAYS_TO_GROW = [1, 2, 2]; // cared-for days to leave Egg, Baby, Kid
 const NEEDS = { egg: { warm: 3 }, baby: { feed: 2, play: 2, clean: 1 } };
@@ -37,11 +38,81 @@ function buddyFace(b) {
   const want = avg >= 75 ? ['Joyous', 'Happy'] : avg >= 45 ? ['Normal'] : avg >= 20 ? ['Sad', 'Worried'] : ['Crying', 'Teary-Eyed', 'Sad'];
   return `assets/portraits/emo/${b.sp}/${want.find((e) => B.emo.includes(e)) || 'Normal'}.png`;
 }
-// the baby's own sprite: row 0 idle, 1 hop, 2 sleep; 3x size
-function spriteHTML(b, row = 0) {
-  const B = BABIES[b.sp]; const n = row === 1 ? 10 : row === 2 ? 2 : B.idle;
-  const S = 3;
-  return `<span class="baby-spr r${row}" style="bottom:${Math.round(66 - B.ch * S / 2)}px;--fw:${B.cw * S}px;--n:${n};width:${B.cw * S}px;height:${B.ch * S}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${B.cw * 10 * S}px ${B.ch * 3 * S}px;background-position-y:-${row * B.ch * S}px"></span>`;
+// ---- the living pet (her ask 10-27: feel like a little virtual pet). The buddy wanders the room on its own, hops when
+// happy, naps at night, shows a thought bubble when it needs something, and acts out each care action:
+// feed = a berry drops in and it walks over to eat it; play = it chases a bouncing ball; bath = bubbles, then a shake-off.
+const S = 3; const ROW = { idle: 0, hop: 1, sleep: 2, right: 3, left: 4, eat: 5, nod: 6 };
+const wait = (ms) => new Promise((ok) => setTimeout(ok, ms));
+const petHTML = () => '<div class="pet" id="npet"><span class="baby-spr"></span><span class="pet-think"></span></div><div class="props"></div>';
+function startPet(root, b, scene) {
+  const B = BABIES[b.sp]; const roomEl = $('.nursery-room', root); const pet = $('#npet', root); if (!B || !roomEl || !pet) return;
+  const spr = $('.baby-spr', pet); const think = $('.pet-think', pet); const props = $('.props', root);
+  const pw = B.cw * S;
+  spr.style.cssText = `width:${pw}px;height:${B.ch * S}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${B.cw * 10 * S}px ${B.ch * 7 * S}px`;
+  pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - B.ch * S / 2) + 'px';
+  const alive = () => roomEl.isConnected;
+  const row = (name, loop = true, secs = null) => {
+    const r = ROW[name]; const n = B.fr[r] || 1;
+    spr.style.backgroundPositionY = `-${r * B.ch * S}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
+    spr.style.animation = 'none'; void spr.offsetWidth;
+    spr.style.animation = `baby-anim ${secs || Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
+  };
+  let x = Math.max(10, roomEl.clientWidth * 0.5 - pw / 2);
+  const maxX = () => Math.max(10, roomEl.clientWidth - pw - 10);
+  pet.style.left = x + 'px';
+  const fx = (ch, dx = 0) => { const e = document.createElement('span'); e.className = 'pet-fx'; e.textContent = ch; e.style.left = (x + pw / 2 - 12 + dx) + 'px'; roomEl.appendChild(e); setTimeout(() => e.remove(), 1400); };
+  const walkTo = async (tx) => {
+    tx = Math.max(10, Math.min(maxX(), tx)); const d = Math.abs(tx - x); if (d < 4) return;
+    row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / 75).toFixed(2)}s linear`; pet.style.left = tx + 'px'; x = tx;
+    await wait(d / 75 * 1000); row('idle');
+  };
+  const mood = () => { const k = Object.keys(NEEDS.baby); return k.reduce((t, n) => t + stat(b, n), 0) / k.length; };
+  const need = () => { const low = Object.keys(NEEDS.baby).filter((n) => stat(b, n) < 40).sort((p, q) => stat(b, p) - stat(b, q))[0]; return low ? LABEL[low][0] : ''; };
+  let busy = false;
+  pet.onclick = async () => { if (busy) return; busy = true; think.className = 'pet-think'; row('nod', false); fx('💕', -14); fx('💗', 14); await wait(900); row('idle'); busy = false; };
+  const scenes = {
+    async feed() {
+      const berry = ['oran', 'sitrus', 'pecha', 'leppa'][Math.floor(Math.random() * 4)];
+      const bx = Math.max(20, Math.min(maxX() + pw / 2 - 20, x + pw + 30 > maxX() ? x - 50 : x + pw + 30));
+      props.innerHTML = `<img class="prop drop" src="assets/items/${berry}-berry.png" alt="" style="left:${bx}px">`;
+      await wait(650); await walkTo(bx - pw / 2 + 16);
+      row('eat', true); $('.prop', props)?.classList.add('eaten'); fx('😋'); await wait(900); fx('💕', 10); await wait(1300);
+      props.innerHTML = ''; row('hop', false); await wait(700); row('idle');
+    },
+    async play() {
+      props.innerHTML = '<span class="ball-wrap"><img class="prop ball" src="assets/nursery/ball.png" alt=""></span>';
+      const ball = $('.ball-wrap', props);
+      for (let i = 0; i < 3 && alive(); i++) {
+        const tx = i % 2 ? 20 : maxX(); ball.style.left = (tx + pw / 2 - 18) + 'px';
+        await wait(150); await walkTo(tx); row('hop', false); fx(i === 2 ? '💕' : '♪'); await wait(650);
+      }
+      props.innerHTML = ''; row('nod', false); await wait(800); row('idle');
+    },
+    async clean() {
+      row('idle'); const bub = Array.from({ length: 16 }, (_, i) => `<i style="left:${x - 10 + Math.random() * (pw + 20)}px;animation-delay:${(i * 0.12).toFixed(2)}s;--s:${(0.6 + Math.random() * 0.9).toFixed(2)}"></i>`).join('');
+      props.innerHTML = `<div class="suds">${bub}</div>`; await wait(2200);
+      pet.classList.add('shake'); props.innerHTML = `<div class="drops">${Array.from({ length: 10 }, (_, i) => `<i style="left:${x + pw / 2}px;--a:${i * 36}deg"></i>`).join('')}</div>`;
+      await wait(800); pet.classList.remove('shake'); props.innerHTML = ''; fx('✨', -16); fx('✨', 16); row('hop', false); await wait(700); row('idle');
+    },
+    async grew() { row('hop', false); fx('✨'); await wait(700); row('hop', false); fx('🎉'); await wait(700); row('idle'); },
+  };
+  // free time: wander, hop, nod, nap
+  const life = async () => {
+    while (alive()) {
+      if (busy) { await wait(400); continue; }
+      const h = new Date().getHours(); const m = mood(); const ic = need();
+      think.className = 'pet-think' + (ic ? ' show' : ''); think.textContent = ic;
+      if (h >= 21 || h < 7) { row('sleep', true, 1.6); think.className = 'pet-think show zz'; think.textContent = 'z Z'; await wait(5000); continue; }
+      const r = Math.random();
+      if (r < 0.4) await walkTo(10 + Math.random() * maxX());
+      else if (r < 0.55 && m >= 60) { row('hop', false); if (Math.random() < 0.5) fx('♪'); await wait(800); row('idle'); }
+      else if (r < 0.65) { row('nod', false); await wait(900); row('idle'); }
+      else if (r < 0.72 && m >= 50) { row('sleep', true, 1.6); await wait(3500); row('idle'); }
+      else { row('idle'); await wait(1500 + Math.random() * 2000); }
+    }
+  };
+  row('idle');
+  (async () => { if (scene && scenes[scene]) { busy = true; think.className = 'pet-think'; await wait(200); await scenes[scene](); busy = false; } })().then(life);
 }
 // the egg is the Ruby & Sapphire egg sprite (her ask 10-27), assets/nursery/egg.png
 const eggHTML = (b, cls = '') => `<img class="egg ${cls}" src="assets/nursery/egg.png" alt="An egg">`;
@@ -98,8 +169,8 @@ function room(c, box, anim) {
   box.innerHTML = `<div class="nursery">
     ${bea(b.recruited || b.stage === 3 ? 'proud' : low.length ? 'worry' : 'happy', line)}
     <div class="nursery-room ${egg ? 'is-egg' : ''}">
-      ${nestHTML(egg ? eggHTML(b, anim === 'warm' ? 'wiggle' : '') : spriteHTML(b, anim === 'play' ? 1 : 0))}
-      ${anim === 'grew' ? '<span class="n-burst">✨</span>' : ''}${anim === 'feed' ? '<span class="n-fx">🍼</span>' : anim === 'clean' ? '<span class="n-fx">✨</span>' : anim === 'play' ? '<span class="n-fx">💕</span>' : ''}
+      ${egg ? nestHTML(eggHTML(b, anim === 'warm' ? 'wiggle' : '')) : `<div class="nest-spot">${nestHTML('')}</div>${petHTML()}`}
+      ${anim === 'grew' ? '<span class="n-burst">✨</span>' : ''}${egg && anim === 'warm' ? '<span class="n-fx">🔥</span>' : ''}
     </div>
     <div class="n-head">${egg ? '' : `<img class="sface" src="${buddyFace(b)}" alt="">`}<div class="grow"><b>${esc(b.name || (egg ? 'Mystery egg' : B.name))}</b> <span class="pill">${STAGES[b.stage]}</span>
       <div class="small muted">${b.stage < 3 ? `${left} more cared-for day${left === 1 ? '' : 's'} to grow` : b.recruited ? 'On your team' : 'Ready to join a team!'}</div></div>
@@ -108,6 +179,7 @@ function room(c, box, anim) {
     ${b.recruited ? '<button class="btn alt block" id="nnew">Take a new egg home 🥚</button>' : b.stage === 3 ? `<p class="small" style="text-align:center;margin:4px 0">${esc(nameOf(b))} is all grown up. What will you do?</p><div class="n-choice"><button class="btn" id="nrecruit">🤝 Ask ${esc(nameOf(b))} to join the team</button><button class="btn alt" id="nwild">🌿 Let ${esc(nameOf(b))} go into the wild</button></div>`
       : `<div class="n-acts">${Object.keys(needs).map((k) => `<button class="btn ${num(day[k]) >= needs[k] ? 'alt' : ''}" data-nact="${k}">${LABEL[k][0]} ${LABEL[k][2]}</button>`).join('')}</div>`}
     ${cared && b.stage < 3 ? '<p class="small" style="text-align:center;color:#2f6d2b">✅ Fully cared for today</p>' : ''}</div>`;
+  if (!egg) startPet(box, b, anim);
   $$('[data-nact]', box).forEach((btn) => btn.onclick = () => {
     const k = btn.dataset.nact; const r = act(c, k);
     if (r !== 'ok' && r !== 'grew') { toast(r); return; }
