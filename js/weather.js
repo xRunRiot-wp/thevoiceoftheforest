@@ -2,9 +2,9 @@
 // A roll of 100 is a disaster for the whole day: a huge fissure or a tsunami. Players never see who causes them (GM screen only).
 // Every device works out the same weather from the table code and the time, so nothing has to be saved;
 // the GM can still force a weather. Rules are PokéRole 2.0's weather (p.55-57).
-import * as store from './store.js?v=6ae14c87';
-import { esc } from './util.js?v=6ae14c87';
-import { modal } from './ui.js?v=6ae14c87';
+import * as store from './store.js?v=6ae14e8e';
+import { esc } from './util.js?v=6ae14e8e';
+import { modal } from './ui.js?v=6ae14e8e';
 
 export const WEATHERS = {
   clear: { name: 'Clear skies', icon: '☀️', w: 30, text: 'No weather effects.' },
