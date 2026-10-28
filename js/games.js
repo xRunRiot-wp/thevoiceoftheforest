@@ -1,21 +1,21 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6ae14507';
-import * as store from './store.js?v=6ae14507';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae14507';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae14507';
-import { modal, portrait } from './ui.js?v=6ae14507';
-import * as sheet from './sheetdata.js?v=6ae14507';
-import { shop } from './guild.js?v=6ae14507';
-import { merged, editContent } from './content-store.js?v=6ae14507';
-import { logRoll, me, addTeamFx } from './play.js?v=6ae14507';
-import { luckyReaction, gmTodo } from './chatter.js?v=6ae14507';
-import { ranks } from './rulebook.js?v=6ae14507';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae14507';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae14507';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae14507';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae14507';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae14507';
+import { markWinner } from './sparkle.js?v=6ae14595';
+import * as store from './store.js?v=6ae14595';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae14595';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae14595';
+import { modal, portrait } from './ui.js?v=6ae14595';
+import * as sheet from './sheetdata.js?v=6ae14595';
+import { shop } from './guild.js?v=6ae14595';
+import { merged, editContent } from './content-store.js?v=6ae14595';
+import { logRoll, me, addTeamFx } from './play.js?v=6ae14595';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ae14595';
+import { ranks } from './rulebook.js?v=6ae14595';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae14595';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae14595';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae14595';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae14595';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae14595';
 
 export const GAMES = [
   {

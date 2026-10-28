@@ -1,10 +1,10 @@
 // Character hotbar in the top banner: money, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6ae14507';
-import { $, esc, num, toast } from './util.js?v=6ae14507';
-import { modal } from './ui.js?v=6ae14507';
-import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae14507';
-import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6ae14507';
+import * as store from './store.js?v=6ae14595';
+import { $, esc, num, toast } from './util.js?v=6ae14595';
+import { modal } from './ui.js?v=6ae14595';
+import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae14595';
+import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6ae14595';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };

@@ -1667,3 +1667,7 @@ a.ch-chip:hover { background: var(--navy); }
 .nest .egg { position: absolute; left: 51px; bottom: 24px; margin: 0; z-index: 1; width: 84px; height: 90px; }
 .nest .baby-spr { position: absolute; left: 50%; translate: -50% 0; margin: 0; z-index: 1; }
 .nursery-room .n-fx, .nursery-room .n-burst { z-index: 3; }
+/* hay nest v2 (70x36 at 3x) */
+.nest { width: 210px; }
+.nest img { width: 210px; height: 108px; }
+.nest .egg { left: 63px; bottom: 30px; }
