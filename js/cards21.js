@@ -3,14 +3,19 @@
 // second round of betting and the showdown: the best total without going over 21 takes the pot (ties split it).
 // One shared table per campaign table (c21/table), so friends can play together live. Each device only acts for its own
 // character; Noctowl's moves and slow players' turns are played by the first seated player's device (or anyone's after a wait).
-import * as store from './store.js?v=6ae15fa4';
-import { portrait } from './ui.js?v=6ae15fa4';
-import { $, $$, esc, toast, num } from './util.js?v=6ae15fa4';
-import { logRoll, me } from './play.js?v=6ae15fa4';
-import { gameSay } from './chatter.js?v=6ae15fa4';
-import { markWinner } from './sparkle.js?v=6ae15fa4';
+import * as store from './store.js?v=6ae164f4';
+import { portrait } from './ui.js?v=6ae164f4';
+import { $, $$, esc, toast, num } from './util.js?v=6ae164f4';
+import { logRoll, me } from './play.js?v=6ae164f4';
+import { gameSay } from './chatter.js?v=6ae164f4';
+import { markWinner } from './sparkle.js?v=6ae164f4';
 
 export const isCards21 = (g) => g.kind === 'cards21' || g.id === 'noctowl-21';
+// a hand is being played right now (her ask 10-27: people can watch a match that's going)
+export const c21Live = () => ['bet1', 'draw', 'bet2'].includes((store.get(PATH) || {}).phase);
+// who's on this page but not in the hand: online/<id>.at is this game's page
+const watchers = (t) => Object.entries(store.get('online') || {}).filter(([id, o]) => o && party()[id] && !(t.order || []).includes(id)
+  && Date.now() - num(o.t) < 5 * 60e3 && /noctowl-21/.test(o.at || '')).map(([id]) => party()[id].nickname);
 export const cards21Mini = () => '<div class="c21-mini"><img src="assets/cards21/noctowl_Normal.png" alt=""><span class="c21-card r">A♥</span><span class="c21-card">K♠</span></div>';
 
 const ANTE = 10; const RAISE = 10; const MAX_RAISES = 3; const TURN_WAIT = 60e3; const NOCT = 'noctowl';
@@ -176,7 +181,8 @@ export function renderCards21(main, g, gm, onEdit) {
       body += `<div class="c21-pot">Pot <b>${num(t.pot)}</b> Poké · ${{ bet1: 'First betting round', draw: 'Hit or stand', bet2: 'Last betting round', done: 'Showdown' }[t.phase]}</div>
         <div class="c21-seats">${t.order.map((id) => seatHTML(t, id, c && id === c.id)).join('')}</div>${controlsHTML(t, c)}`;
       if (t.phase === 'done') body += `<div class="c21-result"><b>${esc(t.result?.text || '')}</b></div>`;
-      else if (!seated) body += '<p class="small muted">A hand is being played. You can sit in for the next one.</p>';
+      else if (!seated) body += `<div class="c21-watch">👀 <b>You’re watching this hand.</b> You’ll see everyone’s cards when they show them at the end. You can sit in for the next hand.</div>`;
+      const w = watchers(t); if (w.length && t.phase !== 'done') body += `<p class="small muted">👀 Watching: ${w.map(esc).join(', ')}</p>`;
     }
     if (!t.order || t.phase === 'done' || t.phase === 'lobby') {
       const list = Object.entries(waiting);

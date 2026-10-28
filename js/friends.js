@@ -2,9 +2,9 @@
 // friends, see who's on the site right now (and where), and invite them to a game like Noctowl's 21.
 // online/<id> = { t, at } (each open device refreshes it every 2 minutes); party/<id>/friends = [ids];
 // invites/<id>/<inviteId> = { from, fromId, game, name, t } (shown once as a pop-up on the friend's device, then removed).
-import * as store from './store.js?v=6ae15fa4';
-import { $, $$, esc, toast, uid, timeAgo } from './util.js?v=6ae15fa4';
-import { modal, closeModal, portrait } from './ui.js?v=6ae15fa4';
+import * as store from './store.js?v=6ae164f4';
+import { $, $$, esc, toast, uid, timeAgo } from './util.js?v=6ae164f4';
+import { modal, closeModal, portrait } from './ui.js?v=6ae164f4';
 
 const ONLINE_FOR = 5 * 60e3; const BEAT = 2 * 60e3;
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -55,7 +55,7 @@ const rowHTML = (x, isFriend, me) => {
   const status = on ? `<span class="fr-dot on"></span>Online now · at ${esc(placeOf(o?.at))}` : `<span class="fr-dot"></span>${o?.t ? 'Last here ' + esc(timeAgo(o.t)) : 'Not seen yet'}`;
   const back = friendsOf(x).includes(me.id);
   return `<li>${portrait(x, 'sm')}<span class="grow"><b>${esc(x.nickname)}</b>${isFriend && back ? ' <span class="pill">Friends</span>' : ''}<br><span class="small muted">${status}</span></span>
-    ${isFriend ? `<button class="btn sm" data-inv="${esc(x.id)}">🃏 Invite to 21</button><button class="btn alt sm" data-unfr="${esc(x.id)}" title="Remove friend">✕</button>`
+    ${isFriend && on && /noctowl-21/.test(o?.at || '') ? '<a class="btn alt sm" href="#/games/noctowl-21" data-watch>👀 Watch</a>' : ''}${isFriend ? `<button class="btn sm" data-inv="${esc(x.id)}">🃏 Invite to 21</button><button class="btn alt sm" data-unfr="${esc(x.id)}" title="Remove friend">✕</button>`
       : `<button class="btn alt sm" data-addfr="${esc(x.id)}">+ Add</button>`}</li>`;
 };
 
@@ -70,6 +70,7 @@ export function openFriends() {
       ${others.length ? `<h3 style="margin-top:14px">Add friends</h3><ul class="sentry-roster fr-list">${others.map((x) => rowHTML(x, false, me)).join('')}</ul>` : ''}`;
     $$('[data-addfr]', box).forEach((b) => b.onclick = () => { store.set(`party/${me.id}/friends`, [...new Set([...mine, b.dataset.addfr])]); toast(`${party()[b.dataset.addfr]?.nickname} added!`); draw(box); });
     $$('[data-unfr]', box).forEach((b) => b.onclick = () => { store.set(`party/${me.id}/friends`, mine.filter((id) => id !== b.dataset.unfr)); draw(box); });
+    $$('[data-watch]', box).forEach((a) => a.onclick = () => closeModal());
     $$('[data-inv]', box).forEach((b) => b.onclick = () => {
       const to = party()[b.dataset.inv];
       store.set(`invites/${b.dataset.inv}/${uid()}`, { from: me.nickname, fromId: me.id, game: 'noctowl-21', name: GAME_NAMES['noctowl-21'], t: Date.now() });

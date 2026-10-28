@@ -1,24 +1,24 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6ae15fa4';
-import * as store from './store.js?v=6ae15fa4';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae15fa4';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae15fa4';
-import { modal, portrait } from './ui.js?v=6ae15fa4';
-import * as sheet from './sheetdata.js?v=6ae15fa4';
-import { shop } from './guild.js?v=6ae15fa4';
-import { merged, editContent } from './content-store.js?v=6ae15fa4';
-import { logRoll, me, addTeamFx } from './play.js?v=6ae15fa4';
-import { luckyReaction, gmTodo } from './chatter.js?v=6ae15fa4';
-import { ranks } from './rulebook.js?v=6ae15fa4';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae15fa4';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae15fa4';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae15fa4';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae15fa4';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae15fa4';
-import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6ae15fa4';
-import { isTruck, renderTruck, truckMini } from './truck.js?v=6ae15fa4';
-import { isCards21, renderCards21, cards21Mini } from './cards21.js?v=6ae15fa4';
+import { markWinner } from './sparkle.js?v=6ae164f4';
+import * as store from './store.js?v=6ae164f4';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae164f4';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae164f4';
+import { modal, portrait } from './ui.js?v=6ae164f4';
+import * as sheet from './sheetdata.js?v=6ae164f4';
+import { shop } from './guild.js?v=6ae164f4';
+import { merged, editContent } from './content-store.js?v=6ae164f4';
+import { logRoll, me, addTeamFx } from './play.js?v=6ae164f4';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ae164f4';
+import { ranks } from './rulebook.js?v=6ae164f4';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae164f4';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae164f4';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae164f4';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae164f4';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae164f4';
+import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6ae164f4';
+import { isTruck, renderTruck, truckMini } from './truck.js?v=6ae164f4';
+import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6ae164f4';
 
 export const GAMES = [
   {
@@ -218,7 +218,7 @@ export function renderGames(main, [arg]) {
   const list = games();
   if (!arg) {
     // her ask 10-27: Chores (daily guild jobs) and Gambling Games in their own sections; the GM picks a game's section in Edit
-    const card = (g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''} ${(isSentry(g) && sentryDue()) || (isDance(g) && danceDue()) || (isKitchen(g) && kitchenDue()) || (isNursery(g) && nurseryDue()) ? 'due' : ''}" href="#/games/${esc(g.id)}">${isSentry(g) && sentryDue() ? '<span class="due-ribbon">⚠️ Today’s shift not done yet!</span>' : isDance(g) && danceDue() ? '<span class="due-ribbon dance">⚠️ Today’s practice not done yet!</span>' : isKitchen(g) && kitchenDue() ? '<span class="due-ribbon stew">⚠️ Today’s stew not made yet!</span>' : isNursery(g) && nurseryDue() ? '<span class="due-ribbon nursery">⚠️ Your buddy needs care today!</span>' : ''}
+    const card = (g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''} ${(isSentry(g) && sentryDue()) || (isDance(g) && danceDue()) || (isKitchen(g) && kitchenDue()) || (isNursery(g) && nurseryDue()) ? 'due' : ''}" href="#/games/${esc(g.id)}">${isCards21(g) && c21Live() ? '<span class="live-badge">🔴 Hand in play · tap to watch</span>' : ''}${isSentry(g) && sentryDue() ? '<span class="due-ribbon">⚠️ Today’s shift not done yet!</span>' : isDance(g) && danceDue() ? '<span class="due-ribbon dance">⚠️ Today’s practice not done yet!</span>' : isKitchen(g) && kitchenDue() ? '<span class="due-ribbon stew">⚠️ Today’s stew not made yet!</span>' : isNursery(g) && nurseryDue() ? '<span class="due-ribbon nursery">⚠️ Your buddy needs care today!</span>' : ''}
         ${isSentry(g) ? sentryMini() : isDance(g) ? danceMini() : isKitchen(g) ? kitchenMini() : isTruck(g) ? truckMini() : isCards21(g) ? cards21Mini() : isMailRun(g) ? mailRunMini() : isNursery(g) ? '<div class="nursery-mini"><img class="egg" src="assets/nursery/egg.png" alt=""></div>' : isFortune(g) ? fortuneMini() : `<canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>`}
         <div class="gc-text"><h3>${esc(g.name)}</h3>
           <p class="gc-host">${esc(g.host ? (g.only ? '' : 'Run by ') + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}${g.only ? ` · <b>${esc(g.only)} only</b>` : ''}${g.special && g.twists.length ? ` · <b>✨ ${esc(g.special)} twists</b>` : ''}</p>
