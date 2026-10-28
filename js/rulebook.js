@@ -1,12 +1,12 @@
 // Rulebook: quick lookup from inside the game. Index of every effect/interaction, rules, story, cast, guild, items, handouts, links, credits.
-import * as store from './store.js?v=6ae284fd';
-import * as sheet from './sheetdata.js?v=6ae284fd';
-import { $, $$, esc } from './util.js?v=6ae284fd';
-import { portrait } from './ui.js?v=6ae284fd';
-import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ae284fd';
-import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ae284fd';
-import { merged, editContent } from './content-store.js?v=6ae284fd';
-import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ae284fd';
+import * as store from './store.js?v=6ae2885f';
+import * as sheet from './sheetdata.js?v=6ae2885f';
+import { $, $$, esc } from './util.js?v=6ae2885f';
+import { portrait } from './ui.js?v=6ae2885f';
+import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ae2885f';
+import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ae2885f';
+import { merged, editContent } from './content-store.js?v=6ae2885f';
+import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ae2885f';
 
 const gm = () => store.gmUnlocked();
 const editBtn = (attr) => (gm() ? `<button class="btn alt sm" ${attr}>Edit</button>` : '');
@@ -54,10 +54,10 @@ export async function renderRules(main, [sub, arg]) {
     main.innerHTML = `
       <div class="hero"><img class="hdr" src="assets/banners/how_to_play.jpg" alt=""></div>
       <h1>Rulebook</h1>
+      <div class="search sbar" role="search"><span class="sbar-ico" aria-hidden="true">🔍</span><input id="q" type="search" enterkeyhint="search" placeholder="Search the index: rules, effects, moves, items…" autocomplete="off" aria-label="Search the rulebook"><button class="sbar-x" type="button" aria-label="Clear search" hidden>✕</button></div>
+      <div id="results"></div>
       <div class="section-title"><h2>Your campaign site</h2></div>
       ${navTilesHTML()}
-      <div class="search"><input id="q" placeholder="Search rules, effects, moves, items…" autocomplete="off" aria-label="Search"></div>
-      <div id="results"></div>
       <div class="section-title"><h2>Look things up</h2></div>
       <div class="toc">
         <a href="#/rules/index">Index of everything</a><a href="#/rules/r/dice">Rolling dice</a><a href="#/rules/r/combat">Combat</a>
@@ -69,7 +69,16 @@ export async function renderRules(main, [sub, arg]) {
       <div class="toc"><a href="#/rules/world">World, guilds & NPCs</a><a href="#/rules/story">Story & chapters</a><a href="#/rules/cast">Meet the characters</a><a href="#/rules/ranks">Guild ranks</a><a href="#/rules/rivals">Rival teams</a><a href="#/rules/handouts">Handouts</a><a href="#/rules/links">Campaign links</a><a href="#/rules/credits">Credits</a><a href="#/rules/coverage">Index coverage check</a></div>`;
     const res = $('#results', main);
     $('#q', main).oninput = (e) => { const q = e.target.value.trim(); res.innerHTML = q ? resultsHTML(search(q).slice(0, 30)) : ''; };
+    wireSbar(main);
     const a = $('#addrule', main); if (a) a.onclick = () => editContent('rules', RULE_SCHEMA, null, { title: 'New rule page', onSave: () => renderRules(main, [sub]) });
+  }
+
+  // the ✕ in the search bar: shows while there's text, clears it and puts the cursor back
+  function wireSbar(root) {
+    const q = $('#q', root); const x = $('.sbar-x', root); if (!q || !x) return;
+    const show = () => { x.hidden = !q.value; };
+    q.addEventListener('input', show);
+    x.onclick = () => { q.value = ''; q.dispatchEvent(new Event('input')); q.focus(); };
   }
 
   function search(q, kind) {
@@ -106,12 +115,12 @@ export async function renderRules(main, [sub, arg]) {
     let kind = arg ? decodeURIComponent(arg) : '';
     main.innerHTML = `${back}<h1 style="margin-top:10px">Index</h1>
       <p class="small muted">Every effect and interaction in the game — ${ix.list.length} entries. Tap one to read it; underlined words anywhere on the site open here too.</p>
-      <div class="search"><input id="q" placeholder="Search (try: burn, dodge, trap, money)…" autocomplete="off" aria-label="Search the index"></div>
+      <div class="search sbar" role="search"><span class="sbar-ico" aria-hidden="true">🔍</span><input id="q" type="search" enterkeyhint="search" placeholder="Search the index (try: burn, dodge, trap, money)…" autocomplete="off" aria-label="Search the index"><button class="sbar-x" type="button" aria-label="Clear search" hidden>✕</button></div>
       <div class="filters"><button class="chip ${kind ? '' : 'sel'}" data-k="">All</button>${kinds.map((k) => `<button class="chip ${k === kind ? 'sel' : ''}" data-k="${esc(k)}">${esc(k)}</button>`).join('')}</div>
       ${addBtn('id="addix"', '+ New entry')}
       <div id="results"></div>`;
     const draw = () => { const q = $('#q', main).value.trim(); const list = q ? search(q, kind) : ix.list.filter((e) => !kind || e.kind === kind); $('#results', main).innerHTML = resultsHTML(list.slice(0, 300)) + (list.length > 300 ? `<p class="muted small">${list.length - 300} more — search to narrow it down.</p>` : ''); };
-    $('#q', main).oninput = draw;
+    $('#q', main).oninput = draw; wireSbar(main);
     $$('[data-k]', main).forEach((b) => b.onclick = () => { kind = b.dataset.k; $$('[data-k]', main).forEach((x) => x.classList.toggle('sel', x === b)); draw(); });
     const a = $('#addix', main); if (a) a.onclick = () => editContent('index', INDEX_SCHEMA, null, { title: 'New Index entry', onSave: () => renderRules(main, [sub, arg]) });
     draw();
@@ -221,7 +230,7 @@ export async function renderRules(main, [sub, arg]) {
   }
 
   async function coverage() {
-    const { shop } = await import('./guild.js?v=6ae284fd');
+    const { shop } = await import('./guild.js?v=6ae2885f');
     const [sm, sa, st, g] = await Promise.all([sheet.moves(), sheet.abilities(), sheet.treasure(), sheet.guild().catch(() => ({ chars: [] }))]);
     const party = Object.values(store.get('party') || {});
     const lootNames = [];

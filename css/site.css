@@ -116,6 +116,13 @@ label.f > input, label.f > select, label.f > textarea { margin-top: 3px; font-we
 .check input { width: 22px; height: 22px; min-height: 0; }
 .search { position: relative; }
 .search input { padding-left: 12px; }
+/* rulebook search bar (her ask 10-28): pill with a magnifier, at the top of the page */
+.sbar { display: flex; align-items: center; margin: 4px 0 14px; background: var(--paper); border: 2px solid var(--brown3); border-radius: 999px; box-shadow: 0 3px 0 var(--line), 0 6px 16px rgba(46, 29, 14, .12); transition: border-color .15s, box-shadow .15s; }
+.sbar:focus-within { border-color: var(--orange); box-shadow: 0 3px 0 var(--orange-d), 0 0 0 4px rgba(224, 123, 31, .2); }
+.sbar-ico { padding: 0 4px 0 16px; font-size: 18px; flex: none; }
+.search.sbar input { flex: 1; min-width: 0; border: 0; background: transparent; box-shadow: none; outline: none; padding: 13px 8px; font-size: 16px; -webkit-appearance: none; appearance: none; }
+.search.sbar input::-webkit-search-cancel-button { display: none; }
+.sbar-x { flex: none; border: 0; background: var(--cream2); color: var(--brown); width: 30px; height: 30px; border-radius: 50%; margin-right: 8px; font-size: 14px; cursor: pointer; }
 
 /* ---------- character */
 .char-head { display: flex; gap: 12px; align-items: center; }
