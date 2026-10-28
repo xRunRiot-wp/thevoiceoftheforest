@@ -3,16 +3,16 @@
 // stirs it, and Spinda comes to taste. Good stew = dinner on time. Bad = Spinda spits it out and dinner is late.
 // REALLY REALLY good = it's served at dinner and the whole team gets a WHOLE TEAM effect from the recipe.
 // One stew a day for the guild. Recipes are GM-editable (content/recipes).
-import * as store from './store.js?v=6ae14076';
-import { $, $$, esc, toast, num, uid, slug } from './util.js?v=6ae14076';
-import { me, logRoll, addTeamFx } from './play.js?v=6ae14076';
-import { dailyRoll, hash } from './weather.js?v=6ae14076';
-import { gameSay, gmTodo } from './chatter.js?v=6ae14076';
-import { markWinner } from './sparkle.js?v=6ae14076';
-import { merged, editContent, saveContent, deleteContent } from './content-store.js?v=6ae14076';
-import { modal, closeModal } from './ui.js?v=6ae14076';
-import { ledger } from './vault.js?v=6ae14076';
-import { faceHTML, faceSrc } from './sentry.js?v=6ae14076';
+import * as store from './store.js?v=6ae14181';
+import { $, $$, esc, toast, num, uid, slug } from './util.js?v=6ae14181';
+import { me, logRoll, addTeamFx } from './play.js?v=6ae14181';
+import { dailyRoll, hash } from './weather.js?v=6ae14181';
+import { gameSay, gmTodo } from './chatter.js?v=6ae14181';
+import { markWinner } from './sparkle.js?v=6ae14181';
+import { merged, editContent, saveContent, deleteContent } from './content-store.js?v=6ae14181';
+import { modal, closeModal } from './ui.js?v=6ae14181';
+import { ledger } from './vault.js?v=6ae14181';
+import { faceHTML, faceSrc } from './sentry.js?v=6ae14181';
 
 export const isKitchen = (g) => g.kind === 'kitchen' || g.id === 'spinda-kitchen';
 
@@ -170,6 +170,62 @@ function stir(c, box, recipe, pot, onDone) {
   };
 }
 
+// Help Spinda (her ask 10-27): no berries for the recipe? Spinda cooks it from his own pantry and the player helps:
+// stir LEFT or RIGHT when he calls it (tap in time), and keep the heat inside the green band with − / +.
+// 8 calls over ~24 s; score = 60 for stirring + 40 for time spent at the right heat.
+const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
+const has = (c, recipe) => { const pan = pantry(c); return parseBerries(recipe.berries).every(([n, k]) => (pan[n] || []).reduce((t, x) => t + x.qty, 0) >= k); };
+function helpSpinda(c, box, recipe, onDone) {
+  const CALLS = 8; const GAP = 2600; const WINDOW = 1300;
+  let heat = 0.5; let band = 0.5; let drift = 0; let inBand = 0; let ticks = 0; let call = null; let calls = 0; let hits = 0; let raf = 0; let last = performance.now(); const t0 = last;
+  box.innerHTML = `<div class="kitchen help">${spinda('wait', `No ${parseBerries(recipe.berries).map(([n]) => n.replace(/ Berry$/, '')).join(' or ')} berries? No problem, I’ll use mine! You stir when I say, and watch the fire!`)}
+    <div class="help-row"><div class="potwrap big">${potHTML('<div class="stir-call"></div>')}<div class="flame"><i></i><i></i><i></i></div></div>
+      <div class="heat"><div class="heat-band"></div><div class="heat-mark"></div><span>🔥</span></div></div>
+    <div class="stir-dots">${Array.from({ length: CALLS }, () => '<i></i>').join('')}</div>
+    <div class="help-pad"><button class="btn alt" data-stir="left">⟲ Stir left</button><button class="btn alt" data-heat="-1">− Heat</button><button class="btn alt" data-heat="1">+ Heat</button><button class="btn alt" data-stir="right">Stir right ⟳</button></div>
+    <p class="small muted" style="text-align:center">Arrow keys work too: ← → to stir, ↑ ↓ for the heat.</p></div>`;
+  paintPot(box, parseBerries(recipe.berries).flatMap(([n, k]) => Array.from({ length: k }, () => ({ name: n }))));
+  const dots = $$('.stir-dots i', box); const cue = $('.stir-call', box); const mark = $('.heat-mark', box); const bandEl = $('.heat-band', box);
+  const flame = $('.flame', box); const liquid = $('.liquid', box);
+  const say = (mood, line) => { const d = $('.kitchen .sentry-digg', box); if (d) d.outerHTML = spinda(mood, line); };
+  const stir = (dir) => {
+    if (!call || call.done) return;
+    call.done = true; const ok = dir === call.dir && performance.now() - call.at <= WINDOW;
+    if (ok) hits++;
+    dots[call.n].className = ok ? 'ok' : 'bad';
+    liquid.classList.remove('swirl', 'slosh', 'swirl-l'); void liquid.offsetWidth; liquid.classList.add(ok ? (dir === 'left' ? 'swirl-l' : 'swirl') : 'slosh');
+    cue.className = 'stir-call ' + (ok ? 'ok' : 'bad'); say(ok ? 'good' : 'hmm', ok ? pickOne(['Perfect!', 'Just like that!', 'Mmm, smells great!']) : 'Other way! Other way!');
+  };
+  const heatBy = (d) => { heat = Math.max(0, Math.min(1, heat + d * 0.08)); };
+  const tick = (t) => {
+    if (!box.isConnected) { cleanup(); return; }
+    const dt = Math.min(0.1, (t - last) / 1000); last = t;
+    // the fire wanders, and the right heat band slowly moves
+    drift += (Math.random() - 0.5) * dt * 0.6; drift = Math.max(-0.25, Math.min(0.25, drift)); heat = Math.max(0, Math.min(1, heat + drift * dt));
+    band = 0.5 + Math.sin((t - t0) / 3200) * 0.25;
+    const ok = Math.abs(heat - band) <= 0.12; ticks++; if (ok) inBand++;
+    mark.style.bottom = `calc(${heat * 100}% - 3px)`; bandEl.style.bottom = `${(band - 0.12) * 100}%`;
+    mark.classList.toggle('ok', ok); flame.style.setProperty('--h', (0.4 + heat * 0.9).toFixed(2));
+    if (call && !call.done && t - call.at > WINDOW) { call.done = true; dots[call.n].className = 'bad'; cue.className = 'stir-call bad'; say('hmm', 'Too slow! Keep it moving!'); }
+    raf = requestAnimationFrame(tick);
+  };
+  const nextCall = () => {
+    if (!box.isConnected) return;
+    if (calls >= CALLS) { cleanup(); const sc = Math.round(hits / CALLS * 60 + inBand / Math.max(1, ticks) * 40); setTimeout(() => taste(c, box, recipe, [], hits, onDone, sc), 600); return; }
+    const dir = Math.random() < 0.5 ? 'left' : 'right';
+    call = { dir, at: performance.now(), n: calls, done: false }; calls++;
+    cue.className = 'stir-call show ' + dir; cue.textContent = dir === 'left' ? '⟲ LEFT!' : 'RIGHT! ⟳';
+    say('taste', dir === 'left' ? 'Stir left!' : 'Stir right!');
+    setTimeout(nextCall, GAP);
+  };
+  const onKey = (e) => { const k = { ArrowLeft: () => stir('left'), ArrowRight: () => stir('right'), ArrowUp: () => heatBy(1), ArrowDown: () => heatBy(-1) }[e.key]; if (k) { e.preventDefault(); k(); } };
+  const cleanup = () => { cancelAnimationFrame(raf); document.removeEventListener('keydown', onKey); };
+  document.addEventListener('keydown', onKey);
+  $$('[data-stir]', box).forEach((b) => b.onclick = () => stir(b.dataset.stir));
+  $$('[data-heat]', box).forEach((b) => b.onclick = () => heatBy(+b.dataset.heat));
+  raf = requestAnimationFrame(tick); setTimeout(nextCall, 1500);
+}
+
 function useUp(c, pot) {
   for (const p of pot) {
     const path = p.src === 'storage' ? 'storage' : 'bag';
@@ -179,8 +235,8 @@ function useUp(c, pot) {
   }
 }
 
-function taste(c, box, recipe, pot, hits, onDone) {
-  const sc = score(recipe, pot, hits); const [, tier, mood] = tierOf(sc);
+function taste(c, box, recipe, pot, hits, onDone, fixed = null) {
+  const sc = fixed ?? score(recipe, pot, hits); const [, tier, mood] = tierOf(sc);
   useUp(c, pot);
   store.set('kitchen/' + today(), { by: c.id, name: c.nickname, recipe: recipe.name, score: sc, tier, mood, t: Date.now() });
   box.innerHTML = `<div class="kitchen taste">${spinda('taste', 'Sniff sniff… I’m coming! Let me try it!')}
@@ -197,7 +253,7 @@ function taste(c, box, recipe, pot, hits, onDone) {
     box.querySelector('.kitchen').insertAdjacentHTML('beforeend', `<div class="sentry-end">${faceHTML(c, mood === 'bad' ? 'sloppy' : mood === 'great' ? 'great' : 'good', 'big')}<div class="big">${esc(tier)}</div><p>Taste score: ${sc} / 100</p>
       ${mood === 'great' ? `<p class="pill">🌟 WHOLE TEAM effect: ${esc(recipe.buff || 'Homemade Stew')}</p><p class="small">${esc(recipe.buffText || 'Once each: heal 1 HP at any time.')}</p>` : ''}
       <p class="small muted">${mood === 'bad' ? 'Dinner is late tonight.' : 'Served at dinner tonight.'} Next stew tomorrow.</p></div>`);
-    const what = pot.map((p) => p.name).join(', ') || 'nothing';
+    const what = fixed != null ? 'Spinda’s own berries (helped stir and mind the heat)' : pot.map((p) => p.name).join(', ') || 'nothing';
     logRoll(c.nickname, `Spinda’s Kitchen — ${recipe.name}`, null, `${sc}/100 · ${tier} · used ${what}`, 'note');
     if (mood === 'great') {
       addTeamFx(recipe.buff || 'Homemade Stew', `${recipe.buffText || 'Once each: heal 1 HP at any time.'} (Spinda’s ${recipe.name}, cooked by ${c.nickname})`.trim(), true);
@@ -270,8 +326,19 @@ export function renderKitchen(main, g, gm, onEdit) {
     box.innerHTML = `<div class="sentry-start">${spinda('wait', `Ah, ${c.nickname}! I left today’s recipe on the counter: ${recipe.name}. Make it just right and I’ll serve it at dinner! Or cook one from the recipe book.`)}
       <div class="kitchen-stage small-stage">${sprite()}</div>
       <label class="f">Recipe<select id="kpick">${all.map((r) => `<option value="${esc(r.id)}" ${r.id === recipe.id ? 'selected' : ''}>${esc(r.name)}${r.id === recipe.id ? ' (Spinda’s pick today)' : r.by ? ` (by ${esc(r.by)})` : ''}</option>`).join('')}</select></label>
-      <button class="btn block" id="kgo" style="margin-top:8px">Start cooking</button></div>`;
-    $('#kgo', box).onclick = () => cook(c, box, all.find((r) => r.id === $('#kpick', box).value) || recipe, log);
+      <p class="small k-miss" id="kmiss"></p>
+      <button class="btn block" id="kgo" style="margin-top:8px">Start cooking</button>
+      <button class="btn alt block" id="khelp" style="margin-top:8px">Help Spinda cook instead 🔥</button></div>`;
+    const chosen = () => all.find((r) => r.id === $('#kpick', box).value) || recipe;
+    const check = () => {
+      const ok = has(c, chosen());
+      $('#kmiss', box).textContent = ok ? '' : 'You don’t have all the berries for this one. Help Spinda cook it with his own berries: stir when he says and mind the heat!';
+      $('#kgo', box).textContent = ok ? 'Start cooking' : 'Cook with what I have anyway';
+      $('#kgo', box).className = ok ? 'btn block' : 'btn alt block'; $('#khelp', box).className = ok ? 'btn alt block' : 'btn block';
+    };
+    $('#kpick', box).onchange = check; check();
+    $('#kgo', box).onclick = () => cook(c, box, chosen(), log);
+    $('#khelp', box).onclick = () => helpSpinda(c, box, chosen(), log);
   }
   $$('[data-red]', main).forEach((b) => b.onclick = () => editContent('recipes', RECIPE_SCHEMA, recipes().find((x) => x.id === b.dataset.red), { title: 'Edit recipe' }));
   const a = $('#radd', main); if (a) a.onclick = () => editContent('recipes', RECIPE_SCHEMA, null, { title: 'New recipe' });
