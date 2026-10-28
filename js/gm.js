@@ -1,20 +1,20 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6ae13f87';
-import * as sheet from './sheetdata.js?v=6ae13f87';
-import { ledger } from './vault.js?v=6ae13f87';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ae13f87';
-import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6ae13f87';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ae13f87';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ae13f87';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts } from './play.js?v=6ae13f87';
-import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ae13f87';
-import { merged, editContent } from './content-store.js?v=6ae13f87';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ae13f87';
-import { CONFIG } from './config.js?v=6ae13f87';
-import { gmGimmighoulHTML } from './gimmighoul.js?v=6ae13f87';
-import { locations, spots, personalityTypes } from './friendzone.js?v=6ae13f87';
-import { rankFor, guildName } from './guild.js?v=6ae13f87';
-import { gmPinsHTML, bindGmPins } from './charlock.js?v=6ae13f87';
+import * as store from './store.js?v=6ae14004';
+import * as sheet from './sheetdata.js?v=6ae14004';
+import { ledger } from './vault.js?v=6ae14004';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ae14004';
+import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6ae14004';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ae14004';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ae14004';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts } from './play.js?v=6ae14004';
+import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ae14004';
+import { merged, editContent } from './content-store.js?v=6ae14004';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ae14004';
+import { CONFIG } from './config.js?v=6ae14004';
+import { gmGimmighoulHTML } from './gimmighoul.js?v=6ae14004';
+import { locations, spots, personalityTypes } from './friendzone.js?v=6ae14004';
+import { rankFor, guildName } from './guild.js?v=6ae14004';
+import { gmPinsHTML, bindGmPins } from './charlock.js?v=6ae14004';
 
 const PORTRAIT_LIST = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -137,11 +137,10 @@ export async function renderGM(main) {
 
   <section id="gm-Notes" class="card"><h2>GM notes</h2><p class="small muted">Only you can read these (scrambled with your passcode).</p><textarea id="notes" rows="8">${esc(G.notes || '')}</textarea><button class="btn sm" id="savenotes" style="margin-top:8px">Save notes</button></section>
 
-  <section id="gm-Index" class="card">
-    <h2>Index</h2>
-    <p class="small muted">Find any entry — built-in PokéRole and PMD ones too — open it and press Edit. Your version replaces it for everyone; "Undo my changes" puts the original back.</p>
-    <div class="row nowrap"><input id="gix" class="grow" placeholder="Search the Index…" autocomplete="off"><button class="btn alt sm" id="gixnew">+ New</button></div>
+  <section id="gm-Index" class="card gm-search">
+    <div class="gsearch"><span class="gs-ic" aria-hidden="true">🔍</span><input id="gix" type="search" placeholder="Search the Index: moves, items, abilities, statuses…" aria-label="Search the Index" autocomplete="off"><button class="btn alt sm" id="gixnew">+ New</button></div>
     <div id="gixres"></div>
+    <p class="small muted gs-hint">Open any entry (built-in PokéRole and PMD ones too) and press Edit. Your version replaces it for everyone; "Undo my changes" puts the original back.</p>
   </section>
 
   <section id="gm-Editcontent" class="card">
@@ -188,10 +187,12 @@ export async function renderGM(main) {
 const GM_ICONS = { Battle: '⚔️', Recruit: '🤝', Party: '👥', Dungeon: '🏔️', Weather: '🌦️', Loot: '💰', Missions: '📋', Reveal: '👁️', Endsession: '🌙', Notes: '📝', Index: '📚', Editcontent: '✏️', Table: '⚙️', Dicelog: '🎲' };
 const gmOpen = () => { try { return new Set(JSON.parse(localStorage.getItem('dc.gmopen') || '[]')); } catch { return new Set(); } };
 function tileGM(main) {
-  const secs = [...main.querySelectorAll(':scope > section.card[id^="gm-"]')]; if (!secs.length) return;
+  // her ask 10-27: the Index is an always-open search bar at the top, not a folding tile
+  const secs = [...main.querySelectorAll(':scope > section.card[id^="gm-"]')].filter((x) => x.id !== 'gm-Index'); if (!secs.length) return;
   main.querySelector(':scope > .filters')?.remove();   // the tiles replace the jump chips
   const grid = document.createElement('div'); grid.className = 'gm-grid';
   secs[0].before(grid);
+  const ix = main.querySelector(':scope > #gm-Index'); if (ix) grid.before(ix);
   const open = gmOpen();
   secs.forEach((sec) => {
     const key = sec.id.slice(3); const h = sec.querySelector('h2');
@@ -476,7 +477,7 @@ function bindGM(main) {
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6ae13f87');
+    const { openTable } = await import('./app.js?v=6ae14004');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));

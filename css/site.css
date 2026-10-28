@@ -1569,3 +1569,12 @@ a.ch-chip:hover { background: var(--navy); }
 .fp-reveal.miss img, .fp-reveal.slow img { border-color: #c0453a; }
 .fp-reveal figcaption { font: 700 12px var(--pix); color: #3a2c1a; background: #fff8e6; border-radius: 6px; padding: 1px 6px; margin-top: 4px; }
 @keyframes fp-pop { to { transform: translateY(-50%) scale(1); opacity: 1; } }
+
+/* GM Index: an always-open search bar at the top of the GM page */
+.gm-search { padding: 10px 12px; margin-bottom: 12px; }
+.gsearch { display: flex; align-items: center; gap: 8px; border: 2px solid var(--gold, #e9c46a); border-radius: 999px; background: #fffdf6; padding: 4px 6px 4px 14px; box-shadow: 0 2px 8px rgba(0, 0, 0, .12); }
+.gsearch:focus-within { box-shadow: 0 0 0 3px rgba(233, 196, 106, .45); }
+.gsearch .gs-ic { font-size: 18px; }
+.gsearch input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 16px; padding: 8px 4px; outline: none; color: #3a2c1a; }
+.gm-search #gixres:not(:empty) { margin-top: 8px; max-height: 50vh; overflow-y: auto; }
+.gm-search .gs-hint { margin: 6px 4px 0; }
