@@ -1671,3 +1671,4 @@ a.ch-chip:hover { background: var(--navy); }
 .nest { width: 210px; }
 .nest img { width: 210px; height: 108px; }
 .nest .egg { left: 63px; bottom: 30px; }
+.n-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .n-choice .btn { min-height: 52px; } @media (max-width: 420px) { .n-choice { grid-template-columns: 1fr; } }

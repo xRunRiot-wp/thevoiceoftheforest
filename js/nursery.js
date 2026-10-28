@@ -3,12 +3,12 @@
 // clean every day. Each day the buddy is fully cared for counts toward growing up: Egg → Baby → Kid → Teen.
 // A teen can be asked to join the team (it goes on the GM checklist as a recruit).
 // Stats drop in real time from when you last did each thing. State: nursery/<charId>.
-import * as store from './store.js?v=6ae14595';
-import { $, $$, esc, toast, num } from './util.js?v=6ae14595';
-import { me, logRoll } from './play.js?v=6ae14595';
-import { dailyRoll } from './weather.js?v=6ae14595';
-import { gameSay, gmTodo } from './chatter.js?v=6ae14595';
-import { markWinner } from './sparkle.js?v=6ae14595';
+import * as store from './store.js?v=6ae145f4';
+import { $, $$, esc, toast, num } from './util.js?v=6ae145f4';
+import { me, logRoll } from './play.js?v=6ae145f4';
+import { dailyRoll } from './weather.js?v=6ae145f4';
+import { gameSay, gmTodo } from './chatter.js?v=6ae145f4';
+import { markWinner } from './sparkle.js?v=6ae145f4';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -105,7 +105,7 @@ function room(c, box, anim) {
       <div class="small muted">${b.stage < 3 ? `${left} more cared-for day${left === 1 ? '' : 's'} to grow` : b.recruited ? 'On your team' : 'Ready to join a team!'}</div></div>
       ${egg ? '' : '<button class="btn alt sm" id="nname">Name</button>'}</div>
     <div class="n-stats">${Object.keys(needs).map((k) => { const v = stat(b, k); return `<div class="n-stat"><span>${LABEL[k][0]} ${LABEL[k][1]}</span><div class="n-bar ${v < 30 ? 'low' : ''}"><i style="width:${v}%"></i></div><span class="small muted">${Math.min(num(day[k]), needs[k])}/${needs[k]} today</span></div>`; }).join('')}</div>
-    ${b.recruited ? '' : b.stage === 3 ? `<button class="btn block" id="nrecruit">Ask ${esc(nameOf(b))} to join the team 🤝</button>`
+    ${b.recruited ? '<button class="btn alt block" id="nnew">Take a new egg home 🥚</button>' : b.stage === 3 ? `<p class="small" style="text-align:center;margin:4px 0">${esc(nameOf(b))} is all grown up. What will you do?</p><div class="n-choice"><button class="btn" id="nrecruit">🤝 Ask ${esc(nameOf(b))} to join the team</button><button class="btn alt" id="nwild">🌿 Let ${esc(nameOf(b))} go into the wild</button></div>`
       : `<div class="n-acts">${Object.keys(needs).map((k) => `<button class="btn ${num(day[k]) >= needs[k] ? 'alt' : ''}" data-nact="${k}">${LABEL[k][0]} ${LABEL[k][2]}</button>`).join('')}</div>`}
     ${cared && b.stage < 3 ? '<p class="small" style="text-align:center;color:#2f6d2b">✅ Fully cared for today</p>' : ''}</div>`;
   $$('[data-nact]', box).forEach((btn) => btn.onclick = () => {
@@ -121,6 +121,17 @@ function room(c, box, anim) {
     gameSay('Beatrice', 'say', `${c.nickname} raised that ${B.name} from an egg, and now it wants to join their team. I might cry!`, 'nursery', c.nickname);
     markWinner(c.id); room(c, box, 'grew');
   };
+  // her ask 10-27: a grown teen can also be set free; then the nursery has room for a new egg
+  const wild = $('#nwild', box); if (wild) wild.onclick = () => {
+    if (!confirm(`Let ${nameOf(b)} go into the wild? You can take a new egg home afterwards.`)) return;
+    store.pushLimited('log', { t: Date.now(), text: `${c.nickname} let their nursery ${B.name}${b.name ? ` “${b.name}”` : ''} go into the wild.` });
+    gameSay('Beatrice', 'say', `${c.nickname}’s ${B.name} flew the nest today, off to explore the wild. Safe travels, little one!`, 'nursery', c.nickname);
+    logRoll(c.nickname, 'Fernshade Nursery', null, `let ${B.name} go into the wild`, 'note');
+    store.set('nursery/' + c.id, null);
+    box.innerHTML = `<div class="sentry-end">${bea('happy', `${nameOf(b)} looked back once, then ran off into the trees. You raised it well, ${c.nickname}. Whenever you’re ready, there’s another egg waiting.`)}<button class="btn block" id="nagain">Visit the nursery again</button></div>`;
+    $('#nagain', box).onclick = () => room(c, box);
+  };
+  const nn = $('#nnew', box); if (nn) nn.onclick = () => { if (confirm(`${nameOf(b)} stays on your team. Take a new egg home to raise?`)) { adopt(c); room(c, box, 'new'); } };
 }
 
 export function renderNursery(main, g, gm, onEdit) {
