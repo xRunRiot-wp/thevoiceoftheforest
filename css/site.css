@@ -1521,3 +1521,51 @@ a.ch-chip:hover { background: var(--navy); }
 .taste-meter { height: 12px; border-radius: 99px; background: rgba(0, 0, 0, .12); overflow: hidden; margin: 6px 0 10px; }
 .taste-meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #c0453a, #f2c14e 55%, #4f9d4a 90%); transition: width 1s ease-out; }
 .due-ribbon.stew::after { content: 'Today’s stew not made yet!'; }
+
+/* Spinda's Kitchen v2: berry pictures, a pot whose stew rises and changes colour, stirring in the pot */
+.berry-img { width: 24px; height: 24px; image-rendering: pixelated; vertical-align: middle; object-fit: contain; }
+.cook-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+@media (max-width: 520px) { .cook-row { grid-template-columns: 1fr; } }
+.potwrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.pot-vis { position: relative; width: 170px; height: 130px; margin-top: 18px; }
+.potwrap.big .pot-vis { width: 230px; height: 170px; margin-top: 34px; }
+.pot-body { position: absolute; inset: 8% 2% 0 2%; border-radius: 12% 12% 48% 48% / 10% 10% 60% 60%; background: radial-gradient(ellipse at 30% 30%, #6b6b78 0%, #3b3b45 45%, #1e1e26 100%); box-shadow: inset 0 -8px 14px rgba(0, 0, 0, .5), 0 6px 10px rgba(0, 0, 0, .35); z-index: 1; }
+.pot-rim { position: absolute; left: -2%; right: -2%; top: 2%; height: 14%; border-radius: 50%; border: 6px solid #4a4a56; background: transparent; z-index: 4; box-shadow: 0 2px 0 #2a2a33; }
+.liquid { position: absolute; left: 8%; right: 8%; bottom: 14%; height: 22%; max-height: 74%; border-radius: 40% 40% 46% 46% / 18% 18% 60% 60%; background: rgb(143, 201, 232); z-index: 2; transition: height .5s ease, background-color .6s ease, background .6s ease; overflow: hidden; box-shadow: inset 0 6px 10px rgba(255, 255, 255, .35); }
+.liquid .bubbles { position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255, 255, 255, .55) 2px, transparent 3px); background-size: 22px 18px; animation: bubble-up 2.4s linear infinite; opacity: .6; }
+@keyframes bubble-up { from { background-position: 0 30px; } to { background-position: 0 -10px; } }
+.liquid.splash { animation: splash .5s ease-out; }
+@keyframes splash { 30% { transform: scaleY(1.12) translateY(-4px); } }
+.liquid.swirl { animation: swirl .7s ease-out; } .liquid.slosh { animation: dig-shake .35s linear 2; }
+@keyframes swirl { 0% { filter: hue-rotate(0); transform: rotate(0); } 50% { filter: hue-rotate(25deg) brightness(1.15); transform: rotate(4deg) scaleX(1.04); } 100% { filter: none; transform: none; } }
+.drop-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.berry-img.falling { position: absolute; left: calc(50% - 16px); top: -30px; width: 32px; height: 32px; animation: berry-drop .45s ease-in forwards; }
+@keyframes berry-drop { to { transform: translateY(85px) rotate(200deg) scale(.7); opacity: 0; } }
+.pot-in { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; min-height: 30px; }
+.pot-b { display: inline-flex; align-items: center; gap: 2px; border: 1px solid rgba(90, 58, 26, .3); border-radius: 99px; background: #fff8e6; padding: 2px 6px 2px 2px; cursor: var(--cur-link, pointer); font-size: 11px; color: #8a2a22; }
+.pantry { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; }
+.berry-t { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 12px; border: 2px solid rgba(90, 58, 26, .25); background: #fffaf0; color: #3a2c1a; font: inherit; cursor: var(--cur-link, pointer); }
+.berry-t .berry-img { width: 36px; height: 36px; }
+.berry-t b { font-size: 13px; } .berry-t small { font-size: 11px; opacity: .7; text-align: center; }
+.berry-t.want { border-color: #4f9d4a; box-shadow: 0 0 0 2px rgba(79, 157, 74, .25); }
+.berry-t:disabled { opacity: .4; }
+.berry-t:not(:disabled):active { transform: scale(.95); }
+.recipe-card li .berry-img { width: 20px; height: 20px; }
+.stir-zone { position: absolute; left: calc(50% - 24px); top: 26%; width: 48px; height: 22px; border-radius: 50%; border: 3px dashed #4f9d4a; z-index: 5; background: rgba(79, 157, 74, .25); animation: aura-pulse 1.2s ease-in-out infinite; }
+.pot-vis .spoon { position: absolute; top: -10%; font-size: 34px; line-height: 1; z-index: 6; transform-origin: 50% 90%; }
+.stir-dots { display: flex; gap: 8px; justify-content: center; margin: 10px 0; }
+.stir-dots i { width: 14px; height: 14px; border-radius: 50%; background: rgba(0, 0, 0, .12); border: 2px solid rgba(90, 58, 26, .35); }
+.stir-dots i.ok { background: #4f9d4a; } .stir-dots i.bad { background: #c0453a; }
+.rw-berries { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px; max-height: 42vh; overflow-y: auto; padding: 2px; }
+.rw-b { display: flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 10px; border: 1px solid rgba(90, 58, 26, .2); }
+.rw-b span { flex: 1; font-size: 13px; } .rw-b b { min-width: 14px; text-align: center; }
+.rw-b.on { background: rgba(79, 157, 74, .15); border-color: #4f9d4a; }
+.rw-b .btn { padding: 0 8px; min-height: 26px; }
+.rb-berries .berry-img { width: 20px; height: 20px; }
+
+/* Sentry Duty: the visitor's portrait pops up when the answer is revealed */
+.fp-reveal { position: absolute; left: 14px; top: 50%; margin: 0; transform: translateY(-50%) scale(.3); opacity: 0; text-align: center; animation: fp-pop .35s ease-out forwards; z-index: 2; }
+.fp-reveal img { width: 72px; height: 72px; border-radius: 10px; border: 3px solid #4f9d4a; image-rendering: pixelated; background: #fff; display: block; box-shadow: 0 4px 10px rgba(0, 0, 0, .3); }
+.fp-reveal.miss img, .fp-reveal.slow img { border-color: #c0453a; }
+.fp-reveal figcaption { font: 700 12px var(--pix); color: #3a2c1a; background: #fff8e6; border-radius: 6px; padding: 1px 6px; margin-top: 4px; }
+@keyframes fp-pop { to { transform: translateY(-50%) scale(1); opacity: 1; } }

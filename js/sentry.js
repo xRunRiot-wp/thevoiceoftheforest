@@ -1,14 +1,14 @@
 // Sentry Duty (from Explorers of Time/Sky): stand watch at the Woodland Base gate with Diglett and name each visitor
 // from their footprint. A daily guild chore every character is expected to do, not a gamble: an okay shift is just
 // doing your duty, a great shift pays Poké and can turn up a rare item. One shift per character per day.
-import * as store from './store.js?v=6ae13e16';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13e16';
-import { me, logRoll } from './play.js?v=6ae13e16';
-import { dailyRoll } from './weather.js?v=6ae13e16';
-import { gameSay } from './chatter.js?v=6ae13e16';
-import { markWinner } from './sparkle.js?v=6ae13e16';
-import * as sheet from './sheetdata.js?v=6ae13e16';
-import { portraitFile } from './ui.js?v=6ae13e16';
+import * as store from './store.js?v=6ae13f87';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13f87';
+import { me, logRoll } from './play.js?v=6ae13f87';
+import { dailyRoll } from './weather.js?v=6ae13f87';
+import { gameSay } from './chatter.js?v=6ae13f87';
+import { markWinner } from './sparkle.js?v=6ae13f87';
+import * as sheet from './sheetdata.js?v=6ae13f87';
+import { portraitFile } from './ui.js?v=6ae13f87';
 
 export const isSentry = (g) => g.kind === 'sentry' || g.id === 'sentry-duty';
 
@@ -99,8 +99,10 @@ function play(c, box, onDone) {
       $('.sentry-react', box).innerHTML = digHTML(kind, line);
       const mine = $('.sface.me', box); const f = faceSrc(spKey(c), kind); if (f && mine?.tagName === 'IMG') mine.src = f;
       $('.digsprite', box).className = 'digsprite ' + kind;
+      // her ask 10-27: as the answer is revealed, show the Pokémon the footprint belongs to
+      $('.sentry-sand', box).insertAdjacentHTML('beforeend', `<figure class="fp-reveal ${kind}"><img src="assets/portraits/fp/${v}.png" alt=""><figcaption>${esc(PRINTS[v])}</figcaption></figure>`);
       $$('[data-fp]', box).forEach((b) => { b.disabled = true; if (+b.dataset.fp === v) b.classList.add('right'); else if (+b.dataset.fp === pick) b.classList.add('wrong'); });
-      n++; setTimeout(round, 1800);
+      n++; setTimeout(round, 2200);
     };
     timer = setInterval(() => {
       if (!box.isConnected) { clearInterval(timer); return; }
