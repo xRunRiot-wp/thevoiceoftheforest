@@ -6,14 +6,14 @@
 // double resolution so the backdrop is sharp, and the basket and chest sit on the grass with shadows. Follow-up: bigger bins,
 // and open sky (Mail Run's day sky) above a shorter Woodland Base picture whose top fades into it.
 // Art: the Woodland Base tent (GM's campaign art) backdrop, Machamp / Voltorb / runner sprites (SpriteCollab), items, basket, chest and logs (PMDCollab RawAsset).
-import * as store from './store.js?v=6ae152d5';
-import { $, esc, num, uid } from './util.js?v=6ae152d5';
-import { me, logRoll } from './play.js?v=6ae152d5';
-import { dailyRoll } from './weather.js?v=6ae152d5';
-import { gameSay } from './chatter.js?v=6ae152d5';
-import { markWinner } from './sparkle.js?v=6ae152d5';
-import { rareItem } from './sentry.js?v=6ae152d5';
-import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae152d5';
+import * as store from './store.js?v=6ae15356';
+import { $, esc, num, uid } from './util.js?v=6ae15356';
+import { me, logRoll } from './play.js?v=6ae15356';
+import { dailyRoll } from './weather.js?v=6ae15356';
+import { gameSay } from './chatter.js?v=6ae15356';
+import { markWinner } from './sparkle.js?v=6ae15356';
+import { rareItem } from './sentry.js?v=6ae15356';
+import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae15356';
 
 export const isTruck = (g) => g.kind === 'truck' || g.id === 'machamp-wagon';
 

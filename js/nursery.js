@@ -6,12 +6,13 @@
 // Her asks 10-27 (round 2): needs come up more often; tap the buddy and it walks up to the screen and a Yellow-style
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
-import * as store from './store.js?v=6ae152d5';
-import { $, $$, esc, toast, num } from './util.js?v=6ae152d5';
-import { me, logRoll } from './play.js?v=6ae152d5';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae152d5';
-import { gameSay, gmTodo } from './chatter.js?v=6ae152d5';
-import { markWinner } from './sparkle.js?v=6ae152d5';
+// Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
+import * as store from './store.js?v=6ae15356';
+import { $, $$, esc, toast, num } from './util.js?v=6ae15356';
+import { me, logRoll } from './play.js?v=6ae15356';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae15356';
+import { gameSay, gmTodo } from './chatter.js?v=6ae15356';
+import { markWinner } from './sparkle.js?v=6ae15356';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -199,7 +200,7 @@ function room(c, box, anim) {
   const b = buddyOf(c.id);
   if (!b) {
     box.innerHTML = `<div class="sentry-start">${bea('happy', `Oh, ${c.nickname}, dear! The nursery has more eggs than I have arms. Would you look after one for me? Keep it warm, and once it hatches, feed it, play with it and give it baths. Raise it to a teen, and maybe it’ll want to join your team!`)}
-      <div class="nursery-room tod-${tod()}">${wxFxHTML(wx().key)}${nestHTML(eggHTML({ sp: '' }))}</div><button class="btn block" id="nadopt">Take an egg home 🥚</button></div>`;
+      <div class="nursery-room tod-${tod()}"><div class="n-sky" aria-hidden="true"><i></i><i></i><i></i></div>${wxFxHTML(wx().key)}${nestHTML(eggHTML({ sp: '' }))}</div><button class="btn block" id="nadopt">Take an egg home 🥚</button></div>`;
     $('#nadopt', box).onclick = () => { adopt(c); room(c, box, 'new'); };
     return;
   }
@@ -214,7 +215,7 @@ function room(c, box, anim) {
     : cared ? `All done for today. ${nameOf(b)} is happy and growing!` : egg ? 'Keep it warm, three times a day. I can hear it wiggling!' : 'Feed, play and bath time. A little every day!';
   box.innerHTML = `<div class="nursery">
     ${bea(b.recruited || b.stage === 3 ? 'proud' : low.length || cv ? 'worry' : 'happy', line)}
-    <div class="nursery-room tod-${tod()} ${egg ? 'is-egg' : ''}">${wxFxHTML(wx().key)}
+    <div class="nursery-room tod-${tod()} ${egg ? 'is-egg' : ''}"><div class="n-sky" aria-hidden="true"><i></i><i></i><i></i></div>${wxFxHTML(wx().key)}
       ${egg ? nestHTML(eggHTML(b, anim === 'warm' ? 'wiggle' : '')) : `<div class="nest-spot">${nestHTML('')}</div>${petHTML()}`}
       ${anim === 'grew' ? '<span class="n-burst">✨</span>' : ''}${egg && anim === 'warm' ? '<span class="n-fx">🔥</span>' : ''}
     </div>

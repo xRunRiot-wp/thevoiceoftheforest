@@ -1759,14 +1759,14 @@ a.ch-chip:hover { background: var(--navy); }
 /* Nursery round 2 (her asks 10-27): tap = buddy walks up close + Yellow-style feelings window; weather cover item over
    its head; the room is tinted to the player's own time of day; the table's weather falls in the room */
 .pet .baby-spr { transition: scale .45s ease, translate .45s ease; transform-origin: 50% 80%; }
-.pet.close .baby-spr { scale: 1.6; translate: 0 52px; }
+.pet.close .baby-spr { scale: 2.3; translate: 0 18px; }
 .pet-cover { transition: opacity .3s, scale .45s ease, top .45s ease, left .45s ease; }
-.pet.close .pet-cover { scale: 1.4; top: 16%; left: 112%; }
+.pet.close .pet-cover { scale: 1.8; top: -6%; left: 125%; }
 .pet-cover { position: absolute; left: 50%; top: 14%; translate: -50% 0; font-size: 44px; line-height: 1; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 4; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .35)); }
 .pet-cover.show { opacity: 1; }
 .pet-cover.pop { animation: cov-pop .5s ease-out; }
 @keyframes cov-pop { from { transform: translateY(-40px) scale(.4); } 70% { transform: translateY(4px) scale(1.1); } to { transform: none; } }
-.emo-pane { position: absolute; left: 10px; top: 10px; z-index: 7; display: flex; gap: 10px; align-items: center; max-width: min(320px, calc(100% - 20px)); padding: 8px 12px 8px 8px; background: #f8f8f0; color: #181818;
+.emo-pane { position: absolute; left: 50%; translate: -50% 0; bottom: 10px; width: max-content; z-index: 7; display: flex; gap: 10px; align-items: center; max-width: min(320px, calc(100% - 20px)); padding: 8px 12px 8px 8px; background: #f8f8f0; color: #181818;
   border: 4px solid #181818; border-radius: 6px; box-shadow: inset 0 0 0 3px #f8f8f0, inset 0 0 0 5px #181818, 0 4px 0 rgba(0, 0, 0, .3); cursor: pointer; animation: emo-in .25s steps(4, end); }
 .emo-pane img { width: 64px; height: 64px; flex: none; image-rendering: pixelated; border: 3px solid #181818; background: #fff; }
 .emo-pane p { margin: 0; font: 700 15px/1.35 var(--pix); }
@@ -1782,3 +1782,19 @@ a.ch-chip:hover { background: var(--navy); }
 @keyframes fireflies { from { opacity: .25; transform: translate(0, 0); } to { opacity: 1; transform: translate(6px, -8px); } }
 .nursery-room .wxfx { z-index: 4; }
 @media (prefers-reduced-motion: reduce) { .pet .baby-spr, .pet-cover, .emo-pane, .nursery-room::before { animation: none !important; transition: none !important; } }
+
+/* sky over the nursery (her follow-up): soft band that fades into the grass, coloured for the player's time of day */
+.nursery-room, .nursery-room:not(.is-egg) { min-height: 320px; }
+.n-sky { position: absolute; left: 0; right: 0; top: 0; height: 36%; z-index: 0; pointer-events: none; overflow: hidden;
+  background: linear-gradient(180deg, #4f9ef0 0%, #9fd2ff 70%, #cfeaff 100%); -webkit-mask: linear-gradient(#000 62%, transparent); mask: linear-gradient(#000 62%, transparent); }
+.n-sky i { position: absolute; width: 110px; height: 40px; background: url('../assets/mailrun/cloud0.png') 0 0 / 100% 100% no-repeat; image-rendering: pixelated; opacity: .95; animation: n-cloud 70s linear infinite; }
+.n-sky i:nth-child(1) { top: 8%; animation-delay: -10s; }
+.n-sky i:nth-child(2) { top: 30%; width: 80px; height: 30px; background-image: url('../assets/mailrun/cloud1.png'); animation-duration: 95s; animation-delay: -50s; }
+.n-sky i:nth-child(3) { top: 2%; width: 136px; height: 64px; background-image: url('../assets/mailrun/cloud2.png'); animation-duration: 120s; animation-delay: -85s; opacity: .8; }
+@keyframes n-cloud { from { left: -140px; } to { left: 100%; } }
+.tod-dawn .n-sky { background: linear-gradient(180deg, #7d8fd8 0%, #f4a7bf 55%, #ffd9a0 100%); }
+.tod-dusk .n-sky { background: url('../assets/mailrun/sky_dusk.png') center bottom / cover; }
+.tod-night .n-sky { background: radial-gradient(1.5px 1.5px at 10% 20%, #fff 99%, transparent), radial-gradient(1.5px 1.5px at 32% 48%, #fff 99%, transparent), radial-gradient(2px 2px at 55% 14%, #fff 99%, transparent),
+  radial-gradient(1.5px 1.5px at 74% 40%, #fff 99%, transparent), radial-gradient(1.5px 1.5px at 90% 18%, #fff 99%, transparent), radial-gradient(14px 14px at 82% 30%, #fff8d8 60%, transparent 70%), linear-gradient(180deg, #081038 0%, #1c2a66 100%); }
+.tod-night .n-sky i { opacity: .25; }
+@media (prefers-reduced-motion: reduce) { .n-sky i { animation: none; left: 20%; } }
