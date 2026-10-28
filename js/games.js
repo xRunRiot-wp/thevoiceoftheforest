@@ -1,20 +1,26 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6ae13a99';
-import * as store from './store.js?v=6ae13a99';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae13a99';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13a99';
-import { modal, portrait } from './ui.js?v=6ae13a99';
-import * as sheet from './sheetdata.js?v=6ae13a99';
-import { shop } from './guild.js?v=6ae13a99';
-import { merged, editContent } from './content-store.js?v=6ae13a99';
-import { logRoll, me, addTeamFx } from './play.js?v=6ae13a99';
-import { luckyReaction, gmTodo } from './chatter.js?v=6ae13a99';
-import { ranks } from './rulebook.js?v=6ae13a99';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae13a99';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae13a99';
+import { markWinner } from './sparkle.js?v=6ae13b5c';
+import * as store from './store.js?v=6ae13b5c';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae13b5c';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13b5c';
+import { modal, portrait } from './ui.js?v=6ae13b5c';
+import * as sheet from './sheetdata.js?v=6ae13b5c';
+import { shop } from './guild.js?v=6ae13b5c';
+import { merged, editContent } from './content-store.js?v=6ae13b5c';
+import { logRoll, me, addTeamFx } from './play.js?v=6ae13b5c';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ae13b5c';
+import { ranks } from './rulebook.js?v=6ae13b5c';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae13b5c';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae13b5c';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae13b5c';
 
 export const GAMES = [
+  {
+    id: 'ralts-dance', kind: 'dance', group: 'Chores', name: 'Dance Practice with Ralts', host: 'Ralts',
+    intro: 'Ralts practises a little dance every day and loves a partner. Watch Ralts’s steps, then copy them: up, down, left and right. A great practice earns Poké and maybe a rare item.',
+    cost: '', slices: [],
+  },
   {
     id: 'sentry-duty', kind: 'sentry', name: 'Sentry Duty', host: 'Diglett',
     intro: 'A guild chore everyone is expected to do each day. Stand watch at the Woodland Base gate while Diglett watches the footprints from below, and call out who is coming. An okay shift is just doing your duty. A great shift earns Poké and maybe a rare item.',
@@ -91,7 +97,7 @@ const parse = (g) => {
     : g.twists || [];
   return { ...g, slices, colors, twists };
 };
-const isChore = (g) => (g.group ? g.group === 'Chores' : isSentry(g));
+const isChore = (g) => (g.group ? g.group === 'Chores' : isSentry(g) || isDance(g));
 export const games = () => merged('games', GAMES).map(parse);
 const forEdit = (g) => ({ ...g, slicesText: g.slices.map(([n, w, p]) => `${n} | ${w}${p ? ' | ' + p : ''}`).join('\n'), colorsText: g.colors.join(', '),
   twistsText: g.twists.map(([n, k, t]) => `${n} | ${k} | ${t}`).join('\n') });
@@ -181,12 +187,12 @@ export function renderGames(main, [arg]) {
   const list = games();
   if (!arg) {
     // her ask 10-27: Chores (daily guild jobs) and Gambling Games in their own sections; the GM picks a game's section in Edit
-    const card = (g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''} ${isSentry(g) && sentryDue() ? 'due' : ''}" href="#/games/${esc(g.id)}">${isSentry(g) && sentryDue() ? '<span class="due-ribbon">⚠️ Today’s shift not done yet!</span>' : ''}
-        ${isSentry(g) ? sentryMini() : isFortune(g) ? fortuneMini() : `<canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>`}
+    const card = (g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''} ${(isSentry(g) && sentryDue()) || (isDance(g) && danceDue()) ? 'due' : ''}" href="#/games/${esc(g.id)}">${isSentry(g) && sentryDue() ? '<span class="due-ribbon">⚠️ Today’s shift not done yet!</span>' : isDance(g) && danceDue() ? '<span class="due-ribbon dance">⚠️ Today’s practice not done yet!</span>' : ''}
+        ${isSentry(g) ? sentryMini() : isDance(g) ? danceMini() : isFortune(g) ? fortuneMini() : `<canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>`}
         <div class="gc-text"><h3>${esc(g.name)}</h3>
           <p class="gc-host">${esc(g.host ? (g.only ? '' : 'Run by ') + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}${g.only ? ` · <b>${esc(g.only)} only</b>` : ''}${g.special && g.twists.length ? ` · <b>✨ ${esc(g.special)} twists</b>` : ''}</p>
           <p class="gc-intro">${esc((g.intro || '').split('. ')[0].replace(/\.$/, ''))}.</p>
-          <span class="gc-play">${isSentry(g) ? 'Take your shift →' : isFortune(g) ? 'Draw a card →' : 'Spin the wheel →'}</span></div></a>`;
+          <span class="gc-play">${isSentry(g) ? 'Take your shift →' : isDance(g) ? 'Dance with Ralts →' : isFortune(g) ? 'Draw a card →' : 'Spin the wheel →'}</span></div></a>`;
     const chores = list.filter(isChore); const gambling = list.filter((g) => !isChore(g));
     main.innerHTML = `<div class="hero"><img class="hdr" src="assets/banners/items_orbs.jpg" alt=""></div>
       <div class="row" style="justify-content:space-between;margin-top:12px"><h1 style="margin:0">Games</h1>${gm ? '<button class="btn alt sm" id="add">+ Game</button>' : ''}</div>
@@ -201,6 +207,7 @@ export function renderGames(main, [arg]) {
   const g = list.find((x) => x.id === arg);
   if (!g) { main.innerHTML = '<p>That game is gone. <a href="#/games">Back</a></p>'; return; }
   // Castform's weather fortune table: cards instead of a wheel
+  if (isDance(g)) { renderDance(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }
   if (isSentry(g)) { renderSentry(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }
   if (isFortune(g)) { renderFortune(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }
   main.innerHTML = `<div class="row" style="justify-content:space-between;margin-top:12px"><a class="btn alt sm" href="#/games">← Games</a>${gm ? '<button class="btn alt sm" id="ed">Edit</button>' : ''}</div>

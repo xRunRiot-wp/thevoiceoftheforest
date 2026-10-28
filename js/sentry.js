@@ -1,14 +1,14 @@
 // Sentry Duty (from Explorers of Time/Sky): stand watch at the Woodland Base gate with Diglett and name each visitor
 // from their footprint. A daily guild chore every character is expected to do, not a gamble: an okay shift is just
 // doing your duty, a great shift pays Poké and can turn up a rare item. One shift per character per day.
-import * as store from './store.js?v=6ae13a99';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13a99';
-import { me, logRoll } from './play.js?v=6ae13a99';
-import { dailyRoll } from './weather.js?v=6ae13a99';
-import { gameSay } from './chatter.js?v=6ae13a99';
-import { markWinner } from './sparkle.js?v=6ae13a99';
-import * as sheet from './sheetdata.js?v=6ae13a99';
-import { portraitFile } from './ui.js?v=6ae13a99';
+import * as store from './store.js?v=6ae13b5c';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae13b5c';
+import { me, logRoll } from './play.js?v=6ae13b5c';
+import { dailyRoll } from './weather.js?v=6ae13b5c';
+import { gameSay } from './chatter.js?v=6ae13b5c';
+import { markWinner } from './sparkle.js?v=6ae13b5c';
+import * as sheet from './sheetdata.js?v=6ae13b5c';
+import { portraitFile } from './ui.js?v=6ae13b5c';
 
 export const isSentry = (g) => g.kind === 'sentry' || g.id === 'sentry-duty';
 
@@ -27,16 +27,16 @@ const moodOf = (grade) => (GRADES.find((x) => x[1] === grade) || [])[5] || 'wait
 // Faces (her ask 10-27): Explorers-style emotion portraits from PMDCollab, assets/portraits/emo/<species>/<Emotion>.png.
 // Diglett reacts to every footprint; each character's face shows how their shift went.
 const FULL = ['Normal', 'Happy', 'Joyous', 'Inspired', 'Determined', 'Sad', 'Teary-Eyed', 'Sigh', 'Worried', 'Surprised', 'Dizzy', 'Stunned', 'Pain', 'Angry', 'Shouting'];
-const EMO = { diglett: FULL, sudowoodo: FULL, swablu: FULL, magnemite: FULL, cleffa: FULL, golett: FULL, tinkatink: FULL, jangmoo: FULL, slakoth: ['Normal', 'Happy', 'Inspired', 'Sad', 'Sigh'], cottonee: ['Normal'] };
+const EMO = { ralts: FULL, diglett: FULL, sudowoodo: FULL, swablu: FULL, magnemite: FULL, cleffa: FULL, golett: FULL, tinkatink: FULL, jangmoo: FULL, slakoth: ['Normal', 'Happy', 'Inspired', 'Sad', 'Sigh'], cottonee: ['Normal'] };
 const MOODS = { great: ['Joyous', 'Inspired', 'Happy'], good: ['Happy', 'Joyous'], duty: ['Determined', 'Normal'], sloppy: ['Sad', 'Teary-Eyed', 'Sigh', 'Worried'],
   hit: ['Happy', 'Joyous'], miss: ['Surprised', 'Worried', 'Sad'], slow: ['Dizzy', 'Stunned', 'Sigh'], wait: ['Normal'] };
 const DIG = { great: ['Inspired', 'Joyous'], good: ['Happy'], duty: ['Normal'], sloppy: ['Sigh', 'Sad'], hit: ['Joyous', 'Happy'], miss: ['Shouting', 'Angry'], slow: ['Teary-Eyed', 'Sad'], wait: ['Normal'] };
-const spKey = (c) => String(c?.species || c?.pokemon || '').toLowerCase().replace(/[^a-z]/g, '');
-function faceSrc(sp, mood, moods = MOODS) {
+export const spKey = (c) => String(c?.species || c?.pokemon || '').toLowerCase().replace(/[^a-z]/g, '');
+export function faceSrc(sp, mood, moods = MOODS) {
   const have = EMO[sp]; if (!have) return portraitFile(sp);
   return `assets/portraits/emo/${sp}/${(moods[mood] || []).find((e) => have.includes(e)) || 'Normal'}.png`;
 }
-const faceHTML = (c, mood, cls = '') => { const f = faceSrc(spKey(c), mood); return f ? `<img class="sface ${cls}" src="${f}" alt="${esc(c.nickname)}">` : `<span class="sface ph ${cls}">${esc((c.nickname || '?')[0])}</span>`; };
+export const faceHTML = (c, mood, cls = '') => { const f = faceSrc(spKey(c), mood); return f ? `<img class="sface ${cls}" src="${f}" alt="${esc(c.nickname)}">` : `<span class="sface ph ${cls}">${esc((c.nickname || '?')[0])}</span>`; };
 const digHTML = (mood, line) => `<div class="sentry-digg"><img class="sface dig" src="${faceSrc('diglett', mood, DIG)}" alt="Diglett"><div class="bubble"><b>Diglett:</b> “${esc(line)}”</div></div>`;
 const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
 const HIT = ['Right! It’s {p}! Come on in!', 'Yup yup! That’s {p}! Good eye!', '{p}! Correct! Next visitor!', 'That’s {p}, all right! Welcome to Woodland Base!', 'Correct! {p} may pass!'];
@@ -46,14 +46,14 @@ const STREAK = ['', '', '', 'Three in a row!', 'Four in a row! You’re on fire!
 const gradeOf = (score) => GRADES.find(([min]) => score >= min);
 const today = () => dailyRoll().day;
 const shift = (id) => store.get('sentry/' + id) || {};
-const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+export const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 const printHTML = (i, size = 128) => `<div class="fp" role="img" aria-label="A footprint" style="width:${size}px;height:${size}px;background-size:${PRINTS.length * size}px ${size}px;background-position:-${i * size}px 0"></div>`;
 // Games list: a banner across the card until this device's character has done today's shift (her ask 10-27)
 export const sentryDue = () => { const c = me(); return !!c && shift(c.id).day !== today(); };
 export const sentryMini = () => `<div class="sentry-mini">${[5, 49, 59].map((i) => printHTML(i, 64)).join('')}</div>`;
 
-async function rareItem() {
+export async function rareItem() {
   const t = await sheet.treasure().catch(() => []);
   const rare = t.filter((x) => /^rare/i.test(x.rarity));
   return rare.length ? rare[Math.floor(Math.random() * rare.length)].name : '';
