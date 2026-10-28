@@ -2,11 +2,12 @@
 // friends, see who's on the site right now (and where), and invite them to a game like Noctowl's 21.
 // online/<id> = { t, at } (each open device refreshes it every 2 minutes); party/<id>/friends = [ids];
 // invites/<id>/<inviteId> = { from, fromId, game, name, t } (shown once as a pop-up on the friend's device, then removed).
-import * as store from './store.js?v=6ae16869';
-import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae16869';
-import { giftNote } from './mailbox.js?v=6ae16869';
-import { playingNow, openWatch } from './watch.js?v=6ae16869';
-import { modal, closeModal, portrait } from './ui.js?v=6ae16869';
+import * as store from './store.js?v=6ae1690f';
+import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae1690f';
+import { sendFx, startLetterWatch } from './letterfx.js?v=6ae1690f';
+import { giftNote } from './mailbox.js?v=6ae1690f';
+import { playingNow, openWatch } from './watch.js?v=6ae1690f';
+import { modal, closeModal, portrait } from './ui.js?v=6ae1690f';
 
 const ONLINE_FOR = 5 * 60e3; const BEAT = 2 * 60e3;
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -50,6 +51,7 @@ export function startFriends() {
   addEventListener('hashchange', () => setTimeout(() => beat(false), 500));
   document.addEventListener('visibilitychange', () => { if (!document.hidden) beat(true); });
   store.subscribe(checkInvites); checkInvites();
+  startLetterWatch();
 }
 
 const rowHTML = (x, isFriend, me) => {
@@ -110,7 +112,7 @@ export function openSend(toId) {
   const done = (what) => {
     giftNote(to.id, '🎁', `A gift from ${me.nickname}`, `${me.nickname} sent you ${what}!${note() ? ` “${note()}”` : ''}`);
     store.pushLimited('log', { t: Date.now(), text: `${me.nickname} sent ${to.nickname} ${what}.` });
-    toast(`Sent ${what} to ${to.nickname}!`); closeModal();
+    closeModal(); sendFx(to.nickname, what, note());
   };
   $('#sdpokego', box).onclick = () => {
     const amt = num($('#sdpoke', box).value); const have = num(party()[me.id]?.poke);
