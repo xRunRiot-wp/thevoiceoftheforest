@@ -6,14 +6,14 @@
 // (Rayson loves rain: letters pay extra), strong wind = faster tailwind with gusts, fog = short sight, sandstorm = slower + hazy,
 // hail = heavy wings.
 // Art: Explorers of Sky skies/clouds and Sunshell beach strips (TSR rips), Wingull/Taillow/Starly sprites (SpriteCollab).
-import * as store from './store.js?v=6ae15590';
-import { $, esc, num, uid } from './util.js?v=6ae15590';
-import { me, logRoll } from './play.js?v=6ae15590';
-import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6ae15590';
-import { gameSay } from './chatter.js?v=6ae15590';
-import { markWinner } from './sparkle.js?v=6ae15590';
-import { rareItem } from './sentry.js?v=6ae15590';
-import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae15590';
+import * as store from './store.js?v=6ae158bf';
+import { $, esc, num, uid } from './util.js?v=6ae158bf';
+import { me, logRoll } from './play.js?v=6ae158bf';
+import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6ae158bf';
+import { gameSay } from './chatter.js?v=6ae158bf';
+import { markWinner } from './sparkle.js?v=6ae158bf';
+import { rareItem } from './sentry.js?v=6ae158bf';
+import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae158bf';
 
 export const isMailRun = (g) => g.kind === 'mailrun' || g.id === 'rayson-mail-run';
 
@@ -24,7 +24,7 @@ const LETTERS = 14;
 const today = () => dailyRoll().day;
 // weather: speed / gravity multipliers, gust strength, lightning (storm 'every' multiplier), particles, tint, Poké bonus per letter
 const MRWX = {
-  clear: {}, cloudy: { tint: 'rgba(80,90,110,.22)', note: 'A grey sky today. Nice and calm.' },
+  clear: { intro: 'Calm skies. A perfect day for mail!' }, cloudy: { tint: 'rgba(80,90,110,.22)', note: 'A grey sky today. Nice and calm.' },
   sunny: { grav: 0.9, tint: 'rgba(255,220,120,.12)', note: 'Warm air lifts Rayson: every flap floats a little longer.' },
   harsh: { grav: 0.8, tint: 'rgba(255,130,50,.2)', haze: true, note: 'Hot rising air makes Rayson really floaty, and the heat makes everything shimmer.' },
   rain: { rain: 70, bolt: 0.7, bonus: 5, note: 'Rayson loves the rain (+5 Poké a letter), but the storm clouds flash more often.' },
@@ -92,7 +92,9 @@ function play(c, box, onDone) {
   const nP = wx.rain || wx.sand || wx.hail || wx.streaks || 0;
   const parts = Array.from({ length: nP }, (_, i) => ({ x: (i * 97.3) % W, y: (i * 53.7) % H, s: 0.6 + ((i * 37) % 10) / 10 }));
   let x = 0; let y = 120; let vy = 0; let hearts = 3; let got = 0; let hurtT = 0; let t0 = 0; let last = 0; let started = false; let over = false; let raf = 0;
-  const flap = (e) => { e?.preventDefault?.(); if (over) return; if (!started) { started = true; ensureAudio(); } vy = FLAP; };
+  // her ask 10-27: the day's weather pops up Super Monkey Ball style (icon slams in, letters zoom in one by one, READY? pulses, GO! on the first flap)
+  const wxName = wx.name.toUpperCase(); const INTRO = 0.75 + wxName.length * 0.05 + 0.5; let introAt = 0; let goAt = 0; const secs = (at) => (performance.now() - at) / 1000;
+  const flap = (e) => { e?.preventDefault?.(); if (over) return; if (!started) { ensureAudio(); if (!introAt || secs(introAt) < INTRO) { introAt = performance.now() - INTRO * 1000; return; } started = true; goAt = performance.now(); stepSound('up'); } vy = FLAP; };
   const key = (e) => { if (e.code === 'Space' || e.key === 'ArrowUp') flap(e); };
   cv.addEventListener('pointerdown', flap); document.addEventListener('keydown', key);
   const hud = () => { $('#mrh', box).textContent = '❤️'.repeat(hearts) + '🖤'.repeat(3 - hearts); $('#mrl', box).textContent = `✉️ ${got}/${LETTERS}`;
@@ -109,6 +111,45 @@ function play(c, box, onDone) {
     jingle(made); setTimeout(() => finish(c, box, made, got, hearts, onDone), 600);
   };
   const tile = (im, off, yy, hgt) => { if (!im) return; const w = im.width * (hgt / im.height); for (let px = -((off % w) + w) % w; px < W; px += w) g.drawImage(im, px, yy, w + 1, hgt); };
+  const back = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : 1 + 2.7 * (t - 1) ** 3 + 1.7 * (t - 1) ** 2); // overshoot then settle
+  const chunky = (txt, cx, cy, size, sc, c1, c2, rot = 0, a = 1) => {
+    if (sc <= 0 || a <= 0) return; g.save(); g.globalAlpha = a; g.translate(cx, cy); g.rotate(rot); g.scale(sc, sc);
+    g.font = `900 ${size}px "Arial Black", Impact, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+    g.lineWidth = size * 0.26; g.strokeStyle = '#1b1446'; g.strokeText(txt, 0, 0);
+    const gr = g.createLinearGradient(0, -size / 2, 0, size / 2); gr.addColorStop(0, c1); gr.addColorStop(1, c2); g.fillStyle = gr; g.fillText(txt, 0, 0);
+    g.lineWidth = 1.5; g.strokeStyle = 'rgba(255,255,255,.7)'; g.strokeText(txt, 0, -size * 0.06); g.restore();
+  };
+  const wrap = (txt, maxW) => { const out = []; let line = ''; for (const w of txt.split(' ')) { const tryL = line ? line + ' ' + w : w; if (g.measureText(tryL).width > maxW && line) { out.push(line); line = w; } else line = tryL; } if (line) out.push(line); return out; };
+  const intro = () => {
+    if (goAt) { // GO! zooms out big and fades
+      const t = secs(goAt) / 0.9; if (t >= 1) { goAt = 0; return; }
+      chunky('GO!', W / 2, H / 2, 64, 0.4 + back(Math.min(1, t * 3)) * 0.9 + t * 0.5, '#fff27a', '#ff8a1f', 0, t < 0.6 ? 1 : (1 - t) / 0.4); return;
+    }
+    if (!introAt) introAt = performance.now(); const t = secs(introAt);
+    g.fillStyle = `rgba(10,8,40,${Math.min(0.5, t * 1.2)})`; g.fillRect(0, 0, W, H);
+    // sun-burst rays spin behind the icon
+    const iS = back(t / 0.45);
+    if (iS > 0) {
+      g.save(); g.translate(W / 2, 62); g.rotate(t * 0.8); g.globalAlpha = 0.35 * Math.min(1, t * 2); g.fillStyle = '#ffe680';
+      for (let i = 0; i < 12; i++) { g.rotate(Math.PI / 6); g.beginPath(); g.moveTo(0, 0); g.lineTo(-10, -70 * iS); g.lineTo(10, -70 * iS); g.fill(); }
+      g.restore();
+      g.save(); g.translate(W / 2, 62); g.rotate((1 - iS) * -2.5); g.scale(iS * 1.15, iS * 1.15); g.font = '48px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(wx.icon, 0, 2); g.restore();
+    }
+    // weather name: each letter zooms down from huge, one after another
+    g.font = '900 34px "Arial Black", Impact, sans-serif'; const widths = [...wxName].map((ch) => g.measureText(ch).width); const total = widths.reduce((a, b) => a + b, 0);
+    const fit = Math.min(1, (W - 40) / total); let lx = W / 2 - (total * fit) / 2;
+    [...wxName].forEach((ch, i) => {
+      const p = Math.min(1, Math.max(0, (t - 0.35 - i * 0.05) / 0.3)); const cw = widths[i] * fit;
+      if (p > 0 && ch !== ' ') chunky(ch, lx + cw / 2, 128, 34 * fit, 1 + (1 - back(p)) * 2.4 * (p < 1 ? 1 : 0), '#ffffff', '#7fd4ff', 0, Math.min(1, p * 2.5));
+      lx += cw;
+    });
+    // what the weather does, then READY? pulsing
+    const after = 0.75 + wxName.length * 0.05; const nA = Math.min(1, Math.max(0, (t - after) / 0.3));
+    const note = wx.note || wx.intro;
+    if (nA > 0 && note) { g.save(); g.globalAlpha = nA; g.fillStyle = '#fff'; g.font = 'bold 12px sans-serif'; g.textAlign = 'center'; wrap(note, W - 70).slice(0, 3).forEach((ln, i) => g.fillText(ln, W / 2, 160 + i * 15)); g.restore(); }
+    const rA = Math.min(1, Math.max(0, (t - INTRO) / 0.25));
+    if (rA > 0) { chunky('READY?', W / 2, 222, 30, back(rA) * (1 + 0.06 * Math.sin(t * 6)), '#fff27a', '#ff8a1f'); g.save(); g.fillStyle = 'rgba(255,255,255,.85)'; g.font = '11px sans-serif'; g.textAlign = 'center'; g.fillText('tap to fly!', W / 2, 252); g.restore(); }
+  };
   const draw = (dt) => {
     // sky + slow clouds (parallax)
     // the day goes by on the way home: the sky fades into the Explorers sunset and the sun sinks into the sea
@@ -184,7 +225,7 @@ function play(c, box, onDone) {
     // Rayson: 48x72 cells, row 0 flap (4), row 1 hurt (2)
     if (A.bird) { const hurt = hurtT > 0.9; const f = hurt ? Math.floor(time * 8) % 2 : Math.floor(time * (vy < 0 ? 14 : 7)) % 4;
       if (!(hurtT > 0 && Math.floor(time * 12) % 2)) { g.save(); g.translate(90, y); g.rotate(Math.max(-0.4, Math.min(0.5, vy / 600))); g.drawImage(A.bird, f * 48, hurt ? 72 : 0, 48, 72, -36, -54, 72, 108); g.restore(); } }
-    if (!started) { g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, 0, W, H); g.fillStyle = '#fff'; g.font = 'bold 18px sans-serif'; g.textAlign = 'center'; g.fillText('Tap to flap!', W / 2, H / 2 - 6); g.font = '12px sans-serif'; g.fillText('Fly the mail home to Woodland Base', W / 2, H / 2 + 14); if (wx.note) { g.font = 'bold 12px sans-serif'; g.fillText(`${wx.icon} ${wx.name} today`, W / 2, H / 2 + 34); } g.textAlign = 'start'; }
+    if (!started || goAt) intro();
   };
   const step = (now) => {
     if (!box.isConnected) { end(false); return; }
