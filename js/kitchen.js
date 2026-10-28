@@ -3,16 +3,16 @@
 // stirs it, and Spinda comes to taste. Good stew = dinner on time. Bad = Spinda spits it out and dinner is late.
 // REALLY REALLY good = it's served at dinner and the whole team gets a WHOLE TEAM effect from the recipe.
 // One stew a day for the guild. Recipes are GM-editable (content/recipes).
-import * as store from './store.js?v=6ae14004';
-import { $, $$, esc, toast, num, uid, slug } from './util.js?v=6ae14004';
-import { me, logRoll, addTeamFx } from './play.js?v=6ae14004';
-import { dailyRoll, hash } from './weather.js?v=6ae14004';
-import { gameSay, gmTodo } from './chatter.js?v=6ae14004';
-import { markWinner } from './sparkle.js?v=6ae14004';
-import { merged, editContent, saveContent, deleteContent } from './content-store.js?v=6ae14004';
-import { modal, closeModal } from './ui.js?v=6ae14004';
-import { ledger } from './vault.js?v=6ae14004';
-import { faceHTML, faceSrc } from './sentry.js?v=6ae14004';
+import * as store from './store.js?v=6ae14076';
+import { $, $$, esc, toast, num, uid, slug } from './util.js?v=6ae14076';
+import { me, logRoll, addTeamFx } from './play.js?v=6ae14076';
+import { dailyRoll, hash } from './weather.js?v=6ae14076';
+import { gameSay, gmTodo } from './chatter.js?v=6ae14076';
+import { markWinner } from './sparkle.js?v=6ae14076';
+import { merged, editContent, saveContent, deleteContent } from './content-store.js?v=6ae14076';
+import { modal, closeModal } from './ui.js?v=6ae14076';
+import { ledger } from './vault.js?v=6ae14076';
+import { faceHTML, faceSrc } from './sentry.js?v=6ae14076';
 
 export const isKitchen = (g) => g.kind === 'kitchen' || g.id === 'spinda-kitchen';
 
@@ -84,10 +84,22 @@ async function potLook(pot) {
   const all = [WATER, ...cols]; const w = (i) => (i === 0 ? (cols.length ? 0.25 : 1) : 1.6);
   const tot = all.reduce((t, _, i) => t + w(i), 0);
   const c = [0, 1, 2].map((j) => Math.round(all.reduce((t, col, i) => t + col[j] * w(i), 0) / tot));
-  return { color: `rgb(${c.join(',')})`, level: Math.min(88, 22 + pot.length * 9) };
+  const shade = (k) => `rgb(${c.map((v) => Math.max(0, Math.min(255, Math.round(k > 0 ? v + (255 - v) * k : v * (1 + k))))).join(',')})`;
+  return { color: `rgb(${c.join(',')})`, light: shade(0.35), dark: shade(-0.35), level: Math.min(88, 22 + pot.length * 9) };
 }
-const potHTML = (inner = '') => `<div class="pot-vis"><div class="liquid"><i class="bubbles"></i></div><div class="drop-layer"></div>${inner}<div class="pot-body"></div><div class="pot-rim"></div></div>`;
-async function paintPot(root, pot) { const el = $('.liquid', root); if (!el) return; const l = await potLook(pot); el.style.background = l.color; el.style.height = l.level + '%'; }
+// her ask 10-27: a nicer broth: glossy wobbling surface, deeper colour toward the bottom, bubbles that rise and pop,
+// steam once there's something cooking, and the berries bobbing in the stew
+const BUBBLES = Array.from({ length: 7 }, (_, i) => `<i class="bub" style="left:${8 + i * 13}%;--d:${(1.4 + (i * 0.37) % 1.3).toFixed(2)}s;--w:${5 + (i * 3) % 6}px;animation-delay:${((i * 0.53) % 1.6).toFixed(2)}s"></i>`).join('');
+const potHTML = (inner = '') => `<div class="pot-vis"><div class="steam"><i></i><i></i><i></i></div><div class="liquid"><div class="surface"></div>${BUBBLES}<div class="floaters"></div></div><div class="drop-layer"></div>${inner}<div class="pot-body"></div><div class="pot-rim"></div></div>`;
+async function paintPot(root, pot) {
+  const el = $('.liquid', root); if (!el) return;
+  const l = await potLook(pot);
+  el.style.setProperty('--broth', l.color); el.style.setProperty('--broth-light', l.light); el.style.setProperty('--broth-dark', l.dark);
+  el.style.height = l.level + '%';
+  $('.pot-vis', root)?.classList.toggle('cooking', pot.length > 0);
+  const fl = $('.floaters', el);
+  if (fl) fl.innerHTML = pot.slice(-8).map((p, i) => `<img class="floater" src="${berrySrc(p.name)}" alt="" style="left:${10 + ((i * 37) % 72)}%;animation-delay:${(i * 0.4).toFixed(1)}s" onerror="this.remove()">`).join('');
+}
 
 function score(recipe, pot, stirs) {
   const need = parseBerries(recipe.berries);

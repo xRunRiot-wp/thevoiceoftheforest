@@ -1578,3 +1578,25 @@ a.ch-chip:hover { background: var(--navy); }
 .gsearch input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 16px; padding: 8px 4px; outline: none; color: #3a2c1a; }
 .gm-search #gixres:not(:empty) { margin-top: 8px; max-height: 50vh; overflow-y: auto; }
 .gm-search .gs-hint { margin: 6px 4px 0; }
+
+/* Spinda's Kitchen broth v2: depth gradient, glossy wobbling surface, rising bubbles, steam, bobbing berries */
+.liquid { --broth: rgb(143, 201, 232); --broth-light: rgb(190, 225, 243); --broth-dark: rgb(93, 150, 185);
+  background: linear-gradient(180deg, var(--broth-light) 0%, var(--broth) 22%, var(--broth-dark) 100%) !important; overflow: visible;
+  border-radius: 46% 46% 46% 46% / 14% 14% 60% 60%; box-shadow: inset 0 -10px 16px rgba(0, 0, 0, .28), inset 0 4px 8px rgba(255, 255, 255, .25); }
+.liquid .bubbles { display: none; }
+.liquid .surface { position: absolute; left: 0; right: 0; top: -7px; height: 16px; border-radius: 50%; background: radial-gradient(ellipse at 40% 35%, rgba(255, 255, 255, .7) 0%, var(--broth-light) 30%, var(--broth) 75%);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .12); animation: broth-wobble 2.6s ease-in-out infinite; }
+@keyframes broth-wobble { 0%, 100% { transform: scaleY(1) skewX(0); } 33% { transform: scaleY(.85) skewX(4deg); } 66% { transform: scaleY(1.1) skewX(-3deg); } }
+.liquid .bub { position: absolute; bottom: 6%; width: var(--w); height: var(--w); border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, .95), rgba(255, 255, 255, .25) 60%, transparent 70%);
+  border: 1px solid rgba(255, 255, 255, .6); animation: bub-rise var(--d) ease-in infinite; opacity: 0; }
+@keyframes bub-rise { 0% { transform: translateY(0) scale(.6); opacity: 0; } 15% { opacity: .9; } 85% { opacity: .9; transform: translateY(var(--rise, -60px)) scale(1); } 100% { transform: translateY(var(--rise, -64px)) scale(1.5); opacity: 0; } }
+.pot-vis:not(.cooking) .liquid .bub { animation-duration: calc(var(--d) * 2.2); }
+.floaters { position: absolute; left: 0; right: 0; top: -9px; height: 20px; pointer-events: none; }
+.floater { position: absolute; width: 18px; height: 18px; image-rendering: pixelated; animation: bob 2.2s ease-in-out infinite; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .3)); }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-8deg); } 50% { transform: translateY(3px) rotate(8deg); } }
+.steam { position: absolute; left: 20%; right: 20%; top: -34px; height: 46px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .8s; }
+.pot-vis.cooking .steam { opacity: 1; }
+.steam i { position: absolute; bottom: 0; width: 26px; height: 40px; border-radius: 50%; background: radial-gradient(ellipse, rgba(255, 255, 255, .75), transparent 70%); filter: blur(3px); animation: steam-up 3s ease-out infinite; }
+.steam i:nth-child(1) { left: 5%; } .steam i:nth-child(2) { left: 40%; animation-delay: 1s; } .steam i:nth-child(3) { left: 72%; animation-delay: 2s; }
+@keyframes steam-up { 0% { transform: translateY(14px) scale(.6); opacity: 0; } 30% { opacity: .8; } 100% { transform: translateY(-26px) scale(1.4) translateX(6px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .liquid .surface, .liquid .bub, .floater, .steam i { animation: none; } }
