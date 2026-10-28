@@ -6,14 +6,14 @@
 // (Rayson loves rain: letters pay extra), strong wind = faster tailwind with gusts, fog = short sight, sandstorm = slower + hazy,
 // hail = heavy wings.
 // Art: Explorers of Sky skies/clouds and Sunshell beach strips (TSR rips), Wingull/Taillow/Starly sprites (SpriteCollab).
-import * as store from './store.js?v=6ae159ae';
-import { $, esc, num, uid } from './util.js?v=6ae159ae';
-import { me, logRoll } from './play.js?v=6ae159ae';
-import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6ae159ae';
-import { gameSay } from './chatter.js?v=6ae159ae';
-import { markWinner } from './sparkle.js?v=6ae159ae';
-import { rareItem } from './sentry.js?v=6ae159ae';
-import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae159ae';
+import * as store from './store.js?v=6ae15aae';
+import { $, esc, num, uid } from './util.js?v=6ae15aae';
+import { me, logRoll } from './play.js?v=6ae15aae';
+import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6ae15aae';
+import { gameSay } from './chatter.js?v=6ae15aae';
+import { markWinner } from './sparkle.js?v=6ae15aae';
+import { rareItem } from './sentry.js?v=6ae15aae';
+import { stepSound, missSound, jingle, ensureAudio, startMusic, stopMusic, muted, setMuted } from './chiptune.js?v=6ae15aae';
 
 export const isMailRun = (g) => g.kind === 'mailrun' || g.id === 'rayson-mail-run';
 
@@ -84,7 +84,8 @@ function play(c, box, onDone) {
     <div class="mr-prog" aria-label="Distance to Woodland Base"><span class="mrp-end">🏖️</span><div class="mrp-track"><i class="mrp-fill"></i><span class="mrp-mark" style="left:40%"></span><span class="mrp-mark" style="left:72%"></span><b class="mrp-bird"></b></div><span class="mrp-end">🏡</span></div>
     <div class="mrp-labels"><span>Sunshell Beach</span><span>Woodland Base</span></div>
     ${wx.note ? `<p class="mr-wx">${wx.icon} <b>${esc(wx.name)}:</b> ${esc(wx.note)}</p>` : ''}
-    <canvas id="mrc" width="${W}" height="${H}"></canvas><p class="small muted" style="text-align:center">Tap the sky (or press Space / ↑) to flap.</p></div>`;
+    <canvas id="mrc" width="${W}" height="${H}"></canvas><p class="small muted" style="text-align:center">Tap the sky (or press Space / ↑) to flap. <button class="btn alt sm" id="mrmusic">${muted() ? '🔇 Music off' : '🔊 Music on'}</button></p></div>`;
+  $('#mrmusic', box).onclick = (e) => { const m = !muted(); setMuted(m); e.target.textContent = m ? '🔇 Music off' : '🔊 Music on'; };
   const cv = $('#mrc', box); const g = cv.getContext('2d'); g.imageSmoothingEnabled = false;
   const { obs, lets } = course(seedOf());
   if (wx.bolt) obs.forEach((o) => { if (o.k === 'storm') o.every *= wx.bolt; });
@@ -94,7 +95,7 @@ function play(c, box, onDone) {
   let x = 0; let y = 120; let vy = 0; let hearts = 3; let got = 0; let hurtT = 0; let t0 = 0; let last = 0; let started = false; let over = false; let raf = 0;
   // her ask 10-27: the day's weather pops up Super Monkey Ball style (icon slams in, letters zoom in one by one, READY? pulses, GO! on the first flap)
   const wxName = wx.name.toUpperCase(); const INTRO = 0.75 + wxName.length * 0.05 + 0.5; let introAt = 0; let goAt = 0; const secs = (at) => (performance.now() - at) / 1000;
-  const flap = (e) => { e?.preventDefault?.(); if (over) return; if (!started) { ensureAudio(); if (!introAt || secs(introAt) < INTRO) { introAt = performance.now() - INTRO * 1000; return; } started = true; goAt = performance.now(); stepSound('up'); } vy = FLAP; };
+  const flap = (e) => { e?.preventDefault?.(); if (over) return; if (!started) { ensureAudio(); if (!introAt || secs(introAt) < INTRO) { introAt = performance.now() - INTRO * 1000; return; } started = true; goAt = performance.now(); stepSound('up'); startMusic('beach'); } vy = FLAP; };
   const key = (e) => { if (e.code === 'Space' || e.key === 'ArrowUp') flap(e); };
   cv.addEventListener('pointerdown', flap); document.addEventListener('keydown', key);
   const hud = () => { $('#mrh', box).textContent = '❤️'.repeat(hearts) + '🖤'.repeat(3 - hearts); $('#mrl', box).textContent = `✉️ ${got}/${LETTERS}`;
@@ -107,7 +108,7 @@ function play(c, box, onDone) {
     hud(); if (hearts <= 0) end(false);
   };
   const end = (made) => {
-    over = true; cancelAnimationFrame(raf); cv.removeEventListener('pointerdown', flap); document.removeEventListener('keydown', key);
+    over = true; stopMusic(); cancelAnimationFrame(raf); cv.removeEventListener('pointerdown', flap); document.removeEventListener('keydown', key);
     jingle(made); setTimeout(() => finish(c, box, made, got, hearts, onDone), 600);
   };
   const tile = (im, off, yy, hgt) => { if (!im) return; const w = im.width * (hgt / im.height); for (let px = -((off % w) + w) % w; px < W; px += w) g.drawImage(im, px, yy, w + 1, hgt); };
