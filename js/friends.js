@@ -2,10 +2,11 @@
 // friends, see who's on the site right now (and where), and invite them to a game like Noctowl's 21.
 // online/<id> = { t, at } (each open device refreshes it every 2 minutes); party/<id>/friends = [ids];
 // invites/<id>/<inviteId> = { from, fromId, game, name, t } (shown once as a pop-up on the friend's device, then removed).
-import * as store from './store.js?v=6ae166c0';
-import { $, $$, esc, toast, uid, timeAgo } from './util.js?v=6ae166c0';
-import { playingNow, openWatch } from './watch.js?v=6ae166c0';
-import { modal, closeModal, portrait } from './ui.js?v=6ae166c0';
+import * as store from './store.js?v=6ae167f1';
+import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae167f1';
+import { giftNote } from './mailbox.js?v=6ae167f1';
+import { playingNow, openWatch } from './watch.js?v=6ae167f1';
+import { modal, closeModal, portrait } from './ui.js?v=6ae167f1';
 
 const ONLINE_FOR = 5 * 60e3; const BEAT = 2 * 60e3;
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -57,7 +58,7 @@ const rowHTML = (x, isFriend, me) => {
   const status = pl ? `<span class="fr-dot on"></span>🎮 Playing ${esc(pl.name)}` : on ? `<span class="fr-dot on"></span>Online now · at ${esc(placeOf(o?.at))}` : `<span class="fr-dot"></span>${o?.t ? 'Last here ' + esc(timeAgo(o.t)) : 'Not seen yet'}`;
   const back = friendsOf(x).includes(me.id);
   return `<li>${portrait(x, 'sm')}<span class="grow"><b>${esc(x.nickname)}</b>${isFriend && back ? ' <span class="pill">Friends</span>' : ''}<br><span class="small muted">${status}</span></span>
-    ${isFriend && pl ? `<button class="btn alt sm" data-watchp="${esc(x.id)}">👀 Watch</button>` : ''}${isFriend && !pl && on && /noctowl-21/.test(o?.at || '') ? '<a class="btn alt sm" href="#/games/noctowl-21" data-watch>👀 Watch</a>' : ''}${isFriend ? `<button class="btn sm" data-inv="${esc(x.id)}">🃏 Invite to 21</button><button class="btn alt sm" data-unfr="${esc(x.id)}" title="Remove friend">✕</button>`
+    ${isFriend && pl ? `<button class="btn alt sm" data-watchp="${esc(x.id)}">👀 Watch</button>` : ''}${isFriend && !pl && on && /noctowl-21/.test(o?.at || '') ? '<a class="btn alt sm" href="#/games/noctowl-21" data-watch>👀 Watch</a>' : ''}${isFriend ? `<button class="btn alt sm" data-send="${esc(x.id)}">🎁 Send</button><button class="btn sm" data-inv="${esc(x.id)}">🃏 Invite to 21</button><button class="btn alt sm" data-unfr="${esc(x.id)}" title="Remove friend">✕</button>`
       : `<button class="btn alt sm" data-addfr="${esc(x.id)}">+ Add</button>`}</li>`;
 };
 
@@ -73,6 +74,7 @@ export function openFriends() {
     $$('[data-addfr]', box).forEach((b) => b.onclick = () => { store.set(`party/${me.id}/friends`, [...new Set([...mine, b.dataset.addfr])]); toast(`${party()[b.dataset.addfr]?.nickname} added!`); draw(box); });
     $$('[data-unfr]', box).forEach((b) => b.onclick = () => { store.set(`party/${me.id}/friends`, mine.filter((id) => id !== b.dataset.unfr)); draw(box); });
     $$('[data-watch]', box).forEach((a) => a.onclick = () => closeModal());
+    $$('[data-send]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openSend(b.dataset.send), 50); });
     $$('[data-watchp]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openWatch(b.dataset.watchp), 50); });
     $$('[data-inv]', box).forEach((b) => b.onclick = () => {
       const to = party()[b.dataset.inv];
@@ -83,4 +85,46 @@ export function openFriends() {
   };
   const box = modal('<div id="frbox"></div>');
   draw($('#frbox', box));
+}
+
+// Send a friend Poké or items from your own bag (her ask 10-27). They get a note in their mailbox.
+const myItems = (id) => Object.entries(store.get('bag') || {}).filter(([, b]) => b && b.owner === id && num(b.qty) > 0);
+function giveItem(from, to, key, qty) {
+  const b = store.get('bag/' + key); if (!b || b.owner !== from || num(b.qty) < qty) return false;
+  if (num(b.qty) === qty) store.set('bag/' + key, null); else store.set(`bag/${key}/qty`, num(b.qty) - qty);
+  const same = Object.entries(store.get('bag') || {}).find(([, x]) => x && x.owner === to && x.name.toLowerCase() === b.name.toLowerCase());
+  if (same) store.set(`bag/${same[0]}/qty`, num(same[1].qty) + qty); else store.set('bag/' + uid(), { name: b.name, qty, owner: to });
+  return b.name;
+}
+export function openSend(toId) {
+  const me = party()[meId()]; const to = party()[toId]; if (!me || !to) return;
+  const items = myItems(me.id);
+  const box = modal(`<h2>🎁 Send to ${esc(to.nickname)}</h2><p class="small muted">It goes straight to them, with a note in their mailbox.</p>
+    <h3>💰 Poké</h3><p class="small">You have <b>${num(me.poke).toLocaleString()}</b> Poké.</p>
+    <div class="row" style="gap:8px;align-items:center"><input type="number" id="sdpoke" min="1" max="${num(me.poke)}" placeholder="How much?" style="max-width:140px"><button class="btn" id="sdpokego">Send Poké</button></div>
+    <h3 style="margin-top:14px">🎒 An item from your bag</h3>
+    ${items.length ? `<div class="row" style="gap:8px;align-items:center;flex-wrap:wrap"><select id="sditem">${items.map(([k, b]) => `<option value="${esc(k)}">${esc(b.name)} (you have ${num(b.qty)})</option>`).join('')}</select>
+      <input type="number" id="sdqty" min="1" value="1" style="max-width:80px"><button class="btn" id="sditemgo">Send item</button></div>` : '<p class="muted">Your bag is empty.</p>'}
+    <label class="f" style="margin-top:14px">Note (optional)<input id="sdnote" maxlength="120" placeholder="Good luck out there!"></label>`);
+  const note = () => ($('#sdnote', box).value || '').trim();
+  const done = (what) => {
+    giftNote(to.id, '🎁', `A gift from ${me.nickname}`, `${me.nickname} sent you ${what}!${note() ? ` “${note()}”` : ''}`);
+    store.pushLimited('log', { t: Date.now(), text: `${me.nickname} sent ${to.nickname} ${what}.` });
+    toast(`Sent ${what} to ${to.nickname}!`); closeModal();
+  };
+  $('#sdpokego', box).onclick = () => {
+    const amt = num($('#sdpoke', box).value); const have = num(party()[me.id]?.poke);
+    if (amt <= 0) return toast('Type how much Poké to send.');
+    if (amt > have) return toast(`You only have ${have.toLocaleString()} Poké.`);
+    store.update('party/' + me.id, (x) => ({ ...x, poke: num(x?.poke) - amt }));
+    store.update('party/' + to.id, (x) => ({ ...x, poke: num(x?.poke) + amt }));
+    done(`${amt.toLocaleString()} Poké`);
+  };
+  const ig = $('#sditemgo', box);
+  if (ig) ig.onclick = () => {
+    const key = $('#sditem', box).value; const qty = Math.max(1, num($('#sdqty', box).value, 1)); const b = store.get('bag/' + key);
+    if (!b || num(b.qty) < qty) return toast(`You only have ${num(b?.qty)} of those.`);
+    const name = giveItem(me.id, to.id, key, qty); if (!name) return toast('That item is gone from your bag.');
+    done(qty > 1 ? `${qty}× ${name}` : name);
+  };
 }

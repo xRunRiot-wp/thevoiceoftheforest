@@ -6,15 +6,15 @@
 // (Rayson loves rain: letters pay extra), strong wind = faster tailwind with gusts, fog = short sight, sandstorm = slower + hazy,
 // hail = heavy wings.
 // Art: Explorers of Sky skies/clouds and Sunshell beach strips (TSR rips), Wingull/Taillow/Starly sprites (SpriteCollab).
-import * as store from './store.js?v=6ae166c0';
-import { $, esc, num, uid } from './util.js?v=6ae166c0';
-import { me, logRoll } from './play.js?v=6ae166c0';
-import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6ae166c0';
-import { gameSay } from './chatter.js?v=6ae166c0';
-import { markWinner } from './sparkle.js?v=6ae166c0';
-import { rareItem } from './sentry.js?v=6ae166c0';
-import { startBroadcast } from './watch.js?v=6ae166c0';
-import { stepSound, missSound, jingle, ensureAudio, startMusic, stopMusic, muted, setMuted } from './chiptune.js?v=6ae166c0';
+import * as store from './store.js?v=6ae167f1';
+import { $, esc, num, uid } from './util.js?v=6ae167f1';
+import { me, logRoll } from './play.js?v=6ae167f1';
+import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6ae167f1';
+import { gameSay } from './chatter.js?v=6ae167f1';
+import { markWinner } from './sparkle.js?v=6ae167f1';
+import { rareItem } from './sentry.js?v=6ae167f1';
+import { startBroadcast } from './watch.js?v=6ae167f1';
+import { stepSound, missSound, jingle, ensureAudio, startMusic, stopMusic, muted, setMuted } from './chiptune.js?v=6ae167f1';
 
 export const isMailRun = (g) => g.kind === 'mailrun' || g.id === 'rayson-mail-run';
 
