@@ -7,12 +7,12 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae1592b';
-import { $, $$, esc, toast, num } from './util.js?v=6ae1592b';
-import { me, logRoll } from './play.js?v=6ae1592b';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae1592b';
-import { gameSay, gmTodo } from './chatter.js?v=6ae1592b';
-import { markWinner } from './sparkle.js?v=6ae1592b';
+import * as store from './store.js?v=6ae159ae';
+import { $, $$, esc, toast, num } from './util.js?v=6ae159ae';
+import { me, logRoll } from './play.js?v=6ae159ae';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae159ae';
+import { gameSay, gmTodo } from './chatter.js?v=6ae159ae';
+import { markWinner } from './sparkle.js?v=6ae159ae';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -45,7 +45,9 @@ const stat = (b, k) => k === 'cover' ? (b.coverBlock === wx().block ? 100 : 0) :
 const needsOf = (b) => (b.stage === 0 ? NEEDS.egg : { ...NEEDS.baby, ...(coverNeed(b) ? { cover: 1 } : {}) });
 const todayOf = (b) => (b.days || {})[today()] || {};
 const caredToday = (b) => Object.entries(needsOf(b)).every(([k, n]) => num(todayOf(b)[k]) >= n);
-export const nurseryDue = () => { const c = me(); if (!c) return false; const b = buddyOf(c.id); return !b || (!b.recruited && b.stage < 3 && (!caredToday(b) || Object.keys(needsOf(b)).some((k) => stat(b, k) < 40))); };
+// the daily chore is done once every need got some care today (or is still full, so it can't take more) and nothing is running low (her report 10-27: the full 3/3/2 count is for
+// growing up, and a full buddy refuses more care, so it kept the chore open after she'd looked after it)
+export const nurseryDue = () => { const c = me(); if (!c) return false; const b = buddyOf(c.id); return !b || (!b.recruited && b.stage < 3 && Object.keys(needsOf(b)).some((k) => stat(b, k) < 40 || (!num(todayOf(b)[k]) && stat(b, k) < 90))); };
 
 const BEA = { wait: ['Normal'], happy: ['Happy', 'Joyous'], worry: ['Worried', 'Sad'], proud: ['Inspired', 'Joyous'] };
 const beaFace = (mood) => { const have = ['Normal', 'Happy', 'Joyous', 'Sad', 'Worried', 'Inspired', 'Surprised', 'Determined', 'Sigh']; return `assets/portraits/emo/beedrill/${(BEA[mood] || []).find((e) => have.includes(e)) || 'Normal'}.png`; };
