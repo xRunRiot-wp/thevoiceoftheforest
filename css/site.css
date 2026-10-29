@@ -2275,3 +2275,4 @@ a.ch-chip:hover { background: var(--navy); }
 .walk-host.show { opacity: 1; }
 .walk-host .fzs-spr { animation: fzs-walk var(--ms) steps(var(--n)) infinite; }
 .props .prop.fade { transition: opacity 1.5s; opacity: 0; }
+.hero.banner img.hdr.whole { aspect-ratio: auto; }   /* her Guild Shop picture (10-29) is shown whole, not cropped to a strip */

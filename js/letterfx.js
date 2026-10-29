@@ -2,9 +2,9 @@
 // a wax seal stamps it and it flies away. Receiving one: a sealed letter swoops in across the screen and dives into the
 // mailbox, which bounces. Tap anywhere to skip. Arrivals are noticed from the gift notes in giftmail/<me>; each note
 // plays once per device (dc.lfx.seen).
-import * as store from './store.js?v=6ae3cc0c';
-import { ensureAudio, mailChime } from './chiptune.js?v=6ae3cc0c';
-import { esc, num } from './util.js?v=6ae3cc0c';
+import * as store from './store.js?v=6ae3d6f5';
+import { ensureAudio, mailChime } from './chiptune.js?v=6ae3d6f5';
+import { esc, num } from './util.js?v=6ae3d6f5';
 
 const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // her ask 10-29: the wax seal carries the sender's guild crest (Woodland Base or Vanguard Guild), bigger
