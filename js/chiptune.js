@@ -142,7 +142,30 @@ export function startMusic(name = 'dance') {
   stopMusic(); stepIdx = 0; nextAt = ctx.currentTime + 0.05;
   loop = setInterval(pump, 60); pump();
 }
-export function stopMusic() { clearInterval(loop); loop = 0; }
+export function stopMusic() { clearInterval(loop); loop = 0; stopRain(); }
+// rain under the music (her ask 10-29, nursery on rainy days): soft filtered noise for the downpour plus little random drip
+// ticks; heavy = a typhoon. Made live like the tunes (no sound files) and quiet when the music is muted.
+let rainNodes = null; let dripLoop = 0;
+export function startRain(heavy = false) {
+  if (!init() || rainNodes) return;
+  const len = ctx.sampleRate * 2; const buf = ctx.createBuffer(1, len, ctx.sampleRate); const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+  const lo = ctx.createBiquadFilter(); lo.type = 'lowpass'; lo.frequency.value = heavy ? 2600 : 1800;
+  const hi = ctx.createBiquadFilter(); hi.type = 'highpass'; hi.frequency.value = 400;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(heavy ? 0.16 : 0.09, ctx.currentTime + 1.5);
+  src.connect(lo); lo.connect(hi); hi.connect(g); g.connect(master); src.start();
+  rainNodes = { src, g };
+  dripLoop = setInterval(() => {
+    if (!ctx) return; const t = ctx.currentTime;
+    for (let i = 0; i < (heavy ? 4 : 2); i++) if (Math.random() < 0.7) tone(1400 + Math.random() * 2200, t + Math.random() * 0.25, 0.04, 'sine', heavy ? 0.025 : 0.018);
+  }, 260);
+}
+export function stopRain() {
+  clearInterval(dripLoop); dripLoop = 0; if (!rainNodes || !ctx) return;
+  const { src, g } = rainNodes; rainNodes = null;
+  g.gain.setValueAtTime(g.gain.value, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6); src.stop(ctx.currentTime + 0.7);
+}
 export function stepSound(dir) { if (!ctx) return; const t = ctx.currentTime; tone(N(STEP_NOTE[dir] || 76), t, 0.18, 'square', 0.09); tone(N((STEP_NOTE[dir] || 76) + 12), t + 0.05, 0.12, 'square', 0.04); }
 export function missSound() { if (!ctx) return; const t = ctx.currentTime; tone(110, t, 0.25, 'sawtooth', 0.08); tone(98, t + 0.08, 0.25, 'sawtooth', 0.06); }
 export function jingle(good) {
@@ -167,11 +190,11 @@ export function cardSound(kind, delay = 0) {
 // a page's own background tune (the nursery): starts now if the visitor has tapped already, else on their first tap;
 // stops once the page's music button is gone (they left). Safe to call again when the page redraws.
 let pageSong = ''; let pageBtnId = '';
-export function pageMusic(main, name, btnId) {
+export function pageMusic(main, name, btnId, { rain = '' } = {}) {
   const btn = document.getElementById(btnId);
   if (btn) { btn.textContent = muted() ? '🔇 Music off' : '🔊 Music on'; btn.onclick = () => { const m = !muted(); setMuted(m); btn.textContent = m ? '🔇 Music off' : '🔊 Music on'; go(); }; }
   pageBtnId = btnId;
-  function go() { if (pageSong === name || !document.getElementById(btnId)) return; ensureAudio(); startMusic(name); pageSong = name; }
+  function go() { if (pageSong === name || !document.getElementById(btnId)) return; ensureAudio(); startMusic(name); if (rain) startRain(rain === 'heavy'); pageSong = name; }
   if (pageSong === name) return;
   main.addEventListener('pointerdown', go, { once: true });
   if (navigator.userActivation?.hasBeenActive) go();

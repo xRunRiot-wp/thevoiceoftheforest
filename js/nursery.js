@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae39064';
-import { $, $$, esc, toast, num } from './util.js?v=6ae39064';
-import { me, logRoll } from './play.js?v=6ae39064';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39064';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39064';
-import { markWinner } from './sparkle.js?v=6ae39064';
-import { pageMusic } from './chiptune.js?v=6ae39064';
-import { modal, closeModal } from './ui.js?v=6ae39064';
+import * as store from './store.js?v=6ae39132';
+import { $, $$, esc, toast, num } from './util.js?v=6ae39132';
+import { me, logRoll } from './play.js?v=6ae39132';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39132';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39132';
+import { markWinner } from './sparkle.js?v=6ae39132';
+import { pageMusic } from './chiptune.js?v=6ae39132';
+import { modal, closeModal } from './ui.js?v=6ae39132';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -513,7 +513,7 @@ function room(c, box, anim) {
     </div>
     <div class="n-head">${egg ? '' : `<img class="sface" src="${buddyFace(b)}" alt="">`}<div class="grow"><b>${esc(b.name || (egg ? 'Mystery egg' : B.name))}</b> <span class="pill">${STAGES[b.stage]}</span>
       <div class="small muted">${b.stage < 3 ? `${left} more cared-for day${left === 1 ? '' : 's'} to grow` : b.recruited ? 'On your team' : 'Ready to join a team!'}</div></div>
-      ${egg ? '' : '<button class="btn alt sm" id="ncry" title="Hear its cry" aria-label="Hear its cry">🔊</button><button class="btn alt sm" id="nname">Name</button>'}</div>
+      ${egg ? '' : '<button class="btn alt sm" id="nname">Name</button>'}</div>
     <div class="n-stats">${Object.keys(needs).map((k) => { const v = stat(b, k); return `<div class="n-stat"><span>${lab(k)[0]} ${lab(k)[1]}</span><div class="n-bar ${v < 30 ? 'low' : ''}"><i style="width:${v}%"></i></div><span class="small muted">${k === 'cover' ? (v ? 'safe now' : 'needed now') : `${Math.min(num(day[k]), needs[k])}/${needs[k]} today`}</span></div>`; }).join('')}</div>
     ${egg ? '' : `<div class="n-bond"><span>❤️ Bond</span><span class="n-hearts">${'❤️'.repeat(hearts(b))}${'🤍'.repeat(5 - hearts(b))}</span><span class="small muted">${hearts(b) >= 5 ? 'Best friends!' : 'Pet, walk and care to grow it'}</span></div>
       <div class="n-fun"><button class="btn" id="nwalk">🦮 Walk</button><button class="btn alt" id="ncall">📣 Call ${esc(nameOf(b))}</button><button class="btn alt" id="ndress">🎀 Dress up</button></div>
@@ -527,7 +527,6 @@ function room(c, box, anim) {
   if (!egg) { cryOf(b.sp); if (guest) cryOf(guest.sp); }
   if (guest) startGuest(box, guest, `${party[v.id]?.nickname || 'Friend'}’s ${guest.name || BABIES[guest.sp]?.name}`);
   const iv = $('#nvisit', box); if (iv) iv.onclick = () => invite(c, box);
-  const cr = $('#ncry', box); if (cr) cr.onclick = () => { cry(b, { force: true }); const p2 = $('#npet', box); if (p2) { const sp2 = $('.baby-spr', p2); sp2?.classList.add('r1'); } };
   const cl = $('#ncall', box); if (cl) cl.onclick = () => $('#npet', box)?.dispatchEvent(new Event('call'));
   const dr = $('#ndress', box); if (dr) dr.onclick = () => dressUp(c, box);
   const wk = $('#nwalk', box); if (wk) wk.onclick = () => {
@@ -593,7 +592,8 @@ export function renderNursery(main, g, gm, onEdit) {
   if (!c) box.innerHTML = '<p>Pick your character first (Play tab), then visit Beatrice.</p>';
   else room(c, box);
   const e = $('#ed', main); if (e) e.onclick = onEdit;
-  pageMusic(main, 'musicbox', 'nmusic');
+  // her ask 10-29: on rainy days the lullaby has rain falling under it (a typhoon pours harder)
+  pageMusic(main, 'musicbox', 'nmusic', { rain: wx().key === 'typhoon' ? 'heavy' : wx().key === 'rain' ? 'light' : '' });
   const cb = $('#ncries', main); const cbText = () => { cb.textContent = criesOff() ? '🔇 Cries off' : '🐣 Cries on'; };
   cbText(); cb.onclick = () => { try { localStorage.setItem('dc.cries', criesOff() ? 'on' : 'off'); } catch { /* fine */ } cbText(); };
 }
