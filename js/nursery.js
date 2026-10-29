@@ -7,13 +7,13 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae36e97';
-import { $, $$, esc, toast, num } from './util.js?v=6ae36e97';
-import { me, logRoll } from './play.js?v=6ae36e97';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae36e97';
-import { gameSay, gmTodo } from './chatter.js?v=6ae36e97';
-import { markWinner } from './sparkle.js?v=6ae36e97';
-import { pageMusic } from './chiptune.js?v=6ae36e97';
+import * as store from './store.js?v=6ae36f5c';
+import { $, $$, esc, toast, num } from './util.js?v=6ae36f5c';
+import { me, logRoll } from './play.js?v=6ae36f5c';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae36f5c';
+import { gameSay, gmTodo } from './chatter.js?v=6ae36f5c';
+import { markWinner } from './sparkle.js?v=6ae36f5c';
+import { pageMusic } from './chiptune.js?v=6ae36f5c';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -75,19 +75,20 @@ const buddyFace = (b) => faceOf(b, feeling(b)[0]);
 // ---- the living pet (her ask 10-27: feel like a little virtual pet). The buddy wanders the room on its own, hops when
 // happy, naps at night, shows a thought bubble when it needs something, and acts out each care action:
 // feed = a berry drops in and it walks over to eat it; play = it chases a bouncing ball; bath = bubbles, then a shake-off.
-const S = 3; const ROW = { idle: 0, hop: 1, sleep: 2, right: 3, left: 4, eat: 5, nod: 6 };
+// her ask 10-29: the buddy grows with its age, a teen is the full size
+const SIZE = [3, 1.8, 2.4, 3]; const ROW = { idle: 0, hop: 1, sleep: 2, right: 3, left: 4, eat: 5, nod: 6 };
 const wait = (ms) => new Promise((ok) => setTimeout(ok, ms));
 const petHTML = () => '<div class="pet" id="npet"><span class="pet-cover"></span><span class="baby-spr"></span><span class="pet-think"></span></div><div class="props"></div>';
 function startPet(root, b, scene) {
   const B = BABIES[b.sp]; const roomEl = $('.nursery-room', root); const pet = $('#npet', root); if (!B || !roomEl || !pet) return;
   const spr = $('.baby-spr', pet); const think = $('.pet-think', pet); const cov = $('.pet-cover', pet); const props = $('.props', root);
-  const pw = B.cw * S;
-  spr.style.cssText = `width:${pw}px;height:${B.ch * S}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${B.cw * 10 * S}px ${B.ch * 7 * S}px`;
-  pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - B.ch * S / 2) + 'px';
+  const S = SIZE[b.stage] || 3; const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
+  spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
+  pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
   const alive = () => roomEl.isConnected;
   const row = (name, loop = true, secs = null) => {
     const r = ROW[name]; const n = B.fr[r] || 1;
-    spr.style.backgroundPositionY = `-${r * B.ch * S}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
+    spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
     spr.style.animation = 'none'; void spr.offsetWidth;
     spr.style.animation = `baby-anim ${secs || Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
   };
