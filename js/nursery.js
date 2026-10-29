@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae38e54';
-import { $, $$, esc, toast, num } from './util.js?v=6ae38e54';
-import { me, logRoll } from './play.js?v=6ae38e54';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae38e54';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae38e54';
-import { markWinner } from './sparkle.js?v=6ae38e54';
-import { pageMusic } from './chiptune.js?v=6ae38e54';
-import { modal, closeModal } from './ui.js?v=6ae38e54';
+import * as store from './store.js?v=6ae38ef5';
+import { $, $$, esc, toast, num } from './util.js?v=6ae38ef5';
+import { me, logRoll } from './play.js?v=6ae38ef5';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae38ef5';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae38ef5';
+import { markWinner } from './sparkle.js?v=6ae38ef5';
+import { pageMusic } from './chiptune.js?v=6ae38ef5';
+import { modal, closeModal } from './ui.js?v=6ae38ef5';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -97,6 +97,16 @@ const bondOf = (b) => num(b?.bond);
 const hearts = (b) => Math.min(5, Math.floor(bondOf(b) / 20));
 const addBond = (id, n) => store.update('nursery/' + id, (x) => (x ? { ...x, bond: Math.min(100, num(x.bond) + n) } : x));
 const WALK_REST = 45 * 60e3;
+// their Pokémon cries (her ask 10-29): assets/cries/<species>.mp3. Little ones squeak a bit higher; quiet when music is muted;
+// never more than one cry every few seconds per baby, so a busy room doesn't turn into a chorus.
+const lastCry = {};
+function cry(b, { vol = 0.45, odds = 1 } = {}) {
+  if (!b || !BABIES[b.sp] || Math.random() > odds || Date.now() - (lastCry[b.sp] || 0) < 3500) return;
+  try { if (localStorage.getItem('dc.music') === 'off') return; } catch { /* fine */ }
+  lastCry[b.sp] = Date.now();
+  const a = new Audio(`assets/cries/${b.sp}.mp3`); a.volume = vol; a.preservesPitch = false; a.playbackRate = [1.2, 1.2, 1.1, 1][b.stage] || 1;
+  a.play().catch(() => { /* not allowed before the first tap */ });
+}
 const listOf = (a) => (a.length < 2 ? a.join('') : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`);
 const WALK_SPOTS = [
   ['camp', '🏕️', 'Fernshade Camp', 'Beatrice', ['Mind the eggs, little one!', 'Out for a walk? How lovely!']],
@@ -158,7 +168,7 @@ function startPet(root, b, scene, ownerId) {
   // the Call button: it hurries over, hops and looks at you
   pet.addEventListener('call', async () => {
     if (busy || asleep()) { if (asleep()) fx('💤'); return; } busy = true; think.className = 'pet-think';
-    await walkTo(roomEl.clientWidth / 2 - pw / 2, 240); if (!alive()) return; fx('❗'); row('hop', false); await wait(700); row('nod', false); await wait(800); row('idle'); busy = false;
+    await walkTo(roomEl.clientWidth / 2 - pw / 2, 240); if (!alive()) return; fx('❗'); cry(b); row('hop', false); await wait(700); row('nod', false); await wait(800); row('idle'); busy = false;
   });
   // playdates (her ask 10-29: more interaction): the visiting buddy asks this one to run, hop, nod, face it or nap
   pet.addEventListener('duo', async (e) => {
@@ -175,7 +185,7 @@ function startPet(root, b, scene, ownerId) {
   pet.hostX = () => x; pet.hostW = pw;
   pet.onclick = async () => {
     if (rubbed) { rubbed = false; return; }
-    if (busy) return; busy = true; think.className = 'pet-think';
+    if (busy) return; busy = true; if (!asleep()) cry(b); think.className = 'pet-think';
     const [want, text] = feeling(b); const sleeping = asleep();
     if (!sleeping) await walkTo(roomEl.clientWidth / 2 - pw / 2, 260); // hurries over when tapped
     if (!alive()) return;
@@ -227,14 +237,14 @@ function startPet(root, b, scene, ownerId) {
       if (asleep(h)) { row('sleep', true, 1.6); think.className = 'pet-think show zz'; think.textContent = 'z Z'; await wait(5000); continue; }
       const r = Math.random();
       if (r < 0.4) await walkTo(10 + Math.random() * maxX());
-      else if (r < 0.55 && m >= 60) { row('hop', false); if (Math.random() < 0.5) fx('♪'); await wait(800); row('idle'); }
+      else if (r < 0.55 && m >= 60) { row('hop', false); if (Math.random() < 0.5) fx('♪'); cry(b, { vol: 0.3, odds: 0.15 }); await wait(800); row('idle'); }
       else if (r < 0.65) { row('nod', false); await wait(900); row('idle'); }
       else if (r < 0.72 && m >= 50) { row('sleep', true, 1.6); await wait(3500); row('idle'); }
       else { row('idle'); await wait(1500 + Math.random() * 2000); }
     }
   };
   row('idle');
-  (async () => { if (scene && scenes[scene]) { busy = true; think.className = 'pet-think'; await wait(200); await scenes[scene](); busy = false; } })().then(life);
+  (async () => { if (scene && scenes[scene]) { busy = true; think.className = 'pet-think'; await wait(200); await scenes[scene](); if (scene !== 'cover') cry(b, { vol: 0.35 }); busy = false; } })().then(life);
 }
 // the egg is the Ruby & Sapphire egg sprite (her ask 10-27), assets/nursery/egg.png
 const eggHTML = (b, cls = '') => `<img class="egg ${cls}" src="assets/nursery/egg.png" alt="An egg">`;
@@ -306,6 +316,7 @@ function startGuest(root, gb, label) {
   pet.onclick = async () => { row('hop', false); fx('💕'); await wait(700); row('idle'); };
   const gname = label.split('’s ').pop(); const props = $('.props', root);
   const hostEl = () => $('#npet', root);
+  const meOwner = () => me()?.id;
   // ask the host buddy to do something; resolves when it's done (or straight away if it's busy)
   const host = (act, extra = {}) => new Promise((ok) => { const h = hostEl(); if (!h) return ok(false); h.dispatchEvent(new CustomEvent('duo', { detail: { act, ...extra, done: ok } })); setTimeout(() => ok(false), 7000); });
   const hx = () => hostEl()?.hostX?.() ?? maxX() / 2; const hw = () => hostEl()?.hostW || pw;
@@ -344,7 +355,7 @@ function startGuest(root, gb, label) {
       cap(`${gname} and ${hostName()} are having a cuddle!`);
       const left = x < hx(); await walkTo(left ? hx() - pw * 0.7 : hx() + hw() * 0.7, 110);
       await Promise.all([host('face', { dir: left ? 'left' : 'right', ms: 300 }), (async () => { row(left ? 'right' : 'left'); await wait(300); })()]);
-      for (let k = 0; k < 2; k++) { await Promise.all([host('nod'), (async () => { row('nod', false); await wait(850); })()]); fx('💕', 10); hfx('💞', -10); }
+      for (let k = 0; k < 2; k++) { await Promise.all([host('nod'), (async () => { row('nod', false); await wait(850); })()]); fx('💕', 10); hfx('💞', -10); if (k === 0) cry(gb, { vol: 0.35 }); else cry(buddyOf(meOwner()), { vol: 0.35 }); }
       row('idle');
     },
     // a dance: they take turns hopping, then hop together
@@ -352,7 +363,7 @@ function startGuest(root, gb, label) {
       cap(`${gname} and ${hostName()} are dancing!`);
       await walkTo(hx() < maxX() / 2 ? hx() + 110 : hx() - 110, 110);
       for (let k = 0; k < 3 && alive(); k++) { row('hop', false); fx('♪'); await wait(700); row('idle'); await host('hop', { fx: '♫' }); }
-      await Promise.all([host('hop', { fx: '✨' }), (async () => { row('hop', false); fx('✨'); await wait(750); row('idle'); })()]);
+      await Promise.all([host('hop', { fx: '✨' }), (async () => { row('hop', false); fx('✨'); cry(gb, { vol: 0.35 }); await wait(750); row('idle'); })()]);
     },
     // a nap side by side
     async nap() {
@@ -362,7 +373,7 @@ function startGuest(root, gb, label) {
     },
   };
   (async () => {
-    row('hop', false); fx('👋'); await wait(900);
+    row('hop', false); fx('👋'); cry(gb); await wait(900);
     let next = Date.now() + 2500; let last = '';
     while (alive()) {
       if (asleep()) { row('sleep', true, 1.6); await wait(5000); continue; }
@@ -436,7 +447,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   const found = []; const owned = { ...(b.acc || {}) };
-  say(`Off you go! ${esc(nameOf(b))} trots out of Fernshade Camp…`);
+  say(`Off you go! ${esc(nameOf(b))} trots out of Fernshade Camp…`); cry(b);
   for (const [k, ic, name, who, lines] of stops) {
     await walking(2600); if (!alive()) return;
     sign.innerHTML = `${ic} ${esc(name)}`; sign.classList.add('show');
@@ -450,7 +461,7 @@ async function walkGo(c, box, stops) {
       gift.innerHTML = '<button class="walk-box" aria-label="Open the present">🎁</button>'; gift.classList.add('show');
       say(`${esc(nameOf(b))} sniffed something out! Tap the present!`); row('nod', true);
       await Promise.race([wait(6000), new Promise((ok) => { $('.walk-box', gift).onclick = ok; })]); if (!alive()) return;
-      if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = `<span class="walk-prize">${ACC[prize][0]}</span>`; say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.`); }
+      if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = `<span class="walk-prize">${ACC[prize][0]}</span>`; say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.`); cry(b, { vol: 0.4 }); }
       else { const poke = 10 + Math.floor(Math.random() * 11); found.push(poke); gift.innerHTML = '<span class="walk-prize">🪙</span>'; say(`🎉 ${poke} Poké! (${esc(nameOf(b))} already has every accessory.)`); store.update('party/' + c.id, (x) => ({ ...x, poke: num(x?.poke) + poke })); }
       row('hop', false); await wait(2200); gift.classList.remove('show'); gift.innerHTML = '';
     }
