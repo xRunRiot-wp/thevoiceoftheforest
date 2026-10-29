@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae38afb';
-import { $, $$, esc, toast, num } from './util.js?v=6ae38afb';
-import { me, logRoll } from './play.js?v=6ae38afb';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae38afb';
-import { gameSay, gmTodo } from './chatter.js?v=6ae38afb';
-import { markWinner } from './sparkle.js?v=6ae38afb';
-import { pageMusic } from './chiptune.js?v=6ae38afb';
-import { modal, closeModal } from './ui.js?v=6ae38afb';
+import * as store from './store.js?v=6ae38d43';
+import { $, $$, esc, toast, num } from './util.js?v=6ae38d43';
+import { me, logRoll } from './play.js?v=6ae38d43';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae38d43';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae38d43';
+import { markWinner } from './sparkle.js?v=6ae38d43';
+import { pageMusic } from './chiptune.js?v=6ae38d43';
+import { modal, closeModal } from './ui.js?v=6ae38d43';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -73,6 +73,41 @@ function feeling(b) {
 }
 const faceOf = (b, want) => { const B = BABIES[b.sp]; return B ? `assets/portraits/emo/${b.sp}/${want.find((e) => B.emo.includes(e)) || 'Normal'}.png` : ''; };
 const buddyFace = (b) => faceOf(b, feeling(b)[0]);
+// ---- Nintendogs-style extras (her ask 10-29): walks around Woodland Base that turn up accessories, dress-up, petting by
+// stroking, calling the baby over, and a Bond meter. nursery/<id>: acc = { key: true } (found), wear = { head, face, neck },
+// bond = points (petting, walks and care raise it; 20 a heart, 5 hearts), walkAt = when the last walk ended.
+const ACC = {
+  bow: ['🎀', 'Pink Bow', 'head'], flower: ['🌸', 'Flower Clip', 'head'], sunhat: ['👒', 'Sun Hat', 'head'], cap: ['🧢', 'Explorer Cap', 'head'],
+  tophat: ['🎩', 'Top Hat', 'head'], crown: ['👑', 'Tiny Crown', 'head'], leaf: ['🍃', 'Leaf Sprig', 'head'], shades: ['🕶️', 'Sunglasses', 'face'],
+  specs: ['👓', 'Round Glasses', 'face'], scarf: ['🧣', 'Cozy Scarf', 'neck'], bell: ['🔔', 'Silver Bell', 'neck'], medal: ['🏅', 'Guild Ribbon', 'neck'],
+};
+// where each baby's body sits in its sprite cell (top and bottom of the idle frame, measured from the sprite sheets)
+const BODY = { pichu: [0.307, 0.557], cleffa: [0.35, 0.575], igglybuff: [0.361, 0.583], togepi: [0.333, 0.583], tyrogue: [0.284, 0.557], smoochum: [0.312, 0.562], elekid: [0.281, 0.552],
+  magby: [0.307, 0.568], azurill: [0.318, 0.568], wynaut: [0.325, 0.562], budew: [0.325, 0.562], chingling: [0.312, 0.562], bonsly: [0.307, 0.557], mimejr: [0.261, 0.557],
+  happiny: [0.287, 0.562], munchlax: [0.295, 0.557], riolu: [0.318, 0.557] };
+const SLOT = { head: [0.02, 0.45], face: [0.36, 0.3], neck: [0.72, 0.32] };
+// how high the head sits in each animation row (median of the frames), so accessories follow it; jumpy rows (hops) hide them for a moment
+const ROWTOP = { pichu: [0.273, 0.085, 0.312, 0.29, 0.295, 0.341, 0.307], cleffa: [0.338, 0.131, 0.381, 0.319, 0.319, 0.338, 0.131], igglybuff: [0.354, 0.125, 0.382, 0.292, 0.292, 0.354, 0.125], togepi: [0.326, 0.097, 0.354, 0.319, 0.319, 0.326, 0.097], tyrogue: [0.25, 0.091, 0.324, 0.278, 0.278, 0.278, 0.091], smoochum: [0.3, 0.106, 0.331, 0.306, 0.306, 0.319, 0.312], elekid: [0.25, 0.104, 0.307, 0.266, 0.266, 0.25, 0.104], magby: [0.273, 0.119, 0.347, 0.312, 0.312, 0.301, 0.307], azurill: [0.33, 0.142, 0.398, 0.352, 0.352, 0.33, 0.142], wynaut: [0.294, 0.125, 0.375, 0.319, 0.319, 0.294, 0.125], budew: [0.325, 0.144, 0.344, 0.319, 0.325, 0.331, 0.325], chingling: [0.338, 0.144, 0.4, 0.312, 0.312, 0.331, 0.312], bonsly: [0.307, 0.114, 0.347, 0.307, 0.307, 0.307, 0.114], mimejr: [0.239, 0.08, 0.312, 0.25, 0.25, 0.278, 0.261], happiny: [0.287, 0.087, 0.319, 0.287, 0.287, 0.3, 0.287], munchlax: [0.301, 0.108, 0.312, 0.29, 0.29, 0.318, 0.307], riolu: [0.33, 0.142, 0.358, 0.324, 0.324, 0.312, 0.318] };
+const accRow = (spr, sp, name, ph) => { const t = ROWTOP[sp]; if (!t) return; const d = t[ROW[name]] - t[0];
+  spr.classList.toggle('acc-off', Math.abs(d) > 0.12); spr.style.setProperty('--acc-dy', Math.round(d * ph) + 'px'); }; // [how far down the body, size as a share of the body height]
+const accHTML = (b, pw, ph) => { const [t0, bt] = BODY[b?.sp] || [0.3, 0.56]; const t = ROWTOP[b?.sp]?.[0] ?? t0; const bh = (bt - t0) * ph;
+  return Object.entries(b?.wear || {}).filter(([slot, k]) => ACC[k] && SLOT[slot]).map(([slot, k]) =>
+    `<i class="acc acc-${slot}" style="top:${Math.round(t * ph + SLOT[slot][0] * bh)}px;font-size:${Math.max(10, Math.round(SLOT[slot][1] * bh))}px">${ACC[k][0]}</i>`).join(''); };
+const bondOf = (b) => num(b?.bond);
+const hearts = (b) => Math.min(5, Math.floor(bondOf(b) / 20));
+const addBond = (id, n) => store.update('nursery/' + id, (x) => (x ? { ...x, bond: Math.min(100, num(x.bond) + n) } : x));
+const WALK_REST = 45 * 60e3;
+const listOf = (a) => (a.length < 2 ? a.join('') : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`);
+const WALK_SPOTS = [
+  ['camp', '🏕️', 'Fernshade Camp', 'Beatrice', ['Mind the eggs, little one!', 'Out for a walk? How lovely!']],
+  ['kitchen', '🍲', 'Spinda’s Kitchen', 'Spinda', ['Something smells good, huh? Not for babies… okay, one crumb.', 'Wobble wobble! Hello!']],
+  ['sentry', '⛏️', 'Sentry Post', 'Diglett', ['Halt! Who goes there? Oh, it’s you. Carry on!', 'Watch the soft spot by the big root!']],
+  ['oak', '🦉', 'Noctowl’s Oak', 'Noctowl', ['Hoo… a fine evening stroll.', 'Too young for cards. Come back in a few years.']],
+  ['beach', '🌊', 'Sunshell Beach', 'Rayson the Wingull', ['Wanna race to the waves?', 'No letters for you today, but here’s a shell!']],
+  ['lab', '🧪', 'Boltund’s Lab', 'Boltund', ['ARF! A test subject! Kidding. Mostly.', 'Zoom zoom! Want to see a Poké Ball pile?']],
+  ['hall', '🏛️', 'Guild Hall', 'Guildmaster Beautifly', ['A future guild member, I see.', 'Walk with pride, little one.']],
+];
+
 // ---- the living pet (her ask 10-27: feel like a little virtual pet). The buddy wanders the room on its own, hops when
 // happy, naps at night, shows a thought bubble when it needs something, and acts out each care action:
 // feed = a berry drops in and it walks over to eat it; play = it chases a bouncing ball; bath = bubbles, then a shake-off.
@@ -80,18 +115,19 @@ const buddyFace = (b) => faceOf(b, feeling(b)[0]);
 const SIZE = [3, 1.8, 2.4, 3]; const ROW = { idle: 0, hop: 1, sleep: 2, right: 3, left: 4, eat: 5, nod: 6 };
 const wait = (ms) => new Promise((ok) => setTimeout(ok, ms));
 const petHTML = () => '<div class="pet" id="npet"><span class="pet-cover"></span><span class="baby-spr"></span><span class="pet-think"></span></div><div class="props"></div>';
-function startPet(root, b, scene) {
+function startPet(root, b, scene, ownerId) {
   const B = BABIES[b.sp]; const roomEl = $('.nursery-room', root); const pet = $('#npet', root); if (!B || !roomEl || !pet) return;
   const spr = $('.baby-spr', pet); const think = $('.pet-think', pet); const cov = $('.pet-cover', pet); const props = $('.props', root);
   const S = SIZE[b.stage] || 3; const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
   spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
   pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
+  spr.innerHTML = accHTML(b, pw, ph);
   const alive = () => roomEl.isConnected;
   const row = (name, loop = true, secs = null) => {
     const r = ROW[name]; const n = B.fr[r] || 1;
     spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
     spr.style.animation = 'none'; void spr.offsetWidth;
-    spr.style.animation = `baby-anim ${secs || Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
+    spr.style.animation = `baby-anim ${secs || Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`; accRow(spr, b.sp, name, ph);
   };
   let x = Math.max(10, roomEl.clientWidth * 0.5 - pw / 2);
   const maxX = () => Math.max(10, roomEl.clientWidth - pw - 10);
@@ -106,7 +142,26 @@ function startPet(root, b, scene) {
   const need = () => { const low = Object.keys(needsOf(b)).filter((n) => stat(b, n) < 40).sort((p, q) => stat(b, p) - stat(b, q))[0]; return low ? lab(low)[0] : ''; };
   let busy = false;
   // tap: it walks up to the screen and the feelings window (like Pikachu's in Pokémon Yellow) shows how it feels
+  // her ask 10-29 (Nintendogs): stroke it to pet it. Hold and rub (or move the mouse over it with the button down): hearts, a happy nod, more Bond.
+  let rub = 0; let rubbed = false; let rubSaved = 0; let pendingBond = 0;
+  let lx = null; let ly = 0;
+  pet.onpointerdown = (e) => { rubbed = false; rub = 0; lx = e.clientX; ly = e.clientY; try { pet.setPointerCapture(e.pointerId); } catch { /* fine */ } };
+  pet.onpointerup = pet.onpointercancel = () => { lx = null; };
+  pet.onpointermove = (e) => {
+    if (lx === null) return;
+    rub += Math.abs(e.clientX - lx) + Math.abs(e.clientY - ly); lx = e.clientX; ly = e.clientY;
+    if (rub < 90) return;
+    rub = 0; rubbed = true; fx(Math.random() < 0.5 ? '💕' : '💗'); if (!busy) { row('nod', false); setTimeout(() => !busy && row('idle'), 700); }
+    pendingBond++; if (ownerId && Date.now() - rubSaved > 2500) { addBond(ownerId, pendingBond); pendingBond = 0; rubSaved = Date.now(); }
+  };
+  pet.style.touchAction = 'none';
+  // the Call button: it hurries over, hops and looks at you
+  pet.addEventListener('call', async () => {
+    if (busy || asleep()) { if (asleep()) fx('💤'); return; } busy = true; think.className = 'pet-think';
+    await walkTo(roomEl.clientWidth / 2 - pw / 2, 240); if (!alive()) return; fx('❗'); row('hop', false); await wait(700); row('nod', false); await wait(800); row('idle'); busy = false;
+  });
   pet.onclick = async () => {
+    if (rubbed) { rubbed = false; return; }
     if (busy) return; busy = true; think.className = 'pet-think';
     const [want, text] = feeling(b); const sleeping = asleep();
     if (!sleeping) await walkTo(roomEl.clientWidth / 2 - pw / 2, 260); // hurries over when tapped
@@ -193,6 +248,7 @@ function act(c, k) {
   }
   // keep only the last 2 weeks of day records
   next.days = Object.fromEntries(Object.entries(next.days).sort().slice(-14));
+  next.bond = Math.min(100, num(b.bond) + 2);
   store.set('nursery/' + c.id, next);
   if (next.stage !== b.stage) {
     const msg = next.stage === 1 ? `${c.nickname}’s egg hatched into a ${BABIES[b.sp].name}!` : `${c.nickname}’s ${BABIES[b.sp].name} grew into a ${STAGES[next.stage].toLowerCase()}!`;
@@ -217,13 +273,13 @@ function startGuest(root, gb, label) {
   const S = SIZE[gb.stage] || 3; const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
   spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${gb.sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
   pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
-  $('.pet-tag', pet).textContent = label;
+  $('.pet-tag', pet).textContent = label; spr.innerHTML = accHTML(gb, pw, ph);
   const alive = () => roomEl.isConnected;
   const row = (name, loop = true, secs = null) => {
     const r = ROW[name]; const n = B.fr[r] || 1;
     spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
     spr.style.animation = 'none'; void spr.offsetWidth;
-    spr.style.animation = `baby-anim ${secs || Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
+    spr.style.animation = `baby-anim ${secs || Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`; accRow(spr, gb.sp, name, ph);
   };
   let x = Math.max(10, roomEl.clientWidth * 0.2);
   const maxX = () => Math.max(10, roomEl.clientWidth - pw - 10);
@@ -267,6 +323,79 @@ function invite(c, box) {
   });
 }
 
+function dressUp(c, box) {
+  const b = buddyOf(c.id); if (!b) return;
+  const have = Object.keys(b.acc || {}).filter((k) => ACC[k]); const wear = b.wear || {};
+  const el = modal(`<h2>🎀 Dress up ${esc(nameOf(b))}</h2>${have.length ? `<p class="small muted">Tap to wear, tap again to take it off. One for the head, the face and the neck.</p>
+    <div class="n-closet">${have.map((k) => `<button class="btn ${wear[ACC[k][2]] === k ? '' : 'alt'}" data-wear="${k}"><span class="big-emo">${ACC[k][0]}</span>${esc(ACC[k][1])}</button>`).join('')}</div>`
+    : `<p>No accessories yet! Take ${esc(nameOf(b))} for a <b>🦮 Walk</b> around Woodland Base and look for presents.</p>`}
+    <p class="small muted">Found ${have.length} of ${Object.keys(ACC).length}.</p>`);
+  $$('[data-wear]', el).forEach((btn) => btn.onclick = () => {
+    const k = btn.dataset.wear; const slot = ACC[k][2];
+    store.set(`nursery/${c.id}/wear/${slot}`, (buddyOf(c.id)?.wear || {})[slot] === k ? null : k);
+    closeModal(); room(c, box); setTimeout(() => dressUp(c, box), 60);
+  });
+}
+// pick up to 3 stops around Woodland Base (like drawing a route), then go
+function walkPlan(c, box) {
+  const b = buddyOf(c.id); const picked = [];
+  const draw = () => {
+    box.innerHTML = `<div class="walk-plan">${bea('happy', `A walk! Pick up to 3 places to visit, ${c.nickname}. Keep an eye out: little ones always sniff out presents.`)}
+      <div class="walk-map">${WALK_SPOTS.map(([k, ic, name]) => `<button class="walk-spot ${picked.includes(k) ? 'on' : ''}" data-spot="${k}"><span class="big-emo">${ic}</span>${esc(name)}${picked.includes(k) ? `<b class="walk-n">${picked.indexOf(k) + 1}</b>` : ''}</button>`).join('')}</div>
+      <div class="row" style="gap:8px;justify-content:center"><button class="btn" id="wgo" ${picked.length ? '' : 'disabled'}>🦮 Start the walk${picked.length ? ` (${picked.length} stop${picked.length === 1 ? '' : 's'})` : ''}</button><button class="btn alt" id="wback">Not now</button></div></div>`;
+    $$('[data-spot]', box).forEach((btn) => btn.onclick = () => { const k = btn.dataset.spot; const i = picked.indexOf(k); if (i >= 0) picked.splice(i, 1); else if (picked.length < 3) picked.push(k); else toast('Three stops is plenty for little legs!'); draw(); });
+    $('#wgo', box).onclick = () => walkGo(c, box, picked.map((k) => WALK_SPOTS.find((x) => x[0] === k)));
+    $('#wback', box).onclick = () => room(c, box);
+  };
+  draw();
+}
+async function walkGo(c, box, stops) {
+  const b = buddyOf(c.id); const B = BABIES[b.sp]; if (!B) return room(c, box);
+  const S = Math.min(SIZE[b.stage] || 3, 2.6); const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
+  box.innerHTML = `<div class="walk"><div class="walk-scene tod-${tod()}"><div class="walk-ground"></div><div class="walk-sign" id="wsign"></div>
+      <div class="walk-pet" id="wpet" style="width:${pw}px;bottom:${Math.round(40 - ph / 2)}px"><span class="baby-spr" style="width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${pw * 10}px ${ph * 7}px">${accHTML(b, pw, ph)}</span></div>
+      <div class="walk-gift" id="wgift"></div></div><div class="walk-text" id="wtext"></div></div>`;
+  const scene = $('.walk-scene', box); const spr = $('.baby-spr', box); const text = $('#wtext', box); const sign = $('#wsign', box); const gift = $('#wgift', box);
+  const row = (name, loop = true) => { const r = ROW[name]; const n = B.fr[r] || 1; spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
+    spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`; accRow(spr, b.sp, name, ph); };
+  const alive = () => scene.isConnected;
+  const say = (html) => { text.innerHTML = html; };
+  const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
+  const found = []; const owned = { ...(b.acc || {}) };
+  say(`Off you go! ${esc(nameOf(b))} trots out of Fernshade Camp…`);
+  for (const [k, ic, name, who, lines] of stops) {
+    await walking(2600); if (!alive()) return;
+    sign.innerHTML = `${ic} ${esc(name)}`; sign.classList.add('show');
+    const face = RESIDENTS[who]?.img;
+    say(`${face ? `<img class="sface" src="${face}" alt="">` : ''}<span><b>${esc(who)}:</b> “${esc(lines[Math.floor(Math.random() * lines.length)])}”</span>`);
+    row('hop', false); await wait(1900); if (!alive()) return;
+    // a present? (most stops have one; the first walk of the day always finds something)
+    if (Math.random() < 0.65 || (!found.length && k === stops[stops.length - 1][0] && !num(b.walkAt))) {
+      const left = Object.keys(ACC).filter((x) => !owned[x]);
+      const prize = left.length ? left[Math.floor(Math.random() * left.length)] : null;
+      gift.innerHTML = '<button class="walk-box" aria-label="Open the present">🎁</button>'; gift.classList.add('show');
+      say(`${esc(nameOf(b))} sniffed something out! Tap the present!`); row('nod', true);
+      await Promise.race([wait(6000), new Promise((ok) => { $('.walk-box', gift).onclick = ok; })]); if (!alive()) return;
+      if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = `<span class="walk-prize">${ACC[prize][0]}</span>`; say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.`); }
+      else { const poke = 10 + Math.floor(Math.random() * 11); found.push(poke); gift.innerHTML = '<span class="walk-prize">🪙</span>'; say(`🎉 ${poke} Poké! (${esc(nameOf(b))} already has every accessory.)`); store.update('party/' + c.id, (x) => ({ ...x, poke: num(x?.poke) + poke })); }
+      row('hop', false); await wait(2200); gift.classList.remove('show'); gift.innerHTML = '';
+    }
+    sign.classList.remove('show');
+  }
+  await walking(2000); if (!alive()) return;
+  // home again: it counts as play time, raises Bond, and the walk needs a rest before the next one
+  store.update('nursery/' + c.id, (x) => (x ? { ...x, acc: owned, walkAt: Date.now(), bond: Math.min(100, num(x.bond) + 10) } : x));
+  act(c, 'play');
+  const accs = found.filter((x) => typeof x === 'string');
+  store.pushLimited('log', { t: Date.now(), text: `🦮 ${c.nickname} took ${nameOf(b)} for a walk around Woodland Base${accs.length ? ` and found: ${listOf(accs.map((x) => ACC[x][1]))}` : ''}!` });
+  box.innerHTML = `<div class="sentry-end">${bea('happy', `Welcome back! ${nameOf(b)} looks so happy${accs.length ? `, and look what you found: ${listOf(accs.map((x) => ACC[x][1]))}!` : '.'}`)}
+    ${accs.length ? `<p class="walk-haul">${accs.map((x) => `<span>${ACC[x][0]}<small>${esc(ACC[x][1])}</small></span>`).join('')}</p>` : ''}
+    <p class="small muted" style="text-align:center">❤️ Bond went up · 🎈 counts as play time</p>
+    <div class="row" style="gap:8px;justify-content:center">${accs.length ? '<button class="btn" id="wdress">🎀 Try it on</button>' : ''}<button class="btn alt" id="whome">Back to the nursery</button></div></div>`;
+  $('#whome', box).onclick = () => room(c, box);
+  const wd = $('#wdress', box); if (wd) wd.onclick = () => { room(c, box); dressUp(c, box); };
+}
+
 function room(c, box, anim) {
   const b = buddyOf(c.id);
   if (!b) {
@@ -296,14 +425,25 @@ function room(c, box, anim) {
       <div class="small muted">${b.stage < 3 ? `${left} more cared-for day${left === 1 ? '' : 's'} to grow` : b.recruited ? 'On your team' : 'Ready to join a team!'}</div></div>
       ${egg ? '' : '<button class="btn alt sm" id="nname">Name</button>'}</div>
     <div class="n-stats">${Object.keys(needs).map((k) => { const v = stat(b, k); return `<div class="n-stat"><span>${lab(k)[0]} ${lab(k)[1]}</span><div class="n-bar ${v < 30 ? 'low' : ''}"><i style="width:${v}%"></i></div><span class="small muted">${k === 'cover' ? (v ? 'safe now' : 'needed now') : `${Math.min(num(day[k]), needs[k])}/${needs[k]} today`}</span></div>`; }).join('')}</div>
+    ${egg ? '' : `<div class="n-bond"><span>❤️ Bond</span><span class="n-hearts">${'❤️'.repeat(hearts(b))}${'🤍'.repeat(5 - hearts(b))}</span><span class="small muted">${hearts(b) >= 5 ? 'Best friends!' : 'Pet, walk and care to grow it'}</span></div>
+      <div class="n-fun"><button class="btn" id="nwalk">🦮 Walk</button><button class="btn alt" id="ncall">📣 Call ${esc(nameOf(b))}</button><button class="btn alt" id="ndress">🎀 Dress up</button></div>
+      <p class="small muted" style="text-align:center;margin:2px 0 6px">Tip: hold and rub ${esc(nameOf(b))} to pet it.</p>`}
     ${b.recruited ? '<button class="btn alt block" id="nnew">Take a new egg home 🥚</button>' : b.stage === 3 ? `<p class="small" style="text-align:center;margin:4px 0">${esc(nameOf(b))} is all grown up. What will you do?</p><div class="n-choice"><button class="btn" id="nrecruit">🤝 Ask ${esc(nameOf(b))} to join the team</button><button class="btn alt" id="nwild">🌿 Let ${esc(nameOf(b))} go into the wild</button></div>`
       : `<div class="n-acts">${Object.keys(needs).map((k) => `<button class="btn ${(k === 'cover' ? stat(b, k) : num(day[k]) >= needs[k]) ? 'alt' : ''}" data-nact="${k}">${lab(k)[0]} ${lab(k)[2]}</button>`).join('')}</div>`}
     ${cared && b.stage < 3 ? '<p class="small" style="text-align:center;color:#2f6d2b">✅ Fully cared for today</p>' : ''}
     ${egg ? '' : guest ? `<p class="n-visit">🏠 ${esc(party[v.id]?.nickname || 'A friend')}’s ${esc(guest.name || BABIES[guest.sp]?.name)} is visiting! <button class="btn alt sm" id="nhome">Say goodbye</button></p>`
       : `<p class="n-visit">${away ? `🏠 ${esc(nameOf(b))} has been invited over to ${esc(party[away]?.nickname || 'a friend')}’s room for a playdate!` : ''}<button class="btn alt sm" id="nvisit">🏠 Invite a playdate</button></p>`}</div>`;
-  if (!egg) startPet(box, b, anim);
+  if (!egg) startPet(box, b, anim, c.id);
   if (guest) startGuest(box, guest, `${party[v.id]?.nickname || 'Friend'}’s ${guest.name || BABIES[guest.sp]?.name}`);
   const iv = $('#nvisit', box); if (iv) iv.onclick = () => invite(c, box);
+  const cl = $('#ncall', box); if (cl) cl.onclick = () => $('#npet', box)?.dispatchEvent(new Event('call'));
+  const dr = $('#ndress', box); if (dr) dr.onclick = () => dressUp(c, box);
+  const wk = $('#nwalk', box); if (wk) wk.onclick = () => {
+    const bb = buddyOf(c.id); const rest = WALK_REST - (Date.now() - num(bb?.walkAt));
+    if (asleep()) return toast(`${nameOf(bb)} is asleep. Walks start again in the morning!`);
+    if (rest > 0) return toast(`${nameOf(bb)} is still tired from the last walk. Try again in ${Math.ceil(rest / 60e3)} min.`);
+    walkPlan(c, box);
+  };
   const hm = $('#nhome', box); if (hm) hm.onclick = () => { store.set(`nursery/${c.id}/visit`, null); room(c, box); };
   $$('[data-nact]', box).forEach((btn) => btn.onclick = () => {
     const k = btn.dataset.nact; const r = act(c, k);
