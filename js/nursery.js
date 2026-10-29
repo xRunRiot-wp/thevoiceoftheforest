@@ -7,12 +7,13 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae36c80';
-import { $, $$, esc, toast, num } from './util.js?v=6ae36c80';
-import { me, logRoll } from './play.js?v=6ae36c80';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae36c80';
-import { gameSay, gmTodo } from './chatter.js?v=6ae36c80';
-import { markWinner } from './sparkle.js?v=6ae36c80';
+import * as store from './store.js?v=6ae36e97';
+import { $, $$, esc, toast, num } from './util.js?v=6ae36e97';
+import { me, logRoll } from './play.js?v=6ae36e97';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae36e97';
+import { gameSay, gmTodo } from './chatter.js?v=6ae36e97';
+import { markWinner } from './sparkle.js?v=6ae36e97';
+import { pageMusic } from './chiptune.js?v=6ae36e97';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -264,6 +265,7 @@ export function renderNursery(main, g, gm, onEdit) {
     <h1 style="margin:10px 0 4px">${esc(g.name)}</h1>
     <p>${esc(g.intro || '')}</p>
     <p><span class="pill">🥚 Egg → Baby → Kid → Teen</span> <span class="pill">📅 A little care every day</span> <span class="pill">🤝 Teens can join your team</span></p>
+    <p class="small muted" style="text-align:right;margin:0 0 4px"><button class="btn alt sm" id="nmusic"></button></p>
     <div class="card sentry"><div id="nbox"></div></div>
     <div class="card" style="margin-top:12px"><h3 style="margin-top:0">The nursery</h3><ul class="sentry-roster" id="nlist"></ul></div>`;
   const party = store.get('party') || {};
@@ -279,4 +281,5 @@ export function renderNursery(main, g, gm, onEdit) {
   if (!c) box.innerHTML = '<p>Pick your character first (Play tab), then visit Beatrice.</p>';
   else room(c, box);
   const e = $('#ed', main); if (e) e.onclick = onEdit;
+  pageMusic(main, 'musicbox', 'nmusic');
 }

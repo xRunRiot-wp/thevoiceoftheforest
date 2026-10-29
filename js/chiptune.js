@@ -29,9 +29,20 @@ const CASINO_BASS = WALK.flatMap((b) => b.flatMap((n) => [n, 0]));
 const VOICE = { C6: [64, 67, 69], A7: [61, 64, 67], Dm7: [65, 69, 72], G7: [65, 71, 74] };
 const CASINO_COMP = [['C6', 'C6'], ['A7', 'A7'], ['Dm7', 'Dm7'], ['G7', 'G7'], ['C6', 'C6'], ['A7', 'A7'], ['Dm7', 'G7'], ['C6', 'C6']]
   .flatMap(([a, b]) => [0, 0, 0, VOICE[a], 0, 0, VOICE[b], 0]);
+// Fernshade Nursery (her ask 10-29: a slow 8-bit music box lullaby): an original waltz in F, 3/4, bell-like music box notes
+// (a sine with a soft octave shimmer and a long ring), a low note on each downbeat and two little chord plinks.
+const BOX_LEAD = [72, 0, 77, 0, 76, 0, 74, 0, 72, 0, 0, 0, 69, 0, 74, 0, 72, 0, 70, 0, 69, 0, 67, 0,
+  69, 0, 72, 0, 77, 0, 76, 0, 74, 0, 72, 0, 74, 0, 72, 0, 70, 67, 65, 0, 0, 0, 0, 0,
+  81, 0, 79, 0, 77, 0, 76, 0, 72, 0, 0, 0, 74, 0, 77, 0, 74, 0, 72, 0, 69, 0, 0, 0,
+  70, 0, 74, 0, 79, 0, 77, 0, 76, 0, 74, 0, 72, 0, 74, 0, 76, 0, 77, 0, 0, 0, 0, 0];
+const BOX_BARS = [[53, 57, 60], [48, 55, 60], [50, 57, 62], [46, 58, 62], [53, 57, 60], [48, 55, 60], [46, 58, 64], [53, 57, 60],
+  [53, 57, 60], [45, 57, 60], [46, 58, 62], [53, 57, 60], [43, 58, 62], [48, 55, 60], [46, 58, 64], [53, 57, 60]];
+const BOX_BASS = BOX_BARS.flatMap(([b]) => [b, 0, 0, 0, 0, 0]);
+const BOX_ARP = BOX_BARS.flatMap(([, x, y]) => [0, 0, x + 12, 0, y + 12, 0]);
 const SONGS = {
   dance: { bpm: 160, lead: LEAD, bass: BASS, hat: 2 },
   beach: { bpm: 132, lead: BEACH_LEAD, bass: BEACH_BASS, arp: BEACH_ARP, hat: 4, waves: 32, leadVol: 0.04 },
+  musicbox: { bpm: 84, lead: BOX_LEAD, bass: BOX_BASS, arp: BOX_ARP, bell: true },
   casino: { bpm: 116, lead: CASINO_LEAD, bass: CASINO_BASS, comp: CASINO_COMP, hat: 2, swing: 0.33, leadType: 'triangle', leadVol: 0.07 },
 };
 const STEP_NOTE = { up: 84, right: 79, left: 76, down: 72 };
@@ -70,10 +81,16 @@ function pump() {
   const S = song; const EIGHTH = 60 / S.bpm / 2;
   while (nextAt < ctx.currentTime + 0.25) {
     const i = stepIdx % S.lead.length;
-    if (S.lead[i]) tone(N(S.lead[i]), nextAt, EIGHTH * 0.9, S.leadType || 'square', S.leadVol || 0.05);
-    if (S.bass[i]) tone(N(S.bass[i]), nextAt, EIGHTH * 1.8, 'triangle', 0.12);
-    if (S.arp?.[i]) tone(N(S.arp[i]), nextAt, EIGHTH * 1.4, 'triangle', 0.035);
-    if (i % S.hat === 0) hat(nextAt);
+    if (S.bell) { // music box: everything rings like little tuned teeth
+      if (S.lead[i]) { tone(N(S.lead[i]), nextAt, EIGHTH * 5, 'sine', 0.09); tone(N(S.lead[i] + 12), nextAt, EIGHTH * 1.5, 'triangle', 0.02); }
+      if (S.bass[i]) tone(N(S.bass[i] + 12), nextAt, EIGHTH * 5, 'sine', 0.05);
+      if (S.arp?.[i]) tone(N(S.arp[i]), nextAt, EIGHTH * 3, 'sine', 0.035);
+    } else {
+      if (S.lead[i]) tone(N(S.lead[i]), nextAt, EIGHTH * 0.9, S.leadType || 'square', S.leadVol || 0.05);
+      if (S.bass[i]) tone(N(S.bass[i]), nextAt, EIGHTH * 1.8, 'triangle', 0.12);
+      if (S.arp?.[i]) tone(N(S.arp[i]), nextAt, EIGHTH * 1.4, 'triangle', 0.035);
+    }
+    if (S.hat && i % S.hat === 0) hat(nextAt);
     if (S.waves && i % S.waves === 0) wave(nextAt);
     if (S.comp?.[i]) S.comp[i].forEach((n) => tone(N(n), nextAt, EIGHTH * 1.6, 'sine', 0.035));
     nextAt += EIGHTH * (S.swing ? (i % 2 ? 1 - S.swing : 1 + S.swing) : 1); stepIdx++;
@@ -107,4 +124,19 @@ export function cardSound(kind, delay = 0) {
   if (kind === 'shuffle') for (let i = 0; i < 14; i++) swish(t + i * 0.035 + Math.random() * 0.01, 0.03, 0.25, 2500);
   else if (kind === 'card') { swish(t, 0.07, 0.4, 1800); tone(220, t + 0.01, 0.05, 'triangle', 0.08); }
   else if (kind === 'chips') [2637, 3136, 2794].forEach((f, i) => { tone(f, t + i * 0.06, 0.12, 'sine', 0.04); swish(t + i * 0.06, 0.02, 0.15, 5000); });
+}
+
+// a page's own background tune (the nursery): starts now if the visitor has tapped already, else on their first tap;
+// stops once the page's music button is gone (they left). Safe to call again when the page redraws.
+let pageSong = ''; let pageBtnId = '';
+export function pageMusic(main, name, btnId) {
+  const btn = document.getElementById(btnId);
+  if (btn) { btn.textContent = muted() ? '🔇 Music off' : '🔊 Music on'; btn.onclick = () => { const m = !muted(); setMuted(m); btn.textContent = m ? '🔇 Music off' : '🔊 Music on'; go(); }; }
+  pageBtnId = btnId;
+  function go() { if (pageSong === name || !document.getElementById(btnId)) return; ensureAudio(); startMusic(name); pageSong = name; }
+  if (pageSong === name) return;
+  main.addEventListener('pointerdown', go, { once: true });
+  if (navigator.userActivation?.hasBeenActive) go();
+  const leave = () => setTimeout(() => { if (document.getElementById(pageBtnId)) return; window.removeEventListener('hashchange', leave); if (pageSong) { if (song === SONGS[pageSong]) stopMusic(); pageSong = ''; } }, 300);
+  window.addEventListener('hashchange', leave);
 }
