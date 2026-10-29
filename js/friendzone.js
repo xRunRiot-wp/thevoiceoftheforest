@@ -1,11 +1,11 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3bf17';
-import { $, $$, esc, toast } from './util.js?v=6ae3bf17';
-import { modal, closeModal } from './ui.js?v=6ae3bf17';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3bf17';
-import { merged, editContent } from './content-store.js?v=6ae3bf17';
-import { CHAPTERS } from './content.js?v=6ae3bf17';
+import * as store from './store.js?v=6ae3c31b';
+import { $, $$, esc, toast } from './util.js?v=6ae3c31b';
+import { modal, closeModal } from './ui.js?v=6ae3c31b';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3c31b';
+import { merged, editContent } from './content-store.js?v=6ae3c31b';
+import { CHAPTERS } from './content.js?v=6ae3c31b';
 
 export const LOCATIONS = [
   {
@@ -77,15 +77,20 @@ const NETWORK = [{
     'Clearly marked departure routes and safe relay assembly points.',
   ].join('\n'),
 }];
-// her characters walking in a camp's squares, per spot (her asks 10-29): the guild's crew in the Gravity Falls Guild, Castform at
+// her characters walking in a camp's squares, per spot (her asks 10-29): the guild's crew in the Gravity Falls Guild, Chandelure and Maushold
+// with the camp staff, Castform at
 // Fernshade, Rayson the Wingull at Mossy Hollow, and Beatrice, who stays in the Woodland Base square itself ('camp')
 const SPOT_CREW = { 'woodland-base': {
   'gravity-falls-guild': [{ name: 'Beautifly', label: 'Guildmaster Beautifly' }, { name: 'Pikachu', label: 'Mimi' }, { name: 'Mudkip', label: 'Kippy' },
-    { name: 'Chandelure' }, { name: 'Maushold', dex: '925' }, { name: 'Pikachu' }, { name: 'Squirtle' }],
+    { name: 'Pikachu' }, { name: 'Squirtle' }],
+  staff: [{ name: 'Chandelure' }, { name: 'Maushold', dex: '925' }],
   'fernshade-camp': [{ name: 'Castform' }],
   'mossy-hollow': [{ name: 'Wingull', label: 'Rayson' }],
   camp: [{ name: 'Beedrill', label: 'Beatrice', stay: true }],
+  miltankshake: [{ name: 'Miltank' }],
 } };
+// map squares that aren't camp spots but open a box when tapped (her ask 10-29: the tent square is the Miltankshake)
+const PLACES = { miltankshake: ['🥛 Miltankshake Shack', 'Woodland Base’s milkshake shack. Miltank keeps the shakes coming for tired rescuers.'] };
 const PATHS = { 'woodland-base': { 'chapter-2': [2], 'chapter-3-4-9': [3, 4, 9], 'chapter-5-7-8': [5, 7, 8], 'chapter-6': [6] } };
 const NET_SCHEMA = [['about', 'About the network', 'area'], ['loyaltyText', 'What loyalty means', 'area'], ['typesText', 'Personality types — one per line: Name | description', 'area'],
   ['relay', 'Relay Network', 'area'], ['relayRulesText', 'Relay rules — one per line: Rule | description', 'area'],
@@ -151,6 +156,7 @@ function roomHTML(loc, r) {
 
 export function renderFriendZone(main, [arg]) {
   const gm = store.gmUnlocked();
+  const lockdown = !!store.get('fzlockdown/' + arg) || (!arg && !!store.get('fzlockdown/' + (locations()[0] || {}).id));
   const list = locations();
   const loc = list.find((l) => l.id === arg) || list[0];
   if (!loc) { main.innerHTML = '<p>No locations yet.</p>'; return; }
@@ -161,13 +167,14 @@ export function renderFriendZone(main, [arg]) {
   const spotMons = (s) => s.mons.filter((m) => !players.has(m.toLowerCase()));
   main.innerHTML = `<div class="hero"><img class="hdr" src="assets/banners/guilds.jpg" alt=""></div>
     <a class="btn alt sm" href="#/guild" style="margin-top:12px">← Guild</a>
-    <div class="row" style="justify-content:space-between;margin-top:8px"><h1 style="margin:0">Friend Zone</h1>${gm ? `<span class="row"><button class="btn alt sm" id="fzedit">Edit ${esc(loc.name)}</button><button class="btn alt sm" id="fzadd">+ Location</button></span>` : ''}</div>
+    <div class="row" style="justify-content:space-between;margin-top:8px"><h1 style="margin:0">Friend Zone</h1>${gm ? `<span class="row"><button class="btn sm ${lockdown ? '' : 'alt'} fz-lockbtn" id="fzlockdown">${lockdown ? '✅ End lockdown' : '🚨 Guild lockdown'}</button><button class="btn alt sm" id="fzedit">Edit ${esc(loc.name)}</button><button class="btn alt sm" id="fzadd">+ Location</button></span>` : ''}</div>
     <p class="small muted">Where recruited Pokémon live. Each location has its own camp.</p>
     ${list.length > 1 ? `<div class="fz-tabs">${list.map((l) => `<a class="btn ${l.id === loc.id ? '' : 'alt'} sm" href="#/friends/${esc(l.id)}">${esc(l.icon || '📍')} ${esc(l.name)}</a>`).join('')}</div>` : ''}
     <div class="card fz-head"><h2 style="margin:0 0 6px">${esc(loc.icon || '📍')} ${esc(loc.name)} <span class="fz-loyal${Number(loc.loyalty) > 0 ? '' : ' small muted'}" title="Loyalty">${loyaltyLabel(loc.loyalty)}</span></h2>
       <p class="small"><b>On foot:</b> ${esc(loc.onFoot || '—')} · <b>Relay:</b> ${esc(loc.relayTime || '—')}</p>
       ${loc.role ? `<p><i>${esc(loc.role)}</i></p>` : ''}${loc.welcome ? `<p>${esc(loc.welcome)}</p>` : ''}${!spots(loc).length ? `<p class="small muted">This camp hasn’t been set up yet.${gm ? ' Tap Edit to add its spots.' : ''}</p>` : ''}${loc.theme ? `<p class="small"><b>Theme:</b> ${esc(loc.theme)}</p>` : ''}</div>
-    <div class="fz-scene" id="fzscene" aria-label="The camp's Pokémon at play"></div>
+    ${lockdown ? `<div class="card fz-alert-banner">🚨 <b>Guild lockdown!</b> Everyone is at their sleeping spot, ready to fight.</div>` : ''}
+    <div class="fz-scene${lockdown ? ' fz-alert' : ''}" id="fzscene" data-alert="${lockdown ? 1 : 0}" aria-label="The camp's Pokémon at play"></div>
     <div class="fz-spots">${spots(loc).filter((s) => !s.room).map((s) => { const extra = Object.entries(recruits[s.key] || {});
       const rooms = []; for (const r of spots(loc).slice(s.i + 1)) { if (!r.room) break; rooms.push(r); }
       return `<div class="card fz-spot" data-spotkey="${esc(s.key)}"><h3 style="margin:0 0 4px">${esc(s.name)}</h3>${s.desc ? `<p class="small">${esc(s.desc)}</p>` : ''}
@@ -191,7 +198,7 @@ export function renderFriendZone(main, [arg]) {
     const tag = (m) => m.label || m.name;
     for (const [key, crew] of Object.entries(SPOT_CREW[loc.id] || {})) {
       let cube = cubes.find((x) => x.key === key);
-      if (!cube) { if (key !== 'camp') continue; cube = { key, name: loc.name, mons: [] }; cubes.push(cube); }
+      if (!cube) { cube = { key, name: key === 'camp' ? loc.name : '', mons: [] }; cubes.push(cube); }
       cube.mons = [...crew, ...cube.mons.filter((m) => !crew.some((g) => tag(g) === tag(m)))];
       if (key === 'gravity-falls-guild') cube.max = 12;   // the big 2x2 square, so room for the whole crew
     }
@@ -200,6 +207,7 @@ export function renderFriendZone(main, [arg]) {
     const ch = Number(store.get('guild')?.chapter) || 0; const chList = merged('chapters', CHAPTERS, (c) => 'ch' + c.n);
     const pathName = (ns) => `Path to Chapter${ns.length > 1 ? 's' : ''} ${ns.length > 1 ? ns.slice(0, -1).join(', ') + ' & ' + ns[ns.length - 1] : ns[0]}`;
     for (const [key, ns] of Object.entries(PATHS[loc.id] || {})) cubes.push({ key, name: pathName(ns), mons: [], locked: ch < Math.min(...ns) });
+    const placeCard = (key) => { const d = document.createElement('div'); d.className = 'card fz-place'; d.innerHTML = `<h3 style="margin:0 0 4px">${esc(PLACES[key][0])}</h3><p>${esc(PLACES[key][1])}</p>`; return d; };
     const pathCard = (key) => { const ns = PATHS[loc.id][key]; const d = document.createElement('div'); d.className = 'card fz-path';
       d.innerHTML = `<h3 style="margin:0 0 4px">${ch < Math.min(...ns) ? '🔒 ' : ''}${esc(pathName(ns))}</h3>${ns.map((n) => { const c = chList.find((x) => Number(x.n) === n);
         return `<p>${ch < n ? '🔒' : '✅'} <b>Chapter ${n}${c?.title && c.title !== 'Chapter ' + n ? `: ${esc(c.title)}` : ''}</b>${c?.quote ? `<br><i>“${esc(c.quote)}”</i>` : ''}</p>`; }).join('')}
@@ -217,13 +225,14 @@ export function renderFriendZone(main, [arg]) {
         box.addEventListener('fzspot', (e) => {
           const key = e.detail; const sq = $(`.fzs-cube[data-key="${key}"]`, box);
           const img = ZOOM_PICS[key] || (MAPS[loc.id].find((x) => x[0] === key) || [])[1]; const cube = cubes.find((x) => x.key === key);
-          const card = $(`.fz-spot[data-spotkey="${key}"]`, main) || (key === 'staff' ? $('.fz-staff', main)?.cloneNode(true) : key === 'camp' ? $('.fz-head', main)?.cloneNode(true) : PATHS[loc.id]?.[key] ? pathCard(key) : null);
+          const card = $(`.fz-spot[data-spotkey="${key}"]`, main) || (key === 'staff' ? $('.fz-staff', main)?.cloneNode(true) : key === 'camp' ? $('.fz-head', main)?.cloneNode(true) : PATHS[loc.id]?.[key] ? pathCard(key) : PLACES[key] ? placeCard(key) : null);
           if (!card) return;
           const el = modal(`<div class="fz-zoom"${img ? ` style="background-image:url(${img}?v=4)"` : ''}></div><div class="fz-pop"></div>`);
           $('.fz-pop', el).appendChild(card);
           const zoom = $('.fz-zoom', el);
           if (sq) { const a = sq.getBoundingClientRect(); const b = zoom.getBoundingClientRect();
             if (b.width) zoom.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width})` }, { transform: 'none' }], { duration: 450, easing: 'cubic-bezier(.2, .8, .2, 1)' }); }
+          if (lockdown) { zoom.dataset.alert = '1'; zoom.classList.add('fz-alert'); }
           if (img) mountFzScene(zoom, [{ key, mons: [], ...cube, max: Math.max(8, cube?.max || 0) }], '', img);
           if (card.classList.contains('fz-spot')) {
             const back = () => { if (!card.isConnected || card.closest('.fz-pop')) holder.appendChild(card); };
@@ -246,6 +255,17 @@ export function renderFriendZone(main, [arg]) {
   const ne = $('#fznetedit', main);
   if (ne) ne.onclick = () => editContent('fznetwork', NET_SCHEMA, network(), { title: 'Edit the Friend Zone Network', onSave: () => renderFriendZone(main, [loc.id]) });
   $$('[data-unrecruit]', main).forEach((b) => b.onclick = () => { store.set(`recruits/${loc.id}/${b.dataset.unrecruit}`, null); renderFriendZone(main, [loc.id]); });
+  // her ask 10-29: the GM's guild lockdown button; shared, so every player's map switches over (and back) live
+  const lk = $('#fzlockdown', main);
+  if (lk) lk.onclick = () => {
+    store.set('fzlockdown/' + loc.id, lockdown ? null : { t: Date.now() });
+    store.pushLimited('log', { t: Date.now(), text: lockdown ? `The lockdown at ${loc.name} is over. Everyone can relax.` : `🚨 Guild lockdown at ${loc.name}! Everyone to their sleeping spots, ready to fight.` });
+    toast(lockdown ? 'Lockdown ended' : '🚨 Guild lockdown!'); renderFriendZone(main, [loc.id]);
+  };
+  const unsub = store.subscribe(() => {
+    if (!main.contains(lk || $('#fzscene', main))) { unsub(); return; }
+    if (!!store.get('fzlockdown/' + loc.id) !== lockdown && !document.querySelector('.fz-pop')) { unsub(); renderFriendZone(main, [loc.id]); }
+  });
   const ed = $('#fzedit', main);
   if (ed) ed.onclick = () => editContent('friendzone', SCHEMA, loc, { title: 'Edit ' + loc.name, onSave: () => renderFriendZone(main, [loc.id]) });
   const ad = $('#fzadd', main);

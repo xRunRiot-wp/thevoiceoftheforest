@@ -6,21 +6,21 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3bf17';
-import { esc } from './util.js?v=6ae3bf17';
+import { loadIndex } from './effects.js?v=6ae3c31b';
+import { esc } from './util.js?v=6ae3c31b';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
 // her Woodland Base map (10-29): [spot key ('' = scenery, 'camp' = the camp itself), picture, row, col, size in cells (or
 // [width, height]), name shown on the square if not the spot's own]. The 6 camp spots have pictures made from their
-// descriptions; the guild is her treehouse (tap it: ZOOM_PICS shows its cozy inside); Woodland Base is a medium square
-// in a band on top, between two strips of forest; the rest is cut from her map at full size
+// descriptions; the guild is her treehouse (tap it: ZOOM_PICS shows its cozy inside), a medium square in a band on
+// top between two strips of forest; Woodland Base (the canopy) is the big 2x2 square in the middle (swapped at her ask 10-29); the rest is cut from her map at full size
 const WB = 'assets/friendzone/woodland_';
 export const MAPS = {
-  'woodland-base': [['chapter-5-7-8', WB + 'band_l.jpg', 0, 0, [1.25, 1.5]], ['camp', WB + 'camp.jpg', 0, 1.25, 1.5, 'Woodland Base'], ['', WB + 'band_r.jpg', 0, 2.75, [1.25, 1.5]],
+  'woodland-base': [['chapter-5-7-8', WB + 'band_l.jpg', 0, 0, [1.25, 1.5]], ['gravity-falls-guild', WB + 'guild.jpg', 0, 1.25, 1.5], ['', WB + 'band_r.jpg', 0, 2.75, [1.25, 1.5]],
     ['chapter-3-4-9', WB + 'c_tl.jpg', 1.5, 0], ['acorn-grove', WB + 'acorn.jpg', 1.5, 1], ['watcher-s-grove', WB + 'watcher.jpg', 1.5, 2], ['', WB + 'c_tr.jpg', 1.5, 3],
-    ['fernshade-camp', WB + 'fernshade.jpg', 2.5, 0], ['gravity-falls-guild', WB + 'guild.jpg', 2.5, 1, 2], ['staff', WB + 'staff.jpg', 2.5, 3],
-    ['mossy-hollow', WB + 'mossy.jpg', 3.5, 0], ['', WB + 'trail.jpg', 3.5, 3],
+    ['fernshade-camp', WB + 'fernshade.jpg', 2.5, 0], ['camp', WB + 'camp.jpg', 2.5, 1, 2, 'Woodland Base'], ['staff', WB + 'staff.jpg', 2.5, 3],
+    ['mossy-hollow', WB + 'mossy.jpg', 3.5, 0], ['miltankshake', WB + 'trail.jpg', 3.5, 3, 1, 'Miltankshake'],
     ['chapter-2', WB + 'c_bl.jpg', 4.5, 0], ['hearthstone-circle', WB + 'hearth.jpg', 4.5, 1], ['mushroom-rest', WB + 'mushroom.jpg', 4.5, 2], ['chapter-6', WB + 'c_br.jpg', 4.5, 3]],
 };
 // a square that zooms in to a different picture than the one on the map
@@ -101,7 +101,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     if (!rooms.length) { box.remove(); return; }
     W = rooms.length * 190; H = 200;
   }
-  box.innerHTML = `<div class="fzs-strip ${map ? 'fzs-map' : ''}" style="width:${W}px;height:${H}px">${rooms.map((r) => `<div class="fzs-cube ${r.img ? 'pic' : ''} ${r.name ? 'has-info' : ''} ${r.locked ? 'locked' : ''}" data-key="${esc(r.key || '')}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;${r.img ? `background-image:url(${r.img}?v=4)` : ''}">${r.locked ? '<span class="fzs-lock">🔒</span>' : ''}${r.name ? `<span class="fzs-cube-nm">${r.locked ? '🔒 ' : ''}${esc(r.name)}</span>` : ''}</div>`).join('')}</div>`;
+  box.innerHTML = `<div class="fzs-strip ${map ? 'fzs-map' : ''}" style="width:${W}px;height:${H}px">${rooms.map((r) => `<div class="fzs-cube ${r.img ? 'pic' : ''} ${r.name ? 'has-info' : ''} ${r.locked ? 'locked' : ''}" data-key="${esc(r.key || '')}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;${r.img ? `background-image:url(${r.img}?v=4)` : ''}">${r.locked ? '<span class="fzs-lock">🔒</span>' : ''}${r.name ? `<span class="fzs-cube-nm${!/\s/.test(r.name) && r.name.length > 9 ? ' nm-long' : ''}">${r.locked ? '🔒 ' : ''}${esc(r.name)}</span>` : ''}</div>`).join('')}</div>`;
   box.classList.add('ready', solo ? 'solo' : map ? 'map' : 'row'); box.style.setProperty('--fzh', H + 14 + 'px');
   const strip = box.firstChild;
   // tap a room (not a Pokémon) to open that spot's info (her ask 10-29: the spot boxes live inside their squares)
@@ -148,10 +148,21 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
   const life = async (b) => {
     while (box.isConnected) {
       if (b.busy) { await wait(400); continue; }
+      // her ask 10-29: guild lockdown (the GM's button; the page sets data-alert on the scene): everyone pops back to their home
+      // square, the one they sleep in, and stands ready to fight there instead of wandering
+      if (box.dataset.alert === '1') {
+        b.el.classList.add('ready');
+        if (b.room !== b.home) { b.busy = true; await b.vanish(); b.room = b.home; [b.x, b.y] = b.spot(b.home); await b.pop(); b.busy = false; }
+        else if (Math.random() < 0.3) { b.hop(); b.say(Math.random() < 0.5 ? '⚔️' : '❗'); }
+        await wait(rand(1200, 2600)); continue;
+      }
+      b.el.classList.remove('ready');
       const r = Math.random();
       if (r < 0.5) await b.go(...b.spot(b.room));
       else if (r < 0.68 && !b.m.stay) { // visit a neighbour, Cube World style (a Pokémon marked stay never leaves its square): walk through to a room touching this one, then back home
-        const next = b.room === b.home ? live.filter((x) => touching(x, b.room))[Math.floor(Math.random() * 4)] : b.home;
+        // her ask 10-29 'more foot traffic in the base where the canopy is': a neighbour next to the Woodland Base square goes there half the time
+        const near = live.filter((x) => touching(x, b.room)); const base = near.find((x) => x.key === 'camp');
+        const next = b.room === b.home ? (base && Math.random() < 0.5 ? base : near[Math.floor(Math.random() * 4)]) : b.home;
         if (next) {
           // her ask 10-29: no walking across the border; they vanish at the edge of their square and pop up just inside the next one
           b.busy = true; const cx = Math.max(Math.max(b.room.x, next.x), Math.min(b.room.x + b.room.w, next.x + next.w) - b.w); const cy = Math.max(Math.max(b.room.y, next.y), Math.min(b.room.y + b.room.h, next.y + next.h) - b.h);

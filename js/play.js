@@ -1,26 +1,26 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae3bf17';
-import * as sheet from './sheetdata.js?v=6ae3bf17';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae3bf17';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae3bf17';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae3bf17';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae3bf17';
-import { unlockChar } from './charlock.js?v=6ae3bf17';
-import { CONFIG } from './config.js?v=6ae3bf17';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae3bf17';
-import { merged, editContent } from './content-store.js?v=6ae3bf17';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae3bf17';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae3bf17';
-import { homeHTML } from './sitepages.js?v=6ae3bf17';
-import { burstSet } from './burst.js?v=6ae3bf17';
-import { pinsOf, showMap } from './hotbar.js?v=6ae3bf17';
-import { chatterLatestHTML } from './chatter.js?v=6ae3bf17';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae3bf17';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae3bf17';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3bf17';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae3bf17';
-import { find } from './effects.js?v=6ae3bf17';
-import * as dice3d from './dice3d.js?v=6ae3bf17';
+import * as store from './store.js?v=6ae3c31b';
+import * as sheet from './sheetdata.js?v=6ae3c31b';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae3c31b';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae3c31b';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae3c31b';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae3c31b';
+import { unlockChar } from './charlock.js?v=6ae3c31b';
+import { CONFIG } from './config.js?v=6ae3c31b';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae3c31b';
+import { merged, editContent } from './content-store.js?v=6ae3c31b';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae3c31b';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae3c31b';
+import { homeHTML } from './sitepages.js?v=6ae3c31b';
+import { burstSet } from './burst.js?v=6ae3c31b';
+import { pinsOf, showMap } from './hotbar.js?v=6ae3c31b';
+import { chatterLatestHTML } from './chatter.js?v=6ae3c31b';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae3c31b';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae3c31b';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3c31b';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae3c31b';
+import { find } from './effects.js?v=6ae3c31b';
+import * as dice3d from './dice3d.js?v=6ae3c31b';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -352,7 +352,8 @@ const pips = (v, cols) => `<span class="pips">${[1, 2, 3, 4, 5].map((i) => `<i s
 
 // species, nature, rank, instinct and gear as small labelled boxes (label on top, value below); tap one to read its rule
 const factBoxes = (c) => `<div class="facts">${[
-  ['Species', c.pokemon, c.pokemon || ''], // her ask 10-29: tap it for the species' PokéRole card + evolutions ['Form', formName(c) || null, ''], ['Nature', c.nature, 'Nature (personality)'], ['Rank', c.rank, c.rank ? c.rank + ' Rank' : ''], ['Instinct', c.instinctRank, 'Instinct'],
+  // her ask 10-29: tap Species for the species' PokéRole card + evolutions
+  ['Species', c.pokemon, c.pokemon || ''], ['Form', formName(c) || null, ''], ['Nature', c.nature, 'Nature (personality)'], ['Rank', c.rank, c.rank ? c.rank + ' Rank' : ''], ['Instinct', c.instinctRank, 'Instinct'],
   ['Held item', c.held || '—', 'Garments'], ['Garment', c.garments || '—', 'Garments'], ['Training Points', num(c.tp), 'Training'],
 ].filter(([, v]) => v !== undefined && v !== null && v !== '').map(([k, v, ix]) => `<${ix ? `a href="#" data-ixname="${esc(ix)}"` : 'div'} class="fact"><span class="fact-k">${k}</span><span class="fact-v">${esc(v)}</span></${ix ? 'a' : 'div'}>`).join('')}</div>`;
 

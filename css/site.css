@@ -2236,3 +2236,14 @@ a.ch-chip:hover { background: var(--navy); }
 /* her ask 10-29: babies and eggs in the nursery, listed in the Fernshade Camp box */
 .fz-mons .pill.nursery { background: #fde8f1; border-color: #d07aa0; }
 .fz-mons .pill.nursery small { opacity: .75; }
+/* her ask 10-29: guild lockdown: red banner, squares outlined red, everyone shows their name and stands ready (a quick bob) */
+.fz-alert-banner { background: #fde3dc; border-color: #c4472f; color: #7a1f10; text-align: center; animation: fz-alarm 1.6s ease-in-out infinite; }
+@keyframes fz-alarm { 50% { background: #f9c4b6; } }
+.fz-alert .fzs-cube.has-info:not(.locked) { box-shadow: inset 0 0 0 3px rgba(214, 60, 40, .75); }
+.fz-alert .fzs-tag { opacity: 1; }
+.fzs-mon.ready .fzs-spr:not(.walking):not(.idling) { animation: fzs-ready .7s ease-in-out infinite; }
+.fzs-mon.ready.hop .fzs-spr { animation: fzs-hop .45s ease; }
+@keyframes fzs-ready { 50% { transform: translateY(-3px); } }
+.fz-lockbtn:not(.alt) { background: #c4472f; border-color: #7a1f10; color: #fff; }
+/* one long word (Miltankshake) shrinks a little so it fits the square on a phone */
+.fzs-cube.pic .fzs-cube-nm.nm-long { font-size: clamp(10px, 2.6vw, 18px); }
