@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae38ef5';
-import { $, $$, esc, toast, num } from './util.js?v=6ae38ef5';
-import { me, logRoll } from './play.js?v=6ae38ef5';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae38ef5';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae38ef5';
-import { markWinner } from './sparkle.js?v=6ae38ef5';
-import { pageMusic } from './chiptune.js?v=6ae38ef5';
-import { modal, closeModal } from './ui.js?v=6ae38ef5';
+import * as store from './store.js?v=6ae38f84';
+import { $, $$, esc, toast, num } from './util.js?v=6ae38f84';
+import { me, logRoll } from './play.js?v=6ae38f84';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae38f84';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae38f84';
+import { markWinner } from './sparkle.js?v=6ae38f84';
+import { pageMusic } from './chiptune.js?v=6ae38f84';
+import { modal, closeModal } from './ui.js?v=6ae38f84';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -176,7 +176,7 @@ function startPet(root, b, scene, ownerId) {
     if (busy || (asleep() && d.act !== 'sleep')) return d.done?.(false);
     busy = true; think.className = 'pet-think';
     if (d.act === 'go') await walkTo(d.x, d.sp || 75);
-    else if (d.act === 'hop') { row('hop', false); if (d.fx) fx(d.fx); await wait(750); row('idle'); }
+    else if (d.act === 'hop') { row('hop', false); if (d.fx) fx(d.fx); cry(b, { vol: 0.3, odds: 0.35 }); await wait(750); row('idle'); }
     else if (d.act === 'nod') { row('nod', false); if (d.fx) fx(d.fx); await wait(850); row('idle'); }
     else if (d.act === 'face') { row(d.dir); await wait(d.ms || 600); row('idle'); }
     else if (d.act === 'sleep') { row('sleep', true, 1.6); await wait(d.ms || 4000); row('idle'); }
@@ -313,7 +313,7 @@ function startGuest(root, gb, label) {
     row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / sp).toFixed(2)}s linear`; pet.style.left = tx + 'px'; x = tx;
     await wait(d / sp * 1000); row('idle');
   };
-  pet.onclick = async () => { row('hop', false); fx('💕'); await wait(700); row('idle'); };
+  pet.onclick = async () => { row('hop', false); fx('💕'); cry(gb); await wait(700); row('idle'); };
   const gname = label.split('’s ').pop(); const props = $('.props', root);
   const hostEl = () => $('#npet', root);
   const meOwner = () => me()?.id;
@@ -326,14 +326,14 @@ function startGuest(root, gb, label) {
   const GAMES = {
     // tag: one chases, the other runs off squealing, then they swap
     async tag() {
-      cap(`${gname} and ${hostName()} are playing tag!`);
+      cap(`${gname} and ${hostName()} are playing tag!`); cry(gb, { vol: 0.35 });
       for (let k = 0; k < 2 && alive(); k++) {
         const far = hx() < maxX() / 2 ? maxX() : 10;
         await Promise.all([walkTo(hx(), 200), wait(250).then(() => host('go', { x: far, sp: 210 }))]);
         fx('💨'); await wait(300);
         const back = x < maxX() / 2 ? maxX() : 10;
         await Promise.all([host('go', { x: x, sp: 200 }), wait(250).then(() => walkTo(back, 210))]);
-        hfx('❗');
+        hfx('❗'); if (k === 0) cry(buddyOf(meOwner()), { vol: 0.35 });
       }
       await Promise.all([host('hop', { fx: '♪' }), (async () => { row('hop', false); fx('♪'); await wait(750); row('idle'); })()]);
     },
@@ -348,7 +348,7 @@ function startGuest(root, gb, label) {
         await wait(650);
         if (toHost) await host('hop', { fx: k === 2 ? '💕' : '' }); else { row('hop', false); await wait(700); row('idle'); }
       }
-      ball.remove(); fx('💕'); hfx('💕');
+      ball.remove(); fx('💕'); hfx('💕'); cry(gb, { vol: 0.35 });
     },
     // a cuddle: they walk up to each other, face each other and nuzzle
     async cuddle() {
@@ -369,7 +369,7 @@ function startGuest(root, gb, label) {
     async nap() {
       cap(`${gname} and ${hostName()} are napping together. Shh…`);
       await walkTo(hx() < maxX() / 2 ? hx() + pw * 0.9 : hx() - pw * 0.9, 90);
-      row('sleep', true, 1.6); fx('💤'); await host('sleep', { ms: 4200 }); await wait(400); row('idle'); fx('♪');
+      row('sleep', true, 1.6); fx('💤'); await host('sleep', { ms: 4200 }); await wait(400); row('idle'); fx('♪'); cry(gb, { vol: 0.3 });
     },
   };
   (async () => {
