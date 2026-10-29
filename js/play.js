@@ -1,26 +1,26 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae3429f';
-import * as sheet from './sheetdata.js?v=6ae3429f';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae3429f';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae3429f';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae3429f';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae3429f';
-import { unlockChar } from './charlock.js?v=6ae3429f';
-import { CONFIG } from './config.js?v=6ae3429f';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae3429f';
-import { merged, editContent } from './content-store.js?v=6ae3429f';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae3429f';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae3429f';
-import { homeHTML } from './sitepages.js?v=6ae3429f';
-import { burstSet } from './burst.js?v=6ae3429f';
-import { pinsOf, showMap } from './hotbar.js?v=6ae3429f';
-import { chatterLatestHTML } from './chatter.js?v=6ae3429f';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae3429f';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae3429f';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3429f';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae3429f';
-import { find } from './effects.js?v=6ae3429f';
-import * as dice3d from './dice3d.js?v=6ae3429f';
+import * as store from './store.js?v=6ae34444';
+import * as sheet from './sheetdata.js?v=6ae34444';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae34444';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp } from './ui.js?v=6ae34444';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae34444';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae34444';
+import { unlockChar } from './charlock.js?v=6ae34444';
+import { CONFIG } from './config.js?v=6ae34444';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae34444';
+import { merged, editContent } from './content-store.js?v=6ae34444';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae34444';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae34444';
+import { homeHTML } from './sitepages.js?v=6ae34444';
+import { burstSet } from './burst.js?v=6ae34444';
+import { pinsOf, showMap } from './hotbar.js?v=6ae34444';
+import { chatterLatestHTML } from './chatter.js?v=6ae34444';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae34444';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae34444';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae34444';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae34444';
+import { find } from './effects.js?v=6ae34444';
+import * as dice3d from './dice3d.js?v=6ae34444';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -118,13 +118,19 @@ function missionBanner(sess, mission, combat, c, myTurn) {
       <div class="grow"><span class="mb-kicker">${mission ? 'Main mission' : 'No mission yet'}</span><b>${mission ? esc(mission.title) : 'Visit the Guild'}</b></div>
       ${mission ? `<span class="mb-rank">${esc(mission.rank)}</span>` : ''}</div>
     ${parts ? `<div class="mb-prog"><div class="row nowrap" style="justify-content:space-between"><span class="small">Mission progress</span><span class="small"><b>${done} / ${parts.total}</b> jobs</span></div>
-      <div class="mb-bar${done >= parts.total ? ' full' : ''}"${done >= parts.total ? ` data-burst="${esc(JSON.stringify(burstSet(mission, parts.parts)))}" data-key="${esc(mission.title)}" title="Mission complete! Tap to celebrate again"` : ''}><i style="width:${pct(done, parts.total)}%"></i></div>
-      <div class="mb-parts">${parts.parts.map((x) => `<span class="mb-part ${esc(x.status || 'open')}" title="${esc(x.title)}">${x.status === 'done' ? '✅' : x.status === 'failed' ? '❌' : x.status === 'taken' ? '🎯' : '⬜'} ${esc(x.title)}</span>`).join('')}</div></div>` : ''}
+      <div class="mb-bar${done >= parts.total ? ' full' : ''}"${done >= parts.total ? ` data-burst="${esc(JSON.stringify(burstSet(mission, parts.parts)))}" data-key="${esc(mission.title)}" title="Mission complete! Tap to celebrate again"` : ''}><i style="width:${pct(done, parts.total)}%"></i></div></div>` : ''}
+    ${myTurn ? '<div class="mb-turn">⚔️ It’s your turn!</div>' : ''}
+    <details class="mb-more" ${mbOpen() ? 'open' : ''}><summary><span class="mb-more-t">Mission details</span></summary>
+    ${parts ? `<div class="mb-prog"><div class="mb-parts">${parts.parts.map((x) => `<span class="mb-part ${esc(x.status || 'open')}" title="${esc(x.title)}">${x.status === 'done' ? '✅' : x.status === 'failed' ? '❌' : x.status === 'taken' ? '🎯' : '⬜'} ${esc(x.title)}</span>`).join('')}</div></div>` : ''}
     ${sess.dungeon ? `<div class="mb-prog"><div class="row nowrap" style="justify-content:space-between"><span class="small">🏔️ ${esc(sess.dungeon)}</span><span class="small"><b>Floor ${floor}${sess.floors ? ' / ' + sess.floors : ''}</b>${combat.active ? ` · Battle, round ${combat.round || 1}` : ''}</span></div>
       ${sess.floors ? `<div class="mb-bar floor"><i style="width:${pct(floor, sess.floors)}%"></i></div>` : ''}</div>` : ''}
     ${steps.length ? `<div class="mb-next"><span class="mb-kicker">What to do next</span><ul>${steps.slice(0, 4).map(([i, t]) => `<li><span>${i}</span><span>${t}</span></li>`).join('')}</ul></div>` : ''}
+    </details>
   </div>`;
 }
+// the main mission folds up below its progress bar (her ask 10-29); each device remembers open/closed
+const mbOpen = () => { try { return localStorage.getItem('dc.mbopen') === '1'; } catch { return false; } };
+document.addEventListener('toggle', (e) => { if (e.target.classList?.contains('mb-more')) { try { localStorage.setItem('dc.mbopen', e.target.open ? '1' : '0'); } catch { /* ignore */ } } }, true);
 
 // ---------------------------------------------------------------- play screen
 // First time a player opens their character each day (Eastern time) or each live session: who are you working for?

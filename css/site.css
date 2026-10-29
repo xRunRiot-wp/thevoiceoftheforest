@@ -1931,3 +1931,13 @@ a.ch-chip:hover { background: var(--navy); }
 .app-pop .row { gap: 8px; margin-top: 8px; }
 @keyframes app-pop-in { from { transform: translateY(120%); opacity: 0; } }
 #setapphow ol { margin: 6px 0 0 18px; padding: 0; }
+
+/* Play: main mission folds up below the progress bar (her ask 10-29) */
+.mb-more { margin-top: 8px; }
+.mb-more > summary { list-style: none; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: inherit; opacity: .85; border: 1px dashed currentColor; width: max-content; margin: 0 auto; }
+.mb-more > summary::-webkit-details-marker { display: none; }
+.mb-more > summary::after { content: '▾'; transition: transform .2s; }
+.mb-more[open] > summary::after { transform: rotate(180deg); }
+.mb-more[open] > summary { margin-bottom: 8px; }
+.mb-more > summary:hover, .mb-more > summary:focus-visible { opacity: 1; }
+.mb-turn { margin-top: 8px; text-align: center; font-weight: 700; }
