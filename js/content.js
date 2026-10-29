@@ -454,7 +454,8 @@ export const WORLD = {
     { name: 'Bramble the Scolipede', text: 'Champion rank (Lucario Rank), Naughty nature, she/her. Beautifly’s oldest teammate, frontline defender and reluctant second-in-command: playfully defiant, fiercely loyal, physically affectionate, and terrifying when provoked. Long before Beautifly became Guildmaster, a wild Venipede kept sabotaging his team: vanished supplies, reversed trail markers, itching powder in his exploration bag. When he caught her, he laughed, offered her food and challenged her to guide them through a dungeon she knew better than they did. She never officially accepted. She simply kept showing up, and over years of rescues evolved into Whirlipede and then Scolipede. She earned Champion Rank by surviving battles others would never enter: Screech to break a foe’s confidence, Agility to close the distance, then Poison Tail, Double-Edge or Superpower. Her strategy is reckless but deliberate: make herself the biggest threat in the room so her teammates are ignored.' },
     { name: 'Diglett', text: 'Pro rank, Jolly nature. Curt but knowledgeable.' },
     { name: 'Machop', text: 'Beginner rank, Hardy nature. Missing, perhaps somewhere near Sunshell Beach.' },
-    { name: 'Rayson the Wingull', text: 'A timid young Wingull with a twin, determined to become brave. Rescued from Twilight Falls.' },
+    // her update 10-29 (public part only; his GM profile stays off the public site)
+    { name: 'Rayson the Wingull', text: 'Age 8, he/him. Timid, gentle and loyal. Rayson is a quiet, childlike boy who frightens easily and hates being alone. He carries a great deal of regret about running away when someone needed him. Although fear often controls his choices, he desperately wants to become braver and prove that he can keep an important promise. Rescued from Twilight Falls.' },
     { name: 'Aegislash', text: 'Runs a travelling wagon shop with six item slots.' },
   ],
 };
