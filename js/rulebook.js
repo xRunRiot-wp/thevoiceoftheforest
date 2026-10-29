@@ -1,12 +1,12 @@
 // Rulebook: quick lookup from inside the game. Index of every effect/interaction, rules, story, cast, guild, items, handouts, links, credits.
-import * as store from './store.js?v=6ae3710b';
-import * as sheet from './sheetdata.js?v=6ae3710b';
-import { $, $$, esc } from './util.js?v=6ae3710b';
-import { portrait } from './ui.js?v=6ae3710b';
-import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ae3710b';
-import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ae3710b';
-import { merged, editContent } from './content-store.js?v=6ae3710b';
-import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ae3710b';
+import * as store from './store.js?v=6ae371ba';
+import * as sheet from './sheetdata.js?v=6ae371ba';
+import { $, $$, esc } from './util.js?v=6ae371ba';
+import { portrait } from './ui.js?v=6ae371ba';
+import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ae371ba';
+import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ae371ba';
+import { merged, editContent } from './content-store.js?v=6ae371ba';
+import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ae371ba';
 
 const gm = () => store.gmUnlocked();
 const editBtn = (attr) => (gm() ? `<button class="btn alt sm" ${attr}>Edit</button>` : '');
@@ -230,7 +230,7 @@ export async function renderRules(main, [sub, arg]) {
   }
 
   async function coverage() {
-    const { shop } = await import('./guild.js?v=6ae3710b');
+    const { shop } = await import('./guild.js?v=6ae371ba');
     const [sm, sa, st, g] = await Promise.all([sheet.moves(), sheet.abilities(), sheet.treasure(), sheet.guild().catch(() => ({ chars: [] }))]);
     const party = Object.values(store.get('party') || {});
     const lootNames = [];
@@ -292,6 +292,7 @@ export async function renderRules(main, [sub, arg]) {
           <li><b>Spinda’s Kitchen</b> — Spinda’s idle, walk, twirl and hurt animations (original Explorers sprites credited CHUNSOFT) and eating animation by PMDCollab, from the PMD Sprite Repository / SpriteCollab (<a href="https://sprites.pmdcollab.org" target="_blank" rel="noopener">sprites.pmdcollab.org</a>).</li>
           <li><b>Ralts’s dance music, Rayson’s beach tune, the Sentry Duty march, Spinda’s kitchen tune, the nursery music box and Noctowl’s casino music and card sounds</b> — original little 8-bit tunes and sounds written for this site and played live in your browser.</li>
           <li><b>Ralts’s dance</b> — Ralts’s idle, hop and hurt animations from the PMD Sprite Repository / SpriteCollab (original Explorers sprites credited CHUNSOFT, touched up by PMDCollab; <a href="https://sprites.pmdcollab.org" target="_blank" rel="noopener">sprites.pmdcollab.org</a>).</li>
+          <li><b>Golett’s Squirtle form</b> — Squirtle’s Explorers of Sky portraits (CHUNSOFT) from the PMD Sprite Repository / SpriteCollab (<a href="https://sprites.pmdcollab.org" target="_blank" rel="noopener">sprites.pmdcollab.org</a>), recolored in Golett’s clay colors for this site.</li>
           <li><b>Sentry Duty faces</b> — the visitors’ portraits and the emotion portraits (happy, sad, surprised…) of Diglett and the team from the PMD Sprite Repository / SpriteCollab by PMDCollab (<a href="https://sprites.pmdcollab.org" target="_blank" rel="noopener">sprites.pmdcollab.org</a>); many are fan-drawn in the Explorers of Sky style by its artists.</li>
           <li><b>Sentry Duty footprints</b> — the Pokédex footprint sprites from the main Pokémon games (the same shapes Sentry Duty uses), as collected on Bulbapedia / the Bulbagarden Archives (via eharian's Pokemon-Footprints, <a href="https://github.com/eharian/Pokemon-Footprints" target="_blank" rel="noopener">GitHub</a>). Used with the GM's OK.</li>
           <li><b>Window and portrait frames</b> — Explorers of Sky interface from Vauxhat's PMD-Text-Generator (<a href="https://github.com/Vauxhat/PMD-Text-Generator" target="_blank" rel="noopener">GitHub</a>).</li>

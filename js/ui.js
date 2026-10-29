@@ -1,7 +1,7 @@
 // Shared bits of UI: modal sheet, portraits, bars, dice faces.
-import { esc } from './util.js?v=6ae3710b';
+import { esc } from './util.js?v=6ae371ba';
 
-const PORTRAITS = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'cottoneeshiny', 'squirtle', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
+const PORTRAITS = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'cottoneeshiny', 'squirtle', 'golettsquirtle', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 
 export function portraitFile(species) {
   const k = String(species || '').toLowerCase().replace(/[^a-z]/g, '');
@@ -19,8 +19,12 @@ export function artFile(c) {
 
 // forms a character can switch between (her ask 10-29: Golett's moldable clay; party/<id>/form is the key, '' = their own shape)
 const FORMS = { golett: [['', 'Golett'], ['squirtle', 'Squirtle']] };
+// a form's art: Golett's Squirtle form is Squirtle's shape in Golett's clay colors (her ask 10-29)
+export const FORM_ART = { golett: { squirtle: 'golettsquirtle' } };
+const formKey = (c) => FORM_ART[String(c?.pokemon || c?.species || '').toLowerCase().replace(/[^a-z]/g, '')]?.[c.form] || c.form;
 export const formsOf = (c) => FORMS[String(c?.pokemon || c?.species || '').toLowerCase().replace(/[^a-z]/g, '')] || [];
-export const formFace = (c) => (c?.form && formsOf(c).some(([k]) => k === c.form) ? portraitFile(c.form) : null);
+export const formFace = (c) => (c?.form && formsOf(c).some(([k]) => k === c.form) ? portraitFile(formKey(c)) : null);
+export const formArt = (c) => (c?.form && formsOf(c).some(([k]) => k === c.form) ? formKey(c) : null);
 
 export function portrait(c, size = '') {
   const ff = formFace(c);
