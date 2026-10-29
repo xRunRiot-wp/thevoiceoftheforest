@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae3984b';
-import { $, $$, esc, toast, num } from './util.js?v=6ae3984b';
-import { me, logRoll } from './play.js?v=6ae3984b';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3984b';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3984b';
-import { markWinner } from './sparkle.js?v=6ae3984b';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae3984b';
-import { modal, closeModal } from './ui.js?v=6ae3984b';
+import * as store from './store.js?v=6ae39978';
+import { $, $$, esc, toast, num } from './util.js?v=6ae39978';
+import { me, logRoll } from './play.js?v=6ae39978';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39978';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39978';
+import { markWinner } from './sparkle.js?v=6ae39978';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae39978';
+import { modal, closeModal } from './ui.js?v=6ae39978';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -252,6 +252,8 @@ function startPet(root, b, scene, ownerId) {
   // her ask 10-29: a very rare visit from Celebi, who flutters in and plays chase (add ?celebi to the address to see it now),
 // with its own tune and flowers springing up across the room (glowing at night); it can come at night too and wakes the baby
   let celebiDone = false;
+  // a visit booked for a set time (tables/<code>/celebiAt, her ask 10-29 'spawn one at 3:08'): comes if the nursery is open within 15 minutes of it
+  const celebiDue = () => { const t = num(store.get('celebiAt')); return t > 0 && Date.now() >= t && Date.now() - t < 15 * 60000; };
   const celebi = async () => {
     celebiDone = true; const W = roomEl.clientWidth; const c = document.createElement('span'); c.className = 'flyer celebi';
     const dir = (d) => { c.style.backgroundPositionY = `-${{ down: 0, right: 1, left: 2 }[d] * 120}px`; };
@@ -276,7 +278,7 @@ function startPet(root, b, scene, ownerId) {
       const h = new Date().getHours(); const m = mood(); const ic = need();
       think.className = 'pet-think' + (ic ? ' show' : ''); think.textContent = ic;
       const cv = coverNeed(b) && stat(b, 'cover') >= 50; cov.textContent = cv ? lab('cover')[0] : ''; cov.classList.toggle('show', !!cv); paintCover();
-      if (!celebiDone && (Math.random() < (asleep(h) ? 0.004 : 0.002) || /celebi/.test(location.search))) { busy = true; think.className = 'pet-think'; await celebi(); busy = false; continue; }
+      if (!celebiDone && (Math.random() < (asleep(h) ? 0.004 : 0.002) || /celebi/.test(location.search) || celebiDue())) { busy = true; think.className = 'pet-think'; await celebi(); busy = false; continue; }
       if (asleep(h)) { row('sleep', true, 1.6); think.className = 'pet-think show zz'; think.textContent = 'z Z'; await wait(5000); continue; }
       const r = Math.random();
       if (r < 0.4) await walkTo(10 + Math.random() * maxX());
