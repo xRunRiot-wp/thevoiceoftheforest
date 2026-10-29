@@ -1,13 +1,14 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3db15';
-import { $, $$, esc, toast } from './util.js?v=6ae3db15';
-import { modal, closeModal } from './ui.js?v=6ae3db15';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3db15';
-import { merged, editContent } from './content-store.js?v=6ae3db15';
-import { CHAPTERS } from './content.js?v=6ae3db15';
-import { guildSay } from './chatter.js?v=6ae3db15';
-import { myId } from './app.js?v=6ae3db15';
+import * as store from './store.js?v=6ae3dbca';
+import { $, $$, esc, toast } from './util.js?v=6ae3dbca';
+import { modal, closeModal } from './ui.js?v=6ae3dbca';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3dbca';
+import { merged, editContent } from './content-store.js?v=6ae3dbca';
+import { CHAPTERS } from './content.js?v=6ae3dbca';
+import { giftNote } from './mailbox.js?v=6ae3dbca';
+import { guildSay } from './chatter.js?v=6ae3dbca';
+import { myId } from './app.js?v=6ae3dbca';
 
 export const LOCATIONS = [
   {
@@ -93,8 +94,8 @@ const SPOT_CREW = { 'woodland-base': {
 } };
 // everyone walking in a camp's squares, by the name players know them by (Gym training partners use this)
 export const crewNames = (locId) => Object.values(SPOT_CREW[locId] || {}).flat().map((m) => String(m.label || m.name).replace(/^Guildmaster\s+/i, ''));
-// map squares that aren't camp spots but open a box when tapped (her ask 10-29: the tent square is the Miltankshake)
-const PLACES = { miltankshake: ['🥛 Miltankshake Shack', 'Woodland Base’s milkshake shack. Miltank keeps the shakes coming for tired rescuers.'] };
+// map squares that aren't camp spots but open a box when tapped (her ask 10-29: the tent square is the Miltankshack)
+const PLACES = { miltankshake: ['🥛 Miltankshack', 'Woodland Base’s milkshake shack. Miltank keeps the shakes coming for tired rescuers.'] };
 const PATHS = { 'woodland-base': { 'chapter-2': [2], 'chapter-3-4-9': [3, 4, 9], 'chapter-5-7-8': [5, 7, 8], 'chapter-6': [6] } };
 const NET_SCHEMA = [['about', 'About the network', 'area'], ['loyaltyText', 'What loyalty means', 'area'], ['typesText', 'Personality types — one per line: Name | description', 'area'],
   ['relay', 'Relay Network', 'area'], ['relayRulesText', 'Relay rules — one per line: Rule | description', 'area'],
@@ -290,6 +291,10 @@ export function renderFriendZone(main, [arg]) {
       const by = listOf($$('.rc-by input:checked', el).map((x) => x.value));
       store.set(`recruits/${loc.id}/${b.dataset.recruit}/${store.tid()}`, { name, type: $('#rctype', el).value, t: Date.now(), ...(by ? { by } : {}) });
       store.pushLimited('log', { t: Date.now(), text: `${name} joined ${loc.name}’s Friend Zone${by ? ` (recruited by ${by})` : ''}.` });
+      // her ask 10-29: each recruiter gets a letter saying who joined and where to find them
+      const where = `${loc.name}’s Friend Zone${here ? `, at ${here}` : ''}`;
+      for (const c of players.filter((x) => $$('.rc-by input:checked', el).some((i) => i.value === x.nickname)))
+        giftNote(c.id, '🤝', `${name} joined the guild!`, `Thanks to you${by.includes(' and ') ? ` and ${listOf(by.split(/, | and /).filter((n) => n !== c.nickname))}` : ''}, ${name} is now part of the guild. You can find them in ${where}. Do drop by and say hello! — Guildmaster Beautifly`);
       // her ask 10-29: a recruit is news in Around the Guild
       guildSay('Guildmaster Beautifly', 'say', `Everyone, please welcome ${name} to ${loc.name}${here ? `, moving in at ${here}` : ''}!${by ? ` Thank you, ${by}, for bringing them in.` : ''}`, 'recruit');
       closeModal(); toast(`${name} moved in!`); renderFriendZone(main, [loc.id]);

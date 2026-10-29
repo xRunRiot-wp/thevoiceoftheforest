@@ -1,15 +1,15 @@
 // Pelipper Post: a little mailbox above each player's name. Once a day every character gets one letter with a
 // small solo mission; they roll for it and can earn an item, Poké, a recruit chance or a new place to explore.
 // Letters are GM-editable (content/mail). Recruits and new places go on the GM checklist for the GM to play out.
-import * as store from './store.js?v=6ae3db15';
-import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae3db15';
-import { modal, closeModal } from './ui.js?v=6ae3db15';
-import { merged, editContent } from './content-store.js?v=6ae3db15';
-import { logRoll, statVal } from './play.js?v=6ae3db15';
-import { dailyRoll, hash } from './weather.js?v=6ae3db15';
-import { gameSay, gmTodo } from './chatter.js?v=6ae3db15';
-import { markWinner } from './sparkle.js?v=6ae3db15';
-import { sendFx } from './letterfx.js?v=6ae3db15';
+import * as store from './store.js?v=6ae3dbca';
+import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae3dbca';
+import { modal, closeModal } from './ui.js?v=6ae3dbca';
+import { merged, editContent } from './content-store.js?v=6ae3dbca';
+import { logRoll, statVal } from './play.js?v=6ae3dbca';
+import { dailyRoll, hash } from './weather.js?v=6ae3dbca';
+import { gameSay, gmTodo } from './chatter.js?v=6ae3dbca';
+import { markWinner } from './sparkle.js?v=6ae3dbca';
+import { sendFx } from './letterfx.js?v=6ae3dbca';
 
 const KINDS = { item: ['🎁', 'Item'], poke: ['💰', 'Poké'], recruit: ['🤝', 'Recruit chance'], place: ['🧭', 'New place'] };
 export const MAIL_SCHEMA = [['title', 'Title'], ['from', 'From'], ['text', 'Letter', 'area'], ['attr', 'Roll: attribute (e.g. Insight)'], ['skill', 'Roll: skill (e.g. Alert)'],
@@ -19,7 +19,7 @@ const LETTERS = [
   { id: 'lost-scarf', title: 'A Scarf in the Wind', from: 'Azurill', attr: 'Insight', skill: 'Alert', need: 1, kind: 'item', reward: 'Oran Berry ×2',
     text: 'My favourite scarf blew away somewhere around Acorn Grove! Could you look for it? I’ll share my berries with you!' },
   { id: 'berry-run', title: 'Berry Delivery', from: 'Kecleon Shop', attr: 'Dexterity', skill: 'Athletic', need: 1, kind: 'poke', reward: '150',
-    text: 'A crate of berries needs to get from the gate to the Miltankshake Shack before they spoil. Quick feet, please!' },
+    text: 'A crate of berries needs to get from the gate to the Miltankshack before they spoil. Quick feet, please!' },
   { id: 'echo-noise', title: 'Humming Under the Roots', from: 'Whismur', attr: 'Insight', skill: 'Nature', need: 2, kind: 'place', reward: 'A hollow under the great tree’s roots at Acorn Grove',
     text: 'Something keeps humming under the big tree roots at Acorn Grove at night. I’m too scared to look. Will you find out what it is?' },
   { id: 'shy-visitor', title: 'A Shy Visitor', from: 'Chansey', attr: 'Cute', skill: 'Allure', need: 2, kind: 'recruit', reward: 'Pichu',

@@ -1474,7 +1474,7 @@ export const GS_TEXT = {
 ],
 [
 "p",
-"Slakoth is a quiet dungeon guide with no memories from before he was found injured outside a mystery dungeon one year ago. Although business is slow, he has earned a reputation for calmly navigating dangerous places. Most customers find him snoozing on the sign outside the Miltankshake Shack well after closing."
+"Slakoth is a quiet dungeon guide with no memories from before he was found injured outside a mystery dungeon one year ago. Although business is slow, he has earned a reputation for calmly navigating dangerous places. Most customers find him snoozing on the sign outside the Miltankshack well after closing."
 ],
 [
 "p",
