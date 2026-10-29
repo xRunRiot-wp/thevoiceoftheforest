@@ -1,26 +1,26 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae38138';
-import * as sheet from './sheetdata.js?v=6ae38138';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae38138';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae38138';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae38138';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae38138';
-import { unlockChar } from './charlock.js?v=6ae38138';
-import { CONFIG } from './config.js?v=6ae38138';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae38138';
-import { merged, editContent } from './content-store.js?v=6ae38138';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae38138';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae38138';
-import { homeHTML } from './sitepages.js?v=6ae38138';
-import { burstSet } from './burst.js?v=6ae38138';
-import { pinsOf, showMap } from './hotbar.js?v=6ae38138';
-import { chatterLatestHTML } from './chatter.js?v=6ae38138';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae38138';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae38138';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae38138';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae38138';
-import { find } from './effects.js?v=6ae38138';
-import * as dice3d from './dice3d.js?v=6ae38138';
+import * as store from './store.js?v=6ae381b1';
+import * as sheet from './sheetdata.js?v=6ae381b1';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae381b1';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae381b1';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae381b1';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae381b1';
+import { unlockChar } from './charlock.js?v=6ae381b1';
+import { CONFIG } from './config.js?v=6ae381b1';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae381b1';
+import { merged, editContent } from './content-store.js?v=6ae381b1';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae381b1';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae381b1';
+import { homeHTML } from './sitepages.js?v=6ae381b1';
+import { burstSet } from './burst.js?v=6ae381b1';
+import { pinsOf, showMap } from './hotbar.js?v=6ae381b1';
+import { chatterLatestHTML } from './chatter.js?v=6ae381b1';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae381b1';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae381b1';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae381b1';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae381b1';
+import { find } from './effects.js?v=6ae381b1';
+import * as dice3d from './dice3d.js?v=6ae381b1';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -205,6 +205,7 @@ export function renderPlay(main) {
 export function addTeamFx(name, text, exhaust = true) {
   store.set('teamfx/' + store.tid(), { name, text, exhaust, used: {}, t: Date.now() });
 }
+const tfxOpen = () => { try { return JSON.parse(localStorage.getItem('dc.tfxopen') || '[]'); } catch { return []; } };
 function teamFxHTML() {
   const fx = Object.entries(store.get('teamfx') || {}).sort((a, b) => (a[1].t || 0) - (b[1].t || 0));
   const gm = store.gmUnlocked();
@@ -212,10 +213,14 @@ function teamFxHTML() {
   const p = Object.values(party()).filter((x) => !x.guest);
   return `<div class="teamfx"><div class="row" style="justify-content:space-between"><b class="tfx-title">🌟 WHOLE TEAM effects</b>${gm ? '<button class="btn alt sm" id="tfxadd">+ Effect</button>' : ''}</div>
     ${fx.length ? fx.map(([id, f]) => { const used = f.used || {}; const all = f.exhaust && p.length && p.every((x) => used[x.id]);
-      return `<div class="tfx ${all ? 'spent' : ''}"><div class="row nowrap" style="justify-content:space-between;align-items:flex-start"><div class="grow"><b>${esc(f.name)}</b>${f.exhaust ? ' <span class="pill">once each</span>' : ''}${f.text ? `<div class="small">${esc(f.text)}</div>` : ''}</div>${gm ? `<button class="btn alt sm" data-tfxdel="${id}">Remove</button>` : ''}</div>
-      ${f.exhaust ? `<div class="tfx-used">${p.map((x) => `<label><input type="checkbox" data-tfx="${id}" data-who="${x.id}" ${used[x.id] ? 'checked' : ''}> ${esc(x.nickname)}</label>`).join('')}</div>${all ? '<div class="small muted">Everyone has used it.</div>' : ''}` : ''}</div>`; }).join('') : '<p class="small muted">No team effects right now. Add one with + Effect.</p>'}</div>`;
+      // her ask 10-29: each effect folds up under its name (open ones remembered on this device)
+      const mine = me(); const usedMine = f.exhaust && mine && used[mine.id];
+      return `<details class="tfx ${all ? 'spent' : ''}" data-tfxopen="${id}" ${tfxOpen().includes(id) ? 'open' : ''}><summary><b>${esc(f.name)}</b>${f.exhaust ? ' <span class="pill">once each</span>' : ''}${usedMine ? ' <span class="pill">✓ used</span>' : ''}</summary>
+      <div class="row nowrap" style="justify-content:space-between;align-items:flex-start;margin-top:4px"><div class="grow">${f.text ? `<div class="small">${esc(f.text)}</div>` : ''}</div>${gm ? `<button class="btn alt sm" data-tfxdel="${id}">Remove</button>` : ''}</div>
+      ${f.exhaust ? `<div class="tfx-used">${p.map((x) => `<label><input type="checkbox" data-tfx="${id}" data-who="${x.id}" ${used[x.id] ? 'checked' : ''}> ${esc(x.nickname)}</label>`).join('')}</div>${all ? '<div class="small muted">Everyone has used it.</div>' : ''}` : ''}</details>`; }).join('') : '<p class="small muted">No team effects right now. Add one with + Effect.</p>'}</div>`;
 }
 function bindTeamFx(main) {
+  $$('[data-tfxopen]', main).forEach((d) => d.ontoggle = () => { const ids = new Set(tfxOpen()); if (d.open) ids.add(d.dataset.tfxopen); else ids.delete(d.dataset.tfxopen); try { localStorage.setItem('dc.tfxopen', JSON.stringify([...ids])); } catch { /* ignore */ } });
   $$('[data-tfx]', main).forEach((b) => b.onchange = () => store.set(`teamfx/${b.dataset.tfx}/used/${b.dataset.who}`, b.checked || null));
   $$('[data-tfxdel]', main).forEach((b) => b.onclick = () => store.set('teamfx/' + b.dataset.tfxdel, null));
   const a = $('#tfxadd', main);

@@ -5,11 +5,11 @@
 // battles/<id> = { a, b, phase: ask|fight|done|off, t, round, hp{}, max{}, picks{id: move}, mods{id: {stat: n}},
 //   cond{id: {sleep, confused, yawn, encore}}, last{id: move}, ev[{text, hp{}, fx, who}], evRound, winner, lastAct }
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6ae38138';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae38138';
-import { portrait, maxHp } from './ui.js?v=6ae38138';
-import { allMoves, me, statVal } from './play.js?v=6ae38138';
-import { ensureAudio, jingle, missSound } from './chiptune.js?v=6ae38138';
+import * as store from './store.js?v=6ae381b1';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae381b1';
+import { portrait, maxHp } from './ui.js?v=6ae381b1';
+import { allMoves, me, statVal } from './play.js?v=6ae381b1';
+import { ensureAudio, jingle, missSound } from './chiptune.js?v=6ae381b1';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
