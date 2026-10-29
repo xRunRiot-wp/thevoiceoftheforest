@@ -2,12 +2,15 @@
 // a wax seal stamps it and it flies away. Receiving one: a sealed letter swoops in across the screen and dives into the
 // mailbox, which bounces. Tap anywhere to skip. Arrivals are noticed from the gift notes in giftmail/<me>; each note
 // plays once per device (dc.lfx.seen).
-import * as store from './store.js?v=6ae3a2d1';
-import { esc, num } from './util.js?v=6ae3a2d1';
+import * as store from './store.js?v=6ae3a3b2';
+import { ensureAudio, mailChime } from './chiptune.js?v=6ae3a3b2';
+import { esc, num } from './util.js?v=6ae3a3b2';
 
 const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-const envHTML = (open, paper) => `<div class="lfx-env ${open ? 'open' : ''}">
-  <div class="lfx-back"></div>${paper ? `<div class="lfx-paper">${paper}</div>` : ''}<div class="lfx-pocket"></div><div class="lfx-flap"></div><div class="lfx-seal">✉</div></div>`;
+// her ask 10-29: the wax seal carries the sender's guild crest (Woodland Base or Vanguard Guild), bigger
+const guildOf = (name) => { const P = store.get('party') || {}; const c = name ? Object.values(P).find((x) => x && x.nickname === name) : P[meId()]; return c?.guild === 'vanguard' ? 'vanguard' : 'woodland'; };
+const envHTML = (open, paper, guild = 'woodland') => `<div class="lfx-env ${open ? 'open' : ''}">
+  <div class="lfx-back"></div>${paper ? `<div class="lfx-paper">${paper}</div>` : ''}<div class="lfx-pocket"></div><div class="lfx-flap"></div><div class="lfx-seal"><img src="assets/badges/${guild}.png" alt=""></div></div>`;
 function overlay(html) {
   const el = document.createElement('div'); el.className = 'lfx'; el.innerHTML = html; document.body.appendChild(el);
   return el;
@@ -16,7 +19,7 @@ function overlay(html) {
 // the sender's side: letter -> envelope -> seal -> away
 export function sendFx(toName, what, note) {
   if (reduce()) return;
-  const el = overlay(`<div class="lfx-stage">${envHTML(true, `<div class="lfx-to">To <b>${esc(toName)}</b>,</div><div class="lfx-what">${esc(what)}</div>${note ? `<div class="lfx-note">“${esc(note)}”</div>` : ''}<div class="lfx-sign">Sent by Pelipper Post</div>`)}</div><div class="lfx-cap">Sealing your letter…</div>`);
+  const el = overlay(`<div class="lfx-stage">${envHTML(true, `<div class="lfx-to">To <b>${esc(toName)}</b>,</div><div class="lfx-what">${esc(what)}</div>${note ? `<div class="lfx-note">“${esc(note)}”</div>` : ''}<div class="lfx-sign">Sent by Pelipper Post</div>`, guildOf())}</div><div class="lfx-cap">Sealing your letter…</div>`);
   const env = el.querySelector('.lfx-env');
   const done = () => el.remove();
   el.onclick = done;
@@ -36,8 +39,9 @@ function next() {
   const from = queue.shift(); if (from === undefined) { playing = false; return; }
   playing = true;
   const box = document.querySelector('#hbmail');
-  if (reduce() || !box) { bounce(box); next(); return; }
-  const el = overlay(`<div class="lfx-fly">${envHTML(false, '')}</div><div class="lfx-cap">📬 A letter from <b>${esc(from)}</b>!</div>`);
+  if (reduce() || !box) { mailChime(); bounce(box); next(); return; }
+  mailChime(); // her ask 10-29: a chime when new mail arrives
+  const el = overlay(`<div class="lfx-fly">${envHTML(false, '', guildOf(from))}</div><div class="lfx-cap">📬 A letter from <b>${esc(from)}</b>!</div>`);
   el.classList.add('arrive'); el.querySelector('.lfx-env').classList.add('sealed');
   const fly = el.querySelector('.lfx-fly');
   const r = box.getBoundingClientRect(); const W = innerWidth; const H = innerHeight;

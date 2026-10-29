@@ -283,3 +283,8 @@ export function pageMusic(main, name, btnId, { rain = '' } = {}) {
 }
 // a visitor's tune in place of the page tune for a while (Celebi in the nursery); visitMusic() puts the page tune back
 export function visitMusic(name = '') { if (!loop || !pageSong) return; startMusic(name || pageSong); if (!name && pageRain) startRain(pageRain === 'heavy'); }
+// new mail (her ask 10-29): a little three-note bell chime, quiet when music is muted
+export function mailChime() {
+  try { ensureAudio(); } catch { return; } if (!ctx || muted()) return; const t = ctx.currentTime + 0.05;
+  [[84, 0], [88, 0.12], [91, 0.24], [96, 0.36]].forEach(([n, d]) => voice(N(n), t + d, 1.2, { type: 'sine', vol: 0.09, pan: d - 0.2, send: 0.5 }));
+}

@@ -2142,3 +2142,7 @@ a.ch-chip:hover { background: var(--navy); }
 
 /* her ask 10-29: no camera pan or zoom during battles, the view stays still */
 .bt-cam, .bt-cam.zoom-near, .bt-cam.zoom-far { animation: none; transform: none; }
+
+/* wax seal with the guild crest pressed in, bigger (her ask 10-29) */
+.lfx-seal { width: 26%; }
+.lfx-seal img { width: 78%; height: 78%; object-fit: contain; filter: grayscale(1) contrast(1.4) brightness(.75) drop-shadow(0 1px 0 rgba(255, 200, 170, .5)) drop-shadow(0 -1px 0 rgba(60, 0, 0, .6)); mix-blend-mode: multiply; opacity: .9; }

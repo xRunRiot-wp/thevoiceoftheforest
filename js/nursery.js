@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae3a2d1';
-import { $, $$, esc, toast, num } from './util.js?v=6ae3a2d1';
-import { me, logRoll } from './play.js?v=6ae3a2d1';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3a2d1';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3a2d1';
-import { markWinner } from './sparkle.js?v=6ae3a2d1';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae3a2d1';
-import { modal, closeModal } from './ui.js?v=6ae3a2d1';
+import * as store from './store.js?v=6ae3a3b2';
+import { $, $$, esc, toast, num } from './util.js?v=6ae3a3b2';
+import { me, logRoll } from './play.js?v=6ae3a3b2';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3a3b2';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3a3b2';
+import { markWinner } from './sparkle.js?v=6ae3a3b2';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae3a3b2';
+import { modal, closeModal } from './ui.js?v=6ae3a3b2';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
