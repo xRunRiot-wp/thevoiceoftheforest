@@ -1,18 +1,18 @@
 // Training Gym (#/gym): one drill per day per character. Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6ae3ca00';
-import { $, $$, esc, num, pool } from './util.js?v=6ae3ca00';
-import { modal, closeModal, diceFaces } from './ui.js?v=6ae3ca00';
-import { statVal, logRoll } from './play.js?v=6ae3ca00';
-import { myId } from './app.js?v=6ae3ca00';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3ca00';
-import { locations, spots } from './friendzone.js?v=6ae3ca00';
-import { RESIDENTS } from './chatter.js?v=6ae3ca00';
+import * as store from './store.js?v=6ae3ca5a';
+import { $, $$, esc, num, pool } from './util.js?v=6ae3ca5a';
+import { modal, closeModal, diceFaces } from './ui.js?v=6ae3ca5a';
+import { statVal, logRoll } from './play.js?v=6ae3ca5a';
+import { myId } from './app.js?v=6ae3ca5a';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3ca5a';
+import { locations, spots, crewNames } from './friendzone.js?v=6ae3ca5a';
+import { RESIDENTS } from './chatter.js?v=6ae3ca5a';
 
 const BAR = 5;
 // Training partners (her ask 10-29): a player may bring up to 3 Pokémon who live at the guild (Woodland Base in the
-// Friend Zone: its spots' residents and recruits) to every drill. Each partner trains alongside and keeps its own
+// Friend Zone: its spots' residents, the crew walking its squares, and recruits) to every drill. Each partner trains alongside and keeps its own
 // Training Points: gym/npc/<key> = { name, prog, tp }. party/<id>/gymPals = the names picked.
 const PALS_MAX = 3;
 const palKey = (n) => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -22,7 +22,7 @@ function guildResidents() {
   const rec = Object.values(store.get('recruits/' + loc.id) || {}).flatMap((x) => Object.values(x || {}).map((r) => r.name));
   // only real Pokémon: a spot's resident list can also hold group notes like “Vanguard Guild”
   const isMon = (n) => n.split(/\s+/).length <= 3 && !/guild|team|members|rank/i.test(n);
-  return [...new Set([...spots(loc).flatMap((x) => x.mons), ...rec].map((n) => String(n).trim()).filter((n) => n && isMon(n) && !players.has(n.toLowerCase())))];
+  return [...new Set([...spots(loc).flatMap((x) => x.mons), ...crewNames(loc.id), ...rec].map((n) => String(n).trim()).filter((n) => n && isMon(n) && !players.has(n.toLowerCase())))];
 }
 const palsOf = (c) => (Array.isArray(c.gymPals) ? c.gymPals : []).filter((n) => guildResidents().includes(n)).slice(0, PALS_MAX);
 const npcRec = (n) => store.get('gym/npc/' + palKey(n)) || { name: n, prog: 0, tp: 0 };

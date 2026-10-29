@@ -1,11 +1,11 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3ca00';
-import { $, $$, esc, toast } from './util.js?v=6ae3ca00';
-import { modal, closeModal } from './ui.js?v=6ae3ca00';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3ca00';
-import { merged, editContent } from './content-store.js?v=6ae3ca00';
-import { CHAPTERS } from './content.js?v=6ae3ca00';
+import * as store from './store.js?v=6ae3ca5a';
+import { $, $$, esc, toast } from './util.js?v=6ae3ca5a';
+import { modal, closeModal } from './ui.js?v=6ae3ca5a';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3ca5a';
+import { merged, editContent } from './content-store.js?v=6ae3ca5a';
+import { CHAPTERS } from './content.js?v=6ae3ca5a';
 
 export const LOCATIONS = [
   {
@@ -89,6 +89,8 @@ const SPOT_CREW = { 'woodland-base': {
   camp: [{ name: 'Beedrill', label: 'Beatrice', stay: true }],
   miltankshake: [{ name: 'Miltank' }],
 } };
+// everyone walking in a camp's squares, by the name players know them by (Gym training partners use this)
+export const crewNames = (locId) => Object.values(SPOT_CREW[locId] || {}).flat().map((m) => String(m.label || m.name).replace(/^Guildmaster\s+/i, ''));
 // map squares that aren't camp spots but open a box when tapped (her ask 10-29: the tent square is the Miltankshake)
 const PLACES = { miltankshake: ['🥛 Miltankshake Shack', 'Woodland Base’s milkshake shack. Miltank keeps the shakes coming for tired rescuers.'] };
 const PATHS = { 'woodland-base': { 'chapter-2': [2], 'chapter-3-4-9': [3, 4, 9], 'chapter-5-7-8': [5, 7, 8], 'chapter-6': [6] } };
