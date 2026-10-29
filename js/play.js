@@ -1,26 +1,26 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae3d8e7';
-import * as sheet from './sheetdata.js?v=6ae3d8e7';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae3d8e7';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae3d8e7';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae3d8e7';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae3d8e7';
-import { unlockChar } from './charlock.js?v=6ae3d8e7';
-import { CONFIG } from './config.js?v=6ae3d8e7';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae3d8e7';
-import { merged, editContent } from './content-store.js?v=6ae3d8e7';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae3d8e7';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae3d8e7';
-import { homeHTML } from './sitepages.js?v=6ae3d8e7';
-import { burstSet } from './burst.js?v=6ae3d8e7';
-import { pinsOf, showMap } from './hotbar.js?v=6ae3d8e7';
-import { chatterLatestHTML } from './chatter.js?v=6ae3d8e7';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae3d8e7';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae3d8e7';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3d8e7';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae3d8e7';
-import { find } from './effects.js?v=6ae3d8e7';
-import * as dice3d from './dice3d.js?v=6ae3d8e7';
+import * as store from './store.js?v=6ae3d9b6';
+import * as sheet from './sheetdata.js?v=6ae3d9b6';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae3d9b6';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae3d9b6';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae3d9b6';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae3d9b6';
+import { unlockChar } from './charlock.js?v=6ae3d9b6';
+import { CONFIG } from './config.js?v=6ae3d9b6';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae3d9b6';
+import { merged, editContent } from './content-store.js?v=6ae3d9b6';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae3d9b6';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae3d9b6';
+import { homeHTML } from './sitepages.js?v=6ae3d9b6';
+import { burstSet } from './burst.js?v=6ae3d9b6';
+import { pinsOf, showMap } from './hotbar.js?v=6ae3d9b6';
+import { chatterLatestHTML } from './chatter.js?v=6ae3d9b6';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae3d9b6';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae3d9b6';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3d9b6';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae3d9b6';
+import { find } from './effects.js?v=6ae3d9b6';
+import * as dice3d from './dice3d.js?v=6ae3d9b6';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -351,9 +351,15 @@ const scaleStyle = (cols, v) => { const c = cols[Math.max(0, Math.min(5, num(v))
 const pips = (v, cols) => `<span class="pips">${[1, 2, 3, 4, 5].map((i) => `<i style="background:${i <= num(v) ? cols[Math.min(5, num(v))] : 'transparent'}"></i>`).join('')}</span>`;
 
 // species, nature, rank, instinct and gear as small labelled boxes (label on top, value below); tap one to read its rule
+// the Index entry for a character's Instinct / Logic level (her ask 10-29: like Rank, they open their own entry with the handout)
+const INSTINCT_LV = ['Prey', 'Cub', 'Beta', 'Hunter', 'Alpha', 'Predator'];
+const LOGIC_LV = ['', 'Amnesiac', 'Average', 'Good', 'Genius', 'Poké Sapiens'];
+const instinctIx = (c) => { const i = INSTINCT_LV.indexOf(c.instinctRank); return i >= 0 ? `Instinct ${i} — ${INSTINCT_LV[i]}` : 'Instinct'; };
+const logicLv = (c) => { const n = Number(c.logic); return Number.isInteger(n) && n >= 0 && n <= 5 ? n : null; };
+const logicIx = (c) => { const n = logicLv(c); return n === null ? 'Logic' : n ? `Logic ${n} — ${LOGIC_LV[n]}` : 'Logic 0'; };
 const factBoxes = (c) => `<div class="facts">${[
   // her ask 10-29: tap Species for the species' PokéRole card + evolutions
-  ['Species', c.pokemon, c.pokemon || ''], ['Form', formName(c) || null, ''], ['Nature', c.nature, 'Nature (personality)'], ['Rank', c.rank, c.rank ? c.rank + ' Rank' : ''], ['Instinct', c.instinctRank, 'Instinct'],
+  ['Species', c.pokemon, c.pokemon || ''], ['Form', formName(c) || null, ''], ['Nature', c.nature, 'Nature (personality)'], ['Rank', c.rank, c.rank ? c.rank + ' Rank' : ''], ['Instinct', c.instinctRank, instinctIx(c)], ['Logic', logicLv(c) === null ? null : logicLv(c) ? LOGIC_LV[logicLv(c)] : 'Forgetting', logicIx(c)],
   ['Held item', c.held || '—', 'Garments'], ['Garment', c.garments || '—', 'Garments'], ['Training Points', num(c.tp), 'Training'],
 ].filter(([, v]) => v !== undefined && v !== null && v !== '').map(([k, v, ix]) => `<${ix ? `a href="#" data-ixname="${esc(ix)}"` : 'div'} class="fact"><span class="fact-k">${k}</span><span class="fact-v">${esc(v)}</span></${ix ? 'a' : 'div'}>`).join('')}</div>`;
 
@@ -374,8 +380,8 @@ function charCard(c) {
       <div class="pcol"><a href="#" data-ixname="Primal points" class="ixbox scale" style="${scaleStyle(PRIMAL_COLORS, c.primal)}"><b>${c.primal ?? 0}</b><span>Primal</span>${pips(c.primal, PRIMAL_COLORS)}</a><div class="stepper"><button class="btn alt sm" data-primalpt="-1">−1</button><button class="btn alt sm" data-primalpt="1">+1</button></div></div>
     </div>
     <div class="mind">
-      <a href="#" data-ixname="Instinct" class="mind-tile instinct"><span class="m-ic">🐾</span><span class="m-txt"><span class="m-lab">Instinct</span><small>${esc(c.instinctRank || 'Wild side')}</small></span><b class="m-num">${c.instinct ?? 0}</b></a>
-      <a href="#" data-ixname="Logic" class="mind-tile logic"><span class="m-ic">🧠</span><span class="m-txt"><span class="m-lab">Logic</span><small>Human mind</small></span><b class="m-num">${c.logic ?? 0}</b></a>
+      <a href="#" data-ixname="${esc(instinctIx(c))}" class="mind-tile instinct"><span class="m-ic">🐾</span><span class="m-txt"><span class="m-lab">Instinct</span><small>${esc(c.instinctRank || 'Wild side')}</small></span><b class="m-num">${c.instinct ?? 0}</b></a>
+      <a href="#" data-ixname="${esc(logicIx(c))}" class="mind-tile logic"><span class="m-ic">🧠</span><span class="m-txt"><span class="m-lab">Logic</span><small>${esc(logicLv(c) ? LOGIC_LV[logicLv(c)] : 'Human mind')}</small></span><b class="m-num">${c.logic ?? 0}</b></a>
     </div>
     ${c.id === myId() || store.gmUnlocked() ? memoryHTML(c) : ''}
 
