@@ -6,8 +6,8 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3bd59';
-import { esc } from './util.js?v=6ae3bd59';
+import { loadIndex } from './effects.js?v=6ae3be6c';
+import { esc } from './util.js?v=6ae3be6c';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -26,21 +26,26 @@ export const MAPS = {
 // a square that zooms in to a different picture than the one on the map
 export const ZOOM_PICS = { 'gravity-falls-guild': WB + 'guild_inside.jpg' };
 const animCache = new Map();
+// her ask 10-29 'can Diglett come out of the ground more often': Diglett and Dugtrio, whose walk is underground
+const DIGGERS = new Set(['0050', '0051']);
 // the Walk animation's frame size and timing for one species (from its AnimData.xml)
 function walkData(dex) {
   if (!animCache.has(dex)) animCache.set(dex, fetch(`${RAW}${dex}/AnimData.xml`).then((r) => (r.ok ? r.text() : '')).then((x) => {
     const anims = [...x.matchAll(/<Anim>([\s\S]*?)<\/Anim>/g)].map((m) => m[1]);
-    const walk = anims.find((a) => /<Name>Walk<\/Name>/.test(a)); if (!walk) return null;
-    const num = (tag) => Number((walk.match(new RegExp(`<${tag}>(\\d+)</${tag}>`)) || [])[1]);
-    const durs = [...walk.matchAll(/<Duration>(\d+)<\/Duration>/g)].map((m) => Number(m[1]));
-    const a = { w: num('FrameWidth'), h: num('FrameHeight'), n: durs.length || 1, ms: Math.max(300, durs.reduce((s, d) => s + d, 0) * 1000 / 60), foot: 0 };
-    return footRoom(dex, a).then((f) => ({ ...a, foot: f }));
+    const read = (name) => { const an = anims.find((a) => a.includes(`<Name>${name}</Name>`)); if (!an) return null;
+      const num = (tag) => Number((an.match(new RegExp(`<${tag}>(\\d+)</${tag}>`)) || [])[1]);
+      const durs = [...an.matchAll(/<Duration>(\d+)<\/Duration>/g)].map((m) => Number(m[1]));
+      return { w: num('FrameWidth'), h: num('FrameHeight'), n: durs.length || 1, ms: Math.max(300, durs.reduce((s, d) => s + d, 0) * 1000 / 60), foot: 0 }; };
+    const a = read('Walk'); if (!a) return null;
+    // a Pokémon that walks underground (Diglett's walk is just a dirt mound) shows its Idle picture, out of the ground, when it stops
+    const idle = DIGGERS.has(dex) ? read('Idle') : null;
+    return Promise.all([footRoom(dex, a), idle && footRoom(dex, idle, 'Idle')]).then(([f, fi]) => ({ ...a, foot: f, idle: idle && { ...idle, foot: fi } }));
   }).catch(() => null));
   return animCache.get(dex);
 }
 // empty pixel rows under the feet in the facing-down walk frames (her ask 10-29: name plates sit right under the Pokémon,
 // not under its padded frame); 0 if the picture can't be read
-function footRoom(dex, a) {
+function footRoom(dex, a, anim = 'Walk') {
   return new Promise((ok) => {
     const img = new Image(); img.crossOrigin = 'anonymous';
     img.onerror = () => ok(0);
@@ -49,7 +54,7 @@ function footRoom(dex, a) {
       g.drawImage(img, 0, 0, a.w * a.n, a.h, 0, 0, a.w * a.n, a.h); const d = g.getImageData(0, 0, c.width, c.height).data;
       for (let y = a.h - 1; y >= 0; y--) for (let x = 0; x < c.width; x++) if (d[(y * c.width + x) * 4 + 3] > 40) return ok(a.h - 1 - y);
       ok(0); } catch { ok(0); } };
-    img.src = `${RAW}${dex}/Walk-Anim.png`;
+    img.src = `${RAW}${dex}/${anim}-Anim.png`;
   });
 }
 // "Bramble the Scolipede" -> Scolipede; "Nidorino" -> Nidorino
@@ -113,16 +118,23 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     b.spot = (r) => [r.x + 4 + Math.random() * Math.max(2, r.w - b.w - 8), r.y + Math.max(14, r.h * 0.25) + Math.random() * Math.max(2, r.h * 0.75 - b.h - 24)];
     [b.x, b.y] = b.spot(rm);
     const place = (ms = 0) => { el.style.transition = ms ? `left ${ms}ms linear, top ${ms}ms linear` : 'none'; el.style.left = b.x + 'px'; el.style.top = b.y + 'px'; el.style.zIndex = 10 + Math.round(b.y); };
-    b.face = (d) => { b.spr.style.backgroundPositionY = `-${ROW[d] * m.a.h * S}px`; };
+    // which picture sheet the sprite shows: its walk, or (a digger standing still) its idle, out of the ground. The idle box is
+    // padded so its feet land where the walk's feet were and the whole box keeps the walk's height
+    b.sheet = (out) => { const a = out && m.a.idle ? m.a.idle : m.a; const st = b.spr.style; b.cur = a;
+      st.width = a.w * S + 'px'; st.height = a.h * S + 'px'; st.backgroundImage = `url(${RAW}${m.d4}/${a === m.a ? 'Walk' : 'Idle'}-Anim.png)`;
+      st.backgroundSize = `${a.w * a.n * S}px ${a.h * 8 * S}px`; st.setProperty('--fw', a.w * S + 'px'); st.setProperty('--n', a.n); st.setProperty('--ms', a.ms + 'ms');
+      st.marginTop = a === m.a ? '0' : ((m.a.h - m.a.foot) - (a.h - a.foot)) * S + 'px'; st.marginBottom = a === m.a ? '0' : (m.a.foot - a.foot) * S + 'px';
+      b.spr.classList.toggle('idling', a !== m.a); };
+    b.face = (d) => { b.spr.style.backgroundPositionY = `-${ROW[d] * (b.cur || m.a).h * S}px`; };
     b.go = (tx, ty) => new Promise((ok) => { const dx = tx - b.x; const dy = ty - b.y; const ms = Math.max(300, Math.hypot(dx, dy) / 45 * 1000);
-      b.face(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')); b.spr.classList.add('walking');
-      b.x = tx; b.y = ty; place(ms); setTimeout(() => { b.spr.classList.remove('walking'); b.face('down'); ok(); }, ms); });
+      if (m.a.idle) b.sheet(false); b.face(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')); b.spr.classList.add('walking');
+      b.x = tx; b.y = ty; place(ms); setTimeout(() => { b.spr.classList.remove('walking'); if (m.a.idle) { b.sheet(true); b.hop(); } b.face('down'); ok(); }, ms); });
     b.say = (t) => { const s = document.createElement('span'); s.className = 'fzs-say'; s.textContent = t; el.appendChild(s); setTimeout(() => s.remove(), 1600); };
     b.vanish = () => new Promise((ok) => { el.animate([{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.3 }], { duration: 280, easing: 'ease-in' }); setTimeout(() => { el.style.opacity = 0; ok(); }, 260); });
     b.pop = () => new Promise((ok) => { place(); el.style.opacity = 1; el.animate([{ opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1.2, offset: 0.7 }, { opacity: 1, scale: 1 }], { duration: 340, easing: 'ease-out' }); setTimeout(ok, 420); });
     b.hop = () => { el.classList.remove('hop'); void el.offsetWidth; el.classList.add('hop'); };
     el.onclick = () => { b.say(SAYS[Math.floor(Math.random() * 3)]); b.hop(); el.classList.add('named'); setTimeout(() => el.classList.remove('named'), 2500); };
-    b.face('down'); place(); setTimeout(() => (el.style.opacity = 1), 80 + bots.length * 120);
+    if (m.a.idle) b.sheet(true); b.face('down'); place(); setTimeout(() => (el.style.opacity = 1), 80 + bots.length * 120);
     bots.push(b);
   }));
   if (!bots.length) { if (!map && !solo) box.remove(); return; }
@@ -154,7 +166,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
         }
       } else if (r < 0.82) { const f = bots.filter((o) => o.room === b.room && o !== b && !o.busy)[0]; if (f) { b.busy = true; await meet(b, f); b.busy = false; } }
       else { b.hop(); if (Math.random() < 0.4) b.say(SAYS[Math.floor(Math.random() * SAYS.length)]); }
-      await wait(rand(900, 2600));
+      await wait(b.m.a.idle ? rand(2500, 5500) : rand(900, 2600)); // diggers stay out of the ground longer between moves
     }
   };
   bots.forEach((b, i) => setTimeout(() => life(b), 600 + i * 300));

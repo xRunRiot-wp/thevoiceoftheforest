@@ -2231,3 +2231,5 @@ a.ch-chip:hover { background: var(--navy); }
 /* her ask 10-29: a locked path square (Path to Chapter 2): dimmed, with a big padlock in the middle until the chapter opens */
 .fzs-cube.pic.locked { filter: grayscale(.55) brightness(.7); }
 .fzs-lock { position: absolute; left: 50%; top: 36%; translate: -50% -50%; font-size: clamp(28px, 9vw, 64px); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .6)); pointer-events: none; }
+/* a digger (Diglett) standing still: its idle frames, out of the ground */
+.fzs-spr.idling { animation: fzs-walk var(--ms) steps(var(--n)) infinite; }
