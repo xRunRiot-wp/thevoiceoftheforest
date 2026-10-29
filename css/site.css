@@ -2070,3 +2070,9 @@ a.ch-chip:hover { background: var(--navy); }
 .walk-prize { font-size: 52px; display: inline-block; animation: walk-pop .5s ease-out; } @keyframes walk-pop { from { scale: .2; } 70% { scale: 1.3; } }
 .walk-text { display: flex; gap: 8px; align-items: center; min-height: 56px; margin-top: 8px; padding: 8px 12px; border: 2px solid #e2c98f; border-radius: 12px; background: #fffaf0; color: #3a2c1a; }
 .walk-haul { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; } .walk-haul span { display: flex; flex-direction: column; align-items: center; font-size: 40px; } .walk-haul small { font-size: 12px; }
+
+/* playdate games: a caption over the room */
+.duo-cap { position: absolute; left: 50%; top: 10px; translate: -50% 0; z-index: 6; max-width: 90%; text-align: center; padding: 4px 12px; border: 2px solid #3a2c1a; border-radius: 12px; background: rgba(255, 250, 240, .94); color: #3a2c1a; font: 700 13px var(--pix); opacity: 0; pointer-events: none; }
+.duo-cap.show { animation: duo-cap 4.5s ease forwards; } @keyframes duo-cap { 8%, 80% { opacity: 1; } 100% { opacity: 0; } }
+.duo-ball { position: absolute; bottom: 40px; transition: left .6s cubic-bezier(.4, 0, .6, 1); }
+.duo-ball .ball { animation: duo-arc .6s ease-in-out infinite; } @keyframes duo-arc { 50% { translate: 0 -40px; } }

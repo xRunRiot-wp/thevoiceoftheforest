@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae38d43';
-import { $, $$, esc, toast, num } from './util.js?v=6ae38d43';
-import { me, logRoll } from './play.js?v=6ae38d43';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae38d43';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae38d43';
-import { markWinner } from './sparkle.js?v=6ae38d43';
-import { pageMusic } from './chiptune.js?v=6ae38d43';
-import { modal, closeModal } from './ui.js?v=6ae38d43';
+import * as store from './store.js?v=6ae38e54';
+import { $, $$, esc, toast, num } from './util.js?v=6ae38e54';
+import { me, logRoll } from './play.js?v=6ae38e54';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae38e54';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae38e54';
+import { markWinner } from './sparkle.js?v=6ae38e54';
+import { pageMusic } from './chiptune.js?v=6ae38e54';
+import { modal, closeModal } from './ui.js?v=6ae38e54';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -160,6 +160,19 @@ function startPet(root, b, scene, ownerId) {
     if (busy || asleep()) { if (asleep()) fx('💤'); return; } busy = true; think.className = 'pet-think';
     await walkTo(roomEl.clientWidth / 2 - pw / 2, 240); if (!alive()) return; fx('❗'); row('hop', false); await wait(700); row('nod', false); await wait(800); row('idle'); busy = false;
   });
+  // playdates (her ask 10-29: more interaction): the visiting buddy asks this one to run, hop, nod, face it or nap
+  pet.addEventListener('duo', async (e) => {
+    const d = e.detail || {};
+    if (busy || (asleep() && d.act !== 'sleep')) return d.done?.(false);
+    busy = true; think.className = 'pet-think';
+    if (d.act === 'go') await walkTo(d.x, d.sp || 75);
+    else if (d.act === 'hop') { row('hop', false); if (d.fx) fx(d.fx); await wait(750); row('idle'); }
+    else if (d.act === 'nod') { row('nod', false); if (d.fx) fx(d.fx); await wait(850); row('idle'); }
+    else if (d.act === 'face') { row(d.dir); await wait(d.ms || 600); row('idle'); }
+    else if (d.act === 'sleep') { row('sleep', true, 1.6); await wait(d.ms || 4000); row('idle'); }
+    busy = false; d.done?.(true);
+  });
+  pet.hostX = () => x; pet.hostW = pw;
   pet.onclick = async () => {
     if (rubbed) { rubbed = false; return; }
     if (busy) return; busy = true; think.className = 'pet-think';
@@ -291,17 +304,78 @@ function startGuest(root, gb, label) {
     await wait(d / sp * 1000); row('idle');
   };
   pet.onclick = async () => { row('hop', false); fx('💕'); await wait(700); row('idle'); };
+  const gname = label.split('’s ').pop(); const props = $('.props', root);
+  const hostEl = () => $('#npet', root);
+  // ask the host buddy to do something; resolves when it's done (or straight away if it's busy)
+  const host = (act, extra = {}) => new Promise((ok) => { const h = hostEl(); if (!h) return ok(false); h.dispatchEvent(new CustomEvent('duo', { detail: { act, ...extra, done: ok } })); setTimeout(() => ok(false), 7000); });
+  const hx = () => hostEl()?.hostX?.() ?? maxX() / 2; const hw = () => hostEl()?.hostW || pw;
+  const hfx = (ch, dx = 0) => { const e = document.createElement('span'); e.className = 'pet-fx'; e.textContent = ch; e.style.left = (hx() + hw() / 2 - 12 + dx) + 'px'; roomEl.appendChild(e); setTimeout(() => e.remove(), 1400); };
+  const cap = (t) => { let c = $('.duo-cap', roomEl); if (!c) { c = document.createElement('div'); c.className = 'duo-cap'; roomEl.appendChild(c); } c.textContent = t; c.classList.remove('show'); void c.offsetWidth; c.classList.add('show'); };
+  const hostName = () => $('#nname', root)?.closest('.n-head')?.querySelector('b')?.textContent || 'your buddy';
+  const GAMES = {
+    // tag: one chases, the other runs off squealing, then they swap
+    async tag() {
+      cap(`${gname} and ${hostName()} are playing tag!`);
+      for (let k = 0; k < 2 && alive(); k++) {
+        const far = hx() < maxX() / 2 ? maxX() : 10;
+        await Promise.all([walkTo(hx(), 200), wait(250).then(() => host('go', { x: far, sp: 210 }))]);
+        fx('💨'); await wait(300);
+        const back = x < maxX() / 2 ? maxX() : 10;
+        await Promise.all([host('go', { x: x, sp: 200 }), wait(250).then(() => walkTo(back, 210))]);
+        hfx('❗');
+      }
+      await Promise.all([host('hop', { fx: '♪' }), (async () => { row('hop', false); fx('♪'); await wait(750); row('idle'); })()]);
+    },
+    // catch: a ball bounces back and forth between them
+    async ball() {
+      cap(`${gname} and ${hostName()} are playing catch!`);
+      await walkTo(hx() < maxX() / 2 ? hx() + 150 : hx() - 150, 120);
+      props.insertAdjacentHTML('beforeend', '<span class="ball-wrap duo-ball"><img class="prop ball" src="assets/nursery/ball.png" alt=""></span>');
+      const ball = $('.duo-ball', props); ball.style.transition = 'none'; ball.style.left = (x + pw / 2 - 18) + 'px'; void ball.offsetWidth; ball.style.transition = '';
+      for (let k = 0; k < 4 && alive(); k++) {
+        const toHost = k % 2 === 0; ball.style.left = ((toHost ? hx() + hw() / 2 : x + pw / 2) - 18) + 'px';
+        await wait(650);
+        if (toHost) await host('hop', { fx: k === 2 ? '💕' : '' }); else { row('hop', false); await wait(700); row('idle'); }
+      }
+      ball.remove(); fx('💕'); hfx('💕');
+    },
+    // a cuddle: they walk up to each other, face each other and nuzzle
+    async cuddle() {
+      cap(`${gname} and ${hostName()} are having a cuddle!`);
+      const left = x < hx(); await walkTo(left ? hx() - pw * 0.7 : hx() + hw() * 0.7, 110);
+      await Promise.all([host('face', { dir: left ? 'left' : 'right', ms: 300 }), (async () => { row(left ? 'right' : 'left'); await wait(300); })()]);
+      for (let k = 0; k < 2; k++) { await Promise.all([host('nod'), (async () => { row('nod', false); await wait(850); })()]); fx('💕', 10); hfx('💞', -10); }
+      row('idle');
+    },
+    // a dance: they take turns hopping, then hop together
+    async dance() {
+      cap(`${gname} and ${hostName()} are dancing!`);
+      await walkTo(hx() < maxX() / 2 ? hx() + 110 : hx() - 110, 110);
+      for (let k = 0; k < 3 && alive(); k++) { row('hop', false); fx('♪'); await wait(700); row('idle'); await host('hop', { fx: '♫' }); }
+      await Promise.all([host('hop', { fx: '✨' }), (async () => { row('hop', false); fx('✨'); await wait(750); row('idle'); })()]);
+    },
+    // a nap side by side
+    async nap() {
+      cap(`${gname} and ${hostName()} are napping together. Shh…`);
+      await walkTo(hx() < maxX() / 2 ? hx() + pw * 0.9 : hx() - pw * 0.9, 90);
+      row('sleep', true, 1.6); fx('💤'); await host('sleep', { ms: 4200 }); await wait(400); row('idle'); fx('♪');
+    },
+  };
   (async () => {
     row('hop', false); fx('👋'); await wait(900);
+    let next = Date.now() + 2500; let last = '';
     while (alive()) {
       if (asleep()) { row('sleep', true, 1.6); await wait(5000); continue; }
-      // mostly stays close to its friend, now and then a little hop and a heart
-      const host = $('#npet', root); const hx = host ? parseFloat(host.style.left) || 0 : maxX() / 2;
+      // every few seconds they play something together; in between it potters about near its friend
+      if (Date.now() > next) {
+        const pick = Object.keys(GAMES).filter((g) => g !== last); last = pick[Math.floor(Math.random() * pick.length)];
+        try { await GAMES[last](); } catch { /* the room was closed mid-game */ }
+        next = Date.now() + 3000 + Math.random() * 3000; continue;
+      }
       const r = Math.random();
-      if (r < 0.45) await walkTo(hx + (Math.random() < 0.5 ? -1 : 1) * (40 + Math.random() * 60));
-      else if (r < 0.7) { row('hop', false); fx(Math.random() < 0.6 ? '💕' : '♪'); await wait(800); row('idle'); }
-      else if (r < 0.8) await walkTo(10 + Math.random() * maxX());
-      else { row('nod', false); await wait(900); row('idle'); await wait(1200 + Math.random() * 1500); }
+      if (r < 0.5) await walkTo(hx() + (Math.random() < 0.5 ? -1 : 1) * (50 + Math.random() * 50));
+      else if (r < 0.75) { row('hop', false); fx(Math.random() < 0.6 ? '💕' : '♪'); await wait(800); row('idle'); }
+      else { row('nod', false); await wait(900); row('idle'); await wait(800); }
     }
   })();
 }
