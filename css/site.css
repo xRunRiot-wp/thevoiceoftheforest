@@ -2247,3 +2247,14 @@ a.ch-chip:hover { background: var(--navy); }
 .fz-lockbtn:not(.alt) { background: #c4472f; border-color: #7a1f10; color: #fff; }
 /* one long word (Miltankshake) shrinks a little so it fits the square on a phone */
 .fzs-cube.pic .fzs-cube-nm.nm-long { font-size: clamp(10px, 2.6vw, 18px); }
+/* What's new tutorial */
+.tour { text-align: center; padding-top: 4px; }
+.tour h2 { margin: 6px 0 8px; }
+.tour p { line-height: 1.5; }
+.tour-icon { font-size: 56px; line-height: 1; min-height: 72px; display: flex; align-items: center; justify-content: center; }
+.tour-pic { width: 72px; height: 72px; object-fit: contain; image-rendering: pixelated; }
+.tour-dots { display: flex; gap: 6px; justify-content: center; margin: 0; }
+.tour-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--brown); opacity: .25; }
+.tour-dots i.on { opacity: 1; }
+.tour-nav { justify-content: center; gap: 10px; margin-top: 14px; }
+.tour-skip { opacity: .8; }
