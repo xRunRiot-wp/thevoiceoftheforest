@@ -1,15 +1,51 @@
 // Training Gym (#/gym): one drill per day per character. Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6ae3a8c7';
-import { $, $$, esc, num, pool } from './util.js?v=6ae3a8c7';
-import { modal, diceFaces } from './ui.js?v=6ae3a8c7';
-import { statVal, logRoll } from './play.js?v=6ae3a8c7';
-import { myId } from './app.js?v=6ae3a8c7';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3a8c7';
-import { RESIDENTS } from './chatter.js?v=6ae3a8c7';
+import * as store from './store.js?v=6ae3a980';
+import { $, $$, esc, num, pool } from './util.js?v=6ae3a980';
+import { modal, diceFaces } from './ui.js?v=6ae3a980';
+import { statVal, logRoll } from './play.js?v=6ae3a980';
+import { myId } from './app.js?v=6ae3a980';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3a980';
+import { locations, spots } from './friendzone.js?v=6ae3a980';
+import { RESIDENTS } from './chatter.js?v=6ae3a980';
 
 const BAR = 5;
+// Training partners (her ask 10-29): a player may bring up to 3 Pokémon who live at the guild (Woodland Base in the
+// Friend Zone: its spots' residents and recruits) to every drill. Each partner trains alongside and keeps its own
+// Training Points: gym/npc/<key> = { name, prog, tp }. party/<id>/gymPals = the names picked.
+const PALS_MAX = 3;
+const palKey = (n) => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+function guildResidents() {
+  const loc = locations().find((l) => l.id === 'woodland-base') || locations()[0]; if (!loc) return [];
+  const players = new Set(Object.values(store.get('party') || {}).map((c) => String(c.nickname || '').toLowerCase()));
+  const rec = Object.values(store.get('recruits/' + loc.id) || {}).flatMap((x) => Object.values(x || {}).map((r) => r.name));
+  // only real Pokémon: a spot's resident list can also hold group notes like “Vanguard Guild”
+  const isMon = (n) => n.split(/\s+/).length <= 3 && !/guild|team|members|rank/i.test(n);
+  return [...new Set([...spots(loc).flatMap((x) => x.mons), ...rec].map((n) => String(n).trim()).filter((n) => n && isMon(n) && !players.has(n.toLowerCase())))];
+}
+const palsOf = (c) => (Array.isArray(c.gymPals) ? c.gymPals : []).filter((n) => guildResidents().includes(n)).slice(0, PALS_MAX);
+const npcRec = (n) => store.get('gym/npc/' + palKey(n)) || { name: n, prog: 0, tp: 0 };
+function palsHTML(c) {
+  const all = guildResidents(); const mine = palsOf(c);
+  if (!all.length) return '';
+  return `<div class="card gym-pals"><h3 style="margin:0 0 4px">🤝 Training partners <span class="small muted">${mine.length}/${PALS_MAX}</span></h3>
+    <p class="small muted" style="margin:0 0 6px">Bring up to ${PALS_MAX} Pokémon who live at the guild (Friend Zone). They train with you and earn their own Training Points.</p>
+    <div class="gym-pal-list">${all.map((n) => { const r = npcRec(n); const on = mine.includes(n);
+      return `<button class="gym-pal ${on ? 'on' : ''}" data-pal="${esc(n)}"><b>${on ? '✅ ' : ''}${esc(n)}</b><small>${num(r.tp)} TP · bar ${num(r.prog)}/${BAR}</small></button>`; }).join('')}</div></div>`;
+}
+function togglePal(c, n) {
+  const mine = palsOf(c);
+  if (mine.includes(n)) store.set(`party/${c.id}/gymPals`, mine.filter((x) => x !== n));
+  else if (mine.length >= PALS_MAX) modal(`<h2>Room for ${PALS_MAX}</h2><p>You can train with up to ${PALS_MAX} partners. Tap one of yours to send them off first.</p>`);
+  else store.set(`party/${c.id}/gymPals`, [...mine, n]);
+}
+// each partner rolls the drill too (2 dice + 1 for the Pokémon's own effort) and fills its own bar
+function palsTrain(c, d) {
+  return palsOf(c).map((n) => { const r = pool(2, { pain: 0 }); const rec = npcRec(n); const total = num(rec.prog) + r.succ; const tp = Math.floor(total / BAR);
+    store.set('gym/npc/' + palKey(n), { name: n, prog: total % BAR, tp: num(rec.tp) + tp });
+    return { n, succ: r.succ, tp, now: num(rec.tp) + tp }; });
+}
 export const DRILLS = [
   { id: 'boulder', icon: '💪', name: 'Boulder Push', attr: 'Strength', skill: 'Brawl', text: 'Shove a boulder up the training ramp without letting it roll back.' },
   { id: 'agility', icon: '💨', name: 'Agility Course', attr: 'Dexterity', skill: 'Evasion', text: 'Weave through swinging logs and leap the stepping stones.' },
@@ -178,9 +214,11 @@ export function renderGym(main) {
         <div class="gym-bar" title="${prog}/${BAR}">${Array.from({ length: BAR }, (_, i) => `<i class="${i < prog ? 'on' : ''}"></i>`).join('')}<span>${prog}/${BAR}</span></div>
         <button class="btn block" data-train="${d.id}" ${done && !gm ? 'disabled' : ''}>${done ? (gm ? 'Train again (GM)' : 'Rested') : 'Train'}</button></div>`;
     }).join('')}</div>
+    ${palsHTML(c)}
     <p class="small muted">Training Points are spent with the GM's OK to raise stats.</p>
     <div class="gym-bottom">${gymChatHTML(wx)}${gymWxHTML(c, wx)}</div>`;
   $$('[data-train]', main).forEach((b) => b.onclick = () => train(c.id, b.dataset.train));
+  $$('[data-pal]', main).forEach((b) => b.onclick = () => togglePal(c, b.dataset.pal));
   $('#gwxinfo', main).onclick = showWeather;
   const gc = $('#gcoach', main);
   if (gc) gc.onclick = (e) => { e.preventDefault(); const n = prompt('Coach name', COACH()); if (n && n.trim()) store.set('gym/coach', n.trim()); };
@@ -204,6 +242,7 @@ function train(id, drillId) {
   store.set(`party/${id}/gym/bars/${d.id}`, total % BAR);
   if (tp) store.set(`party/${id}/tp`, num(c.tp) + tp);
   const story = STORY[Math.min(3, r.succ)];
+  const pals = palsTrain(c, d);
   logRoll(c.nickname, `Training: ${d.name} (${drillAttr(c, d)} + ${d.skill})`, r.dice, `${r.succ} success${r.succ === 1 ? '' : 'es'}${r.onesPen ? ` (two 1s cancelled ${r.onesPen > 1 ? r.onesPen : 'one'})` : ''} · +${gain} progress${tp ? ` · +${tp} Training Point${tp > 1 ? 's' : ''}!` : ''}`);
   modal(`<h2>${d.icon} ${esc(d.name)}</h2>
     <div class="result">${diceFaces(r.dice)}<div class="big">${r.succ} success${r.succ === 1 ? '' : 'es'}</div></div>
@@ -212,5 +251,6 @@ function train(id, drillId) {
     ${d.id === loved ? `<p class="small">💖 ${esc(c.nickname)} loves this drill! ${r.succ ? '+1 bonus progress.' : ''}</p>` : d.id === hated ? `<p class="small">💢 ${esc(c.nickname)} hated every second of it (−1 Will).</p>` : ''}
     <p><b>+${gain} progress</b> · bar ${total % BAR}/${BAR}${tp && total % BAR ? ` (${total % BAR} carried over)` : ''}</p>
     ${tp ? `<div class="win tight" style="font-size:18px">🎉 Bar full! +${tp} Training Point${tp > 1 ? 's' : ''} (now ${num(c.tp) + tp})</div>` : ''}
+    ${pals.length ? `<h4 style="margin:10px 0 4px">🤝 Your training partners</h4><ul class="gym-pal-res">${pals.map((x) => `<li><b>${esc(x.n)}</b>: +${x.succ} progress${x.tp ? ` · 🎉 +${x.tp} Training Point (now ${x.now})` : ''}</li>`).join('')}</ul>` : ''}
     <div class="row" style="margin-top:10px"><button class="btn" data-close>Done</button></div>`);
 }

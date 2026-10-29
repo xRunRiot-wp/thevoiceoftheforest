@@ -1,26 +1,26 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae3a8c7';
-import * as sheet from './sheetdata.js?v=6ae3a8c7';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae3a8c7';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae3a8c7';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae3a8c7';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae3a8c7';
-import { unlockChar } from './charlock.js?v=6ae3a8c7';
-import { CONFIG } from './config.js?v=6ae3a8c7';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae3a8c7';
-import { merged, editContent } from './content-store.js?v=6ae3a8c7';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae3a8c7';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae3a8c7';
-import { homeHTML } from './sitepages.js?v=6ae3a8c7';
-import { burstSet } from './burst.js?v=6ae3a8c7';
-import { pinsOf, showMap } from './hotbar.js?v=6ae3a8c7';
-import { chatterLatestHTML } from './chatter.js?v=6ae3a8c7';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae3a8c7';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae3a8c7';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3a8c7';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae3a8c7';
-import { find } from './effects.js?v=6ae3a8c7';
-import * as dice3d from './dice3d.js?v=6ae3a8c7';
+import * as store from './store.js?v=6ae3a980';
+import * as sheet from './sheetdata.js?v=6ae3a980';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae3a980';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae3a980';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae3a980';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae3a980';
+import { unlockChar } from './charlock.js?v=6ae3a980';
+import { CONFIG } from './config.js?v=6ae3a980';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae3a980';
+import { merged, editContent } from './content-store.js?v=6ae3a980';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae3a980';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae3a980';
+import { homeHTML } from './sitepages.js?v=6ae3a980';
+import { burstSet } from './burst.js?v=6ae3a980';
+import { pinsOf, showMap } from './hotbar.js?v=6ae3a980';
+import { chatterLatestHTML } from './chatter.js?v=6ae3a980';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae3a980';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae3a980';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3a980';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae3a980';
+import { find } from './effects.js?v=6ae3a980';
+import * as dice3d from './dice3d.js?v=6ae3a980';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -505,10 +505,13 @@ function moveBag(c, key, d) {
   const keys = bagSorted(c).map(([k]) => k); const i = keys.indexOf(key); const j = i + d;
   if (i < 0 || j < 0 || j >= keys.length) return; [keys[i], keys[j]] = [keys[j], keys[i]]; store.set(`party/${c.id}/bagOrder`, keys);
 }
+const bagEditing = () => { try { return sessionStorage.getItem('dc.bagedit') === '1'; } catch { return false; } };
 function bagList(c) {
   const bag = bagSorted(c);
   if (!bag.length) return '<p class="muted small">Empty. Items the team finds land here.</p>';
-  return `<ul class="log" style="max-height:none">${bag.map(([id, b], n) => `<li class="row nowrap"><span class="bag-move"><button class="btn alt sm" data-bagmv="${id}|-1" ${n ? '' : 'disabled'} title="Move up" aria-label="Move up">▲</button><button class="btn alt sm" data-bagmv="${id}|1" ${n < bag.length - 1 ? '' : 'disabled'} title="Move down" aria-label="Move down">▼</button></span><span class="grow">${isBadge(b.name) ? badgeIcon(b.name) : ''}${b.name === 'World Map' ? `<a href="#" data-showmap="1"><b>🗺️ World Map</b></a>` : `<a href="#" data-ixname="${esc(b.name)}"><b>${esc(b.name)}</b></a>`} ×${b.qty}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span>
+  // her ask 10-29: the arrows only show after tapping Edit (remembered per device)
+  const edit = bagEditing();
+  return `${bag.length > 1 ? `<div class="row" style="justify-content:flex-end;margin:0 0 4px"><button class="btn alt sm" id="bagedit">${edit ? '✓ Done' : '✏️ Edit order'}</button></div>` : ''}<ul class="log ${edit ? 'bag-editing' : ''}" style="max-height:none">${bag.map(([id, b], n) => `<li class="row nowrap"><span class="bag-move"><button class="btn alt sm" data-bagmv="${id}|-1" ${n ? '' : 'disabled'} title="Move up" aria-label="Move up">▲</button><button class="btn alt sm" data-bagmv="${id}|1" ${n < bag.length - 1 ? '' : 'disabled'} title="Move down" aria-label="Move down">▼</button></span><span class="grow">${isBadge(b.name) ? badgeIcon(b.name) : ''}${b.name === 'World Map' ? `<a href="#" data-showmap="1"><b>🗺️ World Map</b></a>` : `<a href="#" data-ixname="${esc(b.name)}"><b>${esc(b.name)}</b></a>`} ×${b.qty}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span>
     ${b.name === 'World Map' || isBadge(b.name) ? '' : `<button class="btn alt sm pinbtn ${pinsOf(c).includes(b.name) ? 'on' : ''}" data-pin="${esc(b.name)}" title="Pin to the top bar">📌</button>`}${isBadge(b.name) ? '<span class="small muted">rank badge</span>' : b.key ? '<span class="small muted">key item</span>' : `<button class="btn alt sm" data-stash="${id}">Store</button><button class="btn sm" data-use="${id}">Use</button>`}</li>`).join('')}</ul>`;
 }
 
@@ -518,6 +521,7 @@ function bindCharCard(main, c) {
   bindMemory(main, c);
   $$('[data-showmap]', main).forEach((a) => a.onclick = (e) => { e.preventDefault(); showMap(); });
   $$('[data-bagmv]', main).forEach((b) => b.onclick = () => { const [k, d] = b.dataset.bagmv.split('|'); moveBag(party()[c.id] || c, k, num(d)); });
+  const be = $('#bagedit', main); if (be) be.onclick = () => { try { sessionStorage.setItem('dc.bagedit', bagEditing() ? '0' : '1'); } catch { /* fine */ } const ul = be.closest('.row').nextElementSibling; const on = !ul.classList.contains('bag-editing'); ul.classList.toggle('bag-editing', on); be.textContent = on ? '✓ Done' : '✏️ Edit order'; };
   $$('[data-pin]', main).forEach((b) => b.onclick = () => {
     const n = b.dataset.pin; const cur = pinsOf(c);
     if (cur.includes(n)) store.set(path + '/pins', cur.filter((x) => x !== n));

@@ -2164,3 +2164,14 @@ a.ch-chip:hover { background: var(--navy); }
 .evo-mon small { display: block; font-size: 11px; opacity: .75; }
 .evo-mon b { display: block; }
 .evo-arrow { font-size: 20px; opacity: .6; }
+
+/* training partners in the gym (her ask 10-29) */
+.gym-pals { margin-top: 12px; }
+.gym-pal-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.gym-pal { display: flex; flex-direction: column; align-items: flex-start; padding: 6px 10px; border: 2px solid rgba(0, 0, 0, .15); border-radius: 10px; background: rgba(255, 255, 255, .6); cursor: pointer; font: inherit; color: inherit; }
+.gym-pal.on { border-color: #f0b955; background: rgba(240, 185, 85, .22); }
+.gym-pal small { opacity: .75; font-size: 11px; }
+.gym-pal-res { margin: 0; padding-left: 18px; }
+
+/* bag arrows only in edit mode (her ask 10-29) */
+.bag-move { display: none; } .bag-editing .bag-move { display: inline-flex; }
