@@ -77,6 +77,15 @@ const LAB_BARS = ['Am', 'Am', 'F', 'G', 'Am', 'Dm', 'E', 'E'].map((c) => LAB_CH[
 const LAB_BASS = LAB_BARS.flatMap(([r]) => [r, 0, r + 12, 0, r, 0, r + 12, r]);
 const LAB_ARP = LAB_BARS.flatMap(([, a, b, c]) => [0, a + 24, 0, b + 24, 0, c + 24, 0, b + 24]);
 const LAB_DRUMS = LAB_BARS.flatMap((_, k) => (k === 7 ? ['k', 0, 's', 0, 's', 's', 's', 's'] : ['k', 0, 0, 0, 's', 0, 0, 0]));
+// Machamp's caravan (her ask 10-29: a whimsical DS-style desert-adventure tune): an original bouncy tune in D Phrygian
+// dominant (the "Arabian nights" scale), a fluttery flute lead, plucked offbeats, a darbuka-style kick/snare and tambourine.
+const CARAVAN_LEAD = [74, 0, 75, 78, 79, 0, 78, 75, 74, 0, 0, 81, 79, 78, 75, 74, 79, 0, 82, 81, 79, 0, 78, 79, 81, 0, 0, 0, 78, 79, 81, 82,
+  84, 0, 82, 81, 82, 0, 81, 79, 79, 81, 82, 0, 81, 79, 78, 0, 75, 0, 78, 79, 81, 0, 79, 78, 74, 0, 0, 0, 0, 0, 0, 0];
+const CV = { D: [38, 62, 66, 69], Gm: [43, 62, 67, 70], Cm: [36, 60, 63, 67], Eb: [39, 63, 67, 70] };
+const CARAVAN_BARS = ['D', 'D', 'Gm', 'D', 'Cm', 'Gm', 'Eb', 'D'].map((c) => CV[c]);
+const CARAVAN_BASS = CARAVAN_BARS.flatMap(([r]) => [r, 0, r + 7, 0, r, r, r + 7, 0]);
+const CARAVAN_ARP = CARAVAN_BARS.flatMap(([, a, b, c]) => [0, a + 12, 0, b + 12, 0, a + 12, 0, c + 12]);
+const CARAVAN_DRUMS = CARAVAN_BARS.flatMap((_, k) => (k === 7 ? ['k', 0, 's', 's', 'k', 's', 's', 's'] : ['k', 0, 0, 'k', 's', 0, 's', 0]));
 const SONGS = {
   battle: { bpm: 168, lead: BATTLE_LEAD, bass: BATTLE_BASS, drums: BATTLE_DRUMS, hat: 1, leadVol: 0.045, leadLen: 0.8 },
   dance: { bpm: 160, lead: LEAD, bass: BASS, hat: 2 },
@@ -85,6 +94,7 @@ const SONGS = {
   march: { bpm: 112, lead: MARCH_LEAD, bass: MARCH_BASS, drums: MARCH_DRUMS, leadVol: 0.05 },
   musicbox: { bpm: 84, lead: BOX_LEAD, bass: BOX_BASS, arp: BOX_ARP, bell: true },
   lab: { bpm: 128, lead: LAB_LEAD, bass: LAB_BASS, arp: LAB_ARP, drums: LAB_DRUMS, hat: 2, leadLen: 0.6, leadVol: 0.045, bubbles: true },
+  caravan: { bpm: 132, lead: CARAVAN_LEAD, bass: CARAVAN_BASS, arp: CARAVAN_ARP, drums: CARAVAN_DRUMS, hat: 1, leadType: 'triangle', leadVol: 0.075, leadLen: 0.8 },
   celebi: { bpm: 100, lead: CELEBI_LEAD, bass: CELEBI_BASS, arp: CELEBI_ARP, bell: true },
   casino: { bpm: 116, lead: CASINO_LEAD, bass: CASINO_BASS, comp: CASINO_COMP, hat: 2, swing: 0.33, leadType: 'triangle', leadVol: 0.07 },
 };

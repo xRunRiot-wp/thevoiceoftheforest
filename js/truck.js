@@ -7,15 +7,15 @@
 // Run's day sky) above a soft, faded Woodland Base picture; bins at their old size but smoother (basket_hd/chest_hd = Scale4x of
 // the sprites, the chest recoloured to wood and gold).
 // Art: the Woodland Base tent (GM's campaign art) backdrop, Machamp / Voltorb / runner sprites (SpriteCollab), items, basket, chest and logs (PMDCollab RawAsset).
-import * as store from './store.js?v=6ae3a255';
-import { $, esc, num, uid } from './util.js?v=6ae3a255';
-import { me, logRoll } from './play.js?v=6ae3a255';
-import { dailyRoll } from './weather.js?v=6ae3a255';
-import { gameSay } from './chatter.js?v=6ae3a255';
-import { markWinner } from './sparkle.js?v=6ae3a255';
-import { rareItem } from './sentry.js?v=6ae3a255';
-import { startBroadcast } from './watch.js?v=6ae3a255';
-import { stepSound, missSound, jingle, ensureAudio } from './chiptune.js?v=6ae3a255';
+import * as store from './store.js?v=6ae3a2d1';
+import { $, esc, num, uid } from './util.js?v=6ae3a2d1';
+import { me, logRoll } from './play.js?v=6ae3a2d1';
+import { dailyRoll } from './weather.js?v=6ae3a2d1';
+import { gameSay } from './chatter.js?v=6ae3a2d1';
+import { markWinner } from './sparkle.js?v=6ae3a2d1';
+import { rareItem } from './sentry.js?v=6ae3a2d1';
+import { startBroadcast } from './watch.js?v=6ae3a2d1';
+import { stepSound, missSound, jingle, ensureAudio, pageMusic } from './chiptune.js?v=6ae3a2d1';
 
 export const isTruck = (g) => g.kind === 'truck' || g.id === 'machamp-wagon';
 
@@ -187,6 +187,7 @@ export function renderTruck(main, g, gm, onEdit) {
     <h1 style="margin:10px 0 4px">${esc(g.name)}</h1>
     <p>${esc(g.intro || '')}</p>
     <p><span class="pill">🤲 Catch & carry (up to ${MAXCARRY})</span> <span class="pill">🧺 Food → basket · 📦 Gear → chest</span> <span class="pill">⚡ Don’t catch the Voltorb</span> <span class="pill">💰 First shift each day: 4 Poké a thing, +80 for 40+</span></p>
+    <p class="small muted" style="text-align:right;margin:0 0 4px"><button class="btn alt sm" id="tkmusic"></button></p>
     <div class="card sentry"><div id="tkbox"></div></div>
     <div class="card" style="margin-top:12px"><h3 style="margin-top:0">Strongest helpers</h3><ul class="sentry-roster" id="tkbest"></ul></div>`;
   const party = store.get('party') || {};
@@ -201,4 +202,5 @@ export function renderTruck(main, g, gm, onEdit) {
     $('#tkgo', box).onclick = () => play(c, box, best);
   }
   const e = $('#ed', main); if (e) e.onclick = onEdit;
+  pageMusic(main, 'caravan', 'tkmusic'); // her ask 10-29: a whimsical desert-adventure tune
 }
