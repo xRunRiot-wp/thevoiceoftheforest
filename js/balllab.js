@@ -3,13 +3,13 @@
 // Balls above fall down, empty columns slide together, and bigger groups score far more: (size − 1)² × 10.
 // The game ends when no two matching balls touch; clearing the whole heap is +1000.
 // First finished game each day pays Poké by score. balllab/<id> = { best, runs, paidDay, last }.
-import * as store from './store.js?v=6ae39be3';
-import { $, esc, num } from './util.js?v=6ae39be3';
-import { me, logRoll } from './play.js?v=6ae39be3';
-import { dailyRoll } from './weather.js?v=6ae39be3';
-import { gameSay } from './chatter.js?v=6ae39be3';
-import { markWinner } from './sparkle.js?v=6ae39be3';
-import { ensureAudio, jingle } from './chiptune.js?v=6ae39be3';
+import * as store from './store.js?v=6ae39d67';
+import { $, esc, num } from './util.js?v=6ae39d67';
+import { me, logRoll } from './play.js?v=6ae39d67';
+import { dailyRoll } from './weather.js?v=6ae39d67';
+import { gameSay } from './chatter.js?v=6ae39d67';
+import { markWinner } from './sparkle.js?v=6ae39d67';
+import { ensureAudio, jingle, pageMusic } from './chiptune.js?v=6ae39d67';
 
 export const isBallLab = (g) => g.kind === 'balllab' || g.id === 'boltund-ball-lab';
 const COLS = 9; const ROWS = 11; const CLEAR_BONUS = 1000;
@@ -126,6 +126,7 @@ export function renderBallLab(main, g, gm, onEdit) {
     <h1 style="margin:10px 0 4px">${esc(g.name)}</h1>
     <p>${esc(g.intro || '')}</p>
     <p><span class="pill">👆 Tap 2+ matching balls</span> <span class="pill">⭐ Bigger groups score way more</span> <span class="pill">💰 First game each day pays up to ${payFor(3000, true)} Poké</span></p>
+    <p class="small muted" style="text-align:right;margin:0 0 4px"><button class="btn alt sm" id="blmusic"></button></p>
     <details class="card small"><summary><b>How to play</b></summary><ol>
       <li>Tap a group of <b>2 or more</b> matching Poké Balls that touch (up, down, left or right). They pop!</li>
       <li>Balls above fall down, and empty columns slide together.</li>
@@ -146,4 +147,5 @@ export function renderBallLab(main, g, gm, onEdit) {
     $('#blgo', box).onclick = () => play(c, box, best);
   }
   const e = $('#ed', main); if (e) e.onclick = onEdit;
+  pageMusic(main, 'lab', 'blmusic'); // her ask 10-29: sciencey lab music
 }

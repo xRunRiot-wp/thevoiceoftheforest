@@ -68,6 +68,15 @@ const CB = { D: [50, 66, 69], Bm: [47, 66, 71], Em: [52, 67, 71], A: [45, 64, 69
 const CELEBI_BARS = ['D', 'D', 'Bm', 'D', 'Em', 'Em', 'A', 'A', 'G', 'D', 'Em', 'D', 'D', 'A', 'G', 'D'].map((c) => CB[c]);
 const CELEBI_BASS = CELEBI_BARS.flatMap(([b]) => [b, 0, 0, 0, 0, 0]);
 const CELEBI_ARP = CELEBI_BARS.flatMap(([, x, y]) => [0, x + 12, y + 12, x + 24, y + 12, 0]);
+// Boltund's Ball Lab (her ask 10-29: sciencey 8-bit music): an original bubbly lab tune in A minor, Am Am F G | Am Dm E E,
+// a staccato lead, octave-pumping bass, high bleep arpeggios and random rising "bubble" blips like a bubbling beaker.
+const LAB_LEAD = [69, 0, 72, 76, 0, 74, 72, 0, 69, 0, 72, 76, 81, 0, 79, 76, 77, 0, 76, 72, 0, 69, 72, 0, 74, 0, 71, 67, 74, 0, 79, 0,
+  81, 0, 79, 76, 0, 72, 76, 0, 77, 0, 74, 69, 74, 77, 81, 0, 80, 0, 76, 71, 0, 68, 71, 0, 76, 0, 80, 83, 88, 0, 0, 0];
+const LAB_CH = { Am: [45, 57, 60, 64], F: [41, 53, 57, 60], G: [43, 55, 59, 62], Dm: [38, 50, 53, 57], E: [40, 52, 56, 59] };
+const LAB_BARS = ['Am', 'Am', 'F', 'G', 'Am', 'Dm', 'E', 'E'].map((c) => LAB_CH[c]);
+const LAB_BASS = LAB_BARS.flatMap(([r]) => [r, 0, r + 12, 0, r, 0, r + 12, r]);
+const LAB_ARP = LAB_BARS.flatMap(([, a, b, c]) => [0, a + 24, 0, b + 24, 0, c + 24, 0, b + 24]);
+const LAB_DRUMS = LAB_BARS.flatMap((_, k) => (k === 7 ? ['k', 0, 's', 0, 's', 's', 's', 's'] : ['k', 0, 0, 0, 's', 0, 0, 0]));
 const SONGS = {
   battle: { bpm: 168, lead: BATTLE_LEAD, bass: BATTLE_BASS, drums: BATTLE_DRUMS, hat: 1, leadVol: 0.045, leadLen: 0.8 },
   dance: { bpm: 160, lead: LEAD, bass: BASS, hat: 2 },
@@ -75,6 +84,7 @@ const SONGS = {
   kitchen: { bpm: 150, lead: KITCHEN_LEAD, bass: KITCHEN_BASS, arp: KITCHEN_ARP, hat: 2, leadLen: 0.5, leadVol: 0.045 },
   march: { bpm: 112, lead: MARCH_LEAD, bass: MARCH_BASS, drums: MARCH_DRUMS, leadVol: 0.05 },
   musicbox: { bpm: 84, lead: BOX_LEAD, bass: BOX_BASS, arp: BOX_ARP, bell: true },
+  lab: { bpm: 128, lead: LAB_LEAD, bass: LAB_BASS, arp: LAB_ARP, drums: LAB_DRUMS, hat: 2, leadLen: 0.6, leadVol: 0.045, bubbles: true },
   celebi: { bpm: 100, lead: CELEBI_LEAD, bass: CELEBI_BASS, arp: CELEBI_ARP, bell: true },
   casino: { bpm: 116, lead: CASINO_LEAD, bass: CASINO_BASS, comp: CASINO_COMP, hat: 2, swing: 0.33, leadType: 'triangle', leadVol: 0.07 },
 };
@@ -83,10 +93,27 @@ const STEP_NOTE = { up: 84, right: 79, left: 76, down: 72 };
 export const muted = () => { try { return localStorage.getItem('dc.music') === 'off'; } catch { return false; } };
 export function setMuted(m) { try { localStorage.setItem('dc.music', m ? 'off' : 'on'); } catch { /* ignore */ } if (master) master.gain.value = m ? 0 : 0.5; }
 
+// her ask 10-29: every tune upgraded to Nintendo DS style. Up to 16 parts at once (lead pair with vibrato, a string
+// double, bass + sub, a three-voice pad on every bar, arpeggio, chords, drums, hats, bubbles, rain), each placed left or
+// right in stereo, through a shared hall reverb and an echo, then a gentle compressor so nothing gets harsh.
+let dsOut = null; let rev = null; let echo = null;
+function busses(c, out) {
+  const comp = c.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3; comp.attack.value = 0.01; comp.release.value = 0.2;
+  const m = c.createGain(); m.connect(comp); comp.connect(out);
+  // hall reverb: a decaying stereo noise burst as the room's echo print
+  const len = Math.floor(c.sampleRate * 2.2); const ir = c.createBuffer(2, len, c.sampleRate);
+  for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+  const cv = c.createConvolver(); cv.buffer = ir; const r = c.createGain(); r.gain.value = 0.9; r.connect(cv); const rw = c.createGain(); rw.gain.value = 0.55; cv.connect(rw); rw.connect(m);
+  // echo: a soft repeating delay, darker each time
+  const dl = c.createDelay(1); dl.delayTime.value = 0.3; const fb = c.createGain(); fb.gain.value = 0.28; const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2400;
+  const e = c.createGain(); e.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); const ew = c.createGain(); ew.gain.value = 0.5; lp.connect(ew); ew.connect(m);
+  return { m, r, e };
+}
 function init() {
   if (ctx) return true;
   const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
   ctx = new AC(); master = ctx.createGain(); master.gain.value = muted() ? 0 : 0.5; master.connect(ctx.destination);
+  ({ m: dsOut, r: rev, e: echo } = busses(ctx, master));
   return true;
 }
 function tone(freq, t, dur, type = 'square', vol = 0.08) {
@@ -94,6 +121,18 @@ function tone(freq, t, dur, type = 'square', vol = 0.08) {
   o.type = type; o.frequency.value = freq;
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+}
+// one DS-style instrument note: an attack/decay shape, optional detuned twin, vibrato, filter, stereo place and sends
+function voice(freq, t, dur, { type = 'square', vol = 0.05, pan = 0, attack = 0.006, detune = 0, vib = 0, cut = 0, send = 0.2, delay = 0, glide = 0 } = {}) {
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  const oscs = [0, ...(detune ? [detune] : [])].map((dt) => { const o = ctx.createOscillator(); o.type = type; o.frequency.setValueAtTime(freq, t); if (glide) o.frequency.exponentialRampToValueAtTime(freq * glide, t + dur * 0.7); o.detune.value = dt; o.connect(g); return o; });
+  if (vib && dur > 0.2) { const l = ctx.createOscillator(); const lg = ctx.createGain(); l.frequency.value = 5.5; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(freq * vib, t + Math.min(0.35, dur * 0.6)); l.connect(lg); oscs.forEach((o) => lg.connect(o.frequency)); l.start(t); l.stop(t + dur + 0.05); }
+  let last = g; if (cut) { const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = cut; g.connect(f); last = f; }
+  if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = pan; last.connect(p); last = p; }
+  last.connect(dsOut);
+  if (send) { const sg = ctx.createGain(); sg.gain.value = send; last.connect(sg); sg.connect(rev); }
+  if (delay) { const dg = ctx.createGain(); dg.gain.value = delay; last.connect(dg); dg.connect(echo); }
+  oscs.forEach((o) => { o.start(t); o.stop(t + dur + 0.05); });
 }
 function hat(t) {
   const len = Math.floor(ctx.sampleRate * 0.03); const buf = ctx.createBuffer(1, len, ctx.sampleRate); const d = buf.getChannelData(0);
@@ -125,25 +164,45 @@ function snare(t) {
 }
 
 // schedule a little ahead so the tune never stutters
-function pump() {
-  const S = song; const EIGHTH = 60 / S.bpm / 2;
-  while (nextAt < ctx.currentTime + 0.25) {
-    const i = stepIdx % S.lead.length;
-    if (S.bell) { // music box: everything rings like little tuned teeth
-      if (S.lead[i]) { tone(N(S.lead[i]), nextAt, EIGHTH * 5, 'sine', 0.09); tone(N(S.lead[i] + 12), nextAt, EIGHTH * 1.5, 'triangle', 0.02); }
-      if (S.bass[i]) tone(N(S.bass[i] + 12), nextAt, EIGHTH * 5, 'sine', 0.05);
-      if (S.arp?.[i]) tone(N(S.arp[i]), nextAt, EIGHTH * 3, 'sine', 0.035);
-    } else {
-      if (S.lead[i]) tone(N(S.lead[i]), nextAt, EIGHTH * (S.leadLen || 0.9), S.leadType || 'square', S.leadVol || 0.05);
-      if (S.bass[i]) tone(N(S.bass[i]), nextAt, EIGHTH * 1.8, 'triangle', 0.12);
-      if (S.arp?.[i]) tone(N(S.arp[i]), nextAt, EIGHTH * 1.4, 'triangle', 0.035);
+function pump(until = ctx.currentTime + 0.25) {
+  const S = song; const EIGHTH = 60 / S.bpm / 2; const BAR = S.bar || (S.bell ? 6 : 8);
+  while (nextAt < until) {
+    const i = stepIdx % S.lead.length; const t = nextAt;
+    // the pad: a soft three-voice chord on each bar, built on that bar's lowest bass note
+    if (i % BAR === 0) {
+      const lows = S.bass.slice(i, i + BAR).filter(Boolean);
+      if (lows.length) { const r = Math.min(...lows) % 12 + 48; [[r, -0.5], [r + 7, 0.5], [r + 12, 0]].forEach(([n, pan]) => voice(N(n), t, EIGHTH * BAR * 1.1, { type: 'sawtooth', vol: S.bell ? 0.008 : 0.011, pan, attack: EIGHTH * 2, detune: 7, cut: 900, send: 0.5 })); }
     }
-    if (S.hat && i % S.hat === 0) hat(nextAt);
-    if (S.drums?.[i] === 'k') kick(nextAt); else if (S.drums?.[i] === 's') snare(nextAt);
-    if (S.waves && i % S.waves === 0) wave(nextAt);
-    if (S.comp?.[i]) S.comp[i].forEach((n) => tone(N(n), nextAt, EIGHTH * 1.6, 'sine', 0.035));
+    if (S.bell) { // music box: everything rings like little tuned teeth, in a big soft hall
+      if (S.lead[i]) { voice(N(S.lead[i]), t, EIGHTH * 5, { type: 'sine', vol: 0.085, pan: 0.15, send: 0.45, delay: 0.15 }); voice(N(S.lead[i] + 12), t, EIGHTH * 1.5, { type: 'triangle', vol: 0.018, pan: -0.2, send: 0.4 }); }
+      if (S.bass[i]) voice(N(S.bass[i] + 12), t, EIGHTH * 5, { type: 'sine', vol: 0.05, send: 0.3 });
+      if (S.arp?.[i]) voice(N(S.arp[i]), t, EIGHTH * 3, { type: 'sine', vol: 0.032, pan: i % 2 ? 0.55 : -0.55, send: 0.5 });
+    } else {
+      const lv = S.leadVol || 0.05; const ll = EIGHTH * (S.leadLen || 0.9);
+      if (S.lead[i]) {
+        voice(N(S.lead[i]), t, ll, { type: S.leadType || 'square', vol: lv * 0.7, pan: 0.15, detune: 9, vib: 0.012, cut: 3800, send: 0.22, delay: 0.22 });
+        voice(N(S.lead[i]), t, Math.max(ll, EIGHTH * 1.2), { type: 'sawtooth', vol: lv * 0.35, pan: -0.3, attack: 0.03, vib: 0.008, cut: 1600, send: 0.35 }); // string double
+      }
+      if (S.bass[i]) { voice(N(S.bass[i]), t, EIGHTH * 1.8, { type: 'triangle', vol: 0.12, send: 0.06 }); voice(N(S.bass[i] - 12), t, EIGHTH * 1.5, { type: 'sine', vol: 0.05, send: 0 }); }
+      if (S.arp?.[i]) voice(N(S.arp[i]), t, EIGHTH * 1.4, { type: 'triangle', vol: 0.032, pan: i % 4 < 2 ? 0.5 : -0.5, send: 0.35, delay: 0.15 });
+    }
+    if (S.hat && i % S.hat === 0) hat(t);
+    if (S.drums?.[i] === 'k') kick(t); else if (S.drums?.[i] === 's') snare(t);
+    if (S.waves && i % S.waves === 0) wave(t);
+    if (S.comp?.[i]) S.comp[i].forEach((n, k) => voice(N(n), t, EIGHTH * 1.6, { type: 'sine', vol: 0.032, pan: (k - 1) * 0.4, send: 0.35 }));
+    if (S.bubbles && Math.random() < 0.22) voice(N(84 + Math.floor(Math.random() * 10)), t + EIGHTH * 0.5, 0.09, { type: 'sine', vol: 0.03, pan: Math.random() * 1.6 - 0.8, glide: 2, send: 0.5 });
     nextAt += EIGHTH * (S.swing ? (i % 2 ? 1 - S.swing : 1 + S.swing) : 1); stepIdx++;
   }
+}
+// render a few seconds of a tune without playing it (to check levels: no clipping, nothing too quiet)
+export async function renderSong(name, secs = 8) {
+  const keep = [ctx, master, dsOut, rev, echo, song, nextAt, stepIdx];
+  const oc = new OfflineAudioContext(2, Math.floor(44100 * secs), 44100); ctx = oc; master = oc.createGain(); master.gain.value = 0.5; master.connect(oc.destination);
+  ({ m: dsOut, r: rev, e: echo } = busses(oc, master)); song = SONGS[name]; nextAt = 0.05; stepIdx = 0; pump(secs - 0.5);
+  [ctx, master, dsOut, rev, echo, song, nextAt, stepIdx] = keep;
+  const buf = await oc.startRendering(); const d = buf.getChannelData(0); let peak = 0; let sum = 0;
+  for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; sum += d[i] * d[i]; }
+  return { peak: +peak.toFixed(3), rms: +Math.sqrt(sum / d.length).toFixed(4) };
 }
 // sound effects without the dance tune (the Mail Run): make sure audio is ready after a tap
 export function ensureAudio() { if (init()) ctx.resume?.(); }
