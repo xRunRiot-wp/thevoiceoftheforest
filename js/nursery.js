@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae3ca5a';
-import { $, $$, esc, toast, num } from './util.js?v=6ae3ca5a';
-import { me, logRoll } from './play.js?v=6ae3ca5a';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3ca5a';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3ca5a';
-import { markWinner } from './sparkle.js?v=6ae3ca5a';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae3ca5a';
-import { modal, closeModal } from './ui.js?v=6ae3ca5a';
+import * as store from './store.js?v=6ae3cba4';
+import { $, $$, esc, toast, num } from './util.js?v=6ae3cba4';
+import { me, logRoll } from './play.js?v=6ae3cba4';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3cba4';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3cba4';
+import { markWinner } from './sparkle.js?v=6ae3cba4';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae3cba4';
+import { modal, closeModal } from './ui.js?v=6ae3cba4';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -127,6 +127,8 @@ function cry(b, { vol = 0.8, odds = 1, force = false } = {}) {
   a.play().catch(() => { /* not allowed before the first tap */ });
 }
 const listOf = (a) => (a.length < 2 ? a.join('') : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`);
+// the species of a host known by name only
+const WALK_SPECIES = { Beatrice: 'Beedrill' };
 const WALK_SPOTS = [
   ['camp', '🏕️', 'Fernshade Camp', 'Beatrice', ['Mind the eggs, little one!', 'Out for a walk? How lovely!']],
   ['kitchen', '🍲', 'Spinda’s Kitchen', 'Spinda', ['Something smells good, huh? Not for babies… okay, one crumb.', 'Wobble wobble! Hello!']],
@@ -565,18 +567,28 @@ async function walkGo(c, box, stops) {
   const S = Math.min(SIZE[b.stage] || 3, 2.6); const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
   box.innerHTML = `<div class="walk"><div class="walk-scene tod-${tod()}"><div class="walk-ground"></div><div class="walk-sign" id="wsign"></div>
       <div class="walk-pet" id="wpet" style="width:${pw}px;bottom:${Math.round(40 - ph / 2)}px"><span class="baby-spr" style="width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${pw * 10}px ${ph * 7}px">${accHTML(b, pw, ph)}</span></div>
-      <div class="walk-gift" id="wgift"></div></div><div class="walk-text" id="wtext"></div></div>`;
+      <div class="walk-gift" id="wgift"></div><div class="walk-host" id="whost"></div></div><div class="walk-text" id="wtext"></div></div>`;
   const scene = $('.walk-scene', box); const spr = $('.baby-spr', box); const text = $('#wtext', box); const sign = $('#wsign', box); const gift = $('#wgift', box);
   const row = (name, loop = true) => { const r = ROW[name]; const n = B.fr[r] || 1; spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
     spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`; accRow(spr, b.sp, name, ph); };
   const alive = () => scene.isConnected;
   const say = (html) => { text.innerHTML = html; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
+  // her ask 10-29: your own character walks along behind the baby
+  const fz = import('./fzscene.js?v=6ae3cba4').catch(() => null);
+  if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2)).then((w) => {
+    if (!w || !alive()) return;
+    scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
+  }).catch(() => {});
+  // ...and the Pokémon you're visiting waits at each stop, facing you (her ask 10-29)
+  const hosts = Object.fromEntries(stops.map(([k, , , who]) => [k, fz.then((m) => m?.walkSprite(WALK_SPECIES[who] || who, 2, 'left', true)).catch(() => null)]));
+  const host = $('#whost', box);
   const found = []; const owned = { ...(b.acc || {}) };
   say(`Off you go! ${esc(nameOf(b))} trots out of Fernshade Camp…`); cry(b);
   for (const [k, ic, name, who, lines] of stops) {
     await walking(2600); if (!alive()) return;
     sign.innerHTML = `${ic} ${esc(name)}`; sign.classList.add('show');
+    const hw = await Promise.race([hosts[k], wait(1500)]); if (hw && alive()) { host.innerHTML = hw.html; host.classList.add('show'); }
     const face = RESIDENTS[who]?.img;
     say(`${face ? `<img class="sface" src="${face}" alt="">` : ''}<span><b>${esc(who)}:</b> “${esc(lines[Math.floor(Math.random() * lines.length)])}”</span>`);
     row('hop', false); await wait(1900); if (!alive()) return;
@@ -591,7 +603,7 @@ async function walkGo(c, box, stops) {
       else { const poke = 10 + Math.floor(Math.random() * 11); found.push(poke); gift.innerHTML = '<span class="walk-prize">🪙</span>'; say(`🎉 ${poke} Poké! (${esc(nameOf(b))} already has every accessory.)`); store.update('party/' + c.id, (x) => ({ ...x, poke: num(x?.poke) + poke })); }
       row('hop', false); await wait(2200); gift.classList.remove('show'); gift.innerHTML = '';
     }
-    sign.classList.remove('show');
+    sign.classList.remove('show'); host.classList.remove('show');
   }
   await walking(2000); if (!alive()) return;
   // home again: it counts as play time, raises Bond, and the walk needs a rest before the next one

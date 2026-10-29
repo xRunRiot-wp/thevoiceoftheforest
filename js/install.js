@@ -1,7 +1,7 @@
 // The site as an app (her ask 10-28): it can be added to a phone's home screen and opens full screen with its own icon.
 // Android/computers get a real Install button; iPhones need Share → Add to Home Screen, so we show how.
-import { $ } from './util.js?v=6ae3ca5a';
-import { pushSupported, pushNeedsInstall, pushOn, enablePush, disablePush, syncPush } from './push.js?v=6ae3ca5a';
+import { $ } from './util.js?v=6ae3cba4';
+import { pushSupported, pushNeedsInstall, pushOn, enablePush, disablePush, syncPush } from './push.js?v=6ae3cba4';
 
 let prompt = null;
 const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
@@ -64,6 +64,6 @@ async function install(where) {
     ? '<b>On iPhone/iPad (Safari):</b><ol><li>Tap the <b>Share</b> button (the square with the arrow).</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>.</li></ol>'
     : '<b>To install:</b><ol><li>Open the browser menu (<b>⋮</b> at the top right).</li><li>Tap <b>Install app</b> or <b>Add to Home screen</b>.</li></ol><p class="small muted">On a computer, look for the install icon at the right end of the address bar.</p>';
   if (where) { where.innerHTML = how; where.hidden = false; return; }
-  const { modal } = await import('./ui.js?v=6ae3ca5a');
+  const { modal } = await import('./ui.js?v=6ae3cba4');
   modal(`<h2>📱 Get the app</h2>${how}`);
 }

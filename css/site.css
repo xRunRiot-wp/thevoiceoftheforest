@@ -2265,3 +2265,12 @@ a.ch-chip:hover { background: var(--navy); }
 .toy-hint { position: absolute; top: 8px; left: 50%; translate: -50% 0; z-index: 6; white-space: nowrap; font: 700 12px var(--pix); background: rgba(255, 250, 240, .92); color: #3a2c1a; border: 2px solid #3a2c1a; border-radius: 8px; padding: 2px 8px; pointer-events: none; animation: fx-float-hint 1.6s ease-in-out infinite alternate; }
 @keyframes fx-float-hint { to { translate: -50% 4px; } }
 .ball-wrap.throwable img, .ball-wrap.throwable .prop { -webkit-user-drag: none; user-select: none; pointer-events: none; }
+/* Nursery walk: the player's character walks along behind the baby (her ask 10-29) */
+.walk-char { position: absolute; left: 6%; bottom: 28px; z-index: 1; display: flex; align-items: flex-end; }
+.walk-scene.moving .walk-char .fzs-spr { animation: fzs-walk var(--ms) steps(var(--n)) infinite; }
+.walk-host { position: absolute; right: 18%; bottom: 30px; z-index: 1; display: flex; align-items: flex-end; opacity: 0; transition: opacity .4s; }
+.walk-host.show { opacity: 1; }
+.walk-host .fzs-spr { animation: fzs-walk var(--ms) steps(var(--n)) infinite; }
+.walk-host { position: absolute; right: 18%; bottom: 30px; z-index: 1; display: flex; align-items: flex-end; opacity: 0; transition: opacity .4s; }
+.walk-host.show { opacity: 1; }
+.walk-host .fzs-spr { animation: fzs-walk var(--ms) steps(var(--n)) infinite; }

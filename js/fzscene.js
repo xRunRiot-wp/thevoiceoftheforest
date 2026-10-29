@@ -6,8 +6,8 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3ca5a';
-import { esc } from './util.js?v=6ae3ca5a';
+import { loadIndex } from './effects.js?v=6ae3cba4';
+import { esc } from './util.js?v=6ae3cba4';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -64,6 +64,15 @@ function speciesIn(ix, name) {
   const words = String(name).replace(/[^\w\s'-]/g, ' ').split(/\s+/).filter(Boolean);
   for (let i = words.length - 1; i >= 0; i--) { const e = ix.byName.get(words[i].toLowerCase()); if (e?.kind === 'Species') return e; }
   return null;
+}
+// one Pokémon's walk sprite by species name (her ask 10-29: the player's character joins the nursery walk);
+// null if it isn't in the Index or SpriteCollab has no walk for it. face = which way it looks; stand = a digger shows
+// its Idle picture (out of the ground) instead of its underground walk.
+export async function walkSprite(name, S = 2, face = 'right', stand = false) {
+  const ix = await loadIndex(); const e = speciesIn(ix, name); const dex = e && (String(e.aka || '').match(/#(\d+)/) || [])[1]; if (!dex) return null;
+  const d4 = dex.padStart(4, '0'); const a = await walkData(d4); if (!a) return null;
+  const p = stand && a.idle ? a.idle : a; const file = p === a ? 'Walk' : 'Idle';
+  return { a: p, html: `<div class="fzs-spr" style="width:${p.w * S}px;height:${p.h * S}px;background-image:url(${RAW}${d4}/${file}-Anim.png);background-size:${p.w * p.n * S}px ${p.h * 8 * S}px;--fw:${p.w * S}px;--n:${p.n};--ms:${p.ms}ms;background-position-y:-${ROW[face] * p.h * S}px;margin-bottom:-${p.foot * S}px"></div>` };
 }
 const SAYS = ['💕', '♪', '❗', '💬', '✨', '😊', '🍎', '💤'];
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
