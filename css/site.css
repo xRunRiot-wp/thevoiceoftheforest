@@ -2146,3 +2146,7 @@ a.ch-chip:hover { background: var(--navy); }
 /* wax seal with the guild crest pressed in, bigger (her ask 10-29) */
 .lfx-seal { width: 26%; }
 .lfx-seal img { width: 78%; height: 78%; object-fit: contain; filter: grayscale(1) contrast(1.4) brightness(.75) drop-shadow(0 1px 0 rgba(255, 200, 170, .5)) drop-shadow(0 -1px 0 rgba(60, 0, 0, .6)); mix-blend-mode: multiply; opacity: .9; }
+
+/* her ask 10-29: every portrait in the guild hall gets the same gold frame (pixel portraits too, not the blue PMD frame) */
+.mh-seat .portrait { border-image: none; border: 3px solid #f0b955; border-radius: 12px; background: #fff; overflow: hidden; }
+.mh-seat .portrait img { object-fit: cover; }
