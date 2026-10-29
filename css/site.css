@@ -2113,3 +2113,12 @@ a.ch-chip:hover { background: var(--navy); }
 /* Beatrice the Beedrill buzzing into a playdate (her ask 10-29): SpriteCollab walk frames, rows = down, right, left */
 .bea-fly { width: 80px; height: 120px; background-image: url('../assets/nursery/beatrice.png'); background-size: 320px 360px; animation: bea-flap .3s steps(4) infinite, celebi-bob 1s ease-in-out infinite; }
 @keyframes bea-flap { to { background-position-x: -320px; } }
+
+/* the playdate name tag rides on the room, in front of everything (her ask 10-29) */
+.pet-tag.front { z-index: 9; top: 0; }
+
+/* computer: care buttons in a column beside the nursery room (her ask 10-29) */
+.n-wide { display: flex; gap: 12px; align-items: stretch; }
+.n-wide .nursery-room { flex: 1; min-width: 0; }
+.n-wide .n-acts { display: flex; flex-direction: column; width: 190px; flex: none; gap: 10px; margin: 0; }
+.n-wide .n-acts .btn { flex: 1; font-size: 16px; }

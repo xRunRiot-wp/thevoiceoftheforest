@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae39b40';
-import { $, $$, esc, toast, num } from './util.js?v=6ae39b40';
-import { me, logRoll } from './play.js?v=6ae39b40';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39b40';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39b40';
-import { markWinner } from './sparkle.js?v=6ae39b40';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae39b40';
-import { modal, closeModal } from './ui.js?v=6ae39b40';
+import * as store from './store.js?v=6ae39be3';
+import { $, $$, esc, toast, num } from './util.js?v=6ae39be3';
+import { me, logRoll } from './play.js?v=6ae39be3';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39be3';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39be3';
+import { markWinner } from './sparkle.js?v=6ae39be3';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae39be3';
+import { modal, closeModal } from './ui.js?v=6ae39be3';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -352,6 +352,11 @@ function startGuest(root, gb, label) {
   pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
   $('.pet-tag', pet).textContent = label; spr.innerHTML = accHTML(gb, pw, ph);
   const alive = () => roomEl.isConnected;
+  // her ask 10-29: the name tag is always in front (over the other baby, the nest, flowers, rain and the night tint),
+  // so it lives on the room itself and follows the visitor around
+  const tag = $('.pet-tag', pet); tag.classList.add('front'); roomEl.appendChild(tag);
+  (function follow() { if (!alive()) return; const r = roomEl.getBoundingClientRect(); const q = pet.getBoundingClientRect();
+    tag.style.left = (q.left - r.left + q.width / 2) + 'px'; tag.style.top = (q.top - r.top + q.height * 0.62) + 'px'; requestAnimationFrame(follow); })();
   const row = (name, loop = true, secs = null) => {
     const r = ROW[name]; const n = B.fr[r] || 1;
     spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
@@ -591,6 +596,9 @@ function room(c, box, anim) {
     ${cared && b.stage < 3 ? '<p class="small" style="text-align:center;color:#2f6d2b">✅ Fully cared for today</p>' : ''}
     ${egg ? '' : guest ? `<p class="n-visit">🏠 ${esc(party[v.id]?.nickname || 'A friend')}’s ${esc(guest.name || BABIES[guest.sp]?.name)} is visiting! <button class="btn alt sm" id="nhome">Say goodbye</button></p>`
       : `<p class="n-visit">${away ? `🏠 ${esc(nameOf(b))} has been invited over to ${esc(party[away]?.nickname || 'a friend')}’s room for a playdate!` : ''}<button class="btn alt sm" id="nvisit">🏠 Invite a playdate</button></p>`}</div>`;
+  // her ask 10-29: on a computer the care buttons sit in a column right beside the room, so no scrolling to reach them
+  const acts = $('.n-acts', box); const rm = $('.nursery-room', box);
+  if (acts && rm && matchMedia('(min-width: 900px)').matches) { const w = document.createElement('div'); w.className = 'n-wide'; rm.before(w); w.append(rm, acts); }
   if (!egg) startPet(box, b, anim, c.id);
   if (!egg) { cryOf(b.sp); if (guest) cryOf(guest.sp); }
   if (guest) startGuest(box, guest, `${party[v.id]?.nickname || 'Friend'}’s ${guest.name || BABIES[guest.sp]?.name}`);
