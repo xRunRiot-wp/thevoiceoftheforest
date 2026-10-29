@@ -2274,3 +2274,4 @@ a.ch-chip:hover { background: var(--navy); }
 .walk-host { position: absolute; right: 18%; bottom: 30px; z-index: 1; display: flex; align-items: flex-end; opacity: 0; transition: opacity .4s; }
 .walk-host.show { opacity: 1; }
 .walk-host .fzs-spr { animation: fzs-walk var(--ms) steps(var(--n)) infinite; }
+.props .prop.fade { transition: opacity 1.5s; opacity: 0; }

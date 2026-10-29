@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae3cba4';
-import { $, $$, esc, toast, num } from './util.js?v=6ae3cba4';
-import { me, logRoll } from './play.js?v=6ae3cba4';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3cba4';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3cba4';
-import { markWinner } from './sparkle.js?v=6ae3cba4';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae3cba4';
-import { modal, closeModal } from './ui.js?v=6ae3cba4';
+import * as store from './store.js?v=6ae3cc0c';
+import { $, $$, esc, toast, num } from './util.js?v=6ae3cc0c';
+import { me, logRoll } from './play.js?v=6ae3cc0c';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3cc0c';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3cc0c';
+import { markWinner } from './sparkle.js?v=6ae3cc0c';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae3cc0c';
+import { modal, closeModal } from './ui.js?v=6ae3cc0c';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -240,8 +240,17 @@ function startPet(root, b, scene, ownerId) {
       row('eat', true); $('.prop', props)?.classList.add('eaten'); fx('😋'); await wait(900); fx('💕', 10); await wait(1300);
       props.innerHTML = ''; row('hop', false); await wait(700); row('idle');
     },
+    // full: it glances at the berry, turns away, and the berry fades
+    async feedMeh() {
+      const berry = ['oran', 'sitrus', 'pecha', 'leppa'][Math.floor(Math.random() * 4)];
+      const bx = Math.max(20, Math.min(maxX() + pw / 2 - 20, x + pw + 30 > maxX() ? x - 50 : x + pw + 30));
+      props.innerHTML = `<img class="prop drop" src="assets/items/${berry}-berry.png" alt="" style="left:${bx}px">`;
+      await wait(900); row(bx > x ? 'right' : 'left'); fx('😑'); await wait(900); row(bx > x ? 'left' : 'right'); await wait(700); row('idle');
+      $('.prop', props)?.classList.add('fade'); await wait(1600); props.innerHTML = '';
+    },
+    playMeh() { return scenes.play(true); },
     // her ask 10-29: drag the toy and let go to throw it; the baby runs after it. Nobody throws for a while = it plays by itself.
-    async play() {
+    async play(meh = false) {
       props.innerHTML = `<span class="ball-wrap throwable rest">${toyHTML(b)}</span>`;
       const ball = $('.ball-wrap', props);
       const W = () => roomEl.clientWidth - 36; const H = () => roomEl.clientHeight - 40;
@@ -249,7 +258,7 @@ function startPet(root, b, scene, ownerId) {
       let bx = x + pw / 2 - 18; let by = 28;
       const place = () => { ball.style.left = bx + 'px'; ball.style.bottom = by + 'px'; };
       ball.style.transition = 'none'; place();
-      roomEl.insertAdjacentHTML('beforeend', '<div class="toy-hint">👆 Drag the toy and let go to throw it!</div>');
+      roomEl.insertAdjacentHTML('beforeend', `<div class="toy-hint">${meh ? `😑 ${esc(nameOf(b))} doesn’t feel like playing… throw it anyway?` : '👆 Drag the toy and let go to throw it!'}</div>`);
       const hint = $('.toy-hint', roomEl);
       const throwIt = () => new Promise((ok) => {
         let drag = null; let hist = [];
@@ -286,12 +295,14 @@ function startPet(root, b, scene, ownerId) {
       };
       for (let i = 0; i < 6 && alive(); i++) {
         const v = await throwIt(); if (!alive()) break;
+        if (!v && meh) break;
         if (!v) {   // nobody threw it: the baby plays on its own like before
           hint?.remove(); ball.classList.remove('rest'); ball.style.transition = '';
           for (let k = 0; k < 3 && alive(); k++) { const tx = k % 2 ? 20 : maxX(); ball.style.left = (tx + pw / 2 - 18) + 'px'; ball.style.bottom = '28px'; await wait(150); await walkTo(tx); row('hop', false); fx(k === 2 ? '💕' : '♪'); await wait(650); }
           break;
         }
         await fly(v.vx, v.vy); if (!alive()) break;
+        if (meh) { row(bx + 18 > x + pw / 2 ? 'right' : 'left'); fx(Math.random() < 0.5 ? '😑' : '💤'); await wait(700); row('idle'); continue; }   // it just watches; the toy stays where it landed
         await fetchIt(i === 5);
         if (ownerId) addBond(ownerId, 1);
       }
@@ -348,7 +359,7 @@ function startPet(root, b, scene, ownerId) {
     }
   };
   row('idle');
-  (async () => { if (scene && scenes[scene]) { busy = true; think.className = 'pet-think'; await wait(200); await scenes[scene](); if (scene !== 'cover') cry(b, { vol: 0.7 }); busy = false; } })().then(life);
+  (async () => { if (scene && scenes[scene]) { busy = true; think.className = 'pet-think'; await wait(200); await scenes[scene](); if (scene !== 'cover' && !scene.endsWith('Meh')) cry(b, { vol: 0.7 }); busy = false; } })().then(life);
 }
 // the egg is the Ruby & Sapphire egg sprite (her ask 10-27), assets/nursery/egg.png
 const eggHTML = (b, cls = '') => `<img class="egg ${cls}" src="assets/nursery/egg.png" alt="An egg">`;
@@ -575,7 +586,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6ae3cba4').catch(() => null);
+  const fz = import('./fzscene.js?v=6ae3cc0c').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
@@ -674,7 +685,8 @@ function room(c, box, anim) {
   const hm = $('#nhome', box); if (hm) hm.onclick = () => { store.set(`nursery/${c.id}/visit`, null); room(c, box); };
   $$('[data-nact]', box).forEach((btn) => btn.onclick = () => {
     const k = btn.dataset.nact; const r = act(c, k);
-    if (r !== 'ok' && r !== 'grew') { toast(r); return; }
+    // her ask 10-29: feeding or playing when it isn't time still happens; the baby just isn't interested
+    if (r !== 'ok' && r !== 'grew') { toast(r); if (k === 'feed' || k === 'play') room(c, box, k + 'Meh'); return; }
     room(c, box, r === 'grew' ? 'grew' : k === 'warm' ? 'warm' : k);
   });
   const nm = $('#nname', box); if (nm) nm.onclick = () => { const v = prompt(`Name your ${B.name}:`, b.name || ''); if (v != null) { store.set(`nursery/${c.id}/name`, v.trim().slice(0, 24) || null); room(c, box); } };
