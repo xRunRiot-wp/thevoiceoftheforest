@@ -2,9 +2,9 @@
 // A roll of 100 is a disaster for the whole day: a huge fissure or a tsunami. Players never see who causes them (GM screen only).
 // Every device works out the same weather from the table code and the time, so nothing has to be saved;
 // the GM can still force a weather. Rules are PokéRole 2.0's weather (p.55-57).
-import * as store from './store.js?v=6ae341f1';
-import { esc } from './util.js?v=6ae341f1';
-import { modal } from './ui.js?v=6ae341f1';
+import * as store from './store.js?v=6ae3429f';
+import { esc } from './util.js?v=6ae3429f';
+import { modal } from './ui.js?v=6ae3429f';
 
 export const WEATHERS = {
   clear: { name: 'Clear skies', icon: '☀️', w: 30, text: 'No weather effects.' },
@@ -91,7 +91,7 @@ export function showWeather() {
     <p class="ft-text">${esc(w.text)}</p>
     <div class="ft-rows">
       <div><span>Next reading</span><b>${timeOf(cw.next)}</b>${cw.gm ? '<i>set by the GM</i>' : '<i>every 6 hours</i>'}</div>
-      <div><span>Today’s sky roll</span><b>${cw.daily.roll}</b><i>${cw.daily.roll === 100 ? 'a disaster strikes!' : 'on a 100, disaster'}</i></div>
+      <div><span>Today’s sky roll</span><b>${cw.daily.roll}</b><i>${cw.daily.roll === 100 ? 'a disaster strikes!' : 'on a 100, disaster'}<br>new roll at midnight</i></div>
     </div>
     <p class="small ft-foot">Your Play sheet shows which of your moves and abilities the weather changes.</p></div>`,
   (sh) => sh.classList.add('ft-sheet'));

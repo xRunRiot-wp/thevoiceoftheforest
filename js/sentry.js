@@ -1,14 +1,14 @@
 // Sentry Duty (from Explorers of Time/Sky): stand watch at the Woodland Base gate with Diglett and name each visitor
 // from their footprint. A daily guild chore every character is expected to do, not a gamble: an okay shift is just
 // doing your duty, a great shift pays Poké and can turn up a rare item. One shift per character per day.
-import * as store from './store.js?v=6ae341f1';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae341f1';
-import { me, logRoll } from './play.js?v=6ae341f1';
-import { dailyRoll } from './weather.js?v=6ae341f1';
-import { gameSay } from './chatter.js?v=6ae341f1';
-import { markWinner } from './sparkle.js?v=6ae341f1';
-import * as sheet from './sheetdata.js?v=6ae341f1';
-import { portraitFile } from './ui.js?v=6ae341f1';
+import * as store from './store.js?v=6ae3429f';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae3429f';
+import { me, logRoll } from './play.js?v=6ae3429f';
+import { dailyRoll } from './weather.js?v=6ae3429f';
+import { gameSay } from './chatter.js?v=6ae3429f';
+import { markWinner } from './sparkle.js?v=6ae3429f';
+import * as sheet from './sheetdata.js?v=6ae3429f';
+import { portraitFile } from './ui.js?v=6ae3429f';
 
 export const isSentry = (g) => g.kind === 'sentry' || g.id === 'sentry-duty';
 

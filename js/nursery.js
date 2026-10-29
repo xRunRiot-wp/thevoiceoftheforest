@@ -7,12 +7,12 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae341f1';
-import { $, $$, esc, toast, num } from './util.js?v=6ae341f1';
-import { me, logRoll } from './play.js?v=6ae341f1';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae341f1';
-import { gameSay, gmTodo } from './chatter.js?v=6ae341f1';
-import { markWinner } from './sparkle.js?v=6ae341f1';
+import * as store from './store.js?v=6ae3429f';
+import { $, $$, esc, toast, num } from './util.js?v=6ae3429f';
+import { me, logRoll } from './play.js?v=6ae3429f';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3429f';
+import { gameSay, gmTodo } from './chatter.js?v=6ae3429f';
+import { markWinner } from './sparkle.js?v=6ae3429f';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
