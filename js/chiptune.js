@@ -45,9 +45,17 @@ const MARCH_LEAD = [62, 0, 0, 62, 62, 0, 65, 0, 69, 0, 0, 0, 67, 0, 65, 0, 70, 0
   62, 0, 0, 62, 62, 0, 69, 0, 70, 0, 69, 0, 67, 0, 65, 0, 64, 0, 65, 0, 67, 0, 61, 0, 62, 0, 0, 0, 0, 0, 0, 0];
 const MARCH_BASS = [[38, 45], [38, 45], [34, 41], [33, 40], [38, 45], [31, 38], [33, 40], [38, 45]].flatMap(([r, f]) => [r, 0, f, 0, r, 0, f, 0]);
 const MARCH_DRUMS = [0, 1, 2, 3, 4, 5, 6, 7].flatMap((b) => (b === 7 ? ['k', 's', 's', 's', 's', 's', 's', 's'] : b === 3 ? ['k', 0, 's', 0, 'k', 0, 's', 's'] : ['k', 0, 's', 0, 'k', 0, 's', 0]));
+// Spinda's Kitchen (her ask 10-29: an 8-bit cooking-game soundtrack): an original bouncy kitchen tune in G, short perky
+// square notes, oom-pah bass and little xylophone plinks on the off-beats.
+const KITCHEN_LEAD = [74, 0, 79, 74, 71, 0, 74, 0, 76, 0, 72, 76, 79, 0, 76, 0, 78, 79, 78, 0, 74, 0, 69, 0, 71, 0, 74, 0, 79, 0, 0, 0,
+  71, 0, 76, 71, 67, 0, 71, 0, 72, 0, 76, 72, 69, 0, 72, 0, 74, 0, 78, 0, 81, 0, 78, 0, 79, 0, 74, 0, 67, 0, 0, 0];
+const KITCHEN_BARS = [[43, 50, [83, 86]], [48, 43, [84, 88]], [50, 45, [81, 86]], [43, 50, [83, 86]], [40, 47, [83, 88]], [48, 43, [84, 88]], [50, 45, [84, 86]], [43, 50, [83, 86]]];
+const KITCHEN_BASS = KITCHEN_BARS.flatMap(([r, f]) => [r, 0, f, 0, r, 0, f, 0]);
+const KITCHEN_ARP = KITCHEN_BARS.flatMap(([, , [a, b]]) => [0, 0, 0, a, 0, 0, 0, b]);
 const SONGS = {
   dance: { bpm: 160, lead: LEAD, bass: BASS, hat: 2 },
   beach: { bpm: 132, lead: BEACH_LEAD, bass: BEACH_BASS, arp: BEACH_ARP, hat: 4, waves: 32, leadVol: 0.04 },
+  kitchen: { bpm: 150, lead: KITCHEN_LEAD, bass: KITCHEN_BASS, arp: KITCHEN_ARP, hat: 2, leadLen: 0.5, leadVol: 0.045 },
   march: { bpm: 112, lead: MARCH_LEAD, bass: MARCH_BASS, drums: MARCH_DRUMS, leadVol: 0.05 },
   musicbox: { bpm: 84, lead: BOX_LEAD, bass: BOX_BASS, arp: BOX_ARP, bell: true },
   casino: { bpm: 116, lead: CASINO_LEAD, bass: CASINO_BASS, comp: CASINO_COMP, hat: 2, swing: 0.33, leadType: 'triangle', leadVol: 0.07 },
@@ -108,7 +116,7 @@ function pump() {
       if (S.bass[i]) tone(N(S.bass[i] + 12), nextAt, EIGHTH * 5, 'sine', 0.05);
       if (S.arp?.[i]) tone(N(S.arp[i]), nextAt, EIGHTH * 3, 'sine', 0.035);
     } else {
-      if (S.lead[i]) tone(N(S.lead[i]), nextAt, EIGHTH * 0.9, S.leadType || 'square', S.leadVol || 0.05);
+      if (S.lead[i]) tone(N(S.lead[i]), nextAt, EIGHTH * (S.leadLen || 0.9), S.leadType || 'square', S.leadVol || 0.05);
       if (S.bass[i]) tone(N(S.bass[i]), nextAt, EIGHTH * 1.8, 'triangle', 0.12);
       if (S.arp?.[i]) tone(N(S.arp[i]), nextAt, EIGHTH * 1.4, 'triangle', 0.035);
     }

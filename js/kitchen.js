@@ -3,16 +3,17 @@
 // stirs it, and Spinda comes to taste. Good stew = dinner on time. Bad = Spinda spits it out and dinner is late.
 // REALLY REALLY good = it's served at dinner and the whole team gets a WHOLE TEAM effect from the recipe.
 // One stew a day for the guild. Recipes are GM-editable (content/recipes).
-import * as store from './store.js?v=6ae370a9';
-import { $, $$, esc, toast, num, uid, slug } from './util.js?v=6ae370a9';
-import { me, logRoll, addTeamFx } from './play.js?v=6ae370a9';
-import { dailyRoll, hash } from './weather.js?v=6ae370a9';
-import { gameSay, gmTodo } from './chatter.js?v=6ae370a9';
-import { markWinner } from './sparkle.js?v=6ae370a9';
-import { merged, editContent, saveContent, deleteContent } from './content-store.js?v=6ae370a9';
-import { modal, closeModal } from './ui.js?v=6ae370a9';
-import { ledger } from './vault.js?v=6ae370a9';
-import { faceHTML, faceSrc } from './sentry.js?v=6ae370a9';
+import * as store from './store.js?v=6ae3710b';
+import { $, $$, esc, toast, num, uid, slug } from './util.js?v=6ae3710b';
+import { me, logRoll, addTeamFx } from './play.js?v=6ae3710b';
+import { dailyRoll, hash } from './weather.js?v=6ae3710b';
+import { gameSay, gmTodo } from './chatter.js?v=6ae3710b';
+import { markWinner } from './sparkle.js?v=6ae3710b';
+import { merged, editContent, saveContent, deleteContent } from './content-store.js?v=6ae3710b';
+import { modal, closeModal } from './ui.js?v=6ae3710b';
+import { ledger } from './vault.js?v=6ae3710b';
+import { faceHTML, faceSrc } from './sentry.js?v=6ae3710b';
+import { pageMusic } from './chiptune.js?v=6ae3710b';
 
 export const isKitchen = (g) => g.kind === 'kitchen' || g.id === 'spinda-kitchen';
 
@@ -305,10 +306,12 @@ export function renderKitchen(main, g, gm, onEdit) {
     <h1 style="margin:10px 0 4px">${esc(g.name)}</h1>
     <p>${esc(g.intro || '')}</p>
     <p><span class="pill">📋 Guild chore</span> <span class="pill">🍲 One stew a day for the guild</span> <span class="pill">🌟 REALLY good: a WHOLE TEAM effect</span></p>
+    <p class="small muted" style="text-align:right;margin:0 0 4px"><button class="btn alt sm" id="kmusic"></button></p>
     <div class="card sentry"><div id="kbox"></div></div>
     <div class="card" style="margin-top:12px"><h3 style="margin-top:0">Kitchen log</h3><ul class="sentry-roster" id="klog"></ul>
     <h3>Recipe book</h3><ul class="mail-list">${recipes().map((r) => `<li><span class="grow">${esc(r.name)}${r.by ? ` <span class="small muted">by ${esc(r.by)}</span>` : ''}<br><span class="rb-berries">${parseBerries(r.berries).map(([n, k]) => `${berryImg(n)}×${k}`).join(' ')}</span>${!r.buff && r.by ? '<br><span class="small muted">Team effect: the GM picks one (Homemade Stew until then)</span>' : ''}</span>${gm ? `<button class="btn alt sm" data-red="${esc(r.id)}">Edit</button>` : c && r.byId === c.id ? `<button class="btn alt sm" data-mine="${esc(r.id)}">Edit</button>` : ''}</li>`).join('')}</ul>
     ${c ? '<button class="btn alt" id="rwrite">✏️ Write my own recipe</button>' : ''} ${gm ? '<button class="btn alt" id="radd">Add a recipe (GM)</button>' : ''}</div>`;
+  pageMusic(main, 'kitchen', 'kmusic');
   const party = store.get('party') || {};
   const log = () => {
     const days = Object.entries(store.get('kitchen') || {}).sort().reverse().slice(0, 7);
