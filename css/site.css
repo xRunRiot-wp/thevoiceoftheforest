@@ -2297,3 +2297,4 @@ a.ch-chip:hover { background: var(--navy); }
   .mc-plate s { display: none; }
 }
 .ix-handouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; } .ix-handouts img { display: block; width: 100%; border-radius: 8px; }   /* player handouts in Index entries (her ask 10-29) */
+.fzs-by { display: none; font: 600 9px var(--pix); opacity: .85; } .fzs-mon.named .fzs-tag:has(.fzs-by), .fz-zoom .fzs-mon.named .fzs-tag:has(.fzs-by) { text-align: center; } .fzs-mon.named .fzs-by { display: block; }   /* who recruited it, on tap (her ask 10-29) */

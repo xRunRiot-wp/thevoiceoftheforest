@@ -6,8 +6,8 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3da92';
-import { esc } from './util.js?v=6ae3da92';
+import { loadIndex } from './effects.js?v=6ae3db15';
+import { esc } from './util.js?v=6ae3db15';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -121,7 +121,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
   const bots = [];
   rooms.forEach((rm) => rm.mons.forEach((m) => {
     const el = document.createElement('div'); el.className = 'fzs-mon';
-    el.innerHTML = `<div class="fzs-spr" style="width:${m.a.w * S}px;height:${m.a.h * S}px;background-image:url(${RAW}${m.d4}/Walk-Anim.png);background-size:${m.a.w * m.a.n * S}px ${m.a.h * 8 * S}px;--fw:${m.a.w * S}px;--n:${m.a.n};--ms:${m.a.ms}ms"></div><span class="fzs-tag" style="margin-top:${-Math.round(m.a.foot * S) - 2}px">${esc(m.label || m.name)}</span>`;
+    el.innerHTML = `<div class="fzs-spr" style="width:${m.a.w * S}px;height:${m.a.h * S}px;background-image:url(${RAW}${m.d4}/Walk-Anim.png);background-size:${m.a.w * m.a.n * S}px ${m.a.h * 8 * S}px;--fw:${m.a.w * S}px;--n:${m.a.n};--ms:${m.a.ms}ms"></div><span class="fzs-tag" style="margin-top:${-Math.round(m.a.foot * S) - 2}px">${esc(m.label || m.name)}${m.by ? `<small class="fzs-by">Recruited by ${esc(m.by)}</small>` : ''}</span>`;
     strip.appendChild(el);
     const b = { el, spr: el.firstChild, m, home: rm, room: rm, busy: false, w: m.a.w * S, h: m.a.h * S };
     b.spot = (r) => [r.x + 4 + Math.random() * Math.max(2, r.w - b.w - 8), r.y + Math.max(14, r.h * 0.25) + Math.random() * Math.max(2, r.h * 0.75 - b.h - 24)];

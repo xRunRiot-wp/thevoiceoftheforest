@@ -1,11 +1,13 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3da92';
-import { $, $$, esc, toast } from './util.js?v=6ae3da92';
-import { modal, closeModal } from './ui.js?v=6ae3da92';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3da92';
-import { merged, editContent } from './content-store.js?v=6ae3da92';
-import { CHAPTERS } from './content.js?v=6ae3da92';
+import * as store from './store.js?v=6ae3db15';
+import { $, $$, esc, toast } from './util.js?v=6ae3db15';
+import { modal, closeModal } from './ui.js?v=6ae3db15';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3db15';
+import { merged, editContent } from './content-store.js?v=6ae3db15';
+import { CHAPTERS } from './content.js?v=6ae3db15';
+import { guildSay } from './chatter.js?v=6ae3db15';
+import { myId } from './app.js?v=6ae3db15';
 
 export const LOCATIONS = [
   {
@@ -156,9 +158,12 @@ function roomHTML(loc, r) {
     ${r.desc ? `<p class="small">${esc(r.desc)}</p>` : ''}<div class="fz-mons">${r.mons.map((m) => `<span class="pill">${esc(m)}</span>`).join('')}${who.map((c) => `<span class="pill sleeper">💤 ${esc(c.nickname)}</span>`).join('')}${!who.length && !r.mons.length ? '<span class="small muted">Empty. Pick it as your sleeping spot to claim it.</span>' : ''}</div></div>`;
 }
 
+// who recruited each Pokémon (her ask 10-29), shown when you tap it on the map: a recruit's own `by`, else fzby/<key>, else these
+const RECRUITED_BY = { sandile: 'Golett and Magnemite', nidorino: 'Golett, Magnemite and Gemini', pichu: 'Golett' };
+const listOf = (a) => (a.length > 1 ? a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1] : a[0] || '');
 const moveKey = (n) => String(n || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
 let fzAreas = [];   // the camp's areas and who is in each, from the last time the map was drawn (for the move picker)
-const areaName = (loc, c) => (MAPS[loc.id]?.find((x) => x[0] === c.key)?.[5]) || PLACES[c.key]?.[0] || c.name || spots(loc).find((x) => x.key === c.key)?.name || (c.key === 'staff' ? 'Camp staff' : c.key);
+const areaName = (loc, c) => (MAPS[loc.id]?.find((x) => x[0] === c.key)?.[5]) || PLACES[c.key]?.[0] || c.name || spots(loc).find((x) => x.key === c.key)?.name.replace(/^[^\w]*\d*\.?\s*/, '') || (c.key === 'staff' ? 'Camp staff' : c.key);
 export function renderFriendZone(main, [arg]) {
   const gm = store.gmUnlocked();
   const lockdown = !!store.get('fzlockdown/' + arg) || (!arg && !!store.get('fzlockdown/' + (locations()[0] || {}).id));
@@ -233,6 +238,9 @@ export function renderFriendZone(main, [arg]) {
         let to = cubes.find((c) => c.key === m.to); if (!to) { to = { key: m.to, name: '', mons: [] }; cubes.push(to); }
         if (!to.locked) to.mons.push(mon || { name: m.name });
       }
+      const byOf = (n) => store.get('fzby/' + moveKey(n)) || RECRUITED_BY[moveKey(n)] || RECRUITED_BY[moveKey(String(n).split(/\s+/).pop())] || '';
+      const recBy = new Map(Object.values(recruits).flatMap((x) => Object.values(x || {})).filter((r) => r?.by).map((r) => [moveKey(r.name), r.by]));
+      cubes.forEach((c) => c.mons.forEach((x) => { const by = recBy.get(moveKey(x.label || x.name)) || byOf(x.label || x.name) || byOf(x.name); if (by) x.by = by; }));
       fzAreas = cubes.filter((c) => !c.locked).map((c) => ({ key: c.key, name: areaName(loc, c), mons: c.mons.map((x) => x.label || x.name) }));
       mountFzScene(box, mapped ? cubes : cubes.filter((x) => x.mons.length), mapped ? loc.id : '');
       // on a map camp the spot boxes live inside their squares. Tap a square (her ask 10-29): it zooms in to a big view
@@ -261,9 +269,11 @@ export function renderFriendZone(main, [arg]) {
     } }
   $$('[data-recruit]', main).forEach((b) => b.onclick = () => {
     const here = areaName(loc, { key: b.dataset.recruit });
+    const players = Object.values(store.get('party') || {}).filter((c) => !c.guest && c.nickname);
     const isName = (n) => /^[A-Z][\w'’. -]+$/.test(n) && n.length > 2 && !/relay|organizes/i.test(n);   // no stray staff notes
     const others = fzAreas.filter((a) => a.key !== b.dataset.recruit).map((a) => ({ ...a, mons: a.mons.filter(isName) })).filter((a) => a.mons.length);
     const el = modal(`<h2>New recruit</h2><label class="f">Pokémon (name or species)<input id="rcname"></label>
+      ${players.length ? `<p class="f" style="margin:8px 0 2px"><b>Recruited by</b></p><div class="row rc-by">${players.map((c) => `<label class="check"><input type="checkbox" value="${esc(c.nickname)}" ${c.id === myId() ? 'checked' : ''}> ${esc(c.nickname)}</label>`).join('')}</div>` : ''}
       <label class="f">Personality<select id="rctype"><option value="">—</option>${personalityTypes().map((t) => `<option>${esc(t)}</option>`).join('')}</select></label>
       <button class="btn block" id="rcgo" style="margin-top:10px">Move in</button>
       ${others.length ? `<h2 style="margin-top:18px">Move a Pokémon here</h2><p class="small muted">Someone from another area of ${esc(loc.name)} moves to ${esc(here)}.</p>
@@ -277,8 +287,11 @@ export function renderFriendZone(main, [arg]) {
     };
     $('#rcgo', el).onclick = () => {
       const name = $('#rcname', el).value.trim(); if (!name) return;
-      store.set(`recruits/${loc.id}/${b.dataset.recruit}/${store.tid()}`, { name, type: $('#rctype', el).value, t: Date.now() });
-      store.pushLimited('log', { t: Date.now(), text: `${name} joined ${loc.name}’s Friend Zone.` });
+      const by = listOf($$('.rc-by input:checked', el).map((x) => x.value));
+      store.set(`recruits/${loc.id}/${b.dataset.recruit}/${store.tid()}`, { name, type: $('#rctype', el).value, t: Date.now(), ...(by ? { by } : {}) });
+      store.pushLimited('log', { t: Date.now(), text: `${name} joined ${loc.name}’s Friend Zone${by ? ` (recruited by ${by})` : ''}.` });
+      // her ask 10-29: a recruit is news in Around the Guild
+      guildSay('Guildmaster Beautifly', 'say', `Everyone, please welcome ${name} to ${loc.name}${here ? `, moving in at ${here}` : ''}!${by ? ` Thank you, ${by}, for bringing them in.` : ''}`, 'recruit');
       closeModal(); toast(`${name} moved in!`); renderFriendZone(main, [loc.id]);
     };
   });
