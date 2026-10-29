@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae38f84';
-import { $, $$, esc, toast, num } from './util.js?v=6ae38f84';
-import { me, logRoll } from './play.js?v=6ae38f84';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae38f84';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae38f84';
-import { markWinner } from './sparkle.js?v=6ae38f84';
-import { pageMusic } from './chiptune.js?v=6ae38f84';
-import { modal, closeModal } from './ui.js?v=6ae38f84';
+import * as store from './store.js?v=6ae39064';
+import { $, $$, esc, toast, num } from './util.js?v=6ae39064';
+import { me, logRoll } from './play.js?v=6ae39064';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39064';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39064';
+import { markWinner } from './sparkle.js?v=6ae39064';
+import { pageMusic } from './chiptune.js?v=6ae39064';
+import { modal, closeModal } from './ui.js?v=6ae39064';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -100,11 +100,16 @@ const WALK_REST = 45 * 60e3;
 // their Pokémon cries (her ask 10-29): assets/cries/<species>.mp3. Little ones squeak a bit higher; quiet when music is muted;
 // never more than one cry every few seconds per baby, so a busy room doesn't turn into a chorus.
 const lastCry = {};
-function cry(b, { vol = 0.45, odds = 1 } = {}) {
-  if (!b || !BABIES[b.sp] || Math.random() > odds || Date.now() - (lastCry[b.sp] || 0) < 3500) return;
-  try { if (localStorage.getItem('dc.music') === 'off') return; } catch { /* fine */ }
+// her report 10-29 "I don't hear it": cries no longer follow the music button (she had the lullaby off), they're louder,
+// and each baby's cry is loaded ahead so the first one isn't lost. The 🔊 button next to Name plays it on demand.
+// her ask 10-29: cries have their own mute button (dc.cries on this device), separate from the music
+const criesOff = () => { try { return localStorage.getItem('dc.cries') === 'off'; } catch { return false; } };
+const cryAudio = {};
+const cryOf = (sp) => (cryAudio[sp] ||= Object.assign(new Audio(`assets/cries/${sp}.mp3`), { preload: 'auto' }));
+function cry(b, { vol = 0.8, odds = 1, force = false } = {}) {
+  if (!b || !BABIES[b.sp] || Math.random() > odds || (!force && (criesOff() || Date.now() - (lastCry[b.sp] || 0) < 3500))) return;
   lastCry[b.sp] = Date.now();
-  const a = new Audio(`assets/cries/${b.sp}.mp3`); a.volume = vol; a.preservesPitch = false; a.playbackRate = [1.2, 1.2, 1.1, 1][b.stage] || 1;
+  const a = cryOf(b.sp); a.pause(); a.currentTime = 0; a.volume = Math.min(1, vol); a.preservesPitch = false; a.playbackRate = [1.2, 1.2, 1.1, 1][b.stage] || 1;
   a.play().catch(() => { /* not allowed before the first tap */ });
 }
 const listOf = (a) => (a.length < 2 ? a.join('') : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`);
@@ -176,7 +181,7 @@ function startPet(root, b, scene, ownerId) {
     if (busy || (asleep() && d.act !== 'sleep')) return d.done?.(false);
     busy = true; think.className = 'pet-think';
     if (d.act === 'go') await walkTo(d.x, d.sp || 75);
-    else if (d.act === 'hop') { row('hop', false); if (d.fx) fx(d.fx); cry(b, { vol: 0.3, odds: 0.35 }); await wait(750); row('idle'); }
+    else if (d.act === 'hop') { row('hop', false); if (d.fx) fx(d.fx); cry(b, { vol: 0.6, odds: 0.35 }); await wait(750); row('idle'); }
     else if (d.act === 'nod') { row('nod', false); if (d.fx) fx(d.fx); await wait(850); row('idle'); }
     else if (d.act === 'face') { row(d.dir); await wait(d.ms || 600); row('idle'); }
     else if (d.act === 'sleep') { row('sleep', true, 1.6); await wait(d.ms || 4000); row('idle'); }
@@ -237,14 +242,14 @@ function startPet(root, b, scene, ownerId) {
       if (asleep(h)) { row('sleep', true, 1.6); think.className = 'pet-think show zz'; think.textContent = 'z Z'; await wait(5000); continue; }
       const r = Math.random();
       if (r < 0.4) await walkTo(10 + Math.random() * maxX());
-      else if (r < 0.55 && m >= 60) { row('hop', false); if (Math.random() < 0.5) fx('♪'); cry(b, { vol: 0.3, odds: 0.15 }); await wait(800); row('idle'); }
+      else if (r < 0.55 && m >= 60) { row('hop', false); if (Math.random() < 0.5) fx('♪'); cry(b, { vol: 0.6, odds: 0.15 }); await wait(800); row('idle'); }
       else if (r < 0.65) { row('nod', false); await wait(900); row('idle'); }
       else if (r < 0.72 && m >= 50) { row('sleep', true, 1.6); await wait(3500); row('idle'); }
       else { row('idle'); await wait(1500 + Math.random() * 2000); }
     }
   };
   row('idle');
-  (async () => { if (scene && scenes[scene]) { busy = true; think.className = 'pet-think'; await wait(200); await scenes[scene](); if (scene !== 'cover') cry(b, { vol: 0.35 }); busy = false; } })().then(life);
+  (async () => { if (scene && scenes[scene]) { busy = true; think.className = 'pet-think'; await wait(200); await scenes[scene](); if (scene !== 'cover') cry(b, { vol: 0.7 }); busy = false; } })().then(life);
 }
 // the egg is the Ruby & Sapphire egg sprite (her ask 10-27), assets/nursery/egg.png
 const eggHTML = (b, cls = '') => `<img class="egg ${cls}" src="assets/nursery/egg.png" alt="An egg">`;
@@ -326,14 +331,14 @@ function startGuest(root, gb, label) {
   const GAMES = {
     // tag: one chases, the other runs off squealing, then they swap
     async tag() {
-      cap(`${gname} and ${hostName()} are playing tag!`); cry(gb, { vol: 0.35 });
+      cap(`${gname} and ${hostName()} are playing tag!`); cry(gb, { vol: 0.7 });
       for (let k = 0; k < 2 && alive(); k++) {
         const far = hx() < maxX() / 2 ? maxX() : 10;
         await Promise.all([walkTo(hx(), 200), wait(250).then(() => host('go', { x: far, sp: 210 }))]);
         fx('💨'); await wait(300);
         const back = x < maxX() / 2 ? maxX() : 10;
         await Promise.all([host('go', { x: x, sp: 200 }), wait(250).then(() => walkTo(back, 210))]);
-        hfx('❗'); if (k === 0) cry(buddyOf(meOwner()), { vol: 0.35 });
+        hfx('❗'); if (k === 0) cry(buddyOf(meOwner()), { vol: 0.7 });
       }
       await Promise.all([host('hop', { fx: '♪' }), (async () => { row('hop', false); fx('♪'); await wait(750); row('idle'); })()]);
     },
@@ -348,14 +353,14 @@ function startGuest(root, gb, label) {
         await wait(650);
         if (toHost) await host('hop', { fx: k === 2 ? '💕' : '' }); else { row('hop', false); await wait(700); row('idle'); }
       }
-      ball.remove(); fx('💕'); hfx('💕'); cry(gb, { vol: 0.35 });
+      ball.remove(); fx('💕'); hfx('💕'); cry(gb, { vol: 0.7 });
     },
     // a cuddle: they walk up to each other, face each other and nuzzle
     async cuddle() {
       cap(`${gname} and ${hostName()} are having a cuddle!`);
       const left = x < hx(); await walkTo(left ? hx() - pw * 0.7 : hx() + hw() * 0.7, 110);
       await Promise.all([host('face', { dir: left ? 'left' : 'right', ms: 300 }), (async () => { row(left ? 'right' : 'left'); await wait(300); })()]);
-      for (let k = 0; k < 2; k++) { await Promise.all([host('nod'), (async () => { row('nod', false); await wait(850); })()]); fx('💕', 10); hfx('💞', -10); if (k === 0) cry(gb, { vol: 0.35 }); else cry(buddyOf(meOwner()), { vol: 0.35 }); }
+      for (let k = 0; k < 2; k++) { await Promise.all([host('nod'), (async () => { row('nod', false); await wait(850); })()]); fx('💕', 10); hfx('💞', -10); if (k === 0) cry(gb, { vol: 0.7 }); else cry(buddyOf(meOwner()), { vol: 0.7 }); }
       row('idle');
     },
     // a dance: they take turns hopping, then hop together
@@ -363,13 +368,13 @@ function startGuest(root, gb, label) {
       cap(`${gname} and ${hostName()} are dancing!`);
       await walkTo(hx() < maxX() / 2 ? hx() + 110 : hx() - 110, 110);
       for (let k = 0; k < 3 && alive(); k++) { row('hop', false); fx('♪'); await wait(700); row('idle'); await host('hop', { fx: '♫' }); }
-      await Promise.all([host('hop', { fx: '✨' }), (async () => { row('hop', false); fx('✨'); cry(gb, { vol: 0.35 }); await wait(750); row('idle'); })()]);
+      await Promise.all([host('hop', { fx: '✨' }), (async () => { row('hop', false); fx('✨'); cry(gb, { vol: 0.7 }); await wait(750); row('idle'); })()]);
     },
     // a nap side by side
     async nap() {
       cap(`${gname} and ${hostName()} are napping together. Shh…`);
       await walkTo(hx() < maxX() / 2 ? hx() + pw * 0.9 : hx() - pw * 0.9, 90);
-      row('sleep', true, 1.6); fx('💤'); await host('sleep', { ms: 4200 }); await wait(400); row('idle'); fx('♪'); cry(gb, { vol: 0.3 });
+      row('sleep', true, 1.6); fx('💤'); await host('sleep', { ms: 4200 }); await wait(400); row('idle'); fx('♪'); cry(gb, { vol: 0.6 });
     },
   };
   (async () => {
@@ -461,7 +466,7 @@ async function walkGo(c, box, stops) {
       gift.innerHTML = '<button class="walk-box" aria-label="Open the present">🎁</button>'; gift.classList.add('show');
       say(`${esc(nameOf(b))} sniffed something out! Tap the present!`); row('nod', true);
       await Promise.race([wait(6000), new Promise((ok) => { $('.walk-box', gift).onclick = ok; })]); if (!alive()) return;
-      if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = `<span class="walk-prize">${ACC[prize][0]}</span>`; say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.`); cry(b, { vol: 0.4 }); }
+      if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = `<span class="walk-prize">${ACC[prize][0]}</span>`; say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.`); cry(b, { vol: 0.8 }); }
       else { const poke = 10 + Math.floor(Math.random() * 11); found.push(poke); gift.innerHTML = '<span class="walk-prize">🪙</span>'; say(`🎉 ${poke} Poké! (${esc(nameOf(b))} already has every accessory.)`); store.update('party/' + c.id, (x) => ({ ...x, poke: num(x?.poke) + poke })); }
       row('hop', false); await wait(2200); gift.classList.remove('show'); gift.innerHTML = '';
     }
@@ -508,7 +513,7 @@ function room(c, box, anim) {
     </div>
     <div class="n-head">${egg ? '' : `<img class="sface" src="${buddyFace(b)}" alt="">`}<div class="grow"><b>${esc(b.name || (egg ? 'Mystery egg' : B.name))}</b> <span class="pill">${STAGES[b.stage]}</span>
       <div class="small muted">${b.stage < 3 ? `${left} more cared-for day${left === 1 ? '' : 's'} to grow` : b.recruited ? 'On your team' : 'Ready to join a team!'}</div></div>
-      ${egg ? '' : '<button class="btn alt sm" id="nname">Name</button>'}</div>
+      ${egg ? '' : '<button class="btn alt sm" id="ncry" title="Hear its cry" aria-label="Hear its cry">🔊</button><button class="btn alt sm" id="nname">Name</button>'}</div>
     <div class="n-stats">${Object.keys(needs).map((k) => { const v = stat(b, k); return `<div class="n-stat"><span>${lab(k)[0]} ${lab(k)[1]}</span><div class="n-bar ${v < 30 ? 'low' : ''}"><i style="width:${v}%"></i></div><span class="small muted">${k === 'cover' ? (v ? 'safe now' : 'needed now') : `${Math.min(num(day[k]), needs[k])}/${needs[k]} today`}</span></div>`; }).join('')}</div>
     ${egg ? '' : `<div class="n-bond"><span>❤️ Bond</span><span class="n-hearts">${'❤️'.repeat(hearts(b))}${'🤍'.repeat(5 - hearts(b))}</span><span class="small muted">${hearts(b) >= 5 ? 'Best friends!' : 'Pet, walk and care to grow it'}</span></div>
       <div class="n-fun"><button class="btn" id="nwalk">🦮 Walk</button><button class="btn alt" id="ncall">📣 Call ${esc(nameOf(b))}</button><button class="btn alt" id="ndress">🎀 Dress up</button></div>
@@ -519,8 +524,10 @@ function room(c, box, anim) {
     ${egg ? '' : guest ? `<p class="n-visit">🏠 ${esc(party[v.id]?.nickname || 'A friend')}’s ${esc(guest.name || BABIES[guest.sp]?.name)} is visiting! <button class="btn alt sm" id="nhome">Say goodbye</button></p>`
       : `<p class="n-visit">${away ? `🏠 ${esc(nameOf(b))} has been invited over to ${esc(party[away]?.nickname || 'a friend')}’s room for a playdate!` : ''}<button class="btn alt sm" id="nvisit">🏠 Invite a playdate</button></p>`}</div>`;
   if (!egg) startPet(box, b, anim, c.id);
+  if (!egg) { cryOf(b.sp); if (guest) cryOf(guest.sp); }
   if (guest) startGuest(box, guest, `${party[v.id]?.nickname || 'Friend'}’s ${guest.name || BABIES[guest.sp]?.name}`);
   const iv = $('#nvisit', box); if (iv) iv.onclick = () => invite(c, box);
+  const cr = $('#ncry', box); if (cr) cr.onclick = () => { cry(b, { force: true }); const p2 = $('#npet', box); if (p2) { const sp2 = $('.baby-spr', p2); sp2?.classList.add('r1'); } };
   const cl = $('#ncall', box); if (cl) cl.onclick = () => $('#npet', box)?.dispatchEvent(new Event('call'));
   const dr = $('#ndress', box); if (dr) dr.onclick = () => dressUp(c, box);
   const wk = $('#nwalk', box); if (wk) wk.onclick = () => {
@@ -568,7 +575,7 @@ export function renderNursery(main, g, gm, onEdit) {
     <h1 style="margin:10px 0 4px">${esc(g.name)}</h1>
     <p>${esc(g.intro || '')}</p>
     <p><span class="pill">🥚 Egg → Baby → Kid → Teen</span> <span class="pill">📅 A little care every day</span> <span class="pill">🤝 Teens can join your team</span></p>
-    <p class="small muted" style="text-align:right;margin:0 0 4px"><button class="btn alt sm" id="nmusic"></button></p>
+    <p class="small muted" style="text-align:right;margin:0 0 4px"><button class="btn alt sm" id="ncries"></button> <button class="btn alt sm" id="nmusic"></button></p>
     <div class="card sentry"><div id="nbox"></div></div>
     <div class="card" style="margin-top:12px"><h3 style="margin-top:0">The nursery</h3><ul class="sentry-roster" id="nlist"></ul></div>`;
   const party = store.get('party') || {};
@@ -587,4 +594,6 @@ export function renderNursery(main, g, gm, onEdit) {
   else room(c, box);
   const e = $('#ed', main); if (e) e.onclick = onEdit;
   pageMusic(main, 'musicbox', 'nmusic');
+  const cb = $('#ncries', main); const cbText = () => { cb.textContent = criesOff() ? '🔇 Cries off' : '🐣 Cries on'; };
+  cbText(); cb.onclick = () => { try { localStorage.setItem('dc.cries', criesOff() ? 'on' : 'off'); } catch { /* fine */ } cbText(); };
 }
