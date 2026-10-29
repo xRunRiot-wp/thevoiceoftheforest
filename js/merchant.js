@@ -3,12 +3,12 @@
 // Haggling: Slash never tolerates it (try 1 "fair", try 2 "absolutely not", try 3 = he and his troupe of 3 stand armed).
 // Beat him in that fight: his caravan never returns and the team gets everything on his table.
 // Lose: his prices go up 150% for good (no more sales) and he attacks at the very next haggle.
-import * as store from './store.js?v=6ae3a72b';
-import { $, $$, esc, num, uid, toast } from './util.js?v=6ae3a72b';
-import { modal, closeModal } from './ui.js?v=6ae3a72b';
-import { ixLink } from './effects.js?v=6ae3a72b';
-import { guildSay, gmTodo } from './chatter.js?v=6ae3a72b';
-import { buyDialog, logSale } from './shopkit.js?v=6ae3a72b';
+import * as store from './store.js?v=6ae3a8c7';
+import { $, $$, esc, num, uid, toast } from './util.js?v=6ae3a8c7';
+import { modal, closeModal } from './ui.js?v=6ae3a8c7';
+import { ixLink } from './effects.js?v=6ae3a8c7';
+import { guildSay, gmTodo } from './chatter.js?v=6ae3a8c7';
+import { buyDialog, logSale, sellDialog } from './shopkit.js?v=6ae3a8c7';
 
 export const BROTHERS = {
   Slash: { tell: 'Does not tolerate haggling.', lines: ['No. The price I listed is fair.', 'Absolutely not.', '*stands armed and guarded with his troupe of 3*'] },
@@ -28,6 +28,8 @@ const who = () => M().brother || 'Slash';
 const bro = (n = who()) => ({ ...BROTHERS[n], ...((M().bros || {})[n] || {}) });
 const slots = () => { const s = M().slots; return Array.isArray(s) && s.length ? s : START; };
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
+// what the merchant pays (her ask 10-29): 60% of his own price for things on his table, 40 Poké for anything else
+const merchantBuys = (name) => { const s = slots().find((x) => x.name.toLowerCase() === name.toLowerCase()); return s ? Math.max(1, Math.floor(num(s.price) / qtyOf(s) * 0.6)) : 40; };
 const priceOf = (s) => { const b = bro(); return b.angry ? Math.ceil(num(s.price) * 1.5) : s.sale ? num(s.sale) : num(s.price); };
 
 export function merchantHTML() {
@@ -44,7 +46,8 @@ export function merchantHTML() {
         ${(s.sale || s.saleTag) && !b.angry && !s.sold ? '<span class="mc-sale">SALE</span>' : ''}
         <div class="mc-item">${qtyOf(s) > 1 ? `<span class="pix mc-qty">${qtyOf(s)}×</span> ` : ''}${ixLink(s.name)}</div>
         <div class="mc-tag">${s.sold ? 'SOLD' : `${s.sale && !b.angry ? `<s>${num(s.price)}</s> ` : ''}${priceOf(s)} Poké`}</div>
-        ${s.sold ? '' : `<div class="row nowrap mc-btns"><button class="btn sm" data-mbuy="${i}">Buy</button><button class="btn alt sm" data-mhag="${i}">Haggle</button></div>`}</div>`).join('')}</div>`
+        ${s.sold ? '' : `<div class="row nowrap mc-btns"><button class="btn sm" data-mbuy="${i}">Buy</button><button class="btn alt sm" data-mhag="${i}">Haggle</button></div>`}</div>`).join('')}</div>
+      <div class="row" style="justify-content:center;margin-top:8px"><button class="btn" id="msell">💰 Sell items to ${esc(name)}</button></div>`
       : `<p class="muted">No merchant has set up a table today.</p>`}
     ${gm ? `<details class="small gm-merch" style="margin-top:10px"><summary><b>GM: merchant controls</b></summary>
       <div class="row" style="margin-top:6px">${ORDER.map((n) => `<button class="btn ${n === name && here ? '' : 'alt'} sm" data-mbro="${n}" ${bro(n).gone ? 'disabled title="His caravan never returns"' : ''}>${bro(n).gone ? '🪦 ' : ''}${n}</button>`).join('')}<button class="btn alt sm" id="mnext">Rotate ➜</button><button class="btn alt sm" id="maway">${here ? 'Pack up the table' : 'Set up the table'}</button></div>
@@ -57,6 +60,7 @@ export function merchantHTML() {
 export function bindMerchant(main) {
   $$('[data-mbuy]', main).forEach((b) => b.onclick = () => buy(+b.dataset.mbuy));
   $$('[data-mhag]', main).forEach((b) => b.onclick = () => haggle(+b.dataset.mhag));
+  const ms = $('#msell', main); if (ms) ms.onclick = () => sellDialog({ shop: 'merchant', keeper: who(), valueOf: merchantBuys, thanks: ['A fair trade.', '*nods and stows it in the caravan*', 'This will sell well in the next town.'] });
   $$('[data-mbro]', main).forEach((b) => b.onclick = () => setBrother(b.dataset.mbro));
   const q = (id) => $(id, main);
   if (q('#mnext')) q('#mnext').onclick = () => { const live = ORDER.filter((n) => !bro(n).gone); const i = live.indexOf(who()); if (live.length) setBrother(live[(i + 1) % live.length]); };

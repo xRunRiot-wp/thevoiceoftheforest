@@ -1,8 +1,8 @@
 // Shared bits for the Guild Shop and Travelling Merchant pages: the Poké bar at the top, the
 // "who bought what" chat, and the buy dialog (who's buying + how many, then a confirm step).
-import * as store from './store.js?v=6ae3a72b';
-import { $, $$, esc, num, timeAgo } from './util.js?v=6ae3a72b';
-import { portrait, modal, closeModal } from './ui.js?v=6ae3a72b';
+import * as store from './store.js?v=6ae3a8c7';
+import { $, $$, esc, num, timeAgo, toast } from './util.js?v=6ae3a8c7';
+import { portrait, modal, closeModal } from './ui.js?v=6ae3a8c7';
 
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
 const buyers = () => Object.values(store.get('party') || {}).filter((c) => !c.guest);
@@ -65,4 +65,29 @@ export function buyDialog({ item, unit = item, price, max = 99, seller, onBuy })
     };
   };
   step1();
+}
+
+// her ask 10-29: a rank badge, the World Map and key items stay with their owner (no sending, no selling); team items
+// belong to everyone, so only your own things can be sold
+export const keepsake = (b) => !b || b.key || b.name === 'World Map' || / (Rank|Guild) Badge$/.test(b.name || '');
+// Sell dialog (her ask 10-29: sell to the Travelling Merchant and the Guild Shop). shop = 'guild' | 'merchant',
+// valueOf(name) = Poké paid for one, thanks = the shopkeeper's replies.
+export function sellDialog({ shop, keeper, valueOf, thanks = [] }) {
+  const c = (store.get('party') || {})[meId()];
+  if (!c) return toast('Pick your character first (Play tab).');
+  const items = Object.entries(store.get('bag') || {}).filter(([, b]) => b && b.owner === c.id && num(b.qty) > 0 && !keepsake(b));
+  const el = modal(`<h2>💰 Sell to ${esc(keeper)}</h2><p class="small muted">${esc(c.nickname)}’s own items. Rank badges, the World Map, key items and team items can’t be sold.</p>
+    ${items.length ? `<ul class="log sell-list" style="max-height:none">${items.map(([k, b]) => `<li class="row nowrap"><span class="grow"><b>${esc(b.name)}</b> <span class="small muted">you have ${num(b.qty)}</span></span>
+      <b class="pix">${valueOf(b.name)} P</b><input type="number" min="1" max="${num(b.qty)}" value="1" data-sq="${esc(k)}" style="width:62px"><button class="btn sm" data-sell="${esc(k)}">Sell</button></li>`).join('')}</ul>`
+      : '<p class="muted">Nothing to sell right now.</p>'}`);
+  $$('[data-sell]', el).forEach((btn) => btn.onclick = () => {
+    const k = btn.dataset.sell; const b = store.get('bag/' + k); if (!b || b.owner !== c.id) return;
+    const qty = Math.max(1, Math.min(num(b.qty), num($(`[data-sq="${k}"]`, el)?.value) || 1)); const total = valueOf(b.name) * qty;
+    if (btn.dataset.sure !== '1') { btn.dataset.sure = '1'; btn.textContent = `Sell ${qty} for ${total.toLocaleString()} P?`; return; }
+    if (num(b.qty) === qty) store.set('bag/' + k, null); else store.set(`bag/${k}/qty`, num(b.qty) - qty);
+    store.update('party/' + c.id, (x) => ({ ...x, poke: num(x?.poke) + total }));
+    const text = `${c.nickname} sold ${qty > 1 ? qty + ' × ' : ''}${b.name} for ${total.toLocaleString()} Poké.`;
+    store.pushLimited('log', { t: Date.now(), text }); logSale(shop, c, text, thanks[Math.floor(Math.random() * thanks.length)] || '');
+    toast(`Sold ${qty > 1 ? qty + ' × ' : ''}${b.name} for ${total.toLocaleString()} Poké`); closeModal();
+  });
 }

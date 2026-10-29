@@ -2,12 +2,13 @@
 // friends, see who's on the site right now (and where), and invite them to a game like Noctowl's 21.
 // online/<id> = { t, at } (each open device refreshes it every 2 minutes); party/<id>/friends = [ids];
 // invites/<id>/<inviteId> = { from, fromId, game, name, t } (shown once as a pop-up on the friend's device, then removed).
-import * as store from './store.js?v=6ae3a72b';
-import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae3a72b';
-import { sendFx, startLetterWatch } from './letterfx.js?v=6ae3a72b';
-import { giftNote, writeMail } from './mailbox.js?v=6ae3a72b';
-import { playingNow, openWatch } from './watch.js?v=6ae3a72b';
-import { modal, closeModal, portrait } from './ui.js?v=6ae3a72b';
+import * as store from './store.js?v=6ae3a8c7';
+import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae3a8c7';
+import { sendFx, startLetterWatch } from './letterfx.js?v=6ae3a8c7';
+import { giftNote, writeMail } from './mailbox.js?v=6ae3a8c7';
+import { playingNow, openWatch } from './watch.js?v=6ae3a8c7';
+import { modal, closeModal, portrait } from './ui.js?v=6ae3a8c7';
+import { keepsake } from './shopkit.js?v=6ae3a8c7';
 
 const ONLINE_FOR = 5 * 60e3; const BEAT = 2 * 60e3;
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -77,12 +78,12 @@ export function openFriends() {
     $$('[data-unfr]', box).forEach((b) => b.onclick = () => { store.set(`party/${me.id}/friends`, mine.filter((id) => id !== b.dataset.unfr)); draw(box); });
     $$('[data-watch]', box).forEach((a) => a.onclick = () => closeModal());
     // her ask 10-29: tap a portrait for a mini look at their character
-    $$('[data-peek]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => import('./play.js?v=6ae3a72b').then((m) => m.viewCharacter(b.dataset.peek, { mini: true })), 50); });
+    $$('[data-peek]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => import('./play.js?v=6ae3a8c7').then((m) => m.viewCharacter(b.dataset.peek, { mini: true })), 50); });
     // her ask 10-29: a mail button to send just a letter
     $$('[data-mail]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => writeMail(me, b.dataset.mail), 50); });
     $$('[data-send]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openSend(b.dataset.send), 50); });
     // her ask 10-29: battle a friend like the main Pokémon games
-    $$('[data-bt]', box).forEach((b) => b.onclick = () => { closeModal(); import('./battle.js?v=6ae3a72b').then((m) => m.challenge(b.dataset.bt)); });
+    $$('[data-bt]', box).forEach((b) => b.onclick = () => { closeModal(); import('./battle.js?v=6ae3a8c7').then((m) => m.challenge(b.dataset.bt)); });
     $$('[data-watchp]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openWatch(b.dataset.watchp), 50); });
     $$('[data-inv]', box).forEach((b) => b.onclick = () => {
       const to = party()[b.dataset.inv];
@@ -96,9 +97,10 @@ export function openFriends() {
 }
 
 // Send a friend Poké or items from your own bag (her ask 10-27). They get a note in their mailbox.
-const myItems = (id) => Object.entries(store.get('bag') || {}).filter(([, b]) => b && b.owner === id && num(b.qty) > 0);
+// her ask 10-29: rank badges, the World Map and key items can't be sent
+const myItems = (id) => Object.entries(store.get('bag') || {}).filter(([, b]) => b && b.owner === id && num(b.qty) > 0 && !keepsake(b));
 function giveItem(from, to, key, qty) {
-  const b = store.get('bag/' + key); if (!b || b.owner !== from || num(b.qty) < qty) return false;
+  const b = store.get('bag/' + key); if (!b || b.owner !== from || num(b.qty) < qty || keepsake(b)) return false;
   if (num(b.qty) === qty) store.set('bag/' + key, null); else store.set(`bag/${key}/qty`, num(b.qty) - qty);
   const same = Object.entries(store.get('bag') || {}).find(([, x]) => x && x.owner === to && x.name.toLowerCase() === b.name.toLowerCase());
   if (same) store.set(`bag/${same[0]}/qty`, num(same[1].qty) + qty); else store.set('bag/' + uid(), { name: b.name, qty, owner: to });

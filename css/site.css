@@ -2154,3 +2154,13 @@ a.ch-chip:hover { background: var(--navy); }
 /* Nature short line + list (her ask 10-29) */
 .nat-short { margin: 8px 0 0; padding: 6px 10px; border-radius: 10px; background: rgba(240, 185, 85, .18); }
 .nat-list { margin: 4px 0 0; padding-left: 18px; } .nat-list li { margin: 2px 0; }
+
+/* species evolution line in the Index (her ask 10-29) */
+.evo-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.evo-stage { display: flex; flex-direction: column; gap: 4px; }
+.evo-mon { display: flex; align-items: center; gap: 6px; padding: 4px 8px 4px 4px; border: 2px solid rgba(0, 0, 0, .15); border-radius: 10px; text-decoration: none; color: inherit; background: rgba(255, 255, 255, .5); }
+.evo-mon.here { border-color: #f0b955; background: rgba(240, 185, 85, .2); }
+.evo-mon img { width: 36px; height: 36px; image-rendering: pixelated; border-radius: 6px; }
+.evo-mon small { display: block; font-size: 11px; opacity: .75; }
+.evo-mon b { display: block; }
+.evo-arrow { font-size: 20px; opacity: .6; }

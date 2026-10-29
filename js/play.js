@@ -1,26 +1,26 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae3a72b';
-import * as sheet from './sheetdata.js?v=6ae3a72b';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae3a72b';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae3a72b';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae3a72b';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae3a72b';
-import { unlockChar } from './charlock.js?v=6ae3a72b';
-import { CONFIG } from './config.js?v=6ae3a72b';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae3a72b';
-import { merged, editContent } from './content-store.js?v=6ae3a72b';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae3a72b';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae3a72b';
-import { homeHTML } from './sitepages.js?v=6ae3a72b';
-import { burstSet } from './burst.js?v=6ae3a72b';
-import { pinsOf, showMap } from './hotbar.js?v=6ae3a72b';
-import { chatterLatestHTML } from './chatter.js?v=6ae3a72b';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae3a72b';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae3a72b';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3a72b';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae3a72b';
-import { find } from './effects.js?v=6ae3a72b';
-import * as dice3d from './dice3d.js?v=6ae3a72b';
+import * as store from './store.js?v=6ae3a8c7';
+import * as sheet from './sheetdata.js?v=6ae3a8c7';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae3a8c7';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae3a8c7';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae3a8c7';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae3a8c7';
+import { unlockChar } from './charlock.js?v=6ae3a8c7';
+import { CONFIG } from './config.js?v=6ae3a8c7';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae3a8c7';
+import { merged, editContent } from './content-store.js?v=6ae3a8c7';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae3a8c7';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae3a8c7';
+import { homeHTML } from './sitepages.js?v=6ae3a8c7';
+import { burstSet } from './burst.js?v=6ae3a8c7';
+import { pinsOf, showMap } from './hotbar.js?v=6ae3a8c7';
+import { chatterLatestHTML } from './chatter.js?v=6ae3a8c7';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae3a8c7';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae3a8c7';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3a8c7';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae3a8c7';
+import { find } from './effects.js?v=6ae3a8c7';
+import * as dice3d from './dice3d.js?v=6ae3a8c7';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -137,7 +137,7 @@ document.addEventListener('toggle', (e) => { if (e.target.classList?.contains('m
 const easternDay = (t) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(t));
 // what they're carrying, so they remember at the start of the day: Poké + bag (their own items, then the team's)
 function packHTML(c) {
-  const bag = Object.values(store.get('bag') || {}).filter((b) => b.owner === c.id || b.owner === 'team').sort((a, b) => (a.owner === 'team') - (b.owner === 'team'));
+  const bag = bagSorted(c).map(([, b]) => b);
   return `<div class="pack"><h3>🎒 What you're carrying</h3>
     <div class="pack-poke">💰 <b>${num(c.poke).toLocaleString()}</b> Poké</div>
     ${bag.length ? `<ul class="pack-list">${bag.map((b) => `<li>${isBadge(b.name) ? badgeIcon(b.name) : ''}<span class="grow">${esc(b.name)}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span><b>×${num(b.qty) || 1}</b></li>`).join('')}</ul>` : '<p class="small muted">Your bag is empty.</p>'}
@@ -352,7 +352,7 @@ const pips = (v, cols) => `<span class="pips">${[1, 2, 3, 4, 5].map((i) => `<i s
 
 // species, nature, rank, instinct and gear as small labelled boxes (label on top, value below); tap one to read its rule
 const factBoxes = (c) => `<div class="facts">${[
-  ['Species', c.pokemon, ''], ['Form', formName(c) || null, ''], ['Nature', c.nature, 'Nature (personality)'], ['Rank', c.rank, c.rank ? c.rank + ' Rank' : ''], ['Instinct', c.instinctRank, 'Instinct'],
+  ['Species', c.pokemon, c.pokemon || ''], // her ask 10-29: tap it for the species' PokéRole card + evolutions ['Form', formName(c) || null, ''], ['Nature', c.nature, 'Nature (personality)'], ['Rank', c.rank, c.rank ? c.rank + ' Rank' : ''], ['Instinct', c.instinctRank, 'Instinct'],
   ['Held item', c.held || '—', 'Garments'], ['Garment', c.garments || '—', 'Garments'], ['Training Points', num(c.tp), 'Training'],
 ].filter(([, v]) => v !== undefined && v !== null && v !== '').map(([k, v, ix]) => `<${ix ? `a href="#" data-ixname="${esc(ix)}"` : 'div'} class="fact"><span class="fact-k">${k}</span><span class="fact-v">${esc(v)}</span></${ix ? 'a' : 'div'}>`).join('')}</div>`;
 
@@ -498,10 +498,17 @@ export function ensureBadge(c) {
   store.set('bag/' + uid(), { name: want, qty: 1, owner: c.id, badge: true });
 }
 
+// her ask 10-29: players arrange their own bag; party/<id>/bagOrder = item keys in their order (new items go last)
+const bagSorted = (c) => { const ord = Array.isArray(c.bagOrder) ? c.bagOrder : []; const at = (k) => { const i = ord.indexOf(k); return i < 0 ? 1e9 : i; };
+  return Object.entries(store.get('bag') || {}).filter(([, b]) => b && (b.owner === c.id || b.owner === 'team')).map((e, n) => [e, n]).sort((a, b) => at(a[0][0]) - at(b[0][0]) || a[1] - b[1]).map(([e]) => e); };
+function moveBag(c, key, d) {
+  const keys = bagSorted(c).map(([k]) => k); const i = keys.indexOf(key); const j = i + d;
+  if (i < 0 || j < 0 || j >= keys.length) return; [keys[i], keys[j]] = [keys[j], keys[i]]; store.set(`party/${c.id}/bagOrder`, keys);
+}
 function bagList(c) {
-  const bag = Object.entries(store.get('bag') || {}).filter(([, b]) => b.owner === c.id || b.owner === 'team');
+  const bag = bagSorted(c);
   if (!bag.length) return '<p class="muted small">Empty. Items the team finds land here.</p>';
-  return `<ul class="log" style="max-height:none">${bag.map(([id, b]) => `<li class="row nowrap"><span class="grow">${isBadge(b.name) ? badgeIcon(b.name) : ''}${b.name === 'World Map' ? `<a href="#" data-showmap="1"><b>🗺️ World Map</b></a>` : `<a href="#" data-ixname="${esc(b.name)}"><b>${esc(b.name)}</b></a>`} ×${b.qty}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span>
+  return `<ul class="log" style="max-height:none">${bag.map(([id, b], n) => `<li class="row nowrap"><span class="bag-move"><button class="btn alt sm" data-bagmv="${id}|-1" ${n ? '' : 'disabled'} title="Move up" aria-label="Move up">▲</button><button class="btn alt sm" data-bagmv="${id}|1" ${n < bag.length - 1 ? '' : 'disabled'} title="Move down" aria-label="Move down">▼</button></span><span class="grow">${isBadge(b.name) ? badgeIcon(b.name) : ''}${b.name === 'World Map' ? `<a href="#" data-showmap="1"><b>🗺️ World Map</b></a>` : `<a href="#" data-ixname="${esc(b.name)}"><b>${esc(b.name)}</b></a>`} ×${b.qty}${b.owner === 'team' ? ' <span class="pill">team</span>' : ''}</span>
     ${b.name === 'World Map' || isBadge(b.name) ? '' : `<button class="btn alt sm pinbtn ${pinsOf(c).includes(b.name) ? 'on' : ''}" data-pin="${esc(b.name)}" title="Pin to the top bar">📌</button>`}${isBadge(b.name) ? '<span class="small muted">rank badge</span>' : b.key ? '<span class="small muted">key item</span>' : `<button class="btn alt sm" data-stash="${id}">Store</button><button class="btn sm" data-use="${id}">Use</button>`}</li>`).join('')}</ul>`;
 }
 
@@ -510,6 +517,7 @@ function bindCharCard(main, c) {
   ensureBadge(c);
   bindMemory(main, c);
   $$('[data-showmap]', main).forEach((a) => a.onclick = (e) => { e.preventDefault(); showMap(); });
+  $$('[data-bagmv]', main).forEach((b) => b.onclick = () => { const [k, d] = b.dataset.bagmv.split('|'); moveBag(party()[c.id] || c, k, num(d)); });
   $$('[data-pin]', main).forEach((b) => b.onclick = () => {
     const n = b.dataset.pin; const cur = pinsOf(c);
     if (cur.includes(n)) store.set(path + '/pins', cur.filter((x) => x !== n));
@@ -848,7 +856,7 @@ function useItem(id, c) {
 export function viewCharacter(id, { mini = false } = {}) {   // mini: a friend's peek (her ask 10-29), no Edit unless GM
   const c = party()[id]; if (!c) return;
   const mx = maxHp(c);
-  modal(`<div class="char-head">${portrait(c)}<div class="grow"><div class="char-name">${esc(c.nickname)}</div><div class="char-sub">${esc(c.pokemon)}${formName(c) ? ` (${esc(formName(c))})` : ''} · ${esc(c.rank || '')} · ${esc(c.nature || '')}</div>
+  modal(`<div class="char-head">${portrait(c)}<div class="grow"><div class="char-name">${esc(c.nickname)}</div><div class="char-sub">${c.pokemon ? ixLink(c.pokemon) : ''}${formName(c) ? ` (${esc(formName(c))})` : ''} · ${esc(c.rank || '')} · ${esc(c.nature || '')}</div>
     <div class="chips" style="margin-top:4px">${typeChip(c.type1)}${typeChip(c.type2)}${c.ability ? `<span class="pill">${esc(c.ability)}</span>` : ''}</div></div></div>
     <div class="meter"><b>HP</b>${bar(c.hp, mx)}<span class="val">${c.hp}/${mx}</span></div>
     <div class="meter"><b>Will</b>${bar(c.willCur, c.will, 'will')}<span class="val">${c.willCur ?? 0}/${c.will}</span></div>

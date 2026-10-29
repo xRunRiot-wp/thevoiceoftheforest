@@ -1,10 +1,10 @@
 // The Index: every effect and interaction in the game, searchable, linked from everywhere.
-import * as store from './store.js?v=6ae3a72b';
-import * as sheet from './sheetdata.js?v=6ae3a72b';
-import { esc, slug, pool, $, $$ } from './util.js?v=6ae3a72b';
-import { modal, diceFaces } from './ui.js?v=6ae3a72b';
-import { merged, editContent } from './content-store.js?v=6ae3a72b';
-import { ATTRS, SKILLS, SOCIAL } from './content.js?v=6ae3a72b';
+import * as store from './store.js?v=6ae3a8c7';
+import * as sheet from './sheetdata.js?v=6ae3a8c7';
+import { esc, slug, pool, $, $$ } from './util.js?v=6ae3a8c7';
+import { modal, diceFaces } from './ui.js?v=6ae3a8c7';
+import { merged, editContent } from './content-store.js?v=6ae3a8c7';
+import { ATTRS, SKILLS, SOCIAL } from './content.js?v=6ae3a8c7';
 
 export const INDEX_SCHEMA = [['name', 'Name'], ['kind', 'Kind'], ['aka', 'Also called', 'list'], ['trigger', 'When it happens', 'area'], ['roll', 'Roll', 'area'],
   ['outcome', 'What it does', 'area'], ['duration', 'How long', 'area'], ['removal', 'How it ends / is removed', 'area'], ['links', 'Related entries', 'list'], ['source', 'Source']];
@@ -103,6 +103,23 @@ export function wireRolls(me, stat, logFn) { getMe = me; statOf = stat; onRolled
 const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
 export const natureShort = (e) => { if (e?.kind !== 'Nature') return ''; const conf = (String(e.roll || '').match(/Confidence (\d+)/) || [])[1];
   return `${(e.aka || []).filter((a) => a !== 'nature').map(cap).join(', ')}${conf ? ` · Confidence ${conf}` : ''}`; };
+// her ask 10-29: a species' whole evolution family (earlier and later stages, every branch), from the PokéRole 2.0 Pokédex.
+// evo text looks like " → Machoke (Level Medium); → ..." on the earlier stage.
+const dexOf = (e) => (String(e?.aka || '').match(/#(\d+)/) || [])[1];
+const picOf = (e) => (dexOf(e) ? `https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/portrait/${dexOf(e).padStart(4, '0')}/Normal.png` : '');
+const evoLinks = (e) => String(e?.evo || '').split(';').map((t) => t.match(/→\s*(.+?)\s*\((.*)\)\s*$/) || t.match(/→\s*(.+?)\s*$/)).filter(Boolean).map((m) => [m[1].trim(), (m[2] || '').trim()]);
+function evoFamily(ix, e) {
+  const species = ix.list.filter((x) => x.kind === 'Species');
+  const kids = (n) => evoLinks(ix.byName.get(n.toLowerCase())); const parents = (n) => species.filter((x) => evoLinks(x).some(([to]) => to.toLowerCase() === n.toLowerCase())).map((x) => x.name);
+  let root = e.name; const seenUp = new Set([root]);
+  for (let p = parents(root); p.length && !seenUp.has(p[0]); p = parents(root)) { root = p[0]; seenUp.add(root); }
+  const stages = []; let level = [[root, '']]; const seen = new Set([root.toLowerCase()]);
+  while (level.length && stages.length < 5) { stages.push(level); const next = []; for (const [n] of level) for (const [to, how] of kids(n)) if (!seen.has(to.toLowerCase())) { seen.add(to.toLowerCase()); next.push([to, how]); } level = next; }
+  return stages.length > 1 ? stages : [];
+}
+const evoHTML = (ix, e) => { const st = evoFamily(ix, e); if (!st.length) return '';
+  return `<h4 style="margin:12px 0 4px">Evolution line</h4><div class="evo-line">${st.map((lv, i) => `<div class="evo-stage"><span class="small muted">Stage ${i + 1}</span>${lv.map(([n, how]) => { const x = ix.byName.get(n.toLowerCase());
+    return `<a href="#" class="evo-mon ${n.toLowerCase() === e.name.toLowerCase() ? 'here' : ''}" data-ixname="${esc(n)}">${picOf(x) ? `<img src="${picOf(x)}" alt="" onerror="this.remove()">` : ''}<b>${esc(n)}</b>${how ? `<small>${esc(how)}</small>` : ''}</a>`; }).join('')}</div>`).join('<span class="evo-arrow">→</span>')}</div>`; };
 export async function openEntry(idOrName, { gm = false } = {}) {
   const ix = await loadIndex();
   const e = find(ix, idOrName);
@@ -116,7 +133,7 @@ export async function openEntry(idOrName, { gm = false } = {}) {
   const el = modal(`${pic}<h2>${esc(e.name)}</h2>
     <div class="chips"><span class="pill">${esc(e.kind || '')}</span>${(e.aka || []).map((a) => `<span class="pill" style="opacity:.75">${esc(a)}</span>`).join('')}</div>
     ${e.kind === 'Nature' ? `<p class="nat-short"><b>${esc(natureShort(e))}</b></p>` : ''}${e.name === 'Nature (personality)' ? `<h4 style="margin:10px 0 2px">Every Nature</h4><ul class="nat-list">${ix.list.filter((x) => x.kind === 'Nature').sort((a, b) => a.name.localeCompare(b.name)).map((x) => `<li><a href="#" class="ix" data-ixname="${esc(x.name)}"><b>${esc(x.name)}</b></a> <span class="small">${esc(natureShort(x))}</span></li>`).join('')}</ul>` : ''}
-    ${row('What it does', e.outcome)}${row('When it happens', e.trigger)}${row('Roll', e.roll)}${row('How long', e.duration)}${row('How it ends / is removed', e.removal)}${e.evo ? row('Evolution', e.evo) : ''}${e.learn ? `<h4 style="margin:10px 0 2px">Moves by rank</h4>${e.learn.split(' | ').map((l) => { const [r, ms] = l.split(': '); return `<p class="small" style="margin:0 0 4px"><b>${esc(r)}:</b> ${(ms || '').split(', ').map((m) => (ix.byName.get(m.toLowerCase()) ? `<a href="#" class="ix" data-ixname="${esc(m)}">${esc(m)}</a>` : esc(m))).join(', ')}</p>`; }).join('')}` : ''}
+    ${row('What it does', e.outcome)}${row('When it happens', e.trigger)}${row('Roll', e.roll)}${row('How long', e.duration)}${row('How it ends / is removed', e.removal)}${e.kind === 'Species' ? evoHTML(ix, e) || (e.evo ? row('Evolution', e.evo) : '') : e.evo ? row('Evolution', e.evo) : ''}${e.learn ? `<h4 style="margin:10px 0 2px">Moves by rank</h4>${e.learn.split(' | ').map((l) => { const [r, ms] = l.split(': '); return `<p class="small" style="margin:0 0 4px"><b>${esc(r)}:</b> ${(ms || '').split(', ').map((m) => (ix.byName.get(m.toLowerCase()) ? `<a href="#" class="ix" data-ixname="${esc(m)}">${esc(m)}</a>` : esc(m))).join(', ')}</p>`; }).join('')}` : ''}
     ${chains.length ? `<div class="row" style="margin-top:12px">${chains.map((c, i) => `<button class="btn" data-chain="${i}">Roll ${esc(c)}</button>`).join('')}</div><div class="result" id="ix-res"></div>` : ''}
     ${(e.links || []).length ? `<h4 style="margin:12px 0 4px">Related</h4><div class="chips">${e.links.map((l) => `<a class="chip ix" href="#" data-ixname="${esc(l)}">${esc(l)}</a>`).join('')}</div>` : ''}
     <p class="small muted" style="margin-top:12px">Source: ${esc(e.source || '—')}${e.edited ? ' · edited by the GM' : ''}</p>

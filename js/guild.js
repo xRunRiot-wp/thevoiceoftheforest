@@ -1,20 +1,20 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ae3a72b';
-import * as sheet from './sheetdata.js?v=6ae3a72b';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae3a72b';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae3a72b';
-import { MISSION_GP } from './content.js?v=6ae3a72b';
-import { ranks } from './rulebook.js?v=6ae3a72b';
-import { merged, editContent } from './content-store.js?v=6ae3a72b';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae3a72b';
-import { myId } from './app.js?v=6ae3a72b';
-import { lowAlertHTML } from './vault.js?v=6ae3a72b';
-import { friendZoneSection } from './friendzone.js?v=6ae3a72b';
-import { ixLink } from './effects.js?v=6ae3a72b';
-import { burstSet } from './burst.js?v=6ae3a72b';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae3a72b';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6ae3a72b';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML } from './shopkit.js?v=6ae3a72b';
+import * as store from './store.js?v=6ae3a8c7';
+import * as sheet from './sheetdata.js?v=6ae3a8c7';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae3a8c7';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae3a8c7';
+import { MISSION_GP } from './content.js?v=6ae3a8c7';
+import { ranks } from './rulebook.js?v=6ae3a8c7';
+import { merged, editContent } from './content-store.js?v=6ae3a8c7';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae3a8c7';
+import { myId } from './app.js?v=6ae3a8c7';
+import { lowAlertHTML } from './vault.js?v=6ae3a8c7';
+import { friendZoneSection } from './friendzone.js?v=6ae3a8c7';
+import { ixLink } from './effects.js?v=6ae3a8c7';
+import { burstSet } from './burst.js?v=6ae3a8c7';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae3a8c7';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6ae3a8c7';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6ae3a8c7';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -158,11 +158,15 @@ export function renderShop(main) {
   main.innerHTML = `<div class="row" style="margin-top:12px"><a class="btn alt sm" href="#/guild">← Guild</a></div>
   ${pokeBarHTML()}
   <div class="hero banner"><img class="hdr" src="assets/banners/items.jpg" alt=""></div>
-  <div class="section-title"><h2>🐭 Maushold & Chandelure’s Shop</h2><span class="small muted">paid from the character’s own Poké</span></div>
+  <div class="section-title"><h2>🐭 Maushold & Chandelure’s Shop</h2><button class="btn sm" id="shopsell">💰 Sell items</button></div>
   <div class="card" style="padding:6px 12px"><ul class="log" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><span class="grow">${ixLink(s.name)}</span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>
   ${shopChatHTML('guild', 'Maushold & Chandelure')}`;
   $$('[data-buy]', main).forEach((b) => b.onclick = () => buy(b.dataset.buy));
+  $('#shopsell', main).onclick = () => sellDialog({ shop: 'guild', keeper: 'Maushold & Chandelure', valueOf: guildBuys,
+    thanks: ['We’ll find this a good home!', '*the Maushold family counts the coins out together*', '*Chandelure’s flames flicker approvingly*'] });
 }
+// what the Guild Shop pays: half its own price for things it stocks, 25 Poké for anything else
+export const guildBuys = (name) => { const s = shop().find((x) => x.name.toLowerCase() === name.toLowerCase()); return s ? Math.max(1, Math.floor(num(s.price) / 2)) : 25; };
 
 export function renderMerchant(main) {
   main.innerHTML = `<div class="row" style="margin-top:12px"><a class="btn alt sm" href="#/guild">← Guild</a></div>
