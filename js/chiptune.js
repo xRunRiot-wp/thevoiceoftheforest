@@ -20,9 +20,19 @@ const BEACH_CHORDS = [[48, [84, 88, 91]], [41, [81, 84, 89]], [43, [83, 86, 91]]
 const CALYPSO = [0, null, null, 0, 7, null, 0, null]; // bass: semitones above the root per eighth
 const BEACH_BASS = BEACH_CHORDS.flatMap(([r]) => CALYPSO.map((o) => (o === null ? 0 : r + o)));
 const BEACH_ARP = BEACH_CHORDS.flatMap(([, ch]) => [0, ch[2], ch[1], 0, 0, ch[0], 0, ch[1]]);
+// Noctowl's 21 (her ask 10-29: casino music): an original swinging lounge loop, C6 A7 Dm7 G7 twice, walking bass on the beats,
+// soft vibraphone chord stabs on the off-beats and a smooth triangle lead. Swung eighths.
+const CASINO_LEAD = [76, 0, 79, 0, 81, 79, 76, 0, 73, 0, 76, 0, 79, 0, 76, 73, 74, 0, 77, 0, 81, 0, 84, 0, 83, 0, 79, 0, 77, 74, 71, 0,
+  72, 76, 79, 81, 84, 0, 81, 0, 82, 0, 81, 79, 76, 0, 73, 0, 74, 77, 81, 0, 79, 0, 77, 74, 76, 0, 72, 0, 0, 0, 0, 0];
+const WALK = [[48, 52, 55, 56], [45, 49, 52, 51], [50, 48, 45, 44], [43, 47, 50, 47], [48, 52, 55, 56], [45, 49, 52, 51], [50, 53, 43, 47], [48, 52, 55, 47]];
+const CASINO_BASS = WALK.flatMap((b) => b.flatMap((n) => [n, 0]));
+const VOICE = { C6: [64, 67, 69], A7: [61, 64, 67], Dm7: [65, 69, 72], G7: [65, 71, 74] };
+const CASINO_COMP = [['C6', 'C6'], ['A7', 'A7'], ['Dm7', 'Dm7'], ['G7', 'G7'], ['C6', 'C6'], ['A7', 'A7'], ['Dm7', 'G7'], ['C6', 'C6']]
+  .flatMap(([a, b]) => [0, 0, 0, VOICE[a], 0, 0, VOICE[b], 0]);
 const SONGS = {
   dance: { bpm: 160, lead: LEAD, bass: BASS, hat: 2 },
   beach: { bpm: 132, lead: BEACH_LEAD, bass: BEACH_BASS, arp: BEACH_ARP, hat: 4, waves: 32, leadVol: 0.04 },
+  casino: { bpm: 116, lead: CASINO_LEAD, bass: CASINO_BASS, comp: CASINO_COMP, hat: 2, swing: 0.33, leadType: 'triangle', leadVol: 0.07 },
 };
 const STEP_NOTE = { up: 84, right: 79, left: 76, down: 72 };
 
@@ -60,12 +70,13 @@ function pump() {
   const S = song; const EIGHTH = 60 / S.bpm / 2;
   while (nextAt < ctx.currentTime + 0.25) {
     const i = stepIdx % S.lead.length;
-    if (S.lead[i]) tone(N(S.lead[i]), nextAt, EIGHTH * 0.9, 'square', S.leadVol || 0.05);
+    if (S.lead[i]) tone(N(S.lead[i]), nextAt, EIGHTH * 0.9, S.leadType || 'square', S.leadVol || 0.05);
     if (S.bass[i]) tone(N(S.bass[i]), nextAt, EIGHTH * 1.8, 'triangle', 0.12);
     if (S.arp?.[i]) tone(N(S.arp[i]), nextAt, EIGHTH * 1.4, 'triangle', 0.035);
     if (i % S.hat === 0) hat(nextAt);
     if (S.waves && i % S.waves === 0) wave(nextAt);
-    nextAt += EIGHTH; stepIdx++;
+    if (S.comp?.[i]) S.comp[i].forEach((n) => tone(N(n), nextAt, EIGHTH * 1.6, 'sine', 0.035));
+    nextAt += EIGHTH * (S.swing ? (i % 2 ? 1 - S.swing : 1 + S.swing) : 1); stepIdx++;
   }
 }
 // sound effects without the dance tune (the Mail Run): make sure audio is ready after a tap
@@ -82,4 +93,18 @@ export function missSound() { if (!ctx) return; const t = ctx.currentTime; tone(
 export function jingle(good) {
   if (!ctx) return; const t = ctx.currentTime + 0.05;
   (good ? [72, 76, 79, 84] : [72, 69, 65, 60]).forEach((n, i) => tone(N(n), t + i * 0.13, 0.22, 'square', 0.08));
+}
+
+// card table sounds for Noctowl's 21 (her ask 10-29): a riffle shuffle, a card snapping down, chips clinking
+function swish(t, dur, vol, hp) {
+  const len = Math.floor(ctx.sampleRate * dur); const buf = ctx.createBuffer(1, len, ctx.sampleRate); const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+  const s = ctx.createBufferSource(); const f = ctx.createBiquadFilter(); const g = ctx.createGain(); s.buffer = buf; f.type = 'highpass'; f.frequency.value = hp; g.gain.value = vol;
+  s.connect(f); f.connect(g); g.connect(master); s.start(t);
+}
+export function cardSound(kind, delay = 0) {
+  if (!ctx) return; const t = ctx.currentTime + delay;
+  if (kind === 'shuffle') for (let i = 0; i < 14; i++) swish(t + i * 0.035 + Math.random() * 0.01, 0.03, 0.25, 2500);
+  else if (kind === 'card') { swish(t, 0.07, 0.4, 1800); tone(220, t + 0.01, 0.05, 'triangle', 0.08); }
+  else if (kind === 'chips') [2637, 3136, 2794].forEach((f, i) => { tone(f, t + i * 0.06, 0.12, 'sine', 0.04); swish(t + i * 0.06, 0.02, 0.15, 5000); });
 }

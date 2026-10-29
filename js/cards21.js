@@ -3,12 +3,13 @@
 // second round of betting and the showdown: the best total without going over 21 takes the pot (ties split it).
 // One shared table per campaign table (c21/table), so friends can play together live. Each device only acts for its own
 // character; Noctowl's moves and slow players' turns are played by the first seated player's device (or anyone's after a wait).
-import * as store from './store.js?v=6ae348de';
-import { portrait } from './ui.js?v=6ae348de';
-import { $, $$, esc, toast, num } from './util.js?v=6ae348de';
-import { logRoll, me } from './play.js?v=6ae348de';
-import { gameSay } from './chatter.js?v=6ae348de';
-import { markWinner } from './sparkle.js?v=6ae348de';
+import * as store from './store.js?v=6ae36c80';
+import { portrait } from './ui.js?v=6ae36c80';
+import { $, $$, esc, toast, num } from './util.js?v=6ae36c80';
+import { logRoll, me } from './play.js?v=6ae36c80';
+import { gameSay } from './chatter.js?v=6ae36c80';
+import { markWinner } from './sparkle.js?v=6ae36c80';
+import { startMusic, stopMusic, ensureAudio, cardSound, jingle, muted, setMuted } from './chiptune.js?v=6ae36c80';
 
 export const isCards21 = (g) => g.kind === 'cards21' || g.id === 'noctowl-21';
 // a hand is being played right now (her ask 10-27: people can watch a match that's going)
@@ -170,12 +171,33 @@ export function renderCards21(main, g, gm, onEdit) {
       <li><b>Drawing:</b> <b>Hit</b> for another card or <b>Stand</b>. Over 21 and you’re out.</li>
       <li>A second round of betting, then everyone shows their cards. The best total without going over 21 wins the pot; ties split it. Noctowl plays too and keeps whatever it wins.</li>
       <li>Slow players get ${TURN_WAIT / 1000} seconds, then they check (or fold if there’s a raise to call).</li></ol></details>
+    <p class="small muted" style="text-align:right;margin:0 0 4px"><button class="btn alt sm" id="c21music">${muted() ? '🔇 Music off' : '🔊 Music on'}</button></p>
     <div class="card c21-table" id="c21"></div>`;
   const e = $('#ed', main); if (e) e.onclick = onEdit;
   const box = $('#c21', main);
+  // casino music while the page is open (phones need a tap first, so it also starts on the first tap)
+  let playing = false;
+  const music = () => { if (playing || !main.isConnected) return; ensureAudio(); startMusic('casino'); playing = true; };
+  const stop = () => { if (!playing) return; playing = false; stopMusic(); };
+  $('#c21music', main).onclick = (ev) => { const m = !muted(); setMuted(m); ev.target.textContent = m ? '🔇 Music off' : '🔊 Music on'; music(); };
+  main.addEventListener('pointerdown', music, { once: true });
+  if (navigator.userActivation?.hasBeenActive) music();
+  const leave = () => { if (!box.isConnected) { stop(); window.removeEventListener('hashchange', leave); } };
+  window.addEventListener('hashchange', leave);
+  // table sounds: a shuffle on each new deal, a snap for every card that lands, chips when the pot grows, a jingle at the showdown
+  let heard = null;
+  const sounds = (t, c) => {
+    const now = { hand: num(t.hand), cards: (t.order || []).reduce((n, id) => n + (t.seats?.[id]?.hand?.length || 0), 0), pot: num(t.pot), phase: t.phase };
+    const was = heard; heard = now; if (!was) return;
+    if (now.hand !== was.hand && now.cards) { cardSound('shuffle'); for (let i = 0; i < now.cards; i++) cardSound('card', 0.55 + i * 0.12); return; }
+    if (now.cards > was.cards) for (let i = 0; i < now.cards - was.cards; i++) cardSound('card', i * 0.12);
+    if (now.pot > was.pot) cardSound('chips');
+    if (now.phase === 'done' && was.phase !== 'done' && c && t.order?.includes(c.id)) jingle((t.result?.winners || []).includes(c.id));
+  };
   const draw = () => {
     const t = T(); const c = me(); const waiting = t.waiting || {};
     const seated = c && t.order?.includes(c.id);
+    sounds(t, c);
     let body = `<div class="c21-owl"><img class="sface big" src="assets/cards21/noctowl_Normal.png" alt="Noctowl"><div class="bubble"><b>Noctowl:</b> “${esc(t.line || say('lobby'))}”</div></div>`;
     if (t.order && t.phase !== 'lobby') {
       body += `<div class="c21-pot">Pot <b>${num(t.pot)}</b> Poké · ${{ bet1: 'First betting round', draw: 'Hit or stand', bet2: 'Last betting round', done: 'Showdown' }[t.phase]}</div>
@@ -194,7 +216,7 @@ export function renderCards21(main, g, gm, onEdit) {
     } else if (gm) body += '<p><button class="btn alt sm" id="c21reset">GM: end this hand (refund the pot)</button></p>';
     box.innerHTML = body;
     $$('[data-c21]', box).forEach((b) => b.onclick = () => { $$('[data-c21]', box).forEach((x) => { x.disabled = true; }); act(c.id, b.dataset.c21); });
-    const sit = $('#c21sit', box); if (sit) sit.onclick = () => { sit.disabled = true; if (pokeOf(c.id) < ANTE) return; pay(c.id, ANTE); store.set(`${PATH}/waiting/${c.id}`, c.nickname); if (T().phase === 'done') store.set(`${PATH}/line`, `${c.nickname} sits down. Hoo!`); };
+    const sit = $('#c21sit', box); if (sit) sit.onclick = () => { sit.disabled = true; if (pokeOf(c.id) < ANTE) return; ensureAudio(); cardSound('chips'); pay(c.id, ANTE); store.set(`${PATH}/waiting/${c.id}`, c.nickname); if (T().phase === 'done') store.set(`${PATH}/line`, `${c.nickname} sits down. Hoo!`); };
     const lv = $('#c21leave', box); if (lv) lv.onclick = () => { pay(c.id, -ANTE); store.set(`${PATH}/waiting/${c.id}`, null); };
     const dl = $('#c21deal', box); if (dl) dl.onclick = () => { dl.disabled = true; deal(T()); };
     const rs = $('#c21reset', box); if (rs) rs.onclick = () => { if (!confirm('End this hand and give everyone back what they put in?')) return; const t2 = T();
@@ -204,5 +226,5 @@ export function renderCards21(main, g, gm, onEdit) {
   };
   draw();
   let last = '';
-  const off = store.subscribe(() => { if (!box.isConnected) { off(); clearTimeout(driverTimer); return; } const now = JSON.stringify(store.get(PATH) || {}) + (me()?.id || '') + num(me()?.poke); if (now !== last) { last = now; draw(); } });
+  const off = store.subscribe(() => { if (!box.isConnected) { off(); clearTimeout(driverTimer); stop(); return; } const now = JSON.stringify(store.get(PATH) || {}) + (me()?.id || '') + num(me()?.poke); if (now !== last) { last = now; draw(); } });
 }
