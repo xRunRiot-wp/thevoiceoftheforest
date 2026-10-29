@@ -1,14 +1,15 @@
 // Sentry Duty (from Explorers of Time/Sky): stand watch at the Woodland Base gate with Diglett and name each visitor
 // from their footprint. A daily guild chore every character is expected to do, not a gamble: an okay shift is just
 // doing your duty, a great shift pays Poké and can turn up a rare item. One shift per character per day.
-import * as store from './store.js?v=6ae36f5c';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae36f5c';
-import { me, logRoll } from './play.js?v=6ae36f5c';
-import { dailyRoll } from './weather.js?v=6ae36f5c';
-import { gameSay } from './chatter.js?v=6ae36f5c';
-import { markWinner } from './sparkle.js?v=6ae36f5c';
-import * as sheet from './sheetdata.js?v=6ae36f5c';
-import { portraitFile } from './ui.js?v=6ae36f5c';
+import * as store from './store.js?v=6ae36fb7';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae36fb7';
+import { me, logRoll } from './play.js?v=6ae36fb7';
+import { dailyRoll } from './weather.js?v=6ae36fb7';
+import { gameSay } from './chatter.js?v=6ae36fb7';
+import { markWinner } from './sparkle.js?v=6ae36fb7';
+import * as sheet from './sheetdata.js?v=6ae36fb7';
+import { portraitFile } from './ui.js?v=6ae36fb7';
+import { pageMusic } from './chiptune.js?v=6ae36fb7';
 
 export const isSentry = (g) => g.kind === 'sentry' || g.id === 'sentry-duty';
 
@@ -122,8 +123,10 @@ export function renderSentry(main, g, gm, onEdit) {
     <h1 style="margin:10px 0 4px">${esc(g.name)}</h1>
     <p>${esc(g.intro || '')}</p>
     <p><span class="pill">📋 Guild chore</span> <span class="pill">📅 One shift a day</span> <span class="pill">🌟 Great job: ${GRADES[0][2]} Poké + a chance at a rare item</span></p>
+    <p class="small muted" style="text-align:right;margin:0 0 4px"><button class="btn alt sm" id="smusic"></button></p>
     <div class="card sentry"><div id="sentrybox"></div></div>
     <div class="card" style="margin-top:12px"><h3 style="margin-top:0">Today’s gate roster</h3><ul class="sentry-roster" id="sroster"></ul></div>`;
+  pageMusic(main, 'march', 'smusic');
   const roster = () => {
     $('#sroster', main).innerHTML = party.map((x) => { const s = shift(x.id); const on = s.day === today();
       return `<li>${faceHTML(x, on ? moodOf(s.grade) : 'wait')}<span class="grow">${esc(x.nickname)}<br><span class="small">${on ? `<b>${esc(s.grade)}</b> <span class="muted">${s.score}/${ROUNDS}</span>` : '<span class="muted">not yet</span>'}<span class="muted"> · ${num(s.shifts)} shift${num(s.shifts) === 1 ? '' : 's'}</span></span></span>${gm && on ? ` <button class="btn alt sm" data-sreset="${esc(x.id)}">Redo</button>` : ''}</li>`; }).join('') || '<li class="muted">No characters yet.</li>';

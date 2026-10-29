@@ -39,9 +39,16 @@ const BOX_BARS = [[53, 57, 60], [48, 55, 60], [50, 57, 62], [46, 58, 62], [53, 5
   [53, 57, 60], [45, 57, 60], [46, 58, 62], [53, 57, 60], [43, 58, 62], [48, 55, 60], [46, 58, 64], [53, 57, 60]];
 const BOX_BASS = BOX_BARS.flatMap(([b]) => [b, 0, 0, 0, 0, 0]);
 const BOX_ARP = BOX_BARS.flatMap(([, x, y]) => [0, 0, x + 12, 0, y + 12, 0]);
+// Sentry Duty (her ask 10-29: serious 8-bit military music): an original march in D minor, square bugle lead,
+// oom-pah triangle bass on the beats, a kick on 1 and 3, snare on 2 and 4 with a roll at the end of every phrase.
+const MARCH_LEAD = [62, 0, 0, 62, 62, 0, 65, 0, 69, 0, 0, 0, 67, 0, 65, 0, 70, 0, 0, 70, 69, 0, 67, 0, 69, 0, 0, 0, 64, 0, 61, 0,
+  62, 0, 0, 62, 62, 0, 69, 0, 70, 0, 69, 0, 67, 0, 65, 0, 64, 0, 65, 0, 67, 0, 61, 0, 62, 0, 0, 0, 0, 0, 0, 0];
+const MARCH_BASS = [[38, 45], [38, 45], [34, 41], [33, 40], [38, 45], [31, 38], [33, 40], [38, 45]].flatMap(([r, f]) => [r, 0, f, 0, r, 0, f, 0]);
+const MARCH_DRUMS = [0, 1, 2, 3, 4, 5, 6, 7].flatMap((b) => (b === 7 ? ['k', 's', 's', 's', 's', 's', 's', 's'] : b === 3 ? ['k', 0, 's', 0, 'k', 0, 's', 's'] : ['k', 0, 's', 0, 'k', 0, 's', 0]));
 const SONGS = {
   dance: { bpm: 160, lead: LEAD, bass: BASS, hat: 2 },
   beach: { bpm: 132, lead: BEACH_LEAD, bass: BEACH_BASS, arp: BEACH_ARP, hat: 4, waves: 32, leadVol: 0.04 },
+  march: { bpm: 112, lead: MARCH_LEAD, bass: MARCH_BASS, drums: MARCH_DRUMS, leadVol: 0.05 },
   musicbox: { bpm: 84, lead: BOX_LEAD, bass: BOX_BASS, arp: BOX_ARP, bell: true },
   casino: { bpm: 116, lead: CASINO_LEAD, bass: CASINO_BASS, comp: CASINO_COMP, hat: 2, swing: 0.33, leadType: 'triangle', leadVol: 0.07 },
 };
@@ -76,6 +83,21 @@ function wave(t) {
   s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + 2.7);
 }
 
+// march drums: a low thump that drops in pitch, and a crisp noise snare
+function kick(t) {
+  const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = 'sine';
+  o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+  g.gain.setValueAtTime(0.25, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.2);
+}
+function snare(t) {
+  const len = Math.floor(ctx.sampleRate * 0.12); const buf = ctx.createBuffer(1, len, ctx.sampleRate); const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+  const s = ctx.createBufferSource(); const f = ctx.createBiquadFilter(); const g = ctx.createGain(); s.buffer = buf; f.type = 'bandpass'; f.frequency.value = 1800; g.gain.value = 0.22;
+  s.connect(f); f.connect(g); g.connect(master); s.start(t);
+  tone(190, t, 0.06, 'triangle', 0.05);
+}
+
 // schedule a little ahead so the tune never stutters
 function pump() {
   const S = song; const EIGHTH = 60 / S.bpm / 2;
@@ -91,6 +113,7 @@ function pump() {
       if (S.arp?.[i]) tone(N(S.arp[i]), nextAt, EIGHTH * 1.4, 'triangle', 0.035);
     }
     if (S.hat && i % S.hat === 0) hat(nextAt);
+    if (S.drums?.[i] === 'k') kick(nextAt); else if (S.drums?.[i] === 's') snare(nextAt);
     if (S.waves && i % S.waves === 0) wave(nextAt);
     if (S.comp?.[i]) S.comp[i].forEach((n) => tone(N(n), nextAt, EIGHTH * 1.6, 'sine', 0.035));
     nextAt += EIGHTH * (S.swing ? (i % 2 ? 1 - S.swing : 1 + S.swing) : 1); stepIdx++;
