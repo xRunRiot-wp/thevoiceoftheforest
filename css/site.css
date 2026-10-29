@@ -1834,6 +1834,15 @@ a.ch-chip:hover { background: var(--navy); }
 .gift-note { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--cream); border: 2px solid var(--line); }
 .gift-note.new { border-color: var(--orange); box-shadow: 0 0 0 3px color-mix(in srgb, var(--orange) 25%, transparent); }
 .gift-note .gn-icon { font-size: 28px; line-height: 1; }
+/* New mail / Delete (her ask 10-29) */
+.mail-tools { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 10px; }
+.gift-notes { max-height: 46vh; overflow-y: auto; }
+.gift-note { transition: opacity .25s, transform .25s; }
+.gift-note.gone { opacity: 0; transform: translateX(40px); }
+.gift-note .gn-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.gift-note .gn-reply { margin-top: 6px; }
+.gn-del { flex: none; align-self: flex-start; border: 0; background: transparent; font-size: 18px; padding: 4px; border-radius: 8px; cursor: pointer; opacity: .7; }
+.gn-del:hover, .gn-del:focus-visible { opacity: 1; background: var(--cream2); }
 
 /* Noctowl's 21 (cards21.js) */
 .c21-mini { position: relative; width: 132px; height: 132px; flex: none; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 40%, #3f7a52, #183424 75%); border: 3px solid #e8c56a; box-sizing: border-box; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
