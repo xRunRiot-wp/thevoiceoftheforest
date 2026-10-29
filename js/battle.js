@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6ae388c9';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae388c9';
-import { portrait, maxHp } from './ui.js?v=6ae388c9';
-import { allMoves, me, statVal } from './play.js?v=6ae388c9';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae388c9';
-import { TYPE_ICONS } from './theme.js?v=6ae388c9';
+import * as store from './store.js?v=6ae389e1';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae389e1';
+import { portrait, maxHp } from './ui.js?v=6ae389e1';
+import { allMoves, me, statVal } from './play.js?v=6ae389e1';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae389e1';
+import { TYPE_ICONS } from './theme.js?v=6ae389e1';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -136,7 +136,7 @@ async function resolve(bid) {
   // Metronome spins Gemini's Metronome wheel (the Games page one, so the GM's edits count) and plays out the slice
   const metronome = async (id, foe) => {
     let slices = [];
-    try { slices = (await import('./games.js?v=6ae388c9')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6ae389e1')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);

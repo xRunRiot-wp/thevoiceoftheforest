@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae388c9';
-import { $, $$, esc, toast, num } from './util.js?v=6ae388c9';
-import { me, logRoll } from './play.js?v=6ae388c9';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae388c9';
-import { gameSay, gmTodo } from './chatter.js?v=6ae388c9';
-import { markWinner } from './sparkle.js?v=6ae388c9';
-import { pageMusic } from './chiptune.js?v=6ae388c9';
-import { modal, closeModal } from './ui.js?v=6ae388c9';
+import * as store from './store.js?v=6ae389e1';
+import { $, $$, esc, toast, num } from './util.js?v=6ae389e1';
+import { me, logRoll } from './play.js?v=6ae389e1';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae389e1';
+import { gameSay, gmTodo } from './chatter.js?v=6ae389e1';
+import { markWinner } from './sparkle.js?v=6ae389e1';
+import { pageMusic } from './chiptune.js?v=6ae389e1';
+import { modal, closeModal } from './ui.js?v=6ae389e1';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -204,6 +204,69 @@ function act(c, k) {
   return 'ok';
 }
 
+// ---- playdates (her ask 10-29: the babies can visit each other). nursery/<host>/visit = { id: guest owner, t } for 20 minutes:
+// the friend's buddy toddles around your room with yours, they hop and trade hearts, and it counts as play time for both.
+const VISIT_FOR = 20 * 60e3;
+const visitOf = (b) => (b?.visit && Date.now() - num(b.visit.t) < VISIT_FOR && buddyOf(b.visit.id)?.stage > 0 ? b.visit : null);
+// where my buddy is visiting right now (another host whose visit is me)
+const visitingAt = (id) => Object.entries(store.get('nursery') || {}).find(([h, x]) => h !== id && visitOf(x)?.id === id)?.[0] || null;
+const hatched = (meId) => Object.entries(store.get('nursery') || {}).filter(([id, x]) => id !== meId && x && x.stage > 0 && !x.recruited && (store.get('party') || {})[id]);
+function startGuest(root, gb, label) {
+  const B = BABIES[gb.sp]; const roomEl = $('.nursery-room', root); const pet = $('#ngpet', root); if (!B || !roomEl || !pet) return;
+  const spr = $('.baby-spr', pet);
+  const S = SIZE[gb.stage] || 3; const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
+  spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${gb.sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
+  pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
+  $('.pet-tag', pet).textContent = label;
+  const alive = () => roomEl.isConnected;
+  const row = (name, loop = true, secs = null) => {
+    const r = ROW[name]; const n = B.fr[r] || 1;
+    spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
+    spr.style.animation = 'none'; void spr.offsetWidth;
+    spr.style.animation = `baby-anim ${secs || Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
+  };
+  let x = Math.max(10, roomEl.clientWidth * 0.2);
+  const maxX = () => Math.max(10, roomEl.clientWidth - pw - 10);
+  pet.style.left = x + 'px';
+  const fx = (ch) => { const e = document.createElement('span'); e.className = 'pet-fx'; e.textContent = ch; e.style.left = (x + pw / 2 - 12) + 'px'; roomEl.appendChild(e); setTimeout(() => e.remove(), 1400); };
+  const walkTo = async (tx, sp = 70) => {
+    tx = Math.max(10, Math.min(maxX(), tx)); const d = Math.abs(tx - x); if (d < 4) return;
+    row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / sp).toFixed(2)}s linear`; pet.style.left = tx + 'px'; x = tx;
+    await wait(d / sp * 1000); row('idle');
+  };
+  pet.onclick = async () => { row('hop', false); fx('💕'); await wait(700); row('idle'); };
+  (async () => {
+    row('hop', false); fx('👋'); await wait(900);
+    while (alive()) {
+      if (asleep()) { row('sleep', true, 1.6); await wait(5000); continue; }
+      // mostly stays close to its friend, now and then a little hop and a heart
+      const host = $('#npet', root); const hx = host ? parseFloat(host.style.left) || 0 : maxX() / 2;
+      const r = Math.random();
+      if (r < 0.45) await walkTo(hx + (Math.random() < 0.5 ? -1 : 1) * (40 + Math.random() * 60));
+      else if (r < 0.7) { row('hop', false); fx(Math.random() < 0.6 ? '💕' : '♪'); await wait(800); row('idle'); }
+      else if (r < 0.8) await walkTo(10 + Math.random() * maxX());
+      else { row('nod', false); await wait(900); row('idle'); await wait(1200 + Math.random() * 1500); }
+    }
+  })();
+}
+function invite(c, box) {
+  const list = hatched(c.id);
+  if (!list.length) return toast('No other hatched babies yet. Eggs can’t visit!');
+  const party = store.get('party') || {};
+  const el = modal(`<h2>🏠 Invite a playdate</h2><p class="small muted">Pick a friend’s baby to come and play in your room for 20 minutes. It counts as play time for both of them!</p>
+    <ul class="sentry-roster">${list.map(([id, x]) => `<li><img class="sface" src="${buddyFace(x)}" alt=""><span class="grow"><b>${esc(party[id].nickname)}’s ${esc(x.name ? `${x.name} (${BABIES[x.sp]?.name})` : BABIES[x.sp]?.name || 'buddy')}</b><br><span class="small muted">${STAGES[x.stage]}${visitingAt(id) ? ' · on a playdate right now' : ''}</span></span>
+      <button class="btn sm" data-pd="${esc(id)}" ${visitingAt(id) ? 'disabled' : ''}>Invite</button></li>`).join('')}</ul>`);
+  $$('[data-pd]', el).forEach((btn) => btn.onclick = () => {
+    const gid = btn.dataset.pd; const gb = buddyOf(gid); const mine = buddyOf(c.id); if (!gb || !mine) return;
+    store.set(`nursery/${c.id}/visit`, { id: gid, t: Date.now() });
+    // a playdate is play time for both babies (the usual "all played out" rule still applies)
+    act(c, 'play'); act({ id: gid, nickname: party[gid].nickname }, 'play');
+    store.pushLimited('log', { t: Date.now(), text: `🏠 ${c.nickname}’s ${BABIES[mine.sp].name} and ${party[gid].nickname}’s ${BABIES[gb.sp].name} are having a playdate!` });
+    gameSay('Beatrice', 'say', `${c.nickname}’s ${BABIES[mine.sp].name} invited ${party[gid].nickname}’s ${BABIES[gb.sp].name} over to play. Oh, they’re adorable together!`, 'nursery', c.nickname);
+    closeModal(); room(c, box, 'playdate');
+  });
+}
+
 function room(c, box, anim) {
   const b = buddyOf(c.id);
   if (!b) {
@@ -213,10 +276,12 @@ function room(c, box, anim) {
     return;
   }
   const B = BABIES[b.sp]; const egg = b.stage === 0; const needs = needsOf(b); const day = todayOf(b);
+  const v = egg ? null : visitOf(b); const guest = v && buddyOf(v.id); const away = egg ? null : visitingAt(c.id); const party = store.get('party') || {};
   const cared = caredToday(b); const left = b.stage < 3 ? DAYS_TO_GROW[b.stage] - num(b.grown) : 0;
   const low = Object.keys(needs).filter((k) => k !== 'cover' && stat(b, k) < 30); const cv = coverNeed(b) && stat(b, 'cover') < 50 ? COVER[wx().key] : null;
   const line = b.recruited ? `${B.name} is part of your team now. I’m so proud of you both!`
     : b.stage === 3 ? `Look how big ${nameOf(b)} has grown! I think ${B.name} would follow you anywhere. Why not ask?`
+    : anim === 'playdate' ? 'A playdate! Play nicely, you two. I’ll bring snacks!'
     : anim === 'grew' ? (b.stage === 1 ? `It hatched! Say hello to your ${B.name}, ${c.nickname}!` : `${nameOf(b)} is a ${STAGES[b.stage].toLowerCase()} now!`)
     : cv ? `${cv[3]} Quick, ${nameOf(b)} wants ${cv[4]}!`
     : low.length ? `${nameOf(b)} needs you: ${low.map((k) => LABEL[k][1].toLowerCase()).join(' and ')} is low!`
@@ -224,7 +289,7 @@ function room(c, box, anim) {
   box.innerHTML = `<div class="nursery">
     ${bea(b.recruited || b.stage === 3 ? 'proud' : low.length || cv ? 'worry' : 'happy', line)}
     <div class="nursery-room tod-${tod()} ${egg ? 'is-egg' : ''}"><div class="n-sky" aria-hidden="true"><i></i><i></i><i></i></div>${wxFxHTML(wx().key)}
-      ${egg ? nestHTML(eggHTML(b, anim === 'warm' ? 'wiggle' : '')) : `<div class="nest-spot">${nestHTML('')}</div>${petHTML()}`}
+      ${egg ? nestHTML(eggHTML(b, anim === 'warm' ? 'wiggle' : '')) : `<div class="nest-spot">${nestHTML('')}</div>${petHTML()}${guest ? '<div class="pet guest" id="ngpet"><span class="pet-tag"></span><span class="baby-spr"></span></div>' : ''}`}
       ${anim === 'grew' ? '<span class="n-burst">✨</span>' : ''}${egg && anim === 'warm' ? '<span class="n-fx">🔥</span>' : ''}
     </div>
     <div class="n-head">${egg ? '' : `<img class="sface" src="${buddyFace(b)}" alt="">`}<div class="grow"><b>${esc(b.name || (egg ? 'Mystery egg' : B.name))}</b> <span class="pill">${STAGES[b.stage]}</span>
@@ -233,8 +298,13 @@ function room(c, box, anim) {
     <div class="n-stats">${Object.keys(needs).map((k) => { const v = stat(b, k); return `<div class="n-stat"><span>${lab(k)[0]} ${lab(k)[1]}</span><div class="n-bar ${v < 30 ? 'low' : ''}"><i style="width:${v}%"></i></div><span class="small muted">${k === 'cover' ? (v ? 'safe now' : 'needed now') : `${Math.min(num(day[k]), needs[k])}/${needs[k]} today`}</span></div>`; }).join('')}</div>
     ${b.recruited ? '<button class="btn alt block" id="nnew">Take a new egg home 🥚</button>' : b.stage === 3 ? `<p class="small" style="text-align:center;margin:4px 0">${esc(nameOf(b))} is all grown up. What will you do?</p><div class="n-choice"><button class="btn" id="nrecruit">🤝 Ask ${esc(nameOf(b))} to join the team</button><button class="btn alt" id="nwild">🌿 Let ${esc(nameOf(b))} go into the wild</button></div>`
       : `<div class="n-acts">${Object.keys(needs).map((k) => `<button class="btn ${(k === 'cover' ? stat(b, k) : num(day[k]) >= needs[k]) ? 'alt' : ''}" data-nact="${k}">${lab(k)[0]} ${lab(k)[2]}</button>`).join('')}</div>`}
-    ${cared && b.stage < 3 ? '<p class="small" style="text-align:center;color:#2f6d2b">✅ Fully cared for today</p>' : ''}</div>`;
+    ${cared && b.stage < 3 ? '<p class="small" style="text-align:center;color:#2f6d2b">✅ Fully cared for today</p>' : ''}
+    ${egg ? '' : guest ? `<p class="n-visit">🏠 ${esc(party[v.id]?.nickname || 'A friend')}’s ${esc(guest.name || BABIES[guest.sp]?.name)} is visiting! <button class="btn alt sm" id="nhome">Say goodbye</button></p>`
+      : `<p class="n-visit">${away ? `🏠 ${esc(nameOf(b))} has been invited over to ${esc(party[away]?.nickname || 'a friend')}’s room for a playdate!` : ''}<button class="btn alt sm" id="nvisit">🏠 Invite a playdate</button></p>`}</div>`;
   if (!egg) startPet(box, b, anim);
+  if (guest) startGuest(box, guest, `${party[v.id]?.nickname || 'Friend'}’s ${guest.name || BABIES[guest.sp]?.name}`);
+  const iv = $('#nvisit', box); if (iv) iv.onclick = () => invite(c, box);
+  const hm = $('#nhome', box); if (hm) hm.onclick = () => { store.set(`nursery/${c.id}/visit`, null); room(c, box); };
   $$('[data-nact]', box).forEach((btn) => btn.onclick = () => {
     const k = btn.dataset.nact; const r = act(c, k);
     if (r !== 'ok' && r !== 'grew') { toast(r); return; }
@@ -279,7 +349,7 @@ export function renderNursery(main, g, gm, onEdit) {
   const party = store.get('party') || {};
   const list = () => {
     $('#nlist', main).innerHTML = Object.entries(store.get('nursery') || {}).map(([id, b]) => { const who = party[id]; if (!who || !b) return '';
-      return `<li>${b.stage === 0 ? eggHTML(b, 'mini') : `<button class="nvisit-btn" data-nvisit="${esc(id)}" title="See how they feel" aria-label="See how ${esc(nameOf(b))} feels"><img class="sface" src="${buddyFace(b)}" alt=""></button>`}<span class="grow">${esc(who.nickname)}’s ${esc(b.stage === 0 ? 'egg' : (b.name ? `${b.name} (${BABIES[b.sp]?.name})` : BABIES[b.sp]?.name || 'buddy'))}<br><span class="small muted">${STAGES[b.stage]}${b.recruited ? ' · on the team' : caredToday(b) ? ' · cared for today' : ''}</span></span>
+      return `<li>${b.stage === 0 ? eggHTML(b, 'mini') : `<button class="nvisit-btn" data-nvisit="${esc(id)}" title="See how they feel" aria-label="See how ${esc(nameOf(b))} feels"><img class="sface" src="${buddyFace(b)}" alt=""></button>`}<span class="grow">${esc(who.nickname)}’s ${esc(b.stage === 0 ? 'egg' : (b.name ? `${b.name} (${BABIES[b.sp]?.name})` : BABIES[b.sp]?.name || 'buddy'))}<br><span class="small muted">${STAGES[b.stage]}${b.recruited ? ' · on the team' : caredToday(b) ? ' · cared for today' : ''}${visitOf(b) ? ` · 🏠 ${esc(party[visitOf(b).id]?.nickname || 'a friend')}’s buddy is visiting` : ''}</span></span>
         ${gm ? `<button class="btn alt sm" data-nup="${esc(id)}">Grow</button><button class="btn alt sm" data-nreset="${esc(id)}">Reset</button>` : ''}</li>`; }).join('') || '<li class="muted">No eggs taken home yet.</li>';
     // her ask 10-29: tapping a friend's buddy shows its feelings window, just like tapping your own
     $$('[data-nvisit]', main).forEach((x) => x.onclick = () => { const bb = buddyOf(x.dataset.nvisit); if (!bb) return; visit(party[x.dataset.nvisit], bb); });

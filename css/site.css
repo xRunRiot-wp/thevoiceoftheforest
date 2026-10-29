@@ -2019,3 +2019,8 @@ a.ch-chip:hover { background: var(--navy); }
 /* a friend's buddy (nursery list): tap the face for its feelings window */
 .nvisit-btn { padding: 0; border: 0; background: none; cursor: var(--cur-link, pointer); border-radius: 8px; } .nvisit-btn:hover { filter: brightness(1.1); }
 .nvisit { position: relative; width: min(100%, 380px); aspect-ratio: 1 / 1; margin: 6px auto 0; } .nvisit .emo-pane.yf { height: 96%; max-height: 96%; }
+
+/* playdates: a friend's buddy visiting the room, with a name tag */
+.pet.guest { z-index: 2; }
+.pet-tag { position: absolute; left: 50%; top: 62%; translate: -50% 0; z-index: 4; white-space: nowrap; font: 700 11px var(--pix); background: rgba(255, 250, 240, .9); color: #3a2c1a; border: 2px solid #3a2c1a; border-radius: 8px; padding: 0 5px; pointer-events: none; }
+.n-visit { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; text-align: center; margin: 8px 0 0; font-size: 14px; }
