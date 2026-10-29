@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6ae387a0';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae387a0';
-import { portrait, maxHp } from './ui.js?v=6ae387a0';
-import { allMoves, me, statVal } from './play.js?v=6ae387a0';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae387a0';
-import { TYPE_ICONS } from './theme.js?v=6ae387a0';
+import * as store from './store.js?v=6ae3884d';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae3884d';
+import { portrait, maxHp } from './ui.js?v=6ae3884d';
+import { allMoves, me, statVal } from './play.js?v=6ae3884d';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae3884d';
+import { TYPE_ICONS } from './theme.js?v=6ae3884d';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -49,15 +49,16 @@ const foeOf = (B, id) => (id === B.a ? B.b : B.a);
 const nm = (id) => pc(id).nickname || 'Someone';
 
 // PMD Explorers-style idle sprites (SpriteCollab): front = facing down-left (the foe), back = facing up-right (you)
-const SPRITES = { golett: [32, 48, 5, 1433], tinkatink: [32, 24, 4, 1400], jangmoo: [32, 40, 4, 1333], sudowoodo: [24, 40, 1, 133], swablu: [32, 40, 9, 900],
-  magnemite: [24, 32, 4, 800], slakoth: [40, 32, 2, 1133], cleffa: [24, 32, 2, 900], cottonee: [24, 24, 4, 800],
-  diglett: [24, 24, 2, 533], ralts: [32, 32, 2, 1083], maushold: [48, 40, 12, 1600], machamp: [40, 48, 10, 1133], scolipede: [64, 72, 4, 1267],
-  mudkip: [24, 40, 7, 917], pikachu: [40, 56, 6, 883], beautifly: [40, 64, 4, 667] };
+// trimmed to the Pokémon so they stand on their platform: [front w, h, back w, h, frames, loop ms]
+const SPRITES = { golett: [26, 31, 27, 31, 5, 1433], tinkatink: [18, 19, 20, 18, 4, 1400], jangmoo: [21, 22, 20, 24, 4, 1333], sudowoodo: [19, 26, 19, 25, 1, 133], swablu: [27, 25, 23, 24, 9, 900],
+  magnemite: [15, 18, 16, 17, 4, 800], slakoth: [30, 23, 30, 23, 2, 1133], cleffa: [18, 19, 17, 19, 2, 900], cottonee: [18, 15, 20, 15, 4, 800], diglett: [22, 16, 22, 16, 2, 533],
+  ralts: [15, 21, 16, 22, 2, 1083], maushold: [29, 25, 29, 27, 12, 1600], machamp: [30, 31, 30, 30, 10, 1133], scolipede: [42, 40, 43, 44, 4, 1267], mudkip: [19, 23, 16, 24, 7, 917],
+  pikachu: [28, 30, 29, 28, 6, 883], beautifly: [27, 31, 30, 37, 4, 667] };
 function spriteHTML(c, side) {
   const k = String(c.pokemon || '').toLowerCase().replace(/[^a-z]/g, '');
   const s = SPRITES[k];
   if (!s) return `<div class="bt-port">${portrait(c)}</div>`;
-  const [w, h, n, ms] = s;
+  const [w, h, n, ms] = side === 'front' ? [s[0], s[1], s[4], s[5]] : [s[2], s[3], s[4], s[5]];
   return `<div class="bt-spr" style="--w:${w};--h:${h};--n:${n};--ms:${ms}ms;background-image:url(assets/battle/${k}_${side}.png)" role="img" aria-label="${esc(c.pokemon)}"></div>`;
 }
 
@@ -135,7 +136,7 @@ async function resolve(bid) {
   // Metronome spins Gemini's Metronome wheel (the Games page one, so the GM's edits count) and plays out the slice
   const metronome = async (id, foe) => {
     let slices = [];
-    try { slices = (await import('./games.js?v=6ae387a0')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6ae3884d')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);
@@ -398,4 +399,4 @@ function renderFight(main, bid) {
   let last = '';
   const off = store.subscribe(() => { if (!box.isConnected) return off(); const now = JSON.stringify(store.get(P(bid)) || null) + (me()?.id || ''); if (now !== last) { last = now; draw(); } });
 }
-export const battleMini = () => `<div class="bt-mini"><div class="bt-spr" style="--w:32;--h:40;--n:4;--ms:1333ms;--s:2;background-image:url(assets/battle/jangmoo_front.png)"></div><div class="bt-spr" style="--w:24;--h:32;--n:2;--ms:900ms;--s:2;background-image:url(assets/battle/cleffa_back.png)"></div></div>`;
+export const battleMini = () => `<div class="bt-mini"><div class="bt-spr" style="--w:21;--h:22;--n:4;--ms:1333ms;--s:3;background-image:url(assets/battle/jangmoo_front.png)"></div><div class="bt-spr" style="--w:17;--h:19;--n:2;--ms:900ms;--s:3;background-image:url(assets/battle/cleffa_back.png)"></div></div>`;
