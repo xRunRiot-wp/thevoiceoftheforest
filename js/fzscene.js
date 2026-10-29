@@ -6,8 +6,8 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3b1bf';
-import { esc } from './util.js?v=6ae3b1bf';
+import { loadIndex } from './effects.js?v=6ae3b269';
+import { esc } from './util.js?v=6ae3b269';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -42,8 +42,9 @@ function speciesIn(ix, name) {
 const SAYS = ['💕', '♪', '❗', '💬', '✨', '😊', '🍎', '💤'];
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// mount into `box`; cubes = [{ key, name, mons: [{ name, label }] }]; mapId = a MAPS entry to lay the rooms out on
-export async function mountFzScene(box, cubes, mapId = '') {
+// mount into `box`; cubes = [{ key, name, mons: [{ name, label }] }]; mapId = a MAPS entry to lay the rooms out on;
+// solo = a picture: one big room of that picture (the zoomed-in square) holding cubes[0]'s Pokémon
+export async function mountFzScene(box, cubes, mapId = '', solo = '') {
   const ix = await loadIndex(); if (!box.isConnected) return;
   const withMons = async (c) => {
     const mons = [];
@@ -55,8 +56,12 @@ export async function mountFzScene(box, cubes, mapId = '') {
     return mons;
   };
   const map = MAPS[mapId]; let rooms; let W; let H; let S;
-  if (map) { // a grid of map squares; the cell size fits the screen (min 96px)
-    const cell = Math.max(96, Math.min(150, Math.floor((box.clientWidth || 380) / 4))); S = cell < 120 ? 1.5 : 2;
+  if (solo) { // one big square, the width of the box
+    const size = box.clientWidth || 340; S = size >= 330 ? 3 : 2; W = size; H = size;
+    rooms = [{ key: cubes[0].key, name: '', img: solo, x: 0, y: 0, w: size, h: size, mons: await withMons(cubes[0]) }];
+    if (!box.isConnected) return;
+  } else if (map) { // a grid of map squares; the cell size fits the screen (min 96px, up to 270px so it fills a computer screen too)
+    const cell = Math.max(96, Math.min(270, Math.floor(((box.clientWidth || 380) - 4) / 4))); S = cell < 120 ? 1.5 : 2;
     rooms = [];
     for (const [key, img, r, c, span = 1] of map) {
       const cube = cubes.find((x) => x.key === key);
@@ -71,7 +76,7 @@ export async function mountFzScene(box, cubes, mapId = '') {
     W = rooms.length * 190; H = 200;
   }
   box.innerHTML = `<div class="fzs-strip ${map ? 'fzs-map' : ''}" style="width:${W}px;height:${H}px">${rooms.map((r) => `<div class="fzs-cube ${r.img ? 'pic' : ''} ${r.name ? 'has-info' : ''}" data-key="${esc(r.key || '')}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;${r.img ? `background-image:url(${r.img}?v=2)` : ''}">${r.name ? `<span class="fzs-cube-nm">${esc(r.name)}</span>` : ''}</div>`).join('')}</div>`;
-  box.classList.add('ready', map ? 'map' : 'row'); box.style.setProperty('--fzh', H + 14 + 'px');
+  box.classList.add('ready', solo ? 'solo' : map ? 'map' : 'row'); box.style.setProperty('--fzh', H + 14 + 'px');
   const strip = box.firstChild;
   // tap a room (not a Pokémon) to open that spot's info (her ask 10-29: the spot boxes live inside their squares)
   strip.addEventListener('click', (e) => { if (e.target.closest('.fzs-mon')) return; const c = e.target.closest('.fzs-cube.has-info'); if (c) box.dispatchEvent(new CustomEvent('fzspot', { detail: c.dataset.key })); });
@@ -84,7 +89,7 @@ export async function mountFzScene(box, cubes, mapId = '') {
     el.innerHTML = `<div class="fzs-spr" style="width:${m.a.w * S}px;height:${m.a.h * S}px;background-image:url(${RAW}${m.d4}/Walk-Anim.png);background-size:${m.a.w * m.a.n * S}px ${m.a.h * 8 * S}px;--fw:${m.a.w * S}px;--n:${m.a.n};--ms:${m.a.ms}ms"></div><span class="fzs-tag">${esc(m.label || m.name)}</span>`;
     strip.appendChild(el);
     const b = { el, spr: el.firstChild, m, home: rm, room: rm, busy: false, w: m.a.w * S, h: m.a.h * S };
-    b.spot = (r) => [r.x + 4 + Math.random() * Math.max(2, r.w - b.w - 8), r.y + Math.max(14, r.h * 0.25) + Math.random() * Math.max(2, r.h * 0.75 - b.h - 10)];
+    b.spot = (r) => [r.x + 4 + Math.random() * Math.max(2, r.w - b.w - 8), r.y + Math.max(14, r.h * 0.25) + Math.random() * Math.max(2, r.h * 0.75 - b.h - 24)];
     [b.x, b.y] = b.spot(rm);
     const place = (ms = 0) => { el.style.transition = ms ? `left ${ms}ms linear, top ${ms}ms linear` : 'none'; el.style.left = b.x + 'px'; el.style.top = b.y + 'px'; el.style.zIndex = 10 + Math.round(b.y); };
     b.face = (d) => { b.spr.style.backgroundPositionY = `-${ROW[d] * m.a.h * S}px`; };
@@ -97,7 +102,7 @@ export async function mountFzScene(box, cubes, mapId = '') {
     b.face('down'); place(); setTimeout(() => (el.style.opacity = 1), 80 + bots.length * 120);
     bots.push(b);
   }));
-  if (!bots.length) { if (!map) box.remove(); return; }
+  if (!bots.length) { if (!map && !solo) box.remove(); return; }
   const rand = (a, z) => a + Math.random() * (z - a);
   const meet = async (b, f) => {
     b.busy = f.busy = true; const side = f.x > b.x ? -1 : 1;

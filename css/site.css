@@ -2212,3 +2212,10 @@ a.ch-chip:hover { background: var(--navy); }
 
 /* her ask 10-29: the camp's Pokémon and square names stay inside the map, never on top of the info box */
 .fz-scene { isolation: isolate; z-index: 0; }
+
+/* her ask 10-29: a tapped map square zooms in to a big view of its picture with its own Pokémon, its box underneath */
+.fz-zoom { position: relative; width: 100%; aspect-ratio: 1; margin: 4px 0 12px; border: 3px solid #3a2c1a; border-radius: 12px; overflow: hidden; isolation: isolate;
+  background: #6faf58 center / cover; transform-origin: top left; }
+.fz-zoom .fzs-strip { margin: 0; }
+.fz-zoom .fzs-cube { border: 0; border-radius: 0; box-shadow: none; filter: none; }
+.fz-zoom .fzs-tag { opacity: 1; }

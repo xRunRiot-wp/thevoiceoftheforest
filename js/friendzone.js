@@ -1,10 +1,10 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3b1bf';
-import { $, $$, esc, toast } from './util.js?v=6ae3b1bf';
-import { modal, closeModal } from './ui.js?v=6ae3b1bf';
-import { mountFzScene, MAPS } from './fzscene.js?v=6ae3b1bf';
-import { merged, editContent } from './content-store.js?v=6ae3b1bf';
+import * as store from './store.js?v=6ae3b269';
+import { $, $$, esc, toast } from './util.js?v=6ae3b269';
+import { modal, closeModal } from './ui.js?v=6ae3b269';
+import { mountFzScene, MAPS } from './fzscene.js?v=6ae3b269';
+import { merged, editContent } from './content-store.js?v=6ae3b269';
 
 export const LOCATIONS = [
   {
@@ -178,16 +178,26 @@ export function renderFriendZone(main, [arg]) {
       const mapped = !!MAPS[loc.id];
       cubes.forEach((x) => { if (!x.key) x.key = 'staff'; });
       mountFzScene(box, mapped ? cubes : cubes.filter((x) => x.mons.length), mapped ? loc.id : '');
-      // on a map camp the spot boxes live inside their squares: tap a square to open its box (the real box moves into
-      // the popup so Recruit and the GM buttons keep working, and moves back when it closes)
+      // on a map camp the spot boxes live inside their squares. Tap a square (her ask 10-29): it zooms in to a big view
+      // of its picture with its own Pokémon walking around, and its box underneath (the real box moves into the popup so
+      // Recruit and the GM buttons keep working, and moves back when it closes; the staff square shows a copy of the staff box)
       if (mapped) {
         const holder = $('.fz-spots', main); if (holder) holder.classList.add('fz-hidden');
         box.addEventListener('fzspot', (e) => {
-          const card = $(`.fz-spot[data-spotkey="${e.detail}"]`, main);
-          if (!card) { if (e.detail === 'staff') $('.fz-staff', main)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
-          const el = modal('<div class="fz-pop"></div>'); $('.fz-pop', el).appendChild(card);
-          const back = () => { if (!card.isConnected || card.closest('.fz-pop')) holder.appendChild(card); };
-          window.addEventListener('modalclosed', back, { once: true });
+          const key = e.detail; const sq = $(`.fzs-cube[data-key="${key}"]`, box);
+          const img = (MAPS[loc.id].find((x) => x[0] === key) || [])[1]; const cube = cubes.find((x) => x.key === key);
+          const card = $(`.fz-spot[data-spotkey="${key}"]`, main) || (key === 'staff' ? $('.fz-staff', main)?.cloneNode(true) : null);
+          if (!card) return;
+          const el = modal(`<div class="fz-zoom"${img ? ` style="background-image:url(${img}?v=2)"` : ''}></div><div class="fz-pop"></div>`);
+          $('.fz-pop', el).appendChild(card);
+          const zoom = $('.fz-zoom', el);
+          if (sq) { const a = sq.getBoundingClientRect(); const b = zoom.getBoundingClientRect();
+            if (b.width) zoom.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width})` }, { transform: 'none' }], { duration: 450, easing: 'cubic-bezier(.2, .8, .2, 1)' }); }
+          if (img && cube) mountFzScene(zoom, [{ ...cube, max: 8 }], '', img);
+          if (card.classList.contains('fz-spot')) {
+            const back = () => { if (!card.isConnected || card.closest('.fz-pop')) holder.appendChild(card); };
+            window.addEventListener('modalclosed', back, { once: true });
+          }
         });
       }
     } }
