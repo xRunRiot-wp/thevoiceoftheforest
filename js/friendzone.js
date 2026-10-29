@@ -1,11 +1,11 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3bb02';
-import { $, $$, esc, toast } from './util.js?v=6ae3bb02';
-import { modal, closeModal } from './ui.js?v=6ae3bb02';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3bb02';
-import { merged, editContent } from './content-store.js?v=6ae3bb02';
-import { CHAPTERS } from './content.js?v=6ae3bb02';
+import * as store from './store.js?v=6ae3bd59';
+import { $, $$, esc, toast } from './util.js?v=6ae3bd59';
+import { modal, closeModal } from './ui.js?v=6ae3bd59';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3bd59';
+import { merged, editContent } from './content-store.js?v=6ae3bd59';
+import { CHAPTERS } from './content.js?v=6ae3bd59';
 
 export const LOCATIONS = [
   {
@@ -81,6 +81,7 @@ const NETWORK = [{
 const GUILD_CREW = [{ name: 'Beautifly', label: 'Guildmaster Beautifly' }, { name: 'Pikachu', label: 'Mimi' }, { name: 'Mudkip', label: 'Kippy' }];
 const GUILD_HOME = { 'woodland-base': 'gravity-falls-guild' };
 // her ask 10-29: Beatrice stays in the Woodland Base square (the camp itself), not the guild
+const PATHS = { 'woodland-base': { 'chapter-2': [2], 'chapter-3-4-9': [3, 4, 9], 'chapter-5-7-8': [5, 7, 8], 'chapter-6': [6] } };
 const CAMP_CREW = { 'woodland-base': [{ name: 'Beedrill', label: 'Beatrice', stay: true }] };
 const NET_SCHEMA = [['about', 'About the network', 'area'], ['loyaltyText', 'What loyalty means', 'area'], ['typesText', 'Personality types — one per line: Name | description', 'area'],
   ['relay', 'Relay Network', 'area'], ['relayRulesText', 'Relay rules — one per line: Rule | description', 'area'],
@@ -178,12 +179,15 @@ export function renderFriendZone(main, [arg]) {
     // her ask 10-29: the guild's own crew lives in the Gravity Falls Guild square (it's a big 2x2 square, so room for more)
     const home = cubes.find((x) => x.key === GUILD_HOME[loc.id]);
     if (home) { home.mons = [...GUILD_CREW, ...home.mons.filter((m) => !GUILD_CREW.some((g) => g.name === m.name))]; home.max = 8; }
-    // her ask 10-29: the bottom-left corner of the Woodland Base map is the path on to Chapter 2, locked until the GM sets the guild's chapter to 2
-    const ch = Number(store.get('guild')?.chapter) || 0; const ch2 = merged('chapters', CHAPTERS, (c) => 'ch' + c.n).find((c) => Number(c.n) === 2);
-    if (loc.id === 'woodland-base') cubes.push({ key: 'chapter-2', name: 'Path to Chapter 2', mons: [], locked: ch < 2 });
-    const pathCard = () => { const d = document.createElement('div'); d.className = 'card fz-path';
-      d.innerHTML = `<h3 style="margin:0 0 4px">${ch < 2 ? '🔒 ' : ''}Path to Chapter 2</h3>${ch2 ? `<p><b>${esc(ch2.title || '')}</b>${ch2.quote ? `<br><i>“${esc(ch2.quote)}”</i>` : ''}</p>` : ''}
-        <p class="small">${ch < 2 ? 'This trail is locked. It opens when the story reaches Chapter 2.' : 'The trail is open. Chapter 2 is underway!'}</p>`; return d; };
+    // her asks 10-29: map squares that are locked paths on to later chapters (bottom-left = Chapter 2; top-left waterfall =
+    // Chapters 3, 4 and 9; top-left forest strip = 5, 7 and 8; bottom-right = 6). A square opens once the GM sets the guild's chapter to its first chapter; each chapter shows its own lock
+    const ch = Number(store.get('guild')?.chapter) || 0; const chList = merged('chapters', CHAPTERS, (c) => 'ch' + c.n);
+    const pathName = (ns) => `Path to Chapter${ns.length > 1 ? 's' : ''} ${ns.length > 1 ? ns.slice(0, -1).join(', ') + ' & ' + ns[ns.length - 1] : ns[0]}`;
+    for (const [key, ns] of Object.entries(PATHS[loc.id] || {})) cubes.push({ key, name: pathName(ns), mons: [], locked: ch < Math.min(...ns) });
+    const pathCard = (key) => { const ns = PATHS[loc.id][key]; const d = document.createElement('div'); d.className = 'card fz-path';
+      d.innerHTML = `<h3 style="margin:0 0 4px">${ch < Math.min(...ns) ? '🔒 ' : ''}${esc(pathName(ns))}</h3>${ns.map((n) => { const c = chList.find((x) => Number(x.n) === n);
+        return `<p>${ch < n ? '🔒' : '✅'} <b>Chapter ${n}${c?.title && c.title !== 'Chapter ' + n ? `: ${esc(c.title)}` : ''}</b>${c?.quote ? `<br><i>“${esc(c.quote)}”</i>` : ''}</p>`; }).join('')}
+        <p class="small">${ns.every((n) => ch >= n) ? 'The trail is open.' : `Each part of this trail opens when the story reaches its chapter.`}</p>`; return d; };
     if (CAMP_CREW[loc.id]) cubes.push({ key: 'camp', name: loc.name, mons: CAMP_CREW[loc.id] });
     const box = $('#fzscene', main);
     if (box) {
@@ -198,7 +202,7 @@ export function renderFriendZone(main, [arg]) {
         box.addEventListener('fzspot', (e) => {
           const key = e.detail; const sq = $(`.fzs-cube[data-key="${key}"]`, box);
           const img = ZOOM_PICS[key] || (MAPS[loc.id].find((x) => x[0] === key) || [])[1]; const cube = cubes.find((x) => x.key === key);
-          const card = $(`.fz-spot[data-spotkey="${key}"]`, main) || (key === 'staff' ? $('.fz-staff', main)?.cloneNode(true) : key === 'camp' ? $('.fz-head', main)?.cloneNode(true) : key === 'chapter-2' ? pathCard() : null);
+          const card = $(`.fz-spot[data-spotkey="${key}"]`, main) || (key === 'staff' ? $('.fz-staff', main)?.cloneNode(true) : key === 'camp' ? $('.fz-head', main)?.cloneNode(true) : PATHS[loc.id]?.[key] ? pathCard(key) : null);
           if (!card) return;
           const el = modal(`<div class="fz-zoom"${img ? ` style="background-image:url(${img}?v=4)"` : ''}></div><div class="fz-pop"></div>`);
           $('.fz-pop', el).appendChild(card);

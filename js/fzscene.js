@@ -6,8 +6,8 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3bb02';
-import { esc } from './util.js?v=6ae3bb02';
+import { loadIndex } from './effects.js?v=6ae3bd59';
+import { esc } from './util.js?v=6ae3bd59';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -17,11 +17,11 @@ const ROW = { down: 0, right: 2, up: 4, left: 6 };
 // in a band on top, between two strips of forest; the rest is cut from her map at full size
 const WB = 'assets/friendzone/woodland_';
 export const MAPS = {
-  'woodland-base': [['', WB + 'band_l.jpg', 0, 0, [1.25, 1.5]], ['camp', WB + 'camp.jpg', 0, 1.25, 1.5, 'Woodland Base'], ['', WB + 'band_r.jpg', 0, 2.75, [1.25, 1.5]],
-    ['', WB + 'c_tl.jpg', 1.5, 0], ['acorn-grove', WB + 'acorn.jpg', 1.5, 1], ['watcher-s-grove', WB + 'watcher.jpg', 1.5, 2], ['', WB + 'c_tr.jpg', 1.5, 3],
+  'woodland-base': [['chapter-5-7-8', WB + 'band_l.jpg', 0, 0, [1.25, 1.5]], ['camp', WB + 'camp.jpg', 0, 1.25, 1.5, 'Woodland Base'], ['', WB + 'band_r.jpg', 0, 2.75, [1.25, 1.5]],
+    ['chapter-3-4-9', WB + 'c_tl.jpg', 1.5, 0], ['acorn-grove', WB + 'acorn.jpg', 1.5, 1], ['watcher-s-grove', WB + 'watcher.jpg', 1.5, 2], ['', WB + 'c_tr.jpg', 1.5, 3],
     ['fernshade-camp', WB + 'fernshade.jpg', 2.5, 0], ['gravity-falls-guild', WB + 'guild.jpg', 2.5, 1, 2], ['staff', WB + 'staff.jpg', 2.5, 3],
     ['mossy-hollow', WB + 'mossy.jpg', 3.5, 0], ['', WB + 'trail.jpg', 3.5, 3],
-    ['chapter-2', WB + 'c_bl.jpg', 4.5, 0, 1, 'Path to Chapter 2'], ['hearthstone-circle', WB + 'hearth.jpg', 4.5, 1], ['mushroom-rest', WB + 'mushroom.jpg', 4.5, 2], ['', WB + 'c_br.jpg', 4.5, 3]],
+    ['chapter-2', WB + 'c_bl.jpg', 4.5, 0], ['hearthstone-circle', WB + 'hearth.jpg', 4.5, 1], ['mushroom-rest', WB + 'mushroom.jpg', 4.5, 2], ['chapter-6', WB + 'c_br.jpg', 4.5, 3]],
 };
 // a square that zooms in to a different picture than the one on the map
 export const ZOOM_PICS = { 'gravity-falls-guild': WB + 'guild_inside.jpg' };

@@ -1,15 +1,15 @@
 // Pelipper Post: a little mailbox above each player's name. Once a day every character gets one letter with a
 // small solo mission; they roll for it and can earn an item, Poké, a recruit chance or a new place to explore.
 // Letters are GM-editable (content/mail). Recruits and new places go on the GM checklist for the GM to play out.
-import * as store from './store.js?v=6ae3bb02';
-import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae3bb02';
-import { modal, closeModal } from './ui.js?v=6ae3bb02';
-import { merged, editContent } from './content-store.js?v=6ae3bb02';
-import { logRoll, statVal } from './play.js?v=6ae3bb02';
-import { dailyRoll, hash } from './weather.js?v=6ae3bb02';
-import { gameSay, gmTodo } from './chatter.js?v=6ae3bb02';
-import { markWinner } from './sparkle.js?v=6ae3bb02';
-import { sendFx } from './letterfx.js?v=6ae3bb02';
+import * as store from './store.js?v=6ae3bd59';
+import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae3bd59';
+import { modal, closeModal } from './ui.js?v=6ae3bd59';
+import { merged, editContent } from './content-store.js?v=6ae3bd59';
+import { logRoll, statVal } from './play.js?v=6ae3bd59';
+import { dailyRoll, hash } from './weather.js?v=6ae3bd59';
+import { gameSay, gmTodo } from './chatter.js?v=6ae3bd59';
+import { markWinner } from './sparkle.js?v=6ae3bd59';
+import { sendFx } from './letterfx.js?v=6ae3bd59';
 
 const KINDS = { item: ['🎁', 'Item'], poke: ['💰', 'Poké'], recruit: ['🤝', 'Recruit chance'], place: ['🧭', 'New place'] };
 export const MAIL_SCHEMA = [['title', 'Title'], ['from', 'From'], ['text', 'Letter', 'area'], ['attr', 'Roll: attribute (e.g. Insight)'], ['skill', 'Roll: skill (e.g. Alert)'],
