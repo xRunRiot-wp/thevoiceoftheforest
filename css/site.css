@@ -2276,3 +2276,23 @@ a.ch-chip:hover { background: var(--navy); }
 .walk-host .fzs-spr { animation: fzs-walk var(--ms) steps(var(--n)) infinite; }
 .props .prop.fade { transition: opacity 1.5s; opacity: 0; }
 .hero.banner img.hdr.whole { aspect-ratio: auto; }   /* her Guild Shop picture (10-29) is shown whole, not cropped to a strip */
+/* Travelling Merchant: the items sit on the mats of her table picture (10-29) */
+.mc-stage { position: relative; container-type: inline-size; margin: 10px 0 8px; }
+.mc-stage .art-wide { margin: 0; }
+.mc-mat { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; background: none; border: 0; border-radius: 6px; cursor: pointer; color: #fff6dc; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+.mc-mat:hover, .mc-mat:focus-visible { background: rgba(255, 230, 150, .16); outline: none; }
+.mc-mat img { height: 55%; max-height: 64px; aspect-ratio: 1; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .5)); }
+.mc-mname { font: 700 clamp(8px, 2.3cqw, 15px) / 1.1 var(--pix); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.mc-mat.sold { opacity: .45; cursor: default; }
+.mc-mat .mc-sale { top: -6px; right: 4%; font-size: clamp(7px, 1.8cqw, 11px); padding: 1px 4px; }
+.mc-plate { position: absolute; display: flex; align-items: center; justify-content: center; font: 700 clamp(8px, 2.5cqw, 17px) var(--pix); color: #4a2f17; white-space: nowrap; pointer-events: none; }
+.mc-plate s { opacity: .6; margin-right: 3px; }
+.mc-sale.inline { position: static; display: inline-block; transform: none; }
+.mc-hint { text-align: center; margin: 4px 0 8px; }
+@container (max-width: 520px) {   /* phones: the mat shows the item's picture (its name is in the tap popup), the plate keeps the price */
+  .mc-mat:has(img) .mc-mname { display: none; }
+  .mc-mat img { height: 80%; }
+  .mc-mname { font-size: 7px; white-space: normal; line-height: 1; }
+  .mc-plate { font-size: 9px; }
+  .mc-plate s { display: none; }
+}

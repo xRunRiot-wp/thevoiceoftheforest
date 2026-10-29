@@ -3,12 +3,12 @@
 // Haggling: Slash never tolerates it (try 1 "fair", try 2 "absolutely not", try 3 = he and his troupe of 3 stand armed).
 // Beat him in that fight: his caravan never returns and the team gets everything on his table.
 // Lose: his prices go up 150% for good (no more sales) and he attacks at the very next haggle.
-import * as store from './store.js?v=6ae3d6f5';
-import { $, $$, esc, num, uid, toast } from './util.js?v=6ae3d6f5';
-import { modal, closeModal } from './ui.js?v=6ae3d6f5';
-import { ixLink } from './effects.js?v=6ae3d6f5';
-import { guildSay, gmTodo } from './chatter.js?v=6ae3d6f5';
-import { buyDialog, logSale, sellDialog } from './shopkit.js?v=6ae3d6f5';
+import * as store from './store.js?v=6ae3d84a';
+import { $, $$, esc, num, uid, toast } from './util.js?v=6ae3d84a';
+import { modal, closeModal } from './ui.js?v=6ae3d84a';
+import { ixLink } from './effects.js?v=6ae3d84a';
+import { guildSay, gmTodo } from './chatter.js?v=6ae3d84a';
+import { buyDialog, logSale, sellDialog } from './shopkit.js?v=6ae3d84a';
 
 export const BROTHERS = {
   Slash: { tell: 'Does not tolerate haggling.', lines: ['No. The price I listed is fair.', 'Absolutely not.', '*stands armed and guarded with his troupe of 3*'] },
@@ -32,21 +32,30 @@ const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCod
 const merchantBuys = (name) => { const s = slots().find((x) => x.name.toLowerCase() === name.toLowerCase()); return s ? Math.max(1, Math.floor(num(s.price) / qtyOf(s) * 0.6)) : 40; };
 const priceOf = (s) => { const b = bro(); return b.angry ? Math.ceil(num(s.price) * 1.5) : s.sale ? num(s.sale) : num(s.price); };
 
+// her picture (10-29): the six slots sit on the six mats of the table, the price on each mat's name plate.
+// [left, top, width, height] in % of the picture: the mat above its plate, then the plate.
+const MATS = [[11, 44, 25.2, 7.7, 14.8, 51.7, 15.9, 5.1], [37.8, 44, 23.8, 7.7, 41.9, 51.7, 15.5, 5.1], [63, 44, 26, 7.7, 69.8, 51.7, 15.5, 5.1],
+  [3.8, 59.4, 30, 10.6, 7.6, 70, 18.1, 6.4], [35.6, 59.4, 27.8, 10.6, 40.6, 70, 18.1, 6.4], [66, 59.4, 30.2, 10.6, 73.2, 70, 18.6, 6.4]];
+const box = (l, t, w, h) => `left:${l}%;top:${t}%;width:${w}%;height:${h}%`;
+const itemPic = (n) => `<img src="assets/items/${esc(String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-'))}.png" alt="" onerror="this.remove()">`;
+function matsHTML(b) {
+  return slots().slice(0, 6).map((s, i) => { const [l, t, w, h, pl, pt, pw, ph] = MATS[i];
+    return `<button class="mc-mat ${s.sold ? 'sold' : ''}" style="${box(l, t, w, h)}" data-mslot="${i}" ${s.sold ? 'disabled' : ''} aria-label="${esc(label(s))}">
+      ${(s.sale || s.saleTag) && !b.angry && !s.sold ? '<span class="mc-sale">SALE</span>' : ''}${itemPic(s.name)}<span class="mc-mname">${qtyOf(s) > 1 ? `${qtyOf(s)}× ` : ''}${esc(s.name)}</span></button>
+      <span class="mc-plate" style="${box(pl, pt, pw, ph)}">${s.sold ? 'SOLD' : `${s.sale && !b.angry ? `<s>${num(s.price)}</s> ` : ''}${priceOf(s)} Poké`}</span>`; }).join('');
+}
+
 export function merchantHTML() {
   const m = M(); const b = bro(); const name = who(); const gm = store.gmUnlocked();
   const here = m.away ? null : name;
   const place = m.place || 'Woodland Base';
   return `<div class="section-title"><h2>🛒 Travelling Merchant</h2><span class="small muted">the Block Brothers</span></div>
   <div class="card merchant">
-    <img class="art-wide" src="assets/merchant/caravan.jpg" alt="The Block Brothers’ caravan" loading="lazy">
+    <div class="mc-stage"><img class="art-wide" src="assets/merchant/caravan_table.jpg" alt="The Block Brothers’ caravan" loading="lazy">${here ? matsHTML(b) : ''}</div>
     ${here ? `<div class="mc-head"><div><b class="pix">⚔️ ${esc(name)}</b> <span class="small">has set up a table at <b>${esc(place)}</b></span></div>
       ${b.angry ? '<span class="pill bad">Prices +150% · no sales</span>' : ''}</div>
       ${b.tell ? `<p class="small mc-tell">🛡️ ${esc(b.tell)}</p>` : ''}
-      <div class="mc-table">${slots().map((s, i) => `<div class="mc-slot ${s.sold ? 'sold' : ''}">
-        ${(s.sale || s.saleTag) && !b.angry && !s.sold ? '<span class="mc-sale">SALE</span>' : ''}
-        <div class="mc-item">${qtyOf(s) > 1 ? `<span class="pix mc-qty">${qtyOf(s)}×</span> ` : ''}${ixLink(s.name)}</div>
-        <div class="mc-tag">${s.sold ? 'SOLD' : `${s.sale && !b.angry ? `<s>${num(s.price)}</s> ` : ''}${priceOf(s)} Poké`}</div>
-        ${s.sold ? '' : `<div class="row nowrap mc-btns"><button class="btn sm" data-mbuy="${i}">Buy</button><button class="btn alt sm" data-mhag="${i}">Haggle</button></div>`}</div>`).join('')}</div>
+      <p class="small muted mc-hint">Tap an item on the table to buy it or haggle.</p>
       <div class="row" style="justify-content:center;margin-top:8px"><button class="btn" id="msell">💰 Sell items to ${esc(name)}</button></div>`
       : `<p class="muted">No merchant has set up a table today.</p>`}
     ${gm ? `<details class="small gm-merch" style="margin-top:10px"><summary><b>GM: merchant controls</b></summary>
@@ -58,6 +67,12 @@ export function merchantHTML() {
 }
 
 export function bindMerchant(main) {
+  $$('[data-mslot]', main).forEach((b) => b.onclick = () => {
+    const i = +b.dataset.mslot; const s = slots()[i]; if (!s || s.sold) return;
+    const el = modal(`<h2>${itemPic(s.name)} ${qtyOf(s) > 1 ? `${qtyOf(s)}× ` : ''}${ixLink(s.name)}</h2><p><b class="pix">${priceOf(s)} Poké</b>${s.sale && !bro().angry ? ` <s class="muted">${num(s.price)}</s> <span class="mc-sale inline">SALE</span>` : ''}</p>
+      <div class="row"><button class="btn" data-go="buy">Buy</button><button class="btn alt" data-go="hag">Haggle</button></div>`);
+    $$('[data-go]', el).forEach((x) => x.onclick = () => { closeModal(); (x.dataset.go === 'buy' ? buy : haggle)(i); });
+  });
   $$('[data-mbuy]', main).forEach((b) => b.onclick = () => buy(+b.dataset.mbuy));
   $$('[data-mhag]', main).forEach((b) => b.onclick = () => haggle(+b.dataset.mhag));
   const ms = $('#msell', main); if (ms) ms.onclick = () => sellDialog({ shop: 'merchant', keeper: who(), valueOf: merchantBuys, thanks: ['A fair trade.', '*nods and stows it in the caravan*', 'This will sell well in the next town.'] });
