@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6ae3861d';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae3861d';
-import { portrait, maxHp } from './ui.js?v=6ae3861d';
-import { allMoves, me, statVal } from './play.js?v=6ae3861d';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae3861d';
-import { TYPE_ICONS } from './theme.js?v=6ae3861d';
+import * as store from './store.js?v=6ae386ae';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae386ae';
+import { portrait, maxHp } from './ui.js?v=6ae386ae';
+import { allMoves, me, statVal } from './play.js?v=6ae386ae';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae386ae';
+import { TYPE_ICONS } from './theme.js?v=6ae386ae';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -135,7 +135,7 @@ async function resolve(bid) {
   // Metronome spins Gemini's Metronome wheel (the Games page one, so the GM's edits count) and plays out the slice
   const metronome = async (id, foe) => {
     let slices = [];
-    try { slices = (await import('./games.js?v=6ae3861d')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6ae386ae')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);
@@ -268,6 +268,7 @@ export function renderBattle(main, g, bid) {
     main.innerHTML = `<div class="row" style="justify-content:space-between;margin-top:12px"><a class="btn alt sm" href="#/games">← Games</a></div>
       <h1 style="margin:10px 0 4px">⚔️ Battles</h1><p>${esc(g.intro || '')}</p>
       <p><span class="pill">❤️ Everyone starts at full HP</span> <span class="pill">📜 Your sheet never changes</span> <span class="pill">🎵 Battle music</span></p>
+      ${c ? '<p class="row bt-jump"><span class="small muted">Jump to:</span><button class="btn alt sm" data-jump="bt-friends">👥 Friendly Battle</button><button class="btn alt sm" data-jump="bt-train">🏋️ Guild Training</button></p>' : ''}
       <details class="card small"><summary><b>How it works</b></summary><ol>
         <li><b>Friendly Battle:</b> challenge someone at the table. They get a pop-up to accept. <b>Guild Training:</b> battle a guild member any time, just for bragging rights.</li>
         <li>Each round press <b>FIGHT</b> and pick a move. The faster Pokémon (1d6 + Dexterity + Alert) goes first.</li>
@@ -275,8 +276,7 @@ export function renderBattle(main, g, bid) {
         <li>Status moves work for the battle only: Growl, Charm and Leer lower stats, Supersonic confuses, Yawn puts the foe to sleep, Encore locks their move. <b>Metronome</b> spins Gemini’s Metronome wheel.</li>
         <li>First to 0 HP loses. <b>Run</b> gives up.</li></ol></details>
       ${!c ? '<p class="card">Pick your character first (Play tab), then come and battle.</p>' : `
-      ${open.length ? `<h2 class="games-h">Your battles</h2><ul class="sentry-roster fr-list">${open.map(([k, B]) => `<li>${face(foeOf(B, c.id))}<span class="grow"><b>vs ${esc(nm(foeOf(B, c.id)))}</b><br><span class="small muted">${B.phase === 'ask' ? (B.a === c.id ? 'Waiting for them to accept' : 'They challenged you!') : `Round ${num(B.round)}`}</span></span><span class="fr-acts"><a class="btn sm" href="#/games/${GAME_ID}/${esc(k)}">${B.phase === 'ask' && B.b === c.id ? 'Answer' : 'Open'}</a></span></li>`).join('')}</ul>` : ''}
-      <p class="row" style="gap:8px"><button class="btn sm" data-jump="bt-friends">👥 Friendly Battle</button><button class="btn sm" data-jump="bt-train">🏋️ Guild Training</button></p>
+      ${open.length ? `<h2 class="games-h">Your battles</h2><p class="small muted">Battles you started that aren’t finished yet. Tap <b>Continue</b> to go back in.</p><ul class="sentry-roster fr-list">${open.map(([k, B]) => `<li>${face(foeOf(B, c.id))}<span class="grow"><b>vs ${esc(nm(foeOf(B, c.id)))}</b><br><span class="small muted">${B.phase === 'ask' ? (B.a === c.id ? 'Waiting for them to accept' : 'They challenged you!') : `Round ${num(B.round)}`}</span></span><span class="fr-acts"><a class="btn sm" href="#/games/${GAME_ID}/${esc(k)}">${B.phase === 'ask' && B.b === c.id ? '⚔️ Answer' : '▶ Continue'}</a></span></li>`).join('')}</ul>` : ''}
       <h2 class="games-h" id="bt-friends">👥 Friendly Battle</h2>
       <ul class="sentry-roster fr-list">${others.map((x) => `<li>${portrait(x, 'sm')}<span class="grow"><b>${esc(x.nickname)}</b>${friends.has(x.id) ? ' <span class="pill">Friend</span>' : ''}<br><span class="small muted">${esc(x.pokemon || '')} · ${maxHp(x)} HP</span></span><span class="fr-acts"><button class="btn sm" data-ch="${esc(x.id)}">⚔️ Challenge</button></span></li>`).join('') || '<li class="muted">Nobody else at the table yet.</li>'}</ul>
       <h2 class="games-h" id="bt-train">🏋️ Guild Training</h2><p class="small muted">Spar with the guild’s members. No prizes, just bragging rights: every guild member you beat goes on the Training Board.</p>

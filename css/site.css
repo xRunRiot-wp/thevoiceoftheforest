@@ -2008,6 +2008,7 @@ a.ch-chip:hover { background: var(--navy); }
 .bt-mv:hover:not(:disabled) { filter: brightness(1.12); } .bt-mv:disabled { opacity: .55; }
 .bt-wait { color: #fff; margin: 4px 0; font-family: var(--pix); }
 .bt-ask .row { gap: 10px; align-items: center; margin-bottom: 8px; }
+.bt-jump { gap: 8px; align-items: center; margin: 4px 0 10px; }
 .bt-board ol { margin: 6px 0 0; padding-left: 22px; }
 .bt-mini { position: relative; width: 132px; height: 132px; flex: none; border-radius: 50%; overflow: hidden; background: linear-gradient(#5aa3e0, #a8d8f2 42%, #9fd47f 43%); border: 3px solid var(--ink); box-sizing: border-box; }
 .bt-mini .bt-spr { position: absolute; } .bt-mini .bt-spr:first-child { right: 10px; top: 14px; } .bt-mini .bt-spr:last-child { left: 12px; bottom: 6px; }
