@@ -7,13 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae3884d';
-import { $, $$, esc, toast, num } from './util.js?v=6ae3884d';
-import { me, logRoll } from './play.js?v=6ae3884d';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3884d';
-import { gameSay, gmTodo } from './chatter.js?v=6ae3884d';
-import { markWinner } from './sparkle.js?v=6ae3884d';
-import { pageMusic } from './chiptune.js?v=6ae3884d';
+import * as store from './store.js?v=6ae388c9';
+import { $, $$, esc, toast, num } from './util.js?v=6ae388c9';
+import { me, logRoll } from './play.js?v=6ae388c9';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae388c9';
+import { gameSay, gmTodo } from './chatter.js?v=6ae388c9';
+import { markWinner } from './sparkle.js?v=6ae388c9';
+import { pageMusic } from './chiptune.js?v=6ae388c9';
+import { modal, closeModal } from './ui.js?v=6ae388c9';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -260,6 +261,12 @@ function room(c, box, anim) {
   const nn = $('#nnew', box); if (nn) nn.onclick = () => { if (confirm(`${nameOf(b)} stays on your team. Take a new egg home to raise?`)) { adopt(c); room(c, box, 'new'); } };
 }
 
+function visit(who, b) {
+  const [want, text] = feeling(b); const sleeping = asleep();
+  const sym = sleeping ? 'z Z' : /Joyous|Happy|Inspired/.test(want[0]) ? '♥' : /Crying|Teary/.test(want[0]) ? '…' : /Sad|Worried/.test(want[0]) ? '?' : '♪';
+  const el = modal(`<h2>${esc(who?.nickname || 'A friend')}’s ${esc(nameOf(b))}</h2><div class="nvisit"><div class="emo-pane yf" role="status"><div class="yf-pic"><span class="yf-sym ${sym === '♥' ? 'heart' : ''}">${sym}</span><img src="${faceOf(b, want)}" alt=""></div><p>${esc(text)}</p></div></div>`);
+  $('.emo-pane', el).onclick = () => closeModal();
+}
 export function renderNursery(main, g, gm, onEdit) {
   const c = me();
   main.innerHTML = `<div class="row" style="justify-content:space-between;margin-top:12px"><a class="btn alt sm" href="#/games">← Games</a>${gm ? '<button class="btn alt sm" id="ed">Edit</button>' : ''}</div>
@@ -272,8 +279,10 @@ export function renderNursery(main, g, gm, onEdit) {
   const party = store.get('party') || {};
   const list = () => {
     $('#nlist', main).innerHTML = Object.entries(store.get('nursery') || {}).map(([id, b]) => { const who = party[id]; if (!who || !b) return '';
-      return `<li>${b.stage === 0 ? eggHTML(b, 'mini') : `<img class="sface" src="${buddyFace(b)}" alt="">`}<span class="grow">${esc(who.nickname)}’s ${esc(b.stage === 0 ? 'egg' : (b.name ? `${b.name} (${BABIES[b.sp]?.name})` : BABIES[b.sp]?.name || 'buddy'))}<br><span class="small muted">${STAGES[b.stage]}${b.recruited ? ' · on the team' : caredToday(b) ? ' · cared for today' : ''}</span></span>
+      return `<li>${b.stage === 0 ? eggHTML(b, 'mini') : `<button class="nvisit-btn" data-nvisit="${esc(id)}" title="See how they feel" aria-label="See how ${esc(nameOf(b))} feels"><img class="sface" src="${buddyFace(b)}" alt=""></button>`}<span class="grow">${esc(who.nickname)}’s ${esc(b.stage === 0 ? 'egg' : (b.name ? `${b.name} (${BABIES[b.sp]?.name})` : BABIES[b.sp]?.name || 'buddy'))}<br><span class="small muted">${STAGES[b.stage]}${b.recruited ? ' · on the team' : caredToday(b) ? ' · cared for today' : ''}</span></span>
         ${gm ? `<button class="btn alt sm" data-nup="${esc(id)}">Grow</button><button class="btn alt sm" data-nreset="${esc(id)}">Reset</button>` : ''}</li>`; }).join('') || '<li class="muted">No eggs taken home yet.</li>';
+    // her ask 10-29: tapping a friend's buddy shows its feelings window, just like tapping your own
+    $$('[data-nvisit]', main).forEach((x) => x.onclick = () => { const bb = buddyOf(x.dataset.nvisit); if (!bb) return; visit(party[x.dataset.nvisit], bb); });
     $$('[data-nup]', main).forEach((x) => x.onclick = () => { const b = buddyOf(x.dataset.nup); if (b && b.stage < 3) store.set(`nursery/${x.dataset.nup}`, { ...b, stage: b.stage + 1, grown: 0 }); renderNursery(main, g, gm, onEdit); });
     $$('[data-nreset]', main).forEach((x) => x.onclick = () => { if (confirm('Give this buddy back to the nursery? They can take a new egg.')) { store.set('nursery/' + x.dataset.nreset, null); renderNursery(main, g, gm, onEdit); } });
   };
