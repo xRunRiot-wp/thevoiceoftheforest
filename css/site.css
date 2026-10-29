@@ -1757,7 +1757,7 @@ a.ch-chip:hover { background: var(--navy); }
 
 /* Game card pictures (her ask 10-27: "background is bland, one is too busy"): real Explorers scenery behind each moving
    Pokémon, drifting slowly; her follow-up: drift slower, and Machamp gets the Treasure Town log-and-crate yard instead of the busy tent art */
-.sentry-mini, .dance-mini, .kitchen-mini, .nursery-mini, .mailrun-mini, .truck-mini { background-size: 180px 180px; background-repeat: no-repeat; image-rendering: auto; box-shadow: inset 0 0 0 3px rgba(255, 224, 150, .55), inset 0 0 22px rgba(20, 8, 30, .55); animation: gc-pan 45s ease-in-out infinite alternate; }
+.sentry-mini, .dance-mini, .kitchen-mini, .nursery-mini, .mailrun-mini, .truck-mini, .bt-mini, .bl-mini { background-size: 180px 180px; background-repeat: no-repeat; image-rendering: auto; box-shadow: inset 0 0 0 3px rgba(255, 224, 150, .55), inset 0 0 22px rgba(20, 8, 30, .55); animation: gc-pan 45s ease-in-out infinite alternate; }
 .sentry-mini { background-image: url('../assets/cards/sentry.png'); }
 .dance-mini { background-image: url('../assets/cards/dance.png'); }
 .kitchen-mini { background-image: url('../assets/cards/kitchen.png'); }
@@ -2076,3 +2076,8 @@ a.ch-chip:hover { background: var(--navy); }
 .duo-cap.show { animation: duo-cap 4.5s ease forwards; } @keyframes duo-cap { 8%, 80% { opacity: 1; } 100% { opacity: 0; } }
 .duo-ball { position: absolute; bottom: 40px; transition: left .6s cubic-bezier(.4, 0, .6, 1); }
 .duo-ball .ball { animation: duo-arc .6s ease-in-out infinite; } @keyframes duo-arc { 50% { translate: 0 -40px; } }
+
+/* her ask 10-29: the Battles and Ball Lab cards match the others (real scenery, same frame and glow) */
+.bt-mini { background: url('../assets/cards/dance.png') 0 0 / 180px 180px no-repeat; border: 0; }
+.bl-mini { background: url('../assets/cards/sentry.png') 0 0 / 180px 180px no-repeat; border: 0; padding: 22px; } /* the lab is inside the guild */
+.bl-mini span { filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .5)); }
