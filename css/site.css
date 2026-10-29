@@ -2139,3 +2139,6 @@ a.ch-chip:hover { background: var(--navy); }
     radial-gradient(18% 34% at 30% 40%, rgba(60, 130, 50, .4), transparent 70%) 0 0 / 260px 130px,
     radial-gradient(16% 30% at 75% 70%, rgba(180, 230, 120, .4), transparent 70%) 40px 30px / 300px 150px,
     repeating-linear-gradient(180deg, rgba(255, 255, 255, .08) 0 14px, rgba(0, 60, 0, .06) 14px 30px, rgba(255, 255, 255, .05) 30px 52px, rgba(0, 60, 0, .07) 52px 78px); }
+
+/* her ask 10-29: no camera pan or zoom during battles, the view stays still */
+.bt-cam, .bt-cam.zoom-near, .bt-cam.zoom-far { animation: none; transform: none; }
