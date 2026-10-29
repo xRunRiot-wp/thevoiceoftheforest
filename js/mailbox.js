@@ -1,15 +1,15 @@
 // Pelipper Post: a little mailbox above each player's name. Once a day every character gets one letter with a
 // small solo mission; they roll for it and can earn an item, Poké, a recruit chance or a new place to explore.
 // Letters are GM-editable (content/mail). Recruits and new places go on the GM checklist for the GM to play out.
-import * as store from './store.js?v=6ae371ba';
-import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae371ba';
-import { modal, closeModal } from './ui.js?v=6ae371ba';
-import { merged, editContent } from './content-store.js?v=6ae371ba';
-import { logRoll, statVal } from './play.js?v=6ae371ba';
-import { dailyRoll, hash } from './weather.js?v=6ae371ba';
-import { gameSay, gmTodo } from './chatter.js?v=6ae371ba';
-import { markWinner } from './sparkle.js?v=6ae371ba';
-import { sendFx } from './letterfx.js?v=6ae371ba';
+import * as store from './store.js?v=6ae37206';
+import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae37206';
+import { modal, closeModal } from './ui.js?v=6ae37206';
+import { merged, editContent } from './content-store.js?v=6ae37206';
+import { logRoll, statVal } from './play.js?v=6ae37206';
+import { dailyRoll, hash } from './weather.js?v=6ae37206';
+import { gameSay, gmTodo } from './chatter.js?v=6ae37206';
+import { markWinner } from './sparkle.js?v=6ae37206';
+import { sendFx } from './letterfx.js?v=6ae37206';
 
 const KINDS = { item: ['🎁', 'Item'], poke: ['💰', 'Poké'], recruit: ['🤝', 'Recruit chance'], place: ['🧭', 'New place'] };
 export const MAIL_SCHEMA = [['title', 'Title'], ['from', 'From'], ['text', 'Letter', 'area'], ['attr', 'Roll: attribute (e.g. Insight)'], ['skill', 'Roll: skill (e.g. Alert)'],
@@ -127,7 +127,7 @@ export function openMailbox(c) {
 
 // New mail (her ask 10-29): write a letter to another character (or everyone). It lands in their Pelipper Post like a
 // gift note, flies into their mailbox, and can be replied to.
-function writeMail(c, toId = '') {
+export function writeMail(c, toId = '') {
   const party = store.get('party') || {};
   const others = Object.values(party).filter((x) => x.id !== c.id && (!x.guest || x.guest.controller === 'player')).sort((a, b) => String(a.nickname).localeCompare(b.nickname));
   const box = modal(`<h2>✏️ New mail</h2><p class="small muted">Pelipper will fly it straight to their mailbox.</p>

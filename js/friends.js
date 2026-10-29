@@ -2,12 +2,12 @@
 // friends, see who's on the site right now (and where), and invite them to a game like Noctowl's 21.
 // online/<id> = { t, at } (each open device refreshes it every 2 minutes); party/<id>/friends = [ids];
 // invites/<id>/<inviteId> = { from, fromId, game, name, t } (shown once as a pop-up on the friend's device, then removed).
-import * as store from './store.js?v=6ae371ba';
-import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae371ba';
-import { sendFx, startLetterWatch } from './letterfx.js?v=6ae371ba';
-import { giftNote } from './mailbox.js?v=6ae371ba';
-import { playingNow, openWatch } from './watch.js?v=6ae371ba';
-import { modal, closeModal, portrait } from './ui.js?v=6ae371ba';
+import * as store from './store.js?v=6ae37206';
+import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae37206';
+import { sendFx, startLetterWatch } from './letterfx.js?v=6ae37206';
+import { giftNote, writeMail } from './mailbox.js?v=6ae37206';
+import { playingNow, openWatch } from './watch.js?v=6ae37206';
+import { modal, closeModal, portrait } from './ui.js?v=6ae37206';
 
 const ONLINE_FOR = 5 * 60e3; const BEAT = 2 * 60e3;
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -60,7 +60,7 @@ const rowHTML = (x, isFriend, me) => {
   const status = pl ? `<span class="fr-dot on"></span>🎮 Playing ${esc(pl.name)}` : on ? `<span class="fr-dot on"></span>Online now · at ${esc(placeOf(o?.at))}` : `<span class="fr-dot"></span>${o?.t ? 'Last here ' + esc(timeAgo(o.t)) : 'Not seen yet'}`;
   const back = friendsOf(x).includes(me.id);
   return `<li>${portrait(x, 'sm')}<span class="grow"><b>${esc(x.nickname)}</b>${isFriend && back ? ' <span class="pill">Friends</span>' : ''}<br><span class="small muted">${status}</span></span>
-    <span class="fr-acts">${isFriend && pl ? `<button class="btn alt sm" data-watchp="${esc(x.id)}">👀 Watch</button>` : ''}${isFriend && !pl && on && /noctowl-21/.test(o?.at || '') ? '<a class="btn alt sm" href="#/games/noctowl-21" data-watch>👀 Watch</a>' : ''}${isFriend ? `<button class="btn alt sm" data-send="${esc(x.id)}">🎁 Send</button><button class="btn sm" data-inv="${esc(x.id)}">🃏 Invite to 21</button><button class="btn alt sm" data-unfr="${esc(x.id)}" title="Remove friend">✕</button>`
+    <span class="fr-acts">${isFriend && pl ? `<button class="btn alt sm" data-watchp="${esc(x.id)}">👀 Watch</button>` : ''}${isFriend && !pl && on && /noctowl-21/.test(o?.at || '') ? '<a class="btn alt sm" href="#/games/noctowl-21" data-watch>👀 Watch</a>' : ''}${isFriend ? `<button class="btn alt sm" data-mail="${esc(x.id)}" title="Write them a letter">✉️ Mail</button><button class="btn alt sm" data-send="${esc(x.id)}">🎁 Send</button><button class="btn sm" data-inv="${esc(x.id)}">🃏 Invite to 21</button><button class="btn alt sm" data-unfr="${esc(x.id)}" title="Remove friend">✕</button>`
       : `<button class="btn alt sm" data-addfr="${esc(x.id)}">+ Add</button>`}</span></li>`;
 };
 
@@ -76,6 +76,8 @@ export function openFriends() {
     $$('[data-addfr]', box).forEach((b) => b.onclick = () => { store.set(`party/${me.id}/friends`, [...new Set([...mine, b.dataset.addfr])]); toast(`${party()[b.dataset.addfr]?.nickname} added!`); draw(box); });
     $$('[data-unfr]', box).forEach((b) => b.onclick = () => { store.set(`party/${me.id}/friends`, mine.filter((id) => id !== b.dataset.unfr)); draw(box); });
     $$('[data-watch]', box).forEach((a) => a.onclick = () => closeModal());
+    // her ask 10-29: a mail button to send just a letter
+    $$('[data-mail]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => writeMail(me, b.dataset.mail), 50); });
     $$('[data-send]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openSend(b.dataset.send), 50); });
     $$('[data-watchp]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openWatch(b.dataset.watchp), 50); });
     $$('[data-inv]', box).forEach((b) => b.onclick = () => {
