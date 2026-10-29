@@ -6,8 +6,8 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3b855';
-import { esc } from './util.js?v=6ae3b855';
+import { loadIndex } from './effects.js?v=6ae3b95a';
+import { esc } from './util.js?v=6ae3b95a';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -121,7 +121,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
       if (b.busy) { await wait(400); continue; }
       const r = Math.random();
       if (r < 0.5) await b.go(...b.spot(b.room));
-      else if (r < 0.68) { // visit a neighbour, Cube World style: walk through to a room touching this one, then back home
+      else if (r < 0.68 && !b.m.stay) { // visit a neighbour, Cube World style (a Pokémon marked stay never leaves its square): walk through to a room touching this one, then back home
         const next = b.room === b.home ? live.filter((x) => touching(x, b.room))[Math.floor(Math.random() * 4)] : b.home;
         if (next) {
           b.busy = true; const cx = Math.max(Math.max(b.room.x, next.x), Math.min(b.room.x + b.room.w, next.x + next.w) - b.w); const cy = Math.max(Math.max(b.room.y, next.y), Math.min(b.room.y + b.room.h, next.y + next.h) - b.h);

@@ -1,10 +1,10 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3b855';
-import { $, $$, esc, toast } from './util.js?v=6ae3b855';
-import { modal, closeModal } from './ui.js?v=6ae3b855';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3b855';
-import { merged, editContent } from './content-store.js?v=6ae3b855';
+import * as store from './store.js?v=6ae3b95a';
+import { $, $$, esc, toast } from './util.js?v=6ae3b95a';
+import { modal, closeModal } from './ui.js?v=6ae3b95a';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3b95a';
+import { merged, editContent } from './content-store.js?v=6ae3b95a';
 
 export const LOCATIONS = [
   {
@@ -77,8 +77,10 @@ const NETWORK = [{
   ].join('\n'),
 }];
 // the guild's crew (her characters) shown walking around the guild square of the camp it sits in
-const GUILD_CREW = [{ name: 'Beautifly', label: 'Guildmaster Beautifly' }, { name: 'Beedrill', label: 'Beatrice' }, { name: 'Pikachu', label: 'Mimi' }, { name: 'Mudkip', label: 'Kippy' }];
+const GUILD_CREW = [{ name: 'Beautifly', label: 'Guildmaster Beautifly' }, { name: 'Pikachu', label: 'Mimi' }, { name: 'Mudkip', label: 'Kippy' }];
 const GUILD_HOME = { 'woodland-base': 'gravity-falls-guild' };
+// her ask 10-29: Beatrice stays in the Woodland Base square (the camp itself), not the guild
+const CAMP_CREW = { 'woodland-base': [{ name: 'Beedrill', label: 'Beatrice', stay: true }] };
 const NET_SCHEMA = [['about', 'About the network', 'area'], ['loyaltyText', 'What loyalty means', 'area'], ['typesText', 'Personality types — one per line: Name | description', 'area'],
   ['relay', 'Relay Network', 'area'], ['relayRulesText', 'Relay rules — one per line: Rule | description', 'area'],
   ['staffText', 'Relay staffing — one per line: Duty | responsibility', 'area'], ['staffNote', 'Staffing note', 'area'],
@@ -175,6 +177,7 @@ export function renderFriendZone(main, [arg]) {
     // her ask 10-29: the guild's own crew lives in the Gravity Falls Guild square (it's a big 2x2 square, so room for more)
     const home = cubes.find((x) => x.key === GUILD_HOME[loc.id]);
     if (home) { home.mons = [...GUILD_CREW, ...home.mons.filter((m) => !GUILD_CREW.some((g) => g.name === m.name))]; home.max = 8; }
+    if (CAMP_CREW[loc.id]) cubes.push({ key: 'camp', name: loc.name, mons: CAMP_CREW[loc.id] });
     const box = $('#fzscene', main);
     if (box) {
       const mapped = !!MAPS[loc.id];
