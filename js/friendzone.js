@@ -1,10 +1,10 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3ad70';
-import { $, $$, esc, toast } from './util.js?v=6ae3ad70';
-import { modal, closeModal } from './ui.js?v=6ae3ad70';
-import { mountFzScene } from './fzscene.js?v=6ae3ad70';
-import { merged, editContent } from './content-store.js?v=6ae3ad70';
+import * as store from './store.js?v=6ae3af3e';
+import { $, $$, esc, toast } from './util.js?v=6ae3af3e';
+import { modal, closeModal } from './ui.js?v=6ae3af3e';
+import { mountFzScene, MAPS } from './fzscene.js?v=6ae3af3e';
+import { merged, editContent } from './content-store.js?v=6ae3af3e';
 
 export const LOCATIONS = [
   {
@@ -152,7 +152,7 @@ export function renderFriendZone(main, [arg]) {
     <div class="fz-scene" id="fzscene" aria-label="The camp's Pokémon at play"></div>
     <div class="fz-spots">${spots(loc).filter((s) => !s.room).map((s) => { const extra = Object.entries(recruits[s.key] || {});
       const rooms = []; for (const r of spots(loc).slice(s.i + 1)) { if (!r.room) break; rooms.push(r); }
-      return `<div class="card fz-spot"><h3 style="margin:0 0 4px">${esc(s.name)}</h3>${s.desc ? `<p class="small">${esc(s.desc)}</p>` : ''}
+      return `<div class="card fz-spot" data-spotkey="${esc(s.key)}"><h3 style="margin:0 0 4px">${esc(s.name)}</h3>${s.desc ? `<p class="small">${esc(s.desc)}</p>` : ''}
         <div class="fz-mons">${spotMons(s).map((m) => `<span class="pill">${esc(m)}</span>`).join('')}${extra.map(([id, r]) => `<span class="pill recruit">${esc(r.name)}${r.type ? ` <small>· ${esc(r.type.replace(/^The\s+/, ''))}</small>` : ''}${gm ? ` <button class="x" data-unrecruit="${esc(s.key)}/${id}" aria-label="Remove">×</button>` : ''}</span>`).join('')}${sleepers.filter((c) => c.sleep === loc.id + '|' + s.key).map((c) => `<span class="pill sleeper">💤 ${esc(c.nickname)}</span>`).join('')}${!spotMons(s).length && !extra.length && !sleepers.some((c) => c.sleep === loc.id + '|' + s.key) ? '<span class="small muted">Nobody lives here yet.</span>' : ''}</div>
         <button class="btn alt sm" data-recruit="${esc(s.key)}">+ Recruit here</button>${rooms.map((r) => roomHTML(loc, r)).join('')}</div>`; }).join('')}</div>
     <div class="card fz-staff">
@@ -163,11 +163,28 @@ export function renderFriendZone(main, [arg]) {
   // and any player characters sleeping there, rooms inside it included), plus a cube for the camp's staff
   { const ok = (n) => n && n.split(/\s+/).length <= 4 && !/guild|team|members/i.test(n);
     const all = spots(loc); const cubes = all.filter((x) => !x.room).map((x) => { const keys = [x.key]; for (const r of all.slice(x.i + 1)) { if (!r.room) break; keys.push(r.key); }
-      return { name: x.name.replace(/^[^\w]*\d*\.?\s*/, ''), mons: [...spotMons(x).filter(ok).map((n) => ({ name: n })), ...keys.flatMap((k) => Object.values(recruits[k] || {})).map((r) => ({ name: r.name })),
+      return { key: x.key, name: x.name.replace(/^[^\w]*\d*\.?\s*/, ''), mons: [...spotMons(x).filter(ok).map((n) => ({ name: n })), ...keys.flatMap((k) => Object.values(recruits[k] || {})).map((r) => ({ name: r.name })),
         ...sleepers.filter((c) => keys.some((k) => c.sleep === loc.id + '|' + k)).map((c) => ({ name: c.pokemon || '', label: c.nickname }))].filter((m) => ok(m.name)) }; });
     const staff = [loc.sentinel, loc.caretaker, loc.relay].filter(Boolean).flatMap((t) => String(t).split(/[—–,]| and /).slice(0, 2)).map((t) => t.trim()).filter(ok).map((t) => ({ name: t, label: t.split(/\s+/).slice(0, 3).join(' ') }));
-    if (staff.length) cubes.unshift({ name: 'Camp staff', mons: staff });
-    const box = $('#fzscene', main); if (box) mountFzScene(box, cubes.filter((x) => x.mons.length)); }
+    if (staff.length) cubes.unshift({ key: 'staff', name: 'Camp staff', mons: staff });
+    const box = $('#fzscene', main);
+    if (box) {
+      const mapped = !!MAPS[loc.id];
+      cubes.forEach((x) => { if (!x.key) x.key = 'staff'; });
+      mountFzScene(box, mapped ? cubes : cubes.filter((x) => x.mons.length), mapped ? loc.id : '');
+      // on a map camp the spot boxes live inside their squares: tap a square to open its box (the real box moves into
+      // the popup so Recruit and the GM buttons keep working, and moves back when it closes)
+      if (mapped) {
+        const holder = $('.fz-spots', main); if (holder) holder.classList.add('fz-hidden');
+        box.addEventListener('fzspot', (e) => {
+          const card = $(`.fz-spot[data-spotkey="${e.detail}"]`, main);
+          if (!card) { if (e.detail === 'staff') $('.fz-staff', main)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+          const el = modal('<div class="fz-pop"></div>'); $('.fz-pop', el).appendChild(card);
+          const back = () => { if (!card.isConnected || card.closest('.fz-pop')) holder.appendChild(card); };
+          window.addEventListener('modalclosed', back, { once: true });
+        });
+      }
+    } }
   $$('[data-recruit]', main).forEach((b) => b.onclick = () => {
     const el = modal(`<h2>New recruit</h2><label class="f">Pokémon (name or species)<input id="rcname"></label>
       <label class="f">Personality<select id="rctype"><option value="">—</option>${personalityTypes().map((t) => `<option>${esc(t)}</option>`).join('')}</select></label>
