@@ -2233,3 +2233,6 @@ a.ch-chip:hover { background: var(--navy); }
 .fzs-lock { position: absolute; left: 50%; top: 36%; translate: -50% -50%; font-size: clamp(28px, 9vw, 64px); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .6)); pointer-events: none; }
 /* a digger (Diglett) standing still: its idle frames, out of the ground */
 .fzs-spr.idling { animation: fzs-walk var(--ms) steps(var(--n)) infinite; }
+/* her ask 10-29: babies and eggs in the nursery, listed in the Fernshade Camp box */
+.fz-mons .pill.nursery { background: #fde8f1; border-color: #d07aa0; }
+.fz-mons .pill.nursery small { opacity: .75; }

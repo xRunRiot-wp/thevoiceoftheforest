@@ -1,11 +1,11 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3be6c';
-import { $, $$, esc, toast } from './util.js?v=6ae3be6c';
-import { modal, closeModal } from './ui.js?v=6ae3be6c';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3be6c';
-import { merged, editContent } from './content-store.js?v=6ae3be6c';
-import { CHAPTERS } from './content.js?v=6ae3be6c';
+import * as store from './store.js?v=6ae3bf17';
+import { $, $$, esc, toast } from './util.js?v=6ae3bf17';
+import { modal, closeModal } from './ui.js?v=6ae3bf17';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3bf17';
+import { merged, editContent } from './content-store.js?v=6ae3bf17';
+import { CHAPTERS } from './content.js?v=6ae3bf17';
 
 export const LOCATIONS = [
   {
@@ -77,12 +77,16 @@ const NETWORK = [{
     'Clearly marked departure routes and safe relay assembly points.',
   ].join('\n'),
 }];
-// the guild's crew (her characters) shown walking around the guild square of the camp it sits in
-const GUILD_CREW = [{ name: 'Beautifly', label: 'Guildmaster Beautifly' }, { name: 'Pikachu', label: 'Mimi' }, { name: 'Mudkip', label: 'Kippy' }];
-const GUILD_HOME = { 'woodland-base': 'gravity-falls-guild' };
-// her ask 10-29: Beatrice stays in the Woodland Base square (the camp itself), not the guild
+// her characters walking in a camp's squares, per spot (her asks 10-29): the guild's crew in the Gravity Falls Guild, Castform at
+// Fernshade, Rayson the Wingull at Mossy Hollow, and Beatrice, who stays in the Woodland Base square itself ('camp')
+const SPOT_CREW = { 'woodland-base': {
+  'gravity-falls-guild': [{ name: 'Beautifly', label: 'Guildmaster Beautifly' }, { name: 'Pikachu', label: 'Mimi' }, { name: 'Mudkip', label: 'Kippy' },
+    { name: 'Chandelure' }, { name: 'Maushold', dex: '925' }, { name: 'Pikachu' }, { name: 'Squirtle' }],
+  'fernshade-camp': [{ name: 'Castform' }],
+  'mossy-hollow': [{ name: 'Wingull', label: 'Rayson' }],
+  camp: [{ name: 'Beedrill', label: 'Beatrice', stay: true }],
+} };
 const PATHS = { 'woodland-base': { 'chapter-2': [2], 'chapter-3-4-9': [3, 4, 9], 'chapter-5-7-8': [5, 7, 8], 'chapter-6': [6] } };
-const CAMP_CREW = { 'woodland-base': [{ name: 'Beedrill', label: 'Beatrice', stay: true }] };
 const NET_SCHEMA = [['about', 'About the network', 'area'], ['loyaltyText', 'What loyalty means', 'area'], ['typesText', 'Personality types — one per line: Name | description', 'area'],
   ['relay', 'Relay Network', 'area'], ['relayRulesText', 'Relay rules — one per line: Rule | description', 'area'],
   ['staffText', 'Relay staffing — one per line: Duty | responsibility', 'area'], ['staffNote', 'Staffing note', 'area'],
@@ -129,6 +133,13 @@ export function friendZoneSection() {
     return `<a class="fz-row" href="#/friends/${esc(l.id)}"><span class="fz-ic">${esc(l.icon || '📍')}</span><span class="fz-txt"><b class="fz-nm">${esc(l.name)}</b>
       <span class="fz-meta"><span class="fz-loy">${Number(l.loyalty) > 0 ? flowers(l.loyalty) : '0 🌸'}</span><span>relay ${esc(l.relayTime || '—')}</span><span class="${spots(l).length ? '' : 'muted'}">${spots(l).length ? `${n} resident${n === 1 ? '' : 's'}` : 'camp not set up'}</span></span></span></a>`; }).join('')}</div>`;
 }
+// her ask 10-29: the Fernshade Camp box lists the babies and eggs in Beatrice's nursery (each player's buddy, until it joins a team or flies the nest)
+function nurseryHTML() {
+  const party = store.get('party') || {};
+  const kids = Object.entries(store.get('nursery') || {}).filter(([id, b]) => b && !b.recruited && party[id] && !party[id].guest);
+  const sp = (k) => String(k || '').replace(/^./, (c) => c.toUpperCase());
+  return `<div class="fz-nursery"><p class="small" style="margin:8px 0 4px"><b>🍼 In the nursery</b></p><div class="fz-mons">${kids.length ? kids.map(([id, b]) => `<span class="pill nursery">${!b.stage ? '🥚 Egg' : esc(b.name ? `${b.name} the ${sp(b.sp)}` : sp(b.sp))} <small>· ${esc(party[id].nickname)}’s</small></span>`).join('') : '<span class="small muted">No eggs or babies right now.</span>'}</div></div>`;
+}
 const residents = (l) => spots(l).reduce((s, x) => s + x.mons.length, 0) + Object.values(store.get('recruits/' + l.id) || {}).reduce((s, x) => s + Object.keys(x || {}).length, 0);
 
 // a small private room inside a spot (e.g. the Guild's cellar): shows who has it and how many it fits
@@ -161,7 +172,7 @@ export function renderFriendZone(main, [arg]) {
       const rooms = []; for (const r of spots(loc).slice(s.i + 1)) { if (!r.room) break; rooms.push(r); }
       return `<div class="card fz-spot" data-spotkey="${esc(s.key)}"><h3 style="margin:0 0 4px">${esc(s.name)}</h3>${s.desc ? `<p class="small">${esc(s.desc)}</p>` : ''}
         <div class="fz-mons">${spotMons(s).map((m) => `<span class="pill">${esc(m)}</span>`).join('')}${extra.map(([id, r]) => `<span class="pill recruit">${esc(r.name)}${r.type ? ` <small>· ${esc(r.type.replace(/^The\s+/, ''))}</small>` : ''}${gm ? ` <button class="x" data-unrecruit="${esc(s.key)}/${id}" aria-label="Remove">×</button>` : ''}</span>`).join('')}${sleepers.filter((c) => c.sleep === loc.id + '|' + s.key).map((c) => `<span class="pill sleeper">💤 ${esc(c.nickname)}</span>`).join('')}${!spotMons(s).length && !extra.length && !sleepers.some((c) => c.sleep === loc.id + '|' + s.key) ? '<span class="small muted">Nobody lives here yet.</span>' : ''}</div>
-        <button class="btn alt sm" data-recruit="${esc(s.key)}">+ Recruit here</button>${rooms.map((r) => roomHTML(loc, r)).join('')}</div>`; }).join('')}</div>
+        ${s.key === 'fernshade-camp' ? nurseryHTML() : ''}<button class="btn alt sm" data-recruit="${esc(s.key)}">+ Recruit here</button>${rooms.map((r) => roomHTML(loc, r)).join('')}</div>`; }).join('')}</div>
     <div class="card fz-staff">
       ${loc.awning ? `<p><b>⛺ Central awning:</b> ${esc(loc.awning)}</p>` : ''}${loc.caretaker ? `<p><b>🐝 Caretaker:</b> ${esc(loc.caretaker)}</p>` : ''}
       ${loc.sentinel ? `<p><b>🛡️ Sentinel:</b> ${esc(loc.sentinel)}</p>` : ''}${loc.relay ? `<p><b>📮 Relay station:</b> ${esc(loc.relay)}</p>` : ''}</div>
@@ -177,8 +188,13 @@ export function renderFriendZone(main, [arg]) {
       .map((t) => (ok(t) ? t : t.split(/\s+/)[0])).filter(ok).map((t) => ({ name: t, label: t.split(/\s+/).slice(0, 3).join(' ') }));
     if (staff.length) cubes.unshift({ key: 'staff', name: 'Camp staff', mons: staff });
     // her ask 10-29: the guild's own crew lives in the Gravity Falls Guild square (it's a big 2x2 square, so room for more)
-    const home = cubes.find((x) => x.key === GUILD_HOME[loc.id]);
-    if (home) { home.mons = [...GUILD_CREW, ...home.mons.filter((m) => !GUILD_CREW.some((g) => g.name === m.name))]; home.max = 8; }
+    const tag = (m) => m.label || m.name;
+    for (const [key, crew] of Object.entries(SPOT_CREW[loc.id] || {})) {
+      let cube = cubes.find((x) => x.key === key);
+      if (!cube) { if (key !== 'camp') continue; cube = { key, name: loc.name, mons: [] }; cubes.push(cube); }
+      cube.mons = [...crew, ...cube.mons.filter((m) => !crew.some((g) => tag(g) === tag(m)))];
+      if (key === 'gravity-falls-guild') cube.max = 12;   // the big 2x2 square, so room for the whole crew
+    }
     // her asks 10-29: map squares that are locked paths on to later chapters (bottom-left = Chapter 2; top-left waterfall =
     // Chapters 3, 4 and 9; top-left forest strip = 5, 7 and 8; bottom-right = 6). A square opens once the GM sets the guild's chapter to its first chapter; each chapter shows its own lock
     const ch = Number(store.get('guild')?.chapter) || 0; const chList = merged('chapters', CHAPTERS, (c) => 'ch' + c.n);
@@ -188,7 +204,6 @@ export function renderFriendZone(main, [arg]) {
       d.innerHTML = `<h3 style="margin:0 0 4px">${ch < Math.min(...ns) ? '🔒 ' : ''}${esc(pathName(ns))}</h3>${ns.map((n) => { const c = chList.find((x) => Number(x.n) === n);
         return `<p>${ch < n ? '🔒' : '✅'} <b>Chapter ${n}${c?.title && c.title !== 'Chapter ' + n ? `: ${esc(c.title)}` : ''}</b>${c?.quote ? `<br><i>“${esc(c.quote)}”</i>` : ''}</p>`; }).join('')}
         <p class="small">${ns.every((n) => ch >= n) ? 'The trail is open.' : `Each part of this trail opens when the story reaches its chapter.`}</p>`; return d; };
-    if (CAMP_CREW[loc.id]) cubes.push({ key: 'camp', name: loc.name, mons: CAMP_CREW[loc.id] });
     const box = $('#fzscene', main);
     if (box) {
       const mapped = !!MAPS[loc.id];
@@ -209,7 +224,7 @@ export function renderFriendZone(main, [arg]) {
           const zoom = $('.fz-zoom', el);
           if (sq) { const a = sq.getBoundingClientRect(); const b = zoom.getBoundingClientRect();
             if (b.width) zoom.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width})` }, { transform: 'none' }], { duration: 450, easing: 'cubic-bezier(.2, .8, .2, 1)' }); }
-          if (img) mountFzScene(zoom, [{ key, mons: [], ...cube, max: 8 }], '', img);
+          if (img) mountFzScene(zoom, [{ key, mons: [], ...cube, max: Math.max(8, cube?.max || 0) }], '', img);
           if (card.classList.contains('fz-spot')) {
             const back = () => { if (!card.isConnected || card.closest('.fz-pop')) holder.appendChild(card); };
             window.addEventListener('modalclosed', back, { once: true });
