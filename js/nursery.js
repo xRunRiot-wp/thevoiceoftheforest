@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae39978';
-import { $, $$, esc, toast, num } from './util.js?v=6ae39978';
-import { me, logRoll } from './play.js?v=6ae39978';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39978';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39978';
-import { markWinner } from './sparkle.js?v=6ae39978';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae39978';
-import { modal, closeModal } from './ui.js?v=6ae39978';
+import * as store from './store.js?v=6ae39b27';
+import { $, $$, esc, toast, num } from './util.js?v=6ae39b27';
+import { me, logRoll } from './play.js?v=6ae39b27';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39b27';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39b27';
+import { markWinner } from './sparkle.js?v=6ae39b27';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae39b27';
+import { modal, closeModal } from './ui.js?v=6ae39b27';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -143,6 +143,13 @@ const WALK_SPOTS = [
 // her ask 10-29: the buddy grows with its age, a teen is the full size
 const SIZE = [3, 1.8, 2.4, 3]; const ROW = { idle: 0, hop: 1, sleep: 2, right: 3, left: 4, eat: 5, nod: 6 };
 const wait = (ms) => new Promise((ok) => setTimeout(ok, ms));
+// tap Celebi or Beatrice while they visit (her ask 10-29): their portrait window, like the baby's
+function visitorPane(roomEl, img, sym, text) {
+  if ($('.emo-pane', roomEl)) return;
+  roomEl.insertAdjacentHTML('beforeend', `<div class="emo-pane yf" role="status"><div class="yf-pic"><span class="yf-sym ${sym === '♥' ? 'heart' : ''}">${sym}</span><img src="${img}" alt=""></div><p>${esc(text)}</p></div>`);
+  const pane = $('.emo-pane', roomEl); const bye = () => { pane.classList.add('bye'); setTimeout(() => pane.remove(), 300); };
+  pane.onclick = bye; setTimeout(bye, 4200);
+}
 const petHTML = () => '<div class="pet" id="npet"><span class="pet-cover"></span><span class="baby-spr"></span><span class="pet-think"></span></div><div class="props"></div>';
 function startPet(root, b, scene, ownerId) {
   const B = BABIES[b.sp]; const roomEl = $('.nursery-room', root); const pet = $('#npet', root); if (!B || !roomEl || !pet) return;
@@ -262,6 +269,8 @@ function startPet(root, b, scene, ownerId) {
     const glow = roomEl.classList.contains('tod-night') ? ' glow' : '';
     Array.from({ length: 9 }, (_, i) => { const f = document.createElement('span'); f.className = 'cflower' + glow; f.textContent = ['🌸', '🌼', '🌷', '💮', '🌺'][i % 5];
       f.style.left = (8 + (i / 8) * (W - 46) + (Math.random() * 14 - 7)) + 'px'; f.style.animationDelay = (0.6 + i * 0.35 + Math.random() * 0.3).toFixed(2) + 's, ' + (2 + i * 0.35).toFixed(2) + 's'; roomEl.appendChild(f); });
+    c.onclick = () => visitorPane(roomEl, `assets/portraits/emo/celebi/${['Happy', 'Joyous', 'Normal'][Math.floor(Math.random() * 3)]}.png`, '♥',
+      ['Celebi giggles and twirls around in the air.', 'Celebi is having the best time playing with ' + nameOf(b) + '!', 'Celebi smiles. The flowers seem to sway along with it.'][Math.floor(Math.random() * 3)]);
     c.style.left = W + 'px'; roomEl.appendChild(c); const cap = document.createElement('div'); cap.className = 'duo-cap show'; cap.textContent = '✨ Celebi came to play!'; roomEl.appendChild(cap);
     const trail = setInterval(() => { const e = document.createElement('span'); e.className = 'pet-fx'; e.textContent = '✨'; e.style.left = (c.offsetLeft + 18) + 'px'; e.style.bottom = '150px'; roomEl.appendChild(e); setTimeout(() => e.remove(), 1400); }, 450);
     await wait(50); await fly(Math.min(W - 70, x + pw + 20), 1800); if (!alive()) return clearInterval(trail);
@@ -415,6 +424,7 @@ function startGuest(root, gb, label) {
       const W = roomEl.clientWidth; const bz = document.createElement('span'); bz.className = 'flyer bea-fly';
       const dir = (d) => { bz.style.backgroundPositionY = `-${{ down: 0, right: 1, left: 2 }[d] * 120}px`; };
       const fly = async (cx, ms) => { dir(cx > parseFloat(bz.style.left) ? 'right' : 'left'); bz.style.transition = `left ${ms}ms ease-in-out`; bz.style.left = cx + 'px'; await wait(ms); dir('down'); };
+      bz.onclick = () => visitorPane(roomEl, beaFace(Math.random() < 0.5 ? 'happy' : 'proud'), '♪', ['Beatrice is keeping a close eye on the little ones.', 'Beatrice hums a little. She loves these babies, even the noisy ones.', 'Beatrice sighs fondly. Playdates are a lot of work!'][Math.floor(Math.random() * 3)]);
       bz.style.left = W + 'px'; roomEl.appendChild(bz); await wait(50);
       const [ask, after] = [['Settle down, you two! Inside voices, please.', 'That’s better. Play nicely!'], ['My goodness, what a racket! Deep breaths, little ones.', 'Much calmer. Good babies.'],
         ['Easy now, before somebody bumps a nest!', 'There we go. Gently, gently.'], ['Shh, shh! The other eggs are trying to sleep.', 'Thank you, dears.']][Math.floor(Math.random() * 4)];

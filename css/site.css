@@ -2098,7 +2098,7 @@ a.ch-chip:hover { background: var(--navy); }
 .acc-img { height: 1em; width: auto; vertical-align: -.1em; image-rendering: pixelated; }
 
 /* Celebi's rare visit (her ask 10-29): SpriteCollab walk frames, rows = down, right, left */
-.flyer { position: absolute; bottom: 110px; z-index: 7; image-rendering: pixelated; background-repeat: no-repeat; pointer-events: none; }
+.flyer { position: absolute; bottom: 110px; z-index: 7; image-rendering: pixelated; background-repeat: no-repeat; cursor: pointer; }
 .celebi { width: 60px; height: 120px; background-image: url('../assets/nursery/celebi.png'); background-size: 480px 360px; animation: celebi-flap .5s steps(8) infinite, celebi-bob 1.6s ease-in-out infinite; filter: drop-shadow(0 0 6px rgba(190, 255, 150, .8)); }
 @keyframes celebi-flap { to { background-position-x: -480px; } } @keyframes celebi-bob { 50% { translate: 0 -10px; } }
 .celebi.bye { opacity: 0; transition: left 1.6s ease-in, opacity 1.6s ease-in !important; }
