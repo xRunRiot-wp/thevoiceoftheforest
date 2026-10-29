@@ -2,12 +2,12 @@
 // friends, see who's on the site right now (and where), and invite them to a game like Noctowl's 21.
 // online/<id> = { t, at } (each open device refreshes it every 2 minutes); party/<id>/friends = [ids];
 // invites/<id>/<inviteId> = { from, fromId, game, name, t } (shown once as a pop-up on the friend's device, then removed).
-import * as store from './store.js?v=6ae37466';
-import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae37466';
-import { sendFx, startLetterWatch } from './letterfx.js?v=6ae37466';
-import { giftNote, writeMail } from './mailbox.js?v=6ae37466';
-import { playingNow, openWatch } from './watch.js?v=6ae37466';
-import { modal, closeModal, portrait } from './ui.js?v=6ae37466';
+import * as store from './store.js?v=6ae374dd';
+import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae374dd';
+import { sendFx, startLetterWatch } from './letterfx.js?v=6ae374dd';
+import { giftNote, writeMail } from './mailbox.js?v=6ae374dd';
+import { playingNow, openWatch } from './watch.js?v=6ae374dd';
+import { modal, closeModal, portrait } from './ui.js?v=6ae374dd';
 
 const ONLINE_FOR = 5 * 60e3; const BEAT = 2 * 60e3;
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
