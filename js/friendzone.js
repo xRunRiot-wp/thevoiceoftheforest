@@ -1,9 +1,10 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3ab67';
-import { $, $$, esc, toast } from './util.js?v=6ae3ab67';
-import { modal, closeModal } from './ui.js?v=6ae3ab67';
-import { merged, editContent } from './content-store.js?v=6ae3ab67';
+import * as store from './store.js?v=6ae3acfa';
+import { $, $$, esc, toast } from './util.js?v=6ae3acfa';
+import { modal, closeModal } from './ui.js?v=6ae3acfa';
+import { mountFzScene } from './fzscene.js?v=6ae3acfa';
+import { merged, editContent } from './content-store.js?v=6ae3acfa';
 
 export const LOCATIONS = [
   {
@@ -148,6 +149,7 @@ export function renderFriendZone(main, [arg]) {
     <div class="card fz-head"><h2 style="margin:0 0 6px">${esc(loc.icon || '📍')} ${esc(loc.name)} <span class="fz-loyal${Number(loc.loyalty) > 0 ? '' : ' small muted'}" title="Loyalty">${loyaltyLabel(loc.loyalty)}</span></h2>
       <p class="small"><b>On foot:</b> ${esc(loc.onFoot || '—')} · <b>Relay:</b> ${esc(loc.relayTime || '—')}</p>
       ${loc.role ? `<p><i>${esc(loc.role)}</i></p>` : ''}${loc.welcome ? `<p>${esc(loc.welcome)}</p>` : ''}${!spots(loc).length ? `<p class="small muted">This camp hasn’t been set up yet.${gm ? ' Tap Edit to add its spots.' : ''}</p>` : ''}${loc.theme ? `<p class="small"><b>Theme:</b> ${esc(loc.theme)}</p>` : ''}</div>
+    <div class="fz-scene" id="fzscene" aria-label="The camp's Pokémon at play"></div>
     <div class="fz-spots">${spots(loc).filter((s) => !s.room).map((s) => { const extra = Object.entries(recruits[s.key] || {});
       const rooms = []; for (const r of spots(loc).slice(s.i + 1)) { if (!r.room) break; rooms.push(r); }
       return `<div class="card fz-spot"><h3 style="margin:0 0 4px">${esc(s.name)}</h3>${s.desc ? `<p class="small">${esc(s.desc)}</p>` : ''}
@@ -157,6 +159,13 @@ export function renderFriendZone(main, [arg]) {
       ${loc.awning ? `<p><b>⛺ Central awning:</b> ${esc(loc.awning)}</p>` : ''}${loc.caretaker ? `<p><b>🐝 Caretaker:</b> ${esc(loc.caretaker)}</p>` : ''}
       ${loc.sentinel ? `<p><b>🛡️ Sentinel:</b> ${esc(loc.sentinel)}</p>` : ''}${loc.relay ? `<p><b>📮 Relay station:</b> ${esc(loc.relay)}</p>` : ''}</div>
     ${networkHTML(gm)}`;   // her call: the network explainer sits at the bottom, under the camp
+  // her ask 10-29: the camp's Pokémon roam and play in a little meadow: residents, recruits, the camp's staff and
+  // any player characters sleeping here
+  { const mons = [...spots(loc).flatMap((x) => spotMons(x)).map((n) => ({ name: n })), ...Object.values(recruits).flatMap((x) => Object.values(x || {})).map((r) => ({ name: r.name })),
+      ...[loc.sentinel, loc.caretaker, loc.relay].filter(Boolean).flatMap((t) => String(t).split(/[—–,]| and /).slice(0, 2)).map((t) => ({ name: t.trim(), label: t.trim().split(/\s+/).slice(0, 3).join(' ') })),
+      ...sleepers.map((c) => ({ name: c.pokemon || '', label: c.nickname }))].filter((m) => m.name && m.name.split(/\s+/).length <= 4 && !/guild|team|members/i.test(m.name));
+    const seen = new Set(); const uniq = mons.filter((m) => { const k = (m.label || m.name).toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+    const box = $('#fzscene', main); if (box) mountFzScene(box, uniq); }
   $$('[data-recruit]', main).forEach((b) => b.onclick = () => {
     const el = modal(`<h2>New recruit</h2><label class="f">Pokémon (name or species)<input id="rcname"></label>
       <label class="f">Personality<select id="rctype"><option value="">—</option>${personalityTypes().map((t) => `<option>${esc(t)}</option>`).join('')}</select></label>
