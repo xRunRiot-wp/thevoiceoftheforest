@@ -1,10 +1,10 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3b269';
-import { $, $$, esc, toast } from './util.js?v=6ae3b269';
-import { modal, closeModal } from './ui.js?v=6ae3b269';
-import { mountFzScene, MAPS } from './fzscene.js?v=6ae3b269';
-import { merged, editContent } from './content-store.js?v=6ae3b269';
+import * as store from './store.js?v=6ae3b5a4';
+import { $, $$, esc, toast } from './util.js?v=6ae3b5a4';
+import { modal, closeModal } from './ui.js?v=6ae3b5a4';
+import { mountFzScene, MAPS } from './fzscene.js?v=6ae3b5a4';
+import { merged, editContent } from './content-store.js?v=6ae3b5a4';
 
 export const LOCATIONS = [
   {
@@ -168,7 +168,9 @@ export function renderFriendZone(main, [arg]) {
     const all = spots(loc); const cubes = all.filter((x) => !x.room).map((x) => { const keys = [x.key]; for (const r of all.slice(x.i + 1)) { if (!r.room) break; keys.push(r.key); }
       return { key: x.key, name: x.name.replace(/^[^\w]*\d*\.?\s*/, ''), mons: [...spotMons(x).filter(ok).map((n) => ({ name: n })), ...keys.flatMap((k) => Object.values(recruits[k] || {})).map((r) => ({ name: r.name })),
         ...sleepers.filter((c) => keys.some((k) => c.sleep === loc.id + '|' + k)).map((c) => ({ name: c.pokemon || '', label: c.nickname }))].filter((m) => ok(m.name)) }; });
-    const staff = [loc.sentinel, loc.caretaker, loc.relay].filter(Boolean).flatMap((t) => String(t).split(/[—–,]| and /).slice(0, 2)).map((t) => t.trim()).filter(ok).map((t) => ({ name: t, label: t.split(/\s+/).slice(0, 3).join(' ') }));
+    // a long piece ('Ralts rotate shifts beside ...') keeps its first word, the Pokémon (her ask 10-29: add Ralts)
+    const staff = [loc.sentinel, loc.caretaker, loc.relay].filter(Boolean).flatMap((t) => String(t).split(/[—–,]| and /).slice(0, 3)).map((t) => t.trim())
+      .map((t) => (ok(t) ? t : t.split(/\s+/)[0])).filter(ok).map((t) => ({ name: t, label: t.split(/\s+/).slice(0, 3).join(' ') }));
     if (staff.length) cubes.unshift({ key: 'staff', name: 'Camp staff', mons: staff });
     // her ask 10-29: the guild's own crew lives in the Gravity Falls Guild square (it's a big 2x2 square, so room for more)
     const home = cubes.find((x) => x.key === GUILD_HOME[loc.id]);
@@ -188,7 +190,7 @@ export function renderFriendZone(main, [arg]) {
           const img = (MAPS[loc.id].find((x) => x[0] === key) || [])[1]; const cube = cubes.find((x) => x.key === key);
           const card = $(`.fz-spot[data-spotkey="${key}"]`, main) || (key === 'staff' ? $('.fz-staff', main)?.cloneNode(true) : null);
           if (!card) return;
-          const el = modal(`<div class="fz-zoom"${img ? ` style="background-image:url(${img}?v=2)"` : ''}></div><div class="fz-pop"></div>`);
+          const el = modal(`<div class="fz-zoom"${img ? ` style="background-image:url(${img}?v=3)"` : ''}></div><div class="fz-pop"></div>`);
           $('.fz-pop', el).appendChild(card);
           const zoom = $('.fz-zoom', el);
           if (sq) { const a = sq.getBoundingClientRect(); const b = zoom.getBoundingClientRect();
