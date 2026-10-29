@@ -2081,3 +2081,6 @@ a.ch-chip:hover { background: var(--navy); }
 .bt-mini { background: url('../assets/cards/dance.png') 0 0 / 180px 180px no-repeat; border: 0; }
 .bl-mini { background: url('../assets/cards/sentry.png') 0 0 / 180px 180px no-repeat; border: 0; padding: 22px; } /* the lab is inside the guild */
 .bl-mini span { filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .5)); }
+
+/* pixel portraits keep their crisp pixels inside the black frame too (battles list, her ask 10-29) */
+.portrait.art img[src*="portraits/"] { image-rendering: pixelated; }
