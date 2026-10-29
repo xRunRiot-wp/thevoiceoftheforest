@@ -52,7 +52,14 @@ const KITCHEN_LEAD = [74, 0, 79, 74, 71, 0, 74, 0, 76, 0, 72, 76, 79, 0, 76, 0, 
 const KITCHEN_BARS = [[43, 50, [83, 86]], [48, 43, [84, 88]], [50, 45, [81, 86]], [43, 50, [83, 86]], [40, 47, [83, 88]], [48, 43, [84, 88]], [50, 45, [84, 86]], [43, 50, [83, 86]]];
 const KITCHEN_BASS = KITCHEN_BARS.flatMap(([r, f]) => [r, 0, f, 0, r, 0, f, 0]);
 const KITCHEN_ARP = KITCHEN_BARS.flatMap(([, , [a, b]]) => [0, 0, 0, a, 0, 0, 0, b]);
+// Battles (her ask 10-29: battle music): an original driving battle loop in E minor, Em Em C D | Em Em C B, pumping
+// octave bass on every eighth, a square lead, kick and snare.
+const BATTLE_LEAD = [76, 0, 74, 76, 79, 0, 76, 0, 74, 0, 71, 74, 76, 0, 0, 0, 72, 0, 76, 79, 84, 0, 83, 79, 81, 0, 78, 74, 78, 0, 81, 0,
+  76, 76, 0, 79, 0, 83, 0, 79, 81, 79, 78, 76, 74, 0, 76, 0, 72, 0, 76, 0, 79, 0, 84, 0, 83, 0, 78, 0, 75, 0, 71, 0];
+const BATTLE_BASS = [40, 40, 36, 38, 40, 40, 36, 35].flatMap((r) => [r, r + 12, r, r + 12, r, r + 12, r, r + 12]);
+const BATTLE_DRUMS = [0, 1, 2, 3, 4, 5, 6, 7].flatMap((b) => (b === 7 ? ['k', 0, 's', 0, 's', 's', 's', 's'] : ['k', 0, 's', 0, 'k', 'k', 's', 0]));
 const SONGS = {
+  battle: { bpm: 168, lead: BATTLE_LEAD, bass: BATTLE_BASS, drums: BATTLE_DRUMS, hat: 1, leadVol: 0.045, leadLen: 0.8 },
   dance: { bpm: 160, lead: LEAD, bass: BASS, hat: 2 },
   beach: { bpm: 132, lead: BEACH_LEAD, bass: BEACH_BASS, arp: BEACH_ARP, hat: 4, waves: 32, leadVol: 0.04 },
   kitchen: { bpm: 150, lead: KITCHEN_LEAD, bass: KITCHEN_BASS, arp: KITCHEN_ARP, hat: 2, leadLen: 0.5, leadVol: 0.045 },
