@@ -58,6 +58,16 @@ const BATTLE_LEAD = [76, 0, 74, 76, 79, 0, 76, 0, 74, 0, 71, 74, 76, 0, 0, 0, 72
   76, 76, 0, 79, 0, 83, 0, 79, 81, 79, 78, 76, 74, 0, 76, 0, 72, 0, 76, 0, 79, 0, 84, 0, 83, 0, 78, 0, 75, 0, 71, 0];
 const BATTLE_BASS = [40, 40, 36, 38, 40, 40, 36, 35].flatMap((r) => [r, r + 12, r, r + 12, r, r + 12, r, r + 12]);
 const BATTLE_DRUMS = [0, 1, 2, 3, 4, 5, 6, 7].flatMap((b) => (b === 7 ? ['k', 0, 's', 0, 's', 's', 's', 's'] : ['k', 0, 's', 0, 'k', 'k', 's', 0]));
+// Celebi's visit (her ask 10-29: different music while Celebi plays): an original airy forest waltz in D, music box bells
+// with a rising shimmer of high notes over each chord.
+const CELEBI_LEAD = [74, 0, 78, 0, 81, 0, 86, 0, 0, 0, 85, 0, 83, 0, 81, 0, 78, 0, 81, 0, 0, 0, 0, 0,
+  76, 0, 79, 0, 83, 0, 88, 0, 0, 0, 86, 0, 85, 0, 83, 0, 81, 0, 83, 0, 0, 0, 0, 0,
+  86, 0, 85, 0, 83, 0, 81, 0, 78, 0, 81, 0, 83, 0, 79, 0, 76, 0, 78, 0, 0, 0, 0, 0,
+  74, 0, 76, 0, 78, 0, 81, 0, 83, 0, 85, 0, 86, 0, 0, 0, 85, 0, 86, 0, 0, 0, 0, 0];
+const CB = { D: [50, 66, 69], Bm: [47, 66, 71], Em: [52, 67, 71], A: [45, 64, 69], G: [43, 67, 71] };
+const CELEBI_BARS = ['D', 'D', 'Bm', 'D', 'Em', 'Em', 'A', 'A', 'G', 'D', 'Em', 'D', 'D', 'A', 'G', 'D'].map((c) => CB[c]);
+const CELEBI_BASS = CELEBI_BARS.flatMap(([b]) => [b, 0, 0, 0, 0, 0]);
+const CELEBI_ARP = CELEBI_BARS.flatMap(([, x, y]) => [0, x + 12, y + 12, x + 24, y + 12, 0]);
 const SONGS = {
   battle: { bpm: 168, lead: BATTLE_LEAD, bass: BATTLE_BASS, drums: BATTLE_DRUMS, hat: 1, leadVol: 0.045, leadLen: 0.8 },
   dance: { bpm: 160, lead: LEAD, bass: BASS, hat: 2 },
@@ -65,6 +75,7 @@ const SONGS = {
   kitchen: { bpm: 150, lead: KITCHEN_LEAD, bass: KITCHEN_BASS, arp: KITCHEN_ARP, hat: 2, leadLen: 0.5, leadVol: 0.045 },
   march: { bpm: 112, lead: MARCH_LEAD, bass: MARCH_BASS, drums: MARCH_DRUMS, leadVol: 0.05 },
   musicbox: { bpm: 84, lead: BOX_LEAD, bass: BOX_BASS, arp: BOX_ARP, bell: true },
+  celebi: { bpm: 100, lead: CELEBI_LEAD, bass: CELEBI_BASS, arp: CELEBI_ARP, bell: true },
   casino: { bpm: 116, lead: CASINO_LEAD, bass: CASINO_BASS, comp: CASINO_COMP, hat: 2, swing: 0.33, leadType: 'triangle', leadVol: 0.07 },
 };
 const STEP_NOTE = { up: 84, right: 79, left: 76, down: 72 };
@@ -189,15 +200,17 @@ export function cardSound(kind, delay = 0) {
 
 // a page's own background tune (the nursery): starts now if the visitor has tapped already, else on their first tap;
 // stops once the page's music button is gone (they left). Safe to call again when the page redraws.
-let pageSong = ''; let pageBtnId = '';
+let pageSong = ''; let pageBtnId = ''; let pageRain = '';
 export function pageMusic(main, name, btnId, { rain = '' } = {}) {
   const btn = document.getElementById(btnId);
   if (btn) { btn.textContent = muted() ? '🔇 Music off' : '🔊 Music on'; btn.onclick = () => { const m = !muted(); setMuted(m); btn.textContent = m ? '🔇 Music off' : '🔊 Music on'; go(); }; }
   pageBtnId = btnId;
-  function go() { if (pageSong === name || !document.getElementById(btnId)) return; ensureAudio(); startMusic(name); if (rain) startRain(rain === 'heavy'); pageSong = name; }
+  function go() { if (pageSong === name || !document.getElementById(btnId)) return; ensureAudio(); startMusic(name); if (rain) startRain(rain === 'heavy'); pageSong = name; pageRain = rain; }
   if (pageSong === name) return;
   main.addEventListener('pointerdown', go, { once: true });
   if (navigator.userActivation?.hasBeenActive) go();
-  const leave = () => setTimeout(() => { if (document.getElementById(pageBtnId)) return; window.removeEventListener('hashchange', leave); if (pageSong) { if (song === SONGS[pageSong]) stopMusic(); pageSong = ''; } }, 300);
+  const leave = () => setTimeout(() => { if (document.getElementById(pageBtnId)) return; window.removeEventListener('hashchange', leave); if (pageSong) { if (song === SONGS[pageSong] || song === SONGS.celebi) stopMusic(); pageSong = ''; } }, 300);
   window.addEventListener('hashchange', leave);
 }
+// a visitor's tune in place of the page tune for a while (Celebi in the nursery); visitMusic() puts the page tune back
+export function visitMusic(name = '') { if (!loop || !pageSong) return; startMusic(name || pageSong); if (!name && pageRain) startRain(pageRain === 'heavy'); }

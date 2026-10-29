@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae39655';
-import { $, $$, esc, toast, num } from './util.js?v=6ae39655';
-import { me, logRoll } from './play.js?v=6ae39655';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39655';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39655';
-import { markWinner } from './sparkle.js?v=6ae39655';
-import { pageMusic } from './chiptune.js?v=6ae39655';
-import { modal, closeModal } from './ui.js?v=6ae39655';
+import * as store from './store.js?v=6ae3984b';
+import { $, $$, esc, toast, num } from './util.js?v=6ae3984b';
+import { me, logRoll } from './play.js?v=6ae3984b';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3984b';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3984b';
+import { markWinner } from './sparkle.js?v=6ae3984b';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae3984b';
+import { modal, closeModal } from './ui.js?v=6ae3984b';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -249,6 +249,26 @@ function startPet(root, b, scene, ownerId) {
     async cover() { cov.textContent = lab('cover')[0]; paintCover(); cov.classList.add('show', 'pop'); row('hop', false); fx('💕'); await wait(800); cov.classList.remove('pop'); row('idle'); },
     async grew() { row('hop', false); fx('✨'); await wait(700); row('hop', false); fx('🎉'); await wait(700); row('idle'); },
   };
+  // her ask 10-29: a very rare visit from Celebi, who flutters in and plays chase (add ?celebi to the address to see it now),
+// with its own tune and flowers springing up across the room (glowing at night); it can come at night too and wakes the baby
+  let celebiDone = false;
+  const celebi = async () => {
+    celebiDone = true; const W = roomEl.clientWidth; const c = document.createElement('span'); c.className = 'flyer celebi';
+    const dir = (d) => { c.style.backgroundPositionY = `-${{ down: 0, right: 1, left: 2 }[d] * 120}px`; };
+    const fly = async (cx, ms) => { dir(cx > parseFloat(c.style.left) ? 'right' : 'left'); c.style.transition = `left ${ms}ms ease-in-out`; c.style.left = cx + 'px'; await wait(ms); dir('down'); };
+    visitMusic('celebi'); row('idle');
+    const glow = roomEl.classList.contains('tod-night') ? ' glow' : '';
+    Array.from({ length: 9 }, (_, i) => { const f = document.createElement('span'); f.className = 'cflower' + glow; f.textContent = ['🌸', '🌼', '🌷', '💮', '🌺'][i % 5];
+      f.style.left = (8 + (i / 8) * (W - 46) + (Math.random() * 14 - 7)) + 'px'; f.style.animationDelay = (0.6 + i * 0.35 + Math.random() * 0.3).toFixed(2) + 's, ' + (2 + i * 0.35).toFixed(2) + 's'; roomEl.appendChild(f); });
+    c.style.left = W + 'px'; roomEl.appendChild(c); const cap = document.createElement('div'); cap.className = 'duo-cap show'; cap.textContent = '✨ Celebi came to play!'; roomEl.appendChild(cap);
+    const trail = setInterval(() => { const e = document.createElement('span'); e.className = 'pet-fx'; e.textContent = '✨'; e.style.left = (c.offsetLeft + 18) + 'px'; e.style.bottom = '150px'; roomEl.appendChild(e); setTimeout(() => e.remove(), 1400); }, 450);
+    await wait(50); await fly(Math.min(W - 70, x + pw + 20), 1800); if (!alive()) return clearInterval(trail);
+    fx('❗'); cry(b, { vol: 0.8 }); row('hop', false); await wait(750); row('idle');
+    for (let i = 0; i < 3 && alive(); i++) { const tx = i % 2 ? W - 80 : 20; await Promise.all([fly(tx, 1300), (async () => { await wait(250); await walkTo(tx - pw / 2 + 30, 110); })()]); row('hop', false); fx(i === 2 ? '💕' : '♪'); await wait(650); row('idle'); }
+    if (!alive()) return clearInterval(trail);
+    row('nod', false); fx('💕', -14); fx('💗', 14); await wait(1200); row('idle');
+    c.classList.add('bye'); await fly(W + 40, 1600); clearInterval(trail); c.remove(); cap.remove(); fx('✨'); visitMusic();
+  };
   // free time: wander, hop, nod, nap
   const life = async () => {
     while (alive()) {
@@ -256,6 +276,7 @@ function startPet(root, b, scene, ownerId) {
       const h = new Date().getHours(); const m = mood(); const ic = need();
       think.className = 'pet-think' + (ic ? ' show' : ''); think.textContent = ic;
       const cv = coverNeed(b) && stat(b, 'cover') >= 50; cov.textContent = cv ? lab('cover')[0] : ''; cov.classList.toggle('show', !!cv); paintCover();
+      if (!celebiDone && (Math.random() < (asleep(h) ? 0.004 : 0.002) || /celebi/.test(location.search))) { busy = true; think.className = 'pet-think'; await celebi(); busy = false; continue; }
       if (asleep(h)) { row('sleep', true, 1.6); think.className = 'pet-think show zz'; think.textContent = 'z Z'; await wait(5000); continue; }
       const r = Math.random();
       if (r < 0.4) await walkTo(10 + Math.random() * maxX());
@@ -387,6 +408,21 @@ function startGuest(root, gb, label) {
       for (let k = 0; k < 3 && alive(); k++) { row('hop', false); fx('♪'); await wait(700); row('idle'); await host('hop', { fx: '♫' }); }
       await Promise.all([host('hop', { fx: '✨' }), (async () => { row('hop', false); fx('✨'); cry(gb, { vol: 0.7 }); await wait(750); row('idle'); })()]);
     },
+    // her ask 10-29: every so often Beatrice buzzes in and tries to settle them down (it doesn't always stick)
+    async beatrice() {
+      const W = roomEl.clientWidth; const bz = document.createElement('span'); bz.className = 'flyer bea-fly';
+      const dir = (d) => { bz.style.backgroundPositionY = `-${{ down: 0, right: 1, left: 2 }[d] * 120}px`; };
+      const fly = async (cx, ms) => { dir(cx > parseFloat(bz.style.left) ? 'right' : 'left'); bz.style.transition = `left ${ms}ms ease-in-out`; bz.style.left = cx + 'px'; await wait(ms); dir('down'); };
+      bz.style.left = W + 'px'; roomEl.appendChild(bz); await wait(50);
+      const [ask, after] = [['Settle down, you two! Inside voices, please.', 'That’s better. Play nicely!'], ['My goodness, what a racket! Deep breaths, little ones.', 'Much calmer. Good babies.'],
+        ['Easy now, before somebody bumps a nest!', 'There we go. Gently, gently.'], ['Shh, shh! The other eggs are trying to sleep.', 'Thank you, dears.']][Math.floor(Math.random() * 4)];
+      await fly(W / 2 - 40, 1500); if (!alive()) return; cap(`Beatrice: “${ask}”`);
+      const mid = W / 2 - pw / 2; await Promise.all([walkTo(mid - 60, 110), host('go', { x: mid + 60, sp: 110 })]);
+      fx('😳'); hfx('😳'); await wait(900);
+      await Promise.all([host('nod'), (async () => { row('nod', false); await wait(850); row('idle'); })()]); await wait(1400);
+      cap(`Beatrice: “${after}”`); await wait(1200); await fly(W + 50, 1500); bz.remove();
+      if (Math.random() < 0.5) { await wait(500); await Promise.all([host('hop', { fx: '♪' }), (async () => { row('hop', false); fx('♪'); await wait(750); row('idle'); })()]); cap(`…they’re giggling again.`); }
+    },
     // a nap side by side
     async nap() {
       cap(`${gname} and ${hostName()} are napping together. Shh…`);
@@ -401,7 +437,7 @@ function startGuest(root, gb, label) {
       if (asleep()) { row('sleep', true, 1.6); await wait(5000); continue; }
       // every few seconds they play something together; in between it potters about near its friend
       if (Date.now() > next) {
-        const pick = Object.keys(GAMES).filter((g) => g !== last); last = pick[Math.floor(Math.random() * pick.length)];
+        const pick = Object.keys(GAMES).filter((g) => g !== last && g !== 'beatrice'); last = last && last !== 'beatrice' && (Math.random() < 0.15 || /beatrice/.test(location.search)) ? 'beatrice' : pick[Math.floor(Math.random() * pick.length)];
         try { await GAMES[last](); } catch { /* the room was closed mid-game */ }
         next = Date.now() + 3000 + Math.random() * 3000; continue;
       }

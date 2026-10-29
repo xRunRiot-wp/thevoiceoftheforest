@@ -2096,3 +2096,20 @@ a.ch-chip:hover { background: var(--navy); }
 
 /* picture accessories (Rubber Ducklett, her ask 10-29) */
 .acc-img { height: 1em; width: auto; vertical-align: -.1em; image-rendering: pixelated; }
+
+/* Celebi's rare visit (her ask 10-29): SpriteCollab walk frames, rows = down, right, left */
+.flyer { position: absolute; bottom: 110px; z-index: 7; image-rendering: pixelated; background-repeat: no-repeat; pointer-events: none; }
+.celebi { width: 60px; height: 120px; background-image: url('../assets/nursery/celebi.png'); background-size: 480px 360px; animation: celebi-flap .5s steps(8) infinite, celebi-bob 1.6s ease-in-out infinite; filter: drop-shadow(0 0 6px rgba(190, 255, 150, .8)); }
+@keyframes celebi-flap { to { background-position-x: -480px; } } @keyframes celebi-bob { 50% { translate: 0 -10px; } }
+.celebi.bye { opacity: 0; transition: left 1.6s ease-in, opacity 1.6s ease-in !important; }
+.celebi { z-index: 7; }
+/* the flowers that spring up when Celebi visits; at night they glow */
+.cflower { position: absolute; bottom: 14px; z-index: 6; font-size: 26px; line-height: 1; transform-origin: 50% 100%; transform: scale(0); pointer-events: none; animation: cflower-grow 1.2s cubic-bezier(.3, 1.6, .5, 1) forwards, cflower-sway 3s ease-in-out infinite alternate; }
+@keyframes cflower-grow { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+@keyframes cflower-sway { from { rotate: -6deg; } to { rotate: 6deg; } }
+.cflower.glow { filter: drop-shadow(0 0 6px #fff6b0) drop-shadow(0 0 16px #ffd1f4) brightness(1.35); animation: cflower-grow 1.2s cubic-bezier(.3, 1.6, .5, 1) forwards, cflower-sway 3s ease-in-out infinite alternate, cflower-glow 2.2s ease-in-out infinite alternate; }
+@keyframes cflower-glow { from { opacity: .85; } to { opacity: 1; filter: drop-shadow(0 0 10px #fffbd0) drop-shadow(0 0 26px #ffb8ee) brightness(1.6); } }
+
+/* Beatrice the Beedrill buzzing into a playdate (her ask 10-29): SpriteCollab walk frames, rows = down, right, left */
+.bea-fly { width: 80px; height: 120px; background-image: url('../assets/nursery/beatrice.png'); background-size: 320px 360px; animation: bea-flap .3s steps(4) infinite, celebi-bob 1s ease-in-out infinite; }
+@keyframes bea-flap { to { background-position-x: -320px; } }
