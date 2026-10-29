@@ -1,10 +1,10 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3acfa';
-import { $, $$, esc, toast } from './util.js?v=6ae3acfa';
-import { modal, closeModal } from './ui.js?v=6ae3acfa';
-import { mountFzScene } from './fzscene.js?v=6ae3acfa';
-import { merged, editContent } from './content-store.js?v=6ae3acfa';
+import * as store from './store.js?v=6ae3ad70';
+import { $, $$, esc, toast } from './util.js?v=6ae3ad70';
+import { modal, closeModal } from './ui.js?v=6ae3ad70';
+import { mountFzScene } from './fzscene.js?v=6ae3ad70';
+import { merged, editContent } from './content-store.js?v=6ae3ad70';
 
 export const LOCATIONS = [
   {
@@ -159,13 +159,15 @@ export function renderFriendZone(main, [arg]) {
       ${loc.awning ? `<p><b>⛺ Central awning:</b> ${esc(loc.awning)}</p>` : ''}${loc.caretaker ? `<p><b>🐝 Caretaker:</b> ${esc(loc.caretaker)}</p>` : ''}
       ${loc.sentinel ? `<p><b>🛡️ Sentinel:</b> ${esc(loc.sentinel)}</p>` : ''}${loc.relay ? `<p><b>📮 Relay station:</b> ${esc(loc.relay)}</p>` : ''}</div>
     ${networkHTML(gm)}`;   // her call: the network explainer sits at the bottom, under the camp
-  // her ask 10-29: the camp's Pokémon roam and play in a little meadow: residents, recruits, the camp's staff and
-  // any player characters sleeping here
-  { const mons = [...spots(loc).flatMap((x) => spotMons(x)).map((n) => ({ name: n })), ...Object.values(recruits).flatMap((x) => Object.values(x || {})).map((r) => ({ name: r.name })),
-      ...[loc.sentinel, loc.caretaker, loc.relay].filter(Boolean).flatMap((t) => String(t).split(/[—–,]| and /).slice(0, 2)).map((t) => ({ name: t.trim(), label: t.trim().split(/\s+/).slice(0, 3).join(' ') })),
-      ...sleepers.map((c) => ({ name: c.pokemon || '', label: c.nickname }))].filter((m) => m.name && m.name.split(/\s+/).length <= 4 && !/guild|team|members/i.test(m.name));
-    const seen = new Set(); const uniq = mons.filter((m) => { const k = (m.label || m.name).toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
-    const box = $('#fzscene', main); if (box) mountFzScene(box, uniq); }
+  // her asks 10-29: the camp's Pokémon roam and play, Cube World style: one cube room per spot (its residents, recruits
+  // and any player characters sleeping there, rooms inside it included), plus a cube for the camp's staff
+  { const ok = (n) => n && n.split(/\s+/).length <= 4 && !/guild|team|members/i.test(n);
+    const all = spots(loc); const cubes = all.filter((x) => !x.room).map((x) => { const keys = [x.key]; for (const r of all.slice(x.i + 1)) { if (!r.room) break; keys.push(r.key); }
+      return { name: x.name.replace(/^[^\w]*\d*\.?\s*/, ''), mons: [...spotMons(x).filter(ok).map((n) => ({ name: n })), ...keys.flatMap((k) => Object.values(recruits[k] || {})).map((r) => ({ name: r.name })),
+        ...sleepers.filter((c) => keys.some((k) => c.sleep === loc.id + '|' + k)).map((c) => ({ name: c.pokemon || '', label: c.nickname }))].filter((m) => ok(m.name)) }; });
+    const staff = [loc.sentinel, loc.caretaker, loc.relay].filter(Boolean).flatMap((t) => String(t).split(/[—–,]| and /).slice(0, 2)).map((t) => t.trim()).filter(ok).map((t) => ({ name: t, label: t.split(/\s+/).slice(0, 3).join(' ') }));
+    if (staff.length) cubes.unshift({ name: 'Camp staff', mons: staff });
+    const box = $('#fzscene', main); if (box) mountFzScene(box, cubes.filter((x) => x.mons.length)); }
   $$('[data-recruit]', main).forEach((b) => b.onclick = () => {
     const el = modal(`<h2>New recruit</h2><label class="f">Pokémon (name or species)<input id="rcname"></label>
       <label class="f">Personality<select id="rctype"><option value="">—</option>${personalityTypes().map((t) => `<option>${esc(t)}</option>`).join('')}</select></label>

@@ -2189,3 +2189,12 @@ a.ch-chip:hover { background: var(--navy); }
 .fzs-mon.named .fzs-tag, .fz-scene:hover .fzs-tag { opacity: 1; }
 .fzs-mon.hop .fzs-spr { animation: fzs-hop .45s ease; } @keyframes fzs-hop { 40% { transform: translateY(-14px); } }
 .fzs-say { position: absolute; top: -18px; font-size: 18px; animation: fx-float 1.5s ease-out forwards; pointer-events: none; }
+
+/* Cube World style (her ask 10-29): the scene is a strip of little cube rooms, side by side, joined by doorways */
+.fz-scene { overflow-x: auto; overflow-y: hidden; background: #6faf58; }
+.fz-scene.ready { height: 214px; }
+.fzs-strip { position: relative; height: 200px; margin: 7px 0; }
+.fzs-cube { position: absolute; top: 0; width: 186px; height: 196px; box-sizing: border-box; border: 3px solid #3a2c1a; border-radius: 10px; overflow: visible;
+  background: linear-gradient(#f3e3c0 0 30%, #c99a5b 30% 31%, #9fd47f 31%, #86c46a 100%); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .35), 0 4px 0 rgba(0, 0, 0, .25); }
+.fzs-cube-nm { position: absolute; left: 50%; top: 6px; translate: -50% 0; font: 700 11px var(--pix); color: #3a2c1a; white-space: nowrap; max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
+.fzs-door { position: absolute; right: -10px; bottom: 40px; width: 16px; height: 44px; background: #5c3b1e; border-radius: 6px 6px 0 0; z-index: 0; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .3); }
