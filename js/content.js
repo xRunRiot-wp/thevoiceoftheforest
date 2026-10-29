@@ -446,9 +446,10 @@ export const WORLD = {
     { name: 'Blossom Meadow, Glasswater Camps and Relicwatch', text: 'Other camps across the region. Every camp has a Psychic Link post.' },
   ],
   npcs: [
-    { name: 'Guildmaster Beautifly', text: 'Leads the guild (he/him). The young guild members call him “Mr. Fly.” Once cheerful, now serious; he is married to his husband, who vanished in the forest collapse seven years ago, and he is still searching for him.' },
-    { name: 'Beedrill', text: 'Champion rank, Mild nature. The guild’s den mother.' },
-    { name: 'Scolipede', text: 'Champion rank, Naughty nature. Part of Beautifly’s earlier story.' },
+    // her update 10-29: what anyone who has been in the guild a while knows (his private GM profile stays off the public site)
+    { name: 'Guildmaster Beautifly', text: 'Leader of the Great Guild (he/him), recently appointed after seven years serving on rescue teams. The young guild members call him “Mr. Fly.” Calm, compassionate and determined, and known for being graceful and quietly driven. He carries a personal connection to the forest collapse that divided the land: once a jolly but serious explorer, he grew more distant after his husband disappeared in it. As more Pokémon mysteriously disappear, Beautifly is determined to uncover where they are going and bring them home. His oldest teammate, Bramble the mischievous Scolipede, struggles to keep his joyful side alive, while Beatrice the proper Beedrill has taken on his husband’s former duties and tends to the guild when Beautifly cannot. Both are fiercely loyal to him.' },
+    { name: 'Beatrice the Beedrill', text: 'Champion rank, Mild nature. The guild’s proper den mother. She has taken on the duties Beautifly’s husband once had and tends to the guild when Beautifly cannot.' },
+    { name: 'Bramble the Scolipede', text: 'Champion rank, Naughty nature. Beautifly’s oldest teammate from his rescue team days, mischievous, and doing his best to keep Beautifly’s joyful side alive.' },
     { name: 'Diglett', text: 'Pro rank, Jolly nature. Curt but knowledgeable.' },
     { name: 'Machop', text: 'Beginner rank, Hardy nature. Missing, perhaps somewhere near Sunshell Beach.' },
     { name: 'Rayson the Wingull', text: 'A timid young Wingull with a twin, determined to become brave. Rescued from Twilight Falls.' },

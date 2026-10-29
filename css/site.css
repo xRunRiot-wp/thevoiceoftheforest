@@ -2122,3 +2122,20 @@ a.ch-chip:hover { background: var(--navy); }
 .n-wide .nursery-room { flex: 1; min-width: 0; }
 .n-wide .n-acts { display: flex; flex-direction: column; width: 190px; flex: none; gap: 10px; margin: 0; }
 .n-wide .n-acts .btn { flex: 1; font-size: 16px; }
+
+/* bag arrange arrows (her ask 10-29) */
+.bag-move { display: inline-flex; flex-direction: column; gap: 2px; margin-right: 6px; flex: none; }
+.bag-move .btn { padding: 0 6px; min-height: 0; line-height: 1.2; font-size: 11px; }
+.bag-move .btn:disabled { opacity: .3; }
+
+/* computer (her ask 10-29): the battle field fits the screen with the move menu still in view */
+@media (min-width: 720px) { .bt-wrap { max-width: min(680px, max(420px, calc((100vh - 380px) * 1.5))); } }
+/* grass with more texture, Pokémon GO style (her ask 10-29): soft mowing stripes, darker patches, little tufts and light flecks */
+.bt-bg::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; top: 44.5%; pointer-events: none; opacity: .9;
+  background:
+    radial-gradient(2px 7px at 30% 70%, rgba(40, 95, 35, .5) 50%, transparent 52%) 0 0 / 46px 30px,
+    radial-gradient(2px 6px at 70% 30%, rgba(40, 95, 35, .4) 50%, transparent 52%) 9px 6px / 57px 37px,
+    radial-gradient(2px 2px at 50% 50%, rgba(240, 255, 200, .6) 50%, transparent 55%) 4px 11px / 43px 29px,
+    radial-gradient(18% 34% at 30% 40%, rgba(60, 130, 50, .4), transparent 70%) 0 0 / 260px 130px,
+    radial-gradient(16% 30% at 75% 70%, rgba(180, 230, 120, .4), transparent 70%) 40px 30px / 300px 150px,
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, .08) 0 14px, rgba(0, 60, 0, .06) 14px 30px, rgba(255, 255, 255, .05) 30px 52px, rgba(0, 60, 0, .07) 52px 78px); }

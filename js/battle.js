@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6ae39d67';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae39d67';
-import { portrait, maxHp } from './ui.js?v=6ae39d67';
-import { allMoves, me, statVal } from './play.js?v=6ae39d67';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae39d67';
-import { TYPE_ICONS } from './theme.js?v=6ae39d67';
+import * as store from './store.js?v=6ae39fb0';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae39fb0';
+import { portrait, maxHp } from './ui.js?v=6ae39fb0';
+import { allMoves, me, statVal } from './play.js?v=6ae39fb0';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae39fb0';
+import { TYPE_ICONS } from './theme.js?v=6ae39fb0';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -37,7 +37,8 @@ export const GUILD = {
     hi: 'Done hauling crates for today. Let’s lift something heavier: YOU!', win: 'HUP! Good workout! Come back stronger!', lose: 'HA! Now THAT is a strong one. Respect!' },
   scolipede: { nickname: 'Bramble', pokemon: 'Scolipede', type1: 'Bug', type2: 'Poison', tier: 'Gold', baseHp: 5, ...S(3, 3, 3, 1, 2, { Tough: 2, Intimidate: 2 }), moves: ['Poison Tail', 'Pin Missile', 'Bug Bite'],
     hi: 'A guard must be ready for anything. Show me you are too.', win: 'Hold your ground longer next time.', lose: 'Well fought. The camp is safer with you in it.' },
-  beautifly: { nickname: 'Guildmaster Beautifly', pokemon: 'Beautifly', type1: 'Bug', type2: 'Flying', tier: 'Guildmaster', baseHp: 6, ...S(3, 3, 3, 4, 3, { Cute: 2, Beauty: 3, Perform: 2 }), moves: ['Air Slash', 'Silver Wind', 'Mega Drain', 'Gust'],
+  // her sheet 10-29: Champion rank, Jolly, Swarm; scores and skills as on his GM sheet
+  beautifly: { nickname: 'Guildmaster Beautifly', pokemon: 'Beautifly', type1: 'Bug', type2: 'Flying', tier: 'Guildmaster', baseHp: 6, ...S(2, 2, 2, 3, 2, { Brawl: 3, Channel: 4, Clash: 3, Evasion: 2, Alert: 5, Athletic: 2, Allure: 1, Etiquette: 1, Intimidate: 1, Tough: 3, Cool: 5, Beauty: 4, Clever: 2, Cute: 5 }), moves: ['Giga Drain', 'Bug Buzz', 'Bug Bite', 'Silver Wind', 'Attract'],
     hi: 'So you want to test yourself against the Guildmaster. Very well.', win: 'You have heart. Train well, and try me again.', lose: '…Remarkable. The guild is in good wings.' },
 };
 const isNpc = (id) => String(id || '').startsWith('npc:');
@@ -151,7 +152,7 @@ async function resolve(bid) {
   // Metronome spins Gemini's Metronome wheel (the Games page one, so the GM's edits count) and plays out the slice
   const metronome = async (id, foe) => {
     let slices = [];
-    try { slices = (await import('./games.js?v=6ae39d67')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6ae39fb0')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);
