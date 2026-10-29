@@ -1,8 +1,8 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6ae372b8';
-import { $, $$, esc, toast } from './util.js?v=6ae372b8';
-import { formFace } from './ui.js?v=6ae372b8';
+import * as store from './store.js?v=6ae37323';
+import { $, $$, esc, toast } from './util.js?v=6ae37323';
+import { formFace } from './ui.js?v=6ae37323';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
@@ -20,8 +20,8 @@ export const RESIDENTS = {
   Rox: { icon: '🐉', img: 'assets/portraits/jangmoo.png' },
   Felicia: { icon: '🔨', img: 'assets/portraits/tinkatink.png' },
   Rocky: { icon: '🗿', img: 'assets/portraits/sudowoodo.png' },
-  Mimi: { icon: '💧', img: 'assets/portraits/mudkip.png' },   // the Mudkip partner (keeper of the Relic Fragment)
-  Kippy: { icon: '⚡', img: 'assets/portraits/pikachu.png' },   // the Pikachu
+  Mimi: { icon: '⚡', img: 'assets/portraits/pikachu.png' },   // the Pikachu partner (keeper of the Relic Fragment)
+  Kippy: { icon: '💧', img: 'assets/portraits/mudkip.png' },   // the Mudkip
   'Weather Watch': { icon: '🌦️', img: 'assets/portraits/castform.png' },
   Castform: { icon: '🔮', img: 'assets/portraits/castform.png' },
   Gimmighoul: { icon: '✨', img: 'assets/portraits/gimmighoul.png' },   // the hidden one (gimmighoul.js)
