@@ -6,21 +6,25 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3b5a4';
-import { esc } from './util.js?v=6ae3b5a4';
+import { loadIndex } from './effects.js?v=6ae3b730';
+import { esc } from './util.js?v=6ae3b730';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
-// her Woodland Base map (10-29), cut into squares (re-cut 10-29 so each picture matches its spot's description): [spot key or '' for scenery, picture, row, col, size in cells, name shown
-// on the square if not the spot's own]. Her ask 10-29: the 6 camp spots got new pictures made from their descriptions,
-// the rest are cut from her map at full size
+// her Woodland Base map (10-29): [spot key ('' = scenery, 'camp' = the camp itself), picture, row, col, size in cells (or
+// [width, height]), name shown on the square if not the spot's own]. The 6 camp spots have pictures made from their
+// descriptions; the guild is her treehouse (tap it: ZOOM_PICS shows its cozy inside); Woodland Base is a medium square
+// in a band on top, between two strips of forest; the rest is cut from her map at full size
 const WB = 'assets/friendzone/woodland_';
 export const MAPS = {
-  'woodland-base': [['', WB + 'c_tl.jpg', 0, 0], ['acorn-grove', WB + 'acorn.jpg', 0, 1], ['watcher-s-grove', WB + 'watcher.jpg', 0, 2], ['', WB + 'c_tr.jpg', 0, 3],
-    ['fernshade-camp', WB + 'fernshade.jpg', 1, 0], ['gravity-falls-guild', WB + 'guild.jpg', 1, 1, 2, 'Woodland Base'], ['staff', WB + 'staff.jpg', 1, 3],
-    ['mossy-hollow', WB + 'mossy.jpg', 2, 0], ['', WB + 'trail.jpg', 2, 3],
-    ['', WB + 'c_bl.jpg', 3, 0], ['hearthstone-circle', WB + 'hearth.jpg', 3, 1], ['mushroom-rest', WB + 'mushroom.jpg', 3, 2], ['', WB + 'c_br.jpg', 3, 3]],
+  'woodland-base': [['', WB + 'band_l.jpg', 0, 0, [1.25, 1.5]], ['camp', WB + 'camp.jpg', 0, 1.25, 1.5, 'Woodland Base'], ['', WB + 'band_r.jpg', 0, 2.75, [1.25, 1.5]],
+    ['', WB + 'c_tl.jpg', 1.5, 0], ['acorn-grove', WB + 'acorn.jpg', 1.5, 1], ['watcher-s-grove', WB + 'watcher.jpg', 1.5, 2], ['', WB + 'c_tr.jpg', 1.5, 3],
+    ['fernshade-camp', WB + 'fernshade.jpg', 2.5, 0], ['gravity-falls-guild', WB + 'guild.jpg', 2.5, 1, 2], ['staff', WB + 'staff.jpg', 2.5, 3],
+    ['mossy-hollow', WB + 'mossy.jpg', 3.5, 0], ['', WB + 'trail.jpg', 3.5, 3],
+    ['', WB + 'c_bl.jpg', 4.5, 0], ['hearthstone-circle', WB + 'hearth.jpg', 4.5, 1], ['mushroom-rest', WB + 'mushroom.jpg', 4.5, 2], ['', WB + 'c_br.jpg', 4.5, 3]],
 };
+// a square that zooms in to a different picture than the one on the map
+export const ZOOM_PICS = { 'gravity-falls-guild': WB + 'guild_inside.jpg' };
 const animCache = new Map();
 // the Walk animation's frame size and timing for one species (from its AnimData.xml)
 function walkData(dex) {
@@ -66,18 +70,18 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     const cell = Math.max(96, Math.min(270, Math.floor(((box.clientWidth || 380) - 4) / 4))); S = cell < 120 ? 1.5 : 2;
     rooms = [];
     for (const [key, img, r, c, span = 1, label] of map) {
-      const cube = cubes.find((x) => x.key === key);
-      rooms.push({ key, name: cube ? label || cube.name : '', img, x: c * cell, y: r * cell, w: span * cell, h: span * cell, mons: cube ? await withMons(cube) : [] });
+      const cube = cubes.find((x) => x.key === key); const [sw, sh] = Array.isArray(span) ? span : [span, span];
+      rooms.push({ key, name: label || cube?.name || '', img, x: Math.round(c * cell), y: Math.round(r * cell), w: Math.round(sw * cell), h: Math.round(sh * cell), mons: cube ? await withMons(cube) : [] });
       if (!box.isConnected) return;
     }
-    W = 4 * cell; H = 4 * cell;
+    W = 4 * cell; H = Math.max(...rooms.map((x) => x.y + x.h));
   } else { // a row of cube rooms
     S = 2; rooms = []; let i = 0;
     for (const c of cubes) { const mons = await withMons(c); if (!box.isConnected) return; if (mons.length) rooms.push({ key: c.key, name: c.name, x: i++ * 190, y: 0, w: 186, h: 196, mons }); }
     if (!rooms.length) { box.remove(); return; }
     W = rooms.length * 190; H = 200;
   }
-  box.innerHTML = `<div class="fzs-strip ${map ? 'fzs-map' : ''}" style="width:${W}px;height:${H}px">${rooms.map((r) => `<div class="fzs-cube ${r.img ? 'pic' : ''} ${r.name ? 'has-info' : ''}" data-key="${esc(r.key || '')}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;${r.img ? `background-image:url(${r.img}?v=3)` : ''}">${r.name ? `<span class="fzs-cube-nm">${esc(r.name)}</span>` : ''}</div>`).join('')}</div>`;
+  box.innerHTML = `<div class="fzs-strip ${map ? 'fzs-map' : ''}" style="width:${W}px;height:${H}px">${rooms.map((r) => `<div class="fzs-cube ${r.img ? 'pic' : ''} ${r.name ? 'has-info' : ''}" data-key="${esc(r.key || '')}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;${r.img ? `background-image:url(${r.img}?v=4)` : ''}">${r.name ? `<span class="fzs-cube-nm">${esc(r.name)}</span>` : ''}</div>`).join('')}</div>`;
   box.classList.add('ready', solo ? 'solo' : map ? 'map' : 'row'); box.style.setProperty('--fzh', H + 14 + 'px');
   const strip = box.firstChild;
   // tap a room (not a Pokémon) to open that spot's info (her ask 10-29: the spot boxes live inside their squares)
