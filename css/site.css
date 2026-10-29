@@ -1951,3 +1951,8 @@ a.ch-chip:hover { background: var(--navy); }
 .fr-ico { min-width: 40px; padding-left: 8px; padding-right: 8px; font-size: 18px; line-height: 1; }
 .fr-peek { background: none; border: 0; padding: 0; cursor: var(--cur-link, pointer); border-radius: 12px; }
 .fr-peek:focus-visible { outline: 2px solid var(--gold, #f2c14e); }
+
+/* 21 table: the 'Next hand' heading was dark on the green felt */
+.c21-lobby h3 { color: #f2d48a; }
+/* 21 table: not so huge on computers (her ask 10-29) */
+.c21-table { max-width: 680px; margin-left: auto; margin-right: auto; }
