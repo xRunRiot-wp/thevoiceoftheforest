@@ -2093,3 +2093,6 @@ a.ch-chip:hover { background: var(--navy); }
 
 /* species picture in the Index sheet (her ask 10-29) */
 .ix-pic { float: right; width: 96px; height: 96px; margin: 44px 0 6px 10px; image-rendering: pixelated; border: 3px solid var(--ink); border-radius: 12px; background: #fff; }
+
+/* picture accessories (Rubber Ducklett, her ask 10-29) */
+.acc-img { height: 1em; width: auto; vertical-align: -.1em; image-rendering: pixelated; }

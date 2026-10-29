@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae39528';
-import { $, $$, esc, toast, num } from './util.js?v=6ae39528';
-import { me, logRoll } from './play.js?v=6ae39528';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39528';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39528';
-import { markWinner } from './sparkle.js?v=6ae39528';
-import { pageMusic } from './chiptune.js?v=6ae39528';
-import { modal, closeModal } from './ui.js?v=6ae39528';
+import * as store from './store.js?v=6ae39655';
+import { $, $$, esc, toast, num } from './util.js?v=6ae39655';
+import { me, logRoll } from './play.js?v=6ae39655';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39655';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39655';
+import { markWinner } from './sparkle.js?v=6ae39655';
+import { pageMusic } from './chiptune.js?v=6ae39655';
+import { modal, closeModal } from './ui.js?v=6ae39655';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -84,14 +84,16 @@ const ACC = {
   umb_cherry: ['☂️', 'Cherry Umbrella', 'umbrella', 'hue-rotate(95deg) saturate(1.4)'], umb_leaf: ['☂️', 'Leaf Umbrella', 'umbrella', 'hue-rotate(-150deg) saturate(1.2)'],
   umb_sky: ['☂️', 'Sky Umbrella', 'umbrella', 'hue-rotate(-60deg)'], umb_sun: ['☂️', 'Sunny Umbrella', 'umbrella', 'hue-rotate(150deg) saturate(1.8) brightness(1.15)'],
   umb_night: ['☂️', 'Starry Umbrella', 'umbrella', 'brightness(.55) saturate(1.3)'], umb_rainbow: ['☂️', 'Rainbow Umbrella', 'umbrella', 'rainbow'],
-  toy_teddy: ['🧸', 'Teddiursa Plush', 'toy'], toy_duck: ['🦆', 'Rubber Ducklett', 'toy'], toy_kite: ['🪁', 'Kite', 'toy'], toy_yoyo: ['🪀', 'Yo-yo', 'toy'],
+  toy_teddy: ['🧸', 'Teddiursa Plush', 'toy'], toy_duck: ['assets/nursery/toy_ducklett.png', 'Rubber Ducklett', 'toy'], toy_kite: ['🪁', 'Kite', 'toy'], toy_yoyo: ['🪀', 'Yo-yo', 'toy'],
   toy_balloon: ['🎈', 'Balloon', 'toy'], toy_star: ['⭐', 'Star Plush', 'toy'],
   bed_moss: ['🛏️', 'Mossy Nest', 'bed', 'hue-rotate(55deg) saturate(1.4)'], bed_cloud: ['☁️', 'Cloud Cushion', 'bed', 'saturate(.15) brightness(1.55)'],
   bed_berry: ['🫐', 'Berry Basket', 'bed', 'hue-rotate(-75deg) saturate(1.5)'], bed_sunset: ['🌅', 'Sunset Nest', 'bed', 'hue-rotate(-25deg) saturate(2.2)'],
   bed_star: ['🌙', 'Starry Bed', 'bed', 'hue-rotate(185deg) brightness(.75) saturate(1.4)'],
 };
 const accFilter = (k) => (ACC[k]?.[3] === 'rainbow' ? '' : ACC[k]?.[3] || '');
-const toyHTML = (b) => (ACC[b?.wear?.toy] ? `<span class="prop ball toy">${ACC[b.wear.toy][0]}</span>` : '<img class="prop ball" src="assets/nursery/ball.png" alt="">');
+// an accessory's picture: an emoji, or an image path (the Rubber Ducklett, her ask 10-29)
+const accIcon = (k) => (ACC[k][0].endsWith('.png') ? `<img class="acc-img" src="${ACC[k][0]}" alt="${esc(ACC[k][1])}">` : ACC[k][0]);
+const toyHTML = (b) => (ACC[b?.wear?.toy] ? `<span class="prop ball toy">${accIcon(b.wear.toy)}</span>` : '<img class="prop ball" src="assets/nursery/ball.png" alt="">');
 const SECTIONS = [['Wear', ['head', 'face', 'neck']], ['Umbrellas', ['umbrella']], ['Toys', ['toy']], ['Beds', ['bed']]];
 // where each baby's body sits in its sprite cell (top and bottom of the idle frame, measured from the sprite sheets)
 const BODY = { pichu: [0.307, 0.557], cleffa: [0.35, 0.575], igglybuff: [0.361, 0.583], togepi: [0.333, 0.583], tyrogue: [0.284, 0.557], smoochum: [0.312, 0.562], elekid: [0.281, 0.552],
@@ -104,7 +106,7 @@ const accRow = (spr, sp, name, ph) => { const t = ROWTOP[sp]; if (!t) return; co
   spr.classList.toggle('acc-off', Math.abs(d) > 0.12); spr.style.setProperty('--acc-dy', Math.round(d * ph) + 'px'); }; // [how far down the body, size as a share of the body height]
 const accHTML = (b, pw, ph) => { const [t0, bt] = BODY[b?.sp] || [0.3, 0.56]; const t = ROWTOP[b?.sp]?.[0] ?? t0; const bh = (bt - t0) * ph;
   return Object.entries(b?.wear || {}).filter(([slot, k]) => ACC[k] && SLOT[slot]).map(([slot, k]) =>
-    `<i class="acc acc-${slot}" style="top:${Math.round(t * ph + SLOT[slot][0] * bh)}px;font-size:${Math.max(10, Math.round(SLOT[slot][1] * bh))}px">${ACC[k][0]}</i>`).join(''); };
+    `<i class="acc acc-${slot}" style="top:${Math.round(t * ph + SLOT[slot][0] * bh)}px;font-size:${Math.max(10, Math.round(SLOT[slot][1] * bh))}px">${accIcon(k)}</i>`).join(''); };
 const bondOf = (b) => num(b?.bond);
 const hearts = (b) => Math.min(5, Math.floor(bondOf(b) / 20));
 const addBond = (id, n) => store.update('nursery/' + id, (x) => (x ? { ...x, bond: Math.min(100, num(x.bond) + n) } : x));
@@ -121,7 +123,7 @@ const cryOf = (sp) => (cryAudio[sp] ||= Object.assign(new Audio(`assets/cries/${
 function cry(b, { vol = 0.8, odds = 1, force = false } = {}) {
   if (!b || !BABIES[b.sp] || Math.random() > odds || (!force && (criesOff() || Date.now() - (lastCry[b.sp] || 0) < 3500))) return;
   lastCry[b.sp] = Date.now();
-  const a = cryOf(b.sp); a.pause(); a.currentTime = 0; a.volume = Math.min(1, vol); a.preservesPitch = false; a.playbackRate = [1.2, 1.2, 1.1, 1][b.stage] || 1;
+  const a = cryOf(b.sp); a.pause(); a.currentTime = 0; a.volume = Math.min(1, vol * 0.4); // her ask 10-29: cries softer a.preservesPitch = false; a.playbackRate = [1.2, 1.2, 1.1, 1][b.stage] || 1;
   a.play().catch(() => { /* not allowed before the first tap */ });
 }
 const listOf = (a) => (a.length < 2 ? a.join('') : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`);
@@ -431,7 +433,7 @@ function invite(c, box) {
 function dressUp(c, box) {
   const b = buddyOf(c.id); if (!b) return;
   const have = Object.keys(b.acc || {}).filter((k) => ACC[k]); const wear = b.wear || {};
-  const btn = (k) => `<button class="btn ${wear[ACC[k][2]] === k ? '' : 'alt'}" data-wear="${k}"><span class="big-emo ${ACC[k][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[k][2] !== 'toy' && ACC[k][3] ? `filter:${accFilter(k)}` : ''}">${ACC[k][2] === 'bed' ? '🪺' : ACC[k][0]}</span>${esc(ACC[k][1])}</button>`;
+  const btn = (k) => `<button class="btn ${wear[ACC[k][2]] === k ? '' : 'alt'}" data-wear="${k}"><span class="big-emo ${ACC[k][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[k][2] !== 'toy' && ACC[k][3] ? `filter:${accFilter(k)}` : ''}">${ACC[k][2] === 'bed' ? '🪺' : accIcon(k)}</span>${esc(ACC[k][1])}</button>`;
   const el = modal(`<h2>🎀 Dress up ${esc(nameOf(b))}</h2>${have.length ? `<p class="small muted">Tap to use it, tap again to put it away. One of each kind at a time.</p>
     ${SECTIONS.map(([title, slots]) => { const list = have.filter((k) => slots.includes(ACC[k][2])); return list.length ? `<h3 class="n-closet-h">${title}</h3><div class="n-closet">${list.map(btn).join('')}</div>` : ''; }).join('')}`
     : `<p>Nothing found yet! Take ${esc(nameOf(b))} for a <b>🦮 Walk</b> around Woodland Base and look for presents: accessories, umbrella patterns, toys and beds.</p>`}
@@ -482,7 +484,7 @@ async function walkGo(c, box, stops) {
       gift.innerHTML = '<button class="walk-box" aria-label="Open the present">🎁</button>'; gift.classList.add('show');
       say(`${esc(nameOf(b))} sniffed something out! Tap the present!`); row('nod', true);
       await Promise.race([wait(6000), new Promise((ok) => { $('.walk-box', gift).onclick = ok; })]); if (!alive()) return;
-      if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = `<span class="walk-prize ${ACC[prize][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[prize][2] !== 'toy' && ACC[prize][3] ? `filter:${accFilter(prize)}` : ''}">${ACC[prize][2] === 'bed' ? '🪺' : ACC[prize][0]}</span>`; say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.${ACC[prize][2] === 'toy' ? ' A new toy to play with!' : ACC[prize][2] === 'bed' ? ' A comfy new bed!' : ACC[prize][2] === 'umbrella' ? ' A new umbrella for rainy days!' : ''}`); cry(b, { vol: 0.8 }); }
+      if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = `<span class="walk-prize ${ACC[prize][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[prize][2] !== 'toy' && ACC[prize][3] ? `filter:${accFilter(prize)}` : ''}">${ACC[prize][2] === 'bed' ? '🪺' : accIcon(prize)}</span>`; say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.${ACC[prize][2] === 'toy' ? ' A new toy to play with!' : ACC[prize][2] === 'bed' ? ' A comfy new bed!' : ACC[prize][2] === 'umbrella' ? ' A new umbrella for rainy days!' : ''}`); cry(b, { vol: 0.8 }); }
       else { const poke = 10 + Math.floor(Math.random() * 11); found.push(poke); gift.innerHTML = '<span class="walk-prize">🪙</span>'; say(`🎉 ${poke} Poké! (${esc(nameOf(b))} already has every accessory.)`); store.update('party/' + c.id, (x) => ({ ...x, poke: num(x?.poke) + poke })); }
       row('hop', false); await wait(2200); gift.classList.remove('show'); gift.innerHTML = '';
     }
@@ -495,7 +497,7 @@ async function walkGo(c, box, stops) {
   const accs = found.filter((x) => typeof x === 'string');
   store.pushLimited('log', { t: Date.now(), text: `🦮 ${c.nickname} took ${nameOf(b)} for a walk around Woodland Base${accs.length ? ` and found: ${listOf(accs.map((x) => ACC[x][1]))}` : ''}!` });
   box.innerHTML = `<div class="sentry-end">${bea('happy', `Welcome back! ${nameOf(b)} looks so happy${accs.length ? `, and look what you found: ${listOf(accs.map((x) => ACC[x][1]))}!` : '.'}`)}
-    ${accs.length ? `<p class="walk-haul">${accs.map((x) => `<span>${ACC[x][0]}<small>${esc(ACC[x][1])}</small></span>`).join('')}</p>` : ''}
+    ${accs.length ? `<p class="walk-haul">${accs.map((x) => `<span>${accIcon(x)}<small>${esc(ACC[x][1])}</small></span>`).join('')}</p>` : ''}
     <p class="small muted" style="text-align:center">❤️ Bond went up · 🎈 counts as play time</p>
     <div class="row" style="gap:8px;justify-content:center">${accs.length ? '<button class="btn" id="wdress">🎀 Try it on</button>' : ''}<button class="btn alt" id="whome">Back to the nursery</button></div></div>`;
   $('#whome', box).onclick = () => room(c, box);
