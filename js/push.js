@@ -1,8 +1,8 @@
 // Phone notifications (her ask 10-28: "full"), even when the app is closed. Each device that turns them on saves its push
 // address under push/<character>/<key>. A scheduled job on the site's GitHub (push/notify.mjs) checks the table every
 // few minutes and sends: gifts in the mailbox, game invites, the nursery buddy needing care, and the GM going live.
-import * as store from './store.js?v=6ae3a08a';
-import { toast } from './util.js?v=6ae3a08a';
+import * as store from './store.js?v=6ae3a19a';
+import { toast } from './util.js?v=6ae3a19a';
 
 const KEY = 'BKU1TFmEMnNgBd80c9auRExmRAE_nzOEYGIPtqlf_BDLi9vo_HGDKiN2UOvNi63mV4SQB4IFjh0S62Ay6TUj6RE';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };

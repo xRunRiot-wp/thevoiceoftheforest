@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6ae3a08a';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae3a08a';
-import { portrait, maxHp } from './ui.js?v=6ae3a08a';
-import { allMoves, me, statVal } from './play.js?v=6ae3a08a';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae3a08a';
-import { TYPE_ICONS } from './theme.js?v=6ae3a08a';
+import * as store from './store.js?v=6ae3a19a';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae3a19a';
+import { portrait, maxHp } from './ui.js?v=6ae3a19a';
+import { allMoves, me, statVal } from './play.js?v=6ae3a19a';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae3a19a';
+import { TYPE_ICONS } from './theme.js?v=6ae3a19a';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -35,6 +35,9 @@ export const GUILD = {
     hi: 'The Relic Fragment stays in my bag. You get my full power though!', win: 'Bzzt! That was fun! Again sometime?', lose: 'You really sparked there! Nice one!' },
   machamp: { nickname: 'Machamp', pokemon: 'Machamp', art: 'assets/truck/machamp_face.png', type1: 'Fighting', tier: 'Gold', baseHp: 5, ...S(4, 2, 3, 1, 2, { Tough: 3, Intimidate: 2 }), moves: ['Karate Chop', 'Low Kick', 'Leer'],
     hi: 'Done hauling crates for today. Let’s lift something heavier: YOU!', win: 'HUP! Good workout! Come back stronger!', lose: 'HA! Now THAT is a strong one. Respect!' },
+  // her sheet 10-29: Beatrice (she/her), Champion rank, Mild, Swarm; traps the field, hardens up, then Pin Missile
+  beedrill: { nickname: 'Beatrice', pokemon: 'Beedrill', type1: 'Bug', type2: 'Poison', tier: 'Champion', baseHp: 5, ...S(2, 2, 2, 2, 2, { Brawl: 4, Channel: 5, Clash: 2, Evasion: 4, Athletic: 2, Nature: 1, Allure: 1, Intimidate: 3, Tough: 3, Cool: 4, Beauty: 4, Clever: 5, Cute: 3 }), moves: ['Electroweb', 'Toxic Spikes', 'Harden', 'Iron Defense', 'Ominous Wind', 'Focus Energy', 'Pin Missile'],
+    hi: 'A practice bout, dear? Very well. Do mind your manners.', win: 'There we are. Now, a cup of tea and a bandage, I think.', lose: 'Oh, well done, darling! That simply WILL do.' },
   // her sheet 10-29: Bramble (she/her), Champion rank, Naughty, Swarm; Screech, Agility, then Poison Tail, Double-Edge or Superpower
   scolipede: { nickname: 'Bramble', pokemon: 'Scolipede', type1: 'Bug', type2: 'Poison', tier: 'Champion', baseHp: 5, ...S(2, 3, 2, 1, 2, { Brawl: 4, Channel: 3, Clash: 2, Evasion: 2, Alert: 5, Allure: 1, Etiquette: 2, Intimidate: 3, Tough: 5, Cool: 3, Beauty: 3, Clever: 3, Cute: 5 }), moves: ['Screech', 'Agility', 'Poison Tail', 'Double-Edge', 'Superpower'],
     hi: 'Oh, you want to fight ME? Adorable. Don’t cry when I win.', win: '*playful shove* Not bad! Come back when you can make me sweat.', lose: 'Hah! You actually got me. Don’t tell Beautifly, he’ll never let me forget it.' },
@@ -57,10 +60,10 @@ const nm = (id) => pc(id).nickname || 'Someone';
 const SPRITES = { golett: [26, 31, 27, 31, 5, 1433], tinkatink: [18, 19, 20, 18, 4, 1400], jangmoo: [21, 22, 20, 24, 4, 1333], sudowoodo: [19, 26, 19, 25, 1, 133], swablu: [27, 25, 23, 24, 9, 900],
   magnemite: [15, 18, 16, 17, 4, 800], slakoth: [30, 23, 30, 23, 2, 1133], cleffa: [18, 19, 17, 19, 2, 900], cottonee: [18, 15, 20, 15, 4, 800], diglett: [22, 16, 22, 16, 2, 533],
   ralts: [15, 21, 16, 22, 2, 1083], maushold: [29, 25, 29, 27, 12, 1600], machamp: [30, 31, 30, 30, 10, 1133], scolipede: [42, 40, 43, 44, 4, 1267], mudkip: [19, 23, 16, 24, 7, 917],
-  pikachu: [28, 30, 29, 28, 6, 883], beautifly: [27, 31, 30, 37, 4, 667] };
+  pikachu: [28, 30, 29, 28, 6, 883], beautifly: [27, 31, 30, 37, 4, 667], beedrill: [29, 29, 27, 25, 4, 267] };
 // her report 10-29 (Golett and Machamp's frames looked wrong): each frame now shows for its own length from the sprite's
 // timing data (1 tick = 1/60 s), instead of every frame for the same time. One @keyframes per species, built once.
-const DUR = { golett: [56, 2, 6, 2, 20], tinkatink: [30, 12, 30, 12], jangmoo: [40, 12, 16, 12], sudowoodo: [8], swablu: [4, 4, 4, 4, 6, 8, 8, 8, 8], magnemite: [10, 14, 10, 14], slakoth: [60, 8], cleffa: [36, 18], cottonee: [10, 14, 10, 14], diglett: [16, 16], ralts: [40, 25], maushold: [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8], machamp: [40, 2, 2, 2, 2, 2, 2, 2, 2, 12], scolipede: [40, 8, 20, 8], mudkip: [38, 2, 2, 5, 3, 3, 2], pikachu: [40, 2, 3, 3, 3, 2], beautifly: [10, 10, 10, 10] };
+const DUR = { golett: [56, 2, 6, 2, 20], tinkatink: [30, 12, 30, 12], jangmoo: [40, 12, 16, 12], sudowoodo: [8], swablu: [4, 4, 4, 4, 6, 8, 8, 8, 8], magnemite: [10, 14, 10, 14], slakoth: [60, 8], cleffa: [36, 18], cottonee: [10, 14, 10, 14], diglett: [16, 16], ralts: [40, 25], maushold: [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8], machamp: [40, 2, 2, 2, 2, 2, 2, 2, 2, 12], scolipede: [40, 8, 20, 8], mudkip: [38, 2, 2, 5, 3, 3, 2], pikachu: [40, 2, 3, 3, 3, 2], beautifly: [10, 10, 10, 10], beedrill: [4, 4, 4, 4] };
 const animMade = new Set();
 function spriteAnim(k) {
   const d = DUR[k]; if (!d) return '';
@@ -153,7 +156,7 @@ async function resolve(bid) {
   // Metronome spins Gemini's Metronome wheel (the Games page one, so the GM's edits count) and plays out the slice
   const metronome = async (id, foe) => {
     let slices = [];
-    try { slices = (await import('./games.js?v=6ae3a08a')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6ae3a19a')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);
