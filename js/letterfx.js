@@ -2,8 +2,8 @@
 // a wax seal stamps it and it flies away. Receiving one: a sealed letter swoops in across the screen and dives into the
 // mailbox, which bounces. Tap anywhere to skip. Arrivals are noticed from the gift notes in giftmail/<me>; each note
 // plays once per device (dc.lfx.seen).
-import * as store from './store.js?v=6ae37b9f';
-import { esc, num } from './util.js?v=6ae37b9f';
+import * as store from './store.js?v=6ae37c51';
+import { esc, num } from './util.js?v=6ae37c51';
 
 const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const envHTML = (open, paper) => `<div class="lfx-env ${open ? 'open' : ''}">
