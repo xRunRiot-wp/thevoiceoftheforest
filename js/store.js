@@ -2,8 +2,8 @@
 // Saved on this device; when a Firebase Realtime Database URL is set in config.js the same
 // tree is shared live with everyone at the table (REST + server-sent events, no SDK).
 // GM-only data is encrypted with the GM passcode before it is stored anywhere.
-import { CONFIG } from './config.js?v=6ae3c3f4';
-import { uid } from './util.js?v=6ae3c3f4';
+import { CONFIG } from './config.js?v=6ae3c841';
+import { uid } from './util.js?v=6ae3c841';
 
 const LS = 'dc.table.';
 const listeners = new Set();
@@ -32,13 +32,47 @@ function persist() { try { localStorage.setItem(LS + code, JSON.stringify(tree))
 
 const dbUrl = (path) => `${CONFIG.firebaseDbUrl.replace(/\/$/, '')}/tables/${encodeURIComponent(code)}${path ? '/' + path : ''}.json`;
 
+// Saves to the shared table never get lost on a weak phone signal: a save that fails is tried again
+// (every few seconds, and as soon as the signal or the app comes back) until it lands, unless a
+// newer save of the same spot replaced it first.
+const latest = new Map();   // url -> number of the newest save sent there
+const retry = new Map();    // url -> the failed save waiting to be sent again
+let retryTimer = null, retryWait = 2000;
+function send(method, path, body) {
+  const url = dbUrl(path); const n = (latest.get(url) || 0) + 1;
+  latest.set(url, n); if (method === 'PUT') retry.delete(url);
+  attempt({ url, path, method, body: JSON.stringify(body), n });
+}
+function attempt(job) {
+  fetch(job.url, { method: job.method, body: job.body }).then((res) => {
+    if (!res.ok && res.status >= 500) throw new Error('server');
+    if (!res.ok) { status.error = 'The shared table would not take that change.'; emit(); return; }
+    if (retry.get(job.url) === job) retry.delete(job.url);
+    if (!retry.size) retryWait = 2000;
+    if (!retry.size && status.error) { status.error = ''; emit(); }
+  }).catch(() => {
+    if (job.method === 'PUT' && latest.get(job.url) !== job.n) return;   // a newer save of this spot went out already
+    const old = retry.get(job.url);
+    if (job.method === 'PATCH' && old && old !== job) job = old.method === 'PATCH' ? { ...job, body: JSON.stringify({ ...JSON.parse(old.body), ...JSON.parse(job.body) }) } : { ...old, body: JSON.stringify(get(job.path) ?? null), n: latest.get(job.url) };
+    retry.set(job.url, job);
+    status.error = 'Saving… waiting for a connection.'; emit();
+    if (!retryTimer) retryTimer = setTimeout(flushRetries, retryWait);
+    retryWait = Math.min(retryWait * 2, 30000);
+  });
+}
+function flushRetries() {
+  clearTimeout(retryTimer); retryTimer = null;
+  if (!retry.size) { retryWait = 2000; return; }
+  for (const job of [...retry.values()]) attempt(job);
+}
+
 export function set(path, value) {
   tree = setIn(tree, path.split('/').filter(Boolean), value);
   tree.updated = Date.now();
   persist(); emit(); bc?.postMessage({ code, path, value });
   if (status.mode === 'shared') {
-    fetch(dbUrl(path), { method: 'PUT', body: JSON.stringify(value ?? null) }).catch(() => { status.error = 'Could not save to the shared table — check your connection.'; emit(); });
-    fetch(dbUrl('updated'), { method: 'PUT', body: JSON.stringify(tree.updated) }).catch(() => {});
+    send('PUT', path, value ?? null);
+    send('PUT', 'updated', tree.updated);
   }
 }
 // update() saves only the fields that changed (a PATCH), so two devices editing the same character
@@ -61,8 +95,8 @@ export function update(path, fn) {
   tree.updated = Date.now();
   persist(); emit(); bc?.postMessage({ code, path, value: after });
   if (status.mode === 'shared') {
-    fetch(dbUrl(path), { method: 'PATCH', body: JSON.stringify(diff) }).catch(() => { status.error = 'Could not save to the shared table — check your connection.'; emit(); });
-    fetch(dbUrl('updated'), { method: 'PUT', body: JSON.stringify(tree.updated) }).catch(() => {});
+    send('PATCH', path, diff);
+    send('PUT', 'updated', tree.updated);
   }
 }
 
@@ -97,17 +131,28 @@ export async function open(tableCode) {
   gm = null; gmKey = null;
   if (CONFIG.firebaseDbUrl) {
     status.mode = 'shared';
-    remote = new EventSource(dbUrl(''));
-    remote.addEventListener('put', (e) => applyRemote(JSON.parse(e.data), false));
-    remote.addEventListener('patch', (e) => applyRemote(JSON.parse(e.data), true));
-    remote.onopen = () => { status.connected = true; status.error = ''; emit(); };
-    remote.onerror = () => { status.connected = false; emit(); };
+    connect();
   } else {
     status.mode = 'local';
     loadedRes('local');
   }
   emit();
 }
+
+// The live link to the shared table. Phones quietly drop it while the app sits in the background,
+// so it is reopened (with a fresh full copy) when the app comes back, the signal returns, or it closes.
+let hiddenAt = 0;
+function connect() {
+  remote?.close();
+  const es = remote = new EventSource(dbUrl(''));
+  es.addEventListener('put', (e) => applyRemote(JSON.parse(e.data), false));
+  es.addEventListener('patch', (e) => applyRemote(JSON.parse(e.data), true));
+  es.onopen = () => { status.connected = true; if (!retry.size) status.error = ''; emit(); flushRetries(); };
+  es.onerror = () => { status.connected = false; emit(); if (es.readyState === 2 && remote === es) setTimeout(() => remote === es && connect(), 3000); };
+}
+const revive = () => { if (status.mode !== 'shared' || !code) return; flushRetries(); if (!status.connected || remote?.readyState !== 1 || (hiddenAt && Date.now() - hiddenAt > 20e3)) connect(); hiddenAt = 0; };
+addEventListener('online', revive);
+document.addEventListener('visibilitychange', () => { if (document.hidden) hiddenAt = Date.now(); else revive(); });
 
 let firstRemote = true;
 function applyRemote({ path, data }, patch) {

@@ -1,13 +1,13 @@
 // Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
 // and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
-import { CURSORS, REWARD_CURSORS, cursorKind, cursorChoices, setCursorKind, refreshCursor } from './digcursor.js?v=6ae3c3f4';
-import * as store from './store.js?v=6ae3c3f4';
-import { $, $$, esc, toast } from './util.js?v=6ae3c3f4';
-import { giftNote } from './mailbox.js?v=6ae3c3f4';
-import { unlockChar } from './charlock.js?v=6ae3c3f4';
-import { modal, closeModal, portrait } from './ui.js?v=6ae3c3f4';
-import { skinPicker } from './dice3d.js?v=6ae3c3f4';
-import { appSection, wireAppSection } from './install.js?v=6ae3c3f4';
+import { CURSORS, REWARD_CURSORS, cursorKind, cursorChoices, setCursorKind, refreshCursor } from './digcursor.js?v=6ae3c841';
+import * as store from './store.js?v=6ae3c841';
+import { $, $$, esc, toast } from './util.js?v=6ae3c841';
+import { giftNote } from './mailbox.js?v=6ae3c841';
+import { unlockChar } from './charlock.js?v=6ae3c841';
+import { modal, closeModal, portrait } from './ui.js?v=6ae3c841';
+import { skinPicker } from './dice3d.js?v=6ae3c841';
+import { appSection, wireAppSection } from './install.js?v=6ae3c841';
 
 export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
   Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',
