@@ -2209,3 +2209,6 @@ a.ch-chip:hover { background: var(--navy); }
 .fzs-cube.has-info:hover { outline: 3px solid #f0b955; outline-offset: -3px; }
 .fz-hidden { display: none; }
 .fz-pop .fz-spot { margin: 0; box-shadow: none; }
+
+/* her ask 10-29: the camp's Pokémon and square names stay inside the map, never on top of the info box */
+.fz-scene { isolation: isolate; z-index: 0; }

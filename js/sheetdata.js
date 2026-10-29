@@ -1,6 +1,6 @@
 // Reads the GM's campaign spreadsheet. Live from Google Sheets when it is shared publicly;
 // otherwise falls back to the snapshot in /data (refreshed by the sync script).
-import { parseCSV, num } from './util.js?v=6ae3af3e';
+import { parseCSV, num } from './util.js?v=6ae3af99';
 
 const SHEET_ID = '1GK62Zcn61JNy0vdmDKp15SusSsJ0R2jaSuf_d5vJPoQ';
 export const TABS = { guild: '311637711', treasure: '1974854103', moves: '2096688911', abilities: '1595332622' };
