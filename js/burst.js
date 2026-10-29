@@ -1,7 +1,7 @@
 // Mission complete burst: when a mission's progress bar fills, a big explosion of something from that area
 // (leaves for Woodland Base, shells for Sunshell Beach...). Plays once per device per mission; tap the full bar to replay.
 // Imported by play.js and guild.js; app start needs nothing else.
-import * as store from './store.js?v=6ae386ae';
+import * as store from './store.js?v=6ae387a0';
 
 const AREAS = [
   [/woodland/i, ['🍃', '🍂', '🌿', '🍁', '🍃']],
