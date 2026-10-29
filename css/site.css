@@ -2079,6 +2079,7 @@ a.ch-chip:hover { background: var(--navy); }
 
 /* her ask 10-29: the Battles and Ball Lab cards match the others (real scenery, same frame and glow) */
 .bt-mini { background: url('../assets/cards/dance.png') 0 0 / 180px 180px no-repeat; border: 0; }
+.bt-mini .bt-spr { --s: 2.5 !important; } .bt-mini .bt-spr:first-child { right: 18px; top: 20px; } .bt-mini .bt-spr:last-child { left: 28px; bottom: 20px; } /* her ask 10-29: scoot Cleffa and Jangmo-o apart */
 .bl-mini { background: url('../assets/cards/sentry.png') 0 0 / 180px 180px no-repeat; border: 0; padding: 22px; } /* the lab is inside the guild */
 .bl-mini span { filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .5)); }
 
