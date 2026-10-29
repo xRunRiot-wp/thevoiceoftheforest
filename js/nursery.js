@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae392e6';
-import { $, $$, esc, toast, num } from './util.js?v=6ae392e6';
-import { me, logRoll } from './play.js?v=6ae392e6';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae392e6';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae392e6';
-import { markWinner } from './sparkle.js?v=6ae392e6';
-import { pageMusic } from './chiptune.js?v=6ae392e6';
-import { modal, closeModal } from './ui.js?v=6ae392e6';
+import * as store from './store.js?v=6ae393a5';
+import { $, $$, esc, toast, num } from './util.js?v=6ae393a5';
+import { me, logRoll } from './play.js?v=6ae393a5';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae393a5';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae393a5';
+import { markWinner } from './sparkle.js?v=6ae393a5';
+import { pageMusic } from './chiptune.js?v=6ae393a5';
+import { modal, closeModal } from './ui.js?v=6ae393a5';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -80,7 +80,19 @@ const ACC = {
   bow: ['🎀', 'Pink Bow', 'head'], flower: ['🌸', 'Flower Clip', 'head'], sunhat: ['👒', 'Sun Hat', 'head'], cap: ['🧢', 'Explorer Cap', 'head'],
   tophat: ['🎩', 'Top Hat', 'head'], crown: ['👑', 'Tiny Crown', 'head'], leaf: ['🍃', 'Leaf Sprig', 'head'], shades: ['🕶️', 'Sunglasses', 'face'],
   specs: ['👓', 'Round Glasses', 'face'], scarf: ['🧣', 'Cozy Scarf', 'neck'], bell: ['🔔', 'Silver Bell', 'neck'], medal: ['🏅', 'Guild Ribbon', 'neck'],
+  // her ask 10-29: walks also turn up umbrella patterns, toys and beds. [icon, name, slot, CSS filter (umbrellas and beds)]
+  umb_cherry: ['☂️', 'Cherry Umbrella', 'umbrella', 'hue-rotate(95deg) saturate(1.4)'], umb_leaf: ['☂️', 'Leaf Umbrella', 'umbrella', 'hue-rotate(-150deg) saturate(1.2)'],
+  umb_sky: ['☂️', 'Sky Umbrella', 'umbrella', 'hue-rotate(-60deg)'], umb_sun: ['☂️', 'Sunny Umbrella', 'umbrella', 'hue-rotate(150deg) saturate(1.8) brightness(1.15)'],
+  umb_night: ['☂️', 'Starry Umbrella', 'umbrella', 'brightness(.55) saturate(1.3)'], umb_rainbow: ['☂️', 'Rainbow Umbrella', 'umbrella', 'rainbow'],
+  toy_teddy: ['🧸', 'Teddiursa Plush', 'toy'], toy_duck: ['🦆', 'Rubber Ducklett', 'toy'], toy_kite: ['🪁', 'Kite', 'toy'], toy_yoyo: ['🪀', 'Yo-yo', 'toy'],
+  toy_balloon: ['🎈', 'Balloon', 'toy'], toy_star: ['⭐', 'Star Plush', 'toy'],
+  bed_moss: ['🛏️', 'Mossy Nest', 'bed', 'hue-rotate(55deg) saturate(1.4)'], bed_cloud: ['☁️', 'Cloud Cushion', 'bed', 'saturate(.15) brightness(1.55)'],
+  bed_berry: ['🫐', 'Berry Basket', 'bed', 'hue-rotate(-75deg) saturate(1.5)'], bed_sunset: ['🌅', 'Sunset Nest', 'bed', 'hue-rotate(-25deg) saturate(2.2)'],
+  bed_star: ['🌙', 'Starry Bed', 'bed', 'hue-rotate(185deg) brightness(.75) saturate(1.4)'],
 };
+const accFilter = (k) => (ACC[k]?.[3] === 'rainbow' ? '' : ACC[k]?.[3] || '');
+const toyHTML = (b) => (ACC[b?.wear?.toy] ? `<span class="prop ball toy">${ACC[b.wear.toy][0]}</span>` : '<img class="prop ball" src="assets/nursery/ball.png" alt="">');
+const SECTIONS = [['Wear', ['head', 'face', 'neck']], ['Umbrellas', ['umbrella']], ['Toys', ['toy']], ['Beds', ['bed']]];
 // where each baby's body sits in its sprite cell (top and bottom of the idle frame, measured from the sprite sheets)
 const BODY = { pichu: [0.307, 0.557], cleffa: [0.35, 0.575], igglybuff: [0.361, 0.583], togepi: [0.333, 0.583], tyrogue: [0.284, 0.557], smoochum: [0.312, 0.562], elekid: [0.281, 0.552],
   magby: [0.307, 0.568], azurill: [0.318, 0.568], wynaut: [0.325, 0.562], budew: [0.325, 0.562], chingling: [0.312, 0.562], bonsly: [0.307, 0.557], mimejr: [0.261, 0.557],
@@ -137,6 +149,9 @@ function startPet(root, b, scene, ownerId) {
   spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
   pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
   spr.innerHTML = accHTML(b, pw, ph);
+  // an umbrella pattern only changes the umbrella (not the sun shade, blanket or tent)
+  const paintCover = () => { const k = b.wear?.umbrella; const umb = lab('cover')[2] === 'Umbrella' && ACC[k];
+    cov.style.filter = umb ? accFilter(k) : ''; cov.classList.toggle('rainbow', !!umb && ACC[k][3] === 'rainbow'); };
   const alive = () => roomEl.isConnected;
   const row = (name, loop = true, secs = null) => {
     const r = ROW[name]; const n = B.fr[r] || 1;
@@ -215,7 +230,7 @@ function startPet(root, b, scene, ownerId) {
       props.innerHTML = ''; row('hop', false); await wait(700); row('idle');
     },
     async play() {
-      props.innerHTML = '<span class="ball-wrap"><img class="prop ball" src="assets/nursery/ball.png" alt=""></span>';
+      props.innerHTML = `<span class="ball-wrap">${toyHTML(b)}</span>`;
       const ball = $('.ball-wrap', props);
       for (let i = 0; i < 3 && alive(); i++) {
         const tx = i % 2 ? 20 : maxX(); ball.style.left = (tx + pw / 2 - 18) + 'px';
@@ -229,7 +244,7 @@ function startPet(root, b, scene, ownerId) {
       pet.classList.add('shake'); props.innerHTML = `<div class="drops">${Array.from({ length: 10 }, (_, i) => `<i style="left:${x + pw / 2}px;--a:${i * 36}deg"></i>`).join('')}</div>`;
       await wait(800); pet.classList.remove('shake'); props.innerHTML = ''; fx('✨', -16); fx('✨', 16); row('hop', false); await wait(700); row('idle');
     },
-    async cover() { cov.textContent = lab('cover')[0]; cov.classList.add('show', 'pop'); row('hop', false); fx('💕'); await wait(800); cov.classList.remove('pop'); row('idle'); },
+    async cover() { cov.textContent = lab('cover')[0]; paintCover(); cov.classList.add('show', 'pop'); row('hop', false); fx('💕'); await wait(800); cov.classList.remove('pop'); row('idle'); },
     async grew() { row('hop', false); fx('✨'); await wait(700); row('hop', false); fx('🎉'); await wait(700); row('idle'); },
   };
   // free time: wander, hop, nod, nap
@@ -238,7 +253,7 @@ function startPet(root, b, scene, ownerId) {
       if (busy) { await wait(400); continue; }
       const h = new Date().getHours(); const m = mood(); const ic = need();
       think.className = 'pet-think' + (ic ? ' show' : ''); think.textContent = ic;
-      const cv = coverNeed(b) && stat(b, 'cover') >= 50; cov.textContent = cv ? lab('cover')[0] : ''; cov.classList.toggle('show', !!cv);
+      const cv = coverNeed(b) && stat(b, 'cover') >= 50; cov.textContent = cv ? lab('cover')[0] : ''; cov.classList.toggle('show', !!cv); paintCover();
       if (asleep(h)) { row('sleep', true, 1.6); think.className = 'pet-think show zz'; think.textContent = 'z Z'; await wait(5000); continue; }
       const r = Math.random();
       if (r < 0.4) await walkTo(10 + Math.random() * maxX());
@@ -346,7 +361,7 @@ function startGuest(root, gb, label) {
     async ball() {
       cap(`${gname} and ${hostName()} are playing catch!`);
       await walkTo(hx() < maxX() / 2 ? hx() + 150 : hx() - 150, 120);
-      props.insertAdjacentHTML('beforeend', '<span class="ball-wrap duo-ball"><img class="prop ball" src="assets/nursery/ball.png" alt=""></span>');
+      props.insertAdjacentHTML('beforeend', `<span class="ball-wrap duo-ball">${toyHTML(buddyOf(meOwner()))}</span>`);
       const ball = $('.duo-ball', props); ball.style.transition = 'none'; ball.style.left = (x + pw / 2 - 18) + 'px'; void ball.offsetWidth; ball.style.transition = '';
       for (let k = 0; k < 4 && alive(); k++) {
         const toHost = k % 2 === 0; ball.style.left = ((toHost ? hx() + hw() / 2 : x + pw / 2) - 18) + 'px';
@@ -416,9 +431,10 @@ function invite(c, box) {
 function dressUp(c, box) {
   const b = buddyOf(c.id); if (!b) return;
   const have = Object.keys(b.acc || {}).filter((k) => ACC[k]); const wear = b.wear || {};
-  const el = modal(`<h2>🎀 Dress up ${esc(nameOf(b))}</h2>${have.length ? `<p class="small muted">Tap to wear, tap again to take it off. One for the head, the face and the neck.</p>
-    <div class="n-closet">${have.map((k) => `<button class="btn ${wear[ACC[k][2]] === k ? '' : 'alt'}" data-wear="${k}"><span class="big-emo">${ACC[k][0]}</span>${esc(ACC[k][1])}</button>`).join('')}</div>`
-    : `<p>No accessories yet! Take ${esc(nameOf(b))} for a <b>🦮 Walk</b> around Woodland Base and look for presents.</p>`}
+  const btn = (k) => `<button class="btn ${wear[ACC[k][2]] === k ? '' : 'alt'}" data-wear="${k}"><span class="big-emo ${ACC[k][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[k][2] !== 'toy' && ACC[k][3] ? `filter:${accFilter(k)}` : ''}">${ACC[k][2] === 'bed' ? '🪺' : ACC[k][0]}</span>${esc(ACC[k][1])}</button>`;
+  const el = modal(`<h2>🎀 Dress up ${esc(nameOf(b))}</h2>${have.length ? `<p class="small muted">Tap to use it, tap again to put it away. One of each kind at a time.</p>
+    ${SECTIONS.map(([title, slots]) => { const list = have.filter((k) => slots.includes(ACC[k][2])); return list.length ? `<h3 class="n-closet-h">${title}</h3><div class="n-closet">${list.map(btn).join('')}</div>` : ''; }).join('')}`
+    : `<p>Nothing found yet! Take ${esc(nameOf(b))} for a <b>🦮 Walk</b> around Woodland Base and look for presents: accessories, umbrella patterns, toys and beds.</p>`}
     <p class="small muted">Found ${have.length} of ${Object.keys(ACC).length}.</p>`);
   $$('[data-wear]', el).forEach((btn) => btn.onclick = () => {
     const k = btn.dataset.wear; const slot = ACC[k][2];
@@ -466,7 +482,7 @@ async function walkGo(c, box, stops) {
       gift.innerHTML = '<button class="walk-box" aria-label="Open the present">🎁</button>'; gift.classList.add('show');
       say(`${esc(nameOf(b))} sniffed something out! Tap the present!`); row('nod', true);
       await Promise.race([wait(6000), new Promise((ok) => { $('.walk-box', gift).onclick = ok; })]); if (!alive()) return;
-      if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = `<span class="walk-prize">${ACC[prize][0]}</span>`; say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.`); cry(b, { vol: 0.8 }); }
+      if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = `<span class="walk-prize ${ACC[prize][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[prize][2] !== 'toy' && ACC[prize][3] ? `filter:${accFilter(prize)}` : ''}">${ACC[prize][2] === 'bed' ? '🪺' : ACC[prize][0]}</span>`; say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.${ACC[prize][2] === 'toy' ? ' A new toy to play with!' : ACC[prize][2] === 'bed' ? ' A comfy new bed!' : ACC[prize][2] === 'umbrella' ? ' A new umbrella for rainy days!' : ''}`); cry(b, { vol: 0.8 }); }
       else { const poke = 10 + Math.floor(Math.random() * 11); found.push(poke); gift.innerHTML = '<span class="walk-prize">🪙</span>'; say(`🎉 ${poke} Poké! (${esc(nameOf(b))} already has every accessory.)`); store.update('party/' + c.id, (x) => ({ ...x, poke: num(x?.poke) + poke })); }
       row('hop', false); await wait(2200); gift.classList.remove('show'); gift.innerHTML = '';
     }
@@ -508,7 +524,7 @@ function room(c, box, anim) {
   box.innerHTML = `<div class="nursery">
     ${bea(b.recruited || b.stage === 3 ? 'proud' : low.length || cv ? 'worry' : 'happy', line)}
     <div class="nursery-room tod-${tod()} ${egg ? 'is-egg' : ''}"><div class="n-sky" aria-hidden="true"><i></i><i></i><i></i></div>${wxFxHTML(wx().key)}
-      ${egg ? nestHTML(eggHTML(b, anim === 'warm' ? 'wiggle' : '')) : `<div class="nest-spot">${nestHTML('')}</div>${petHTML()}${guest ? '<div class="pet guest" id="ngpet"><span class="pet-tag"></span><span class="baby-spr"></span></div>' : ''}`}
+      ${egg ? nestHTML(eggHTML(b, anim === 'warm' ? 'wiggle' : '')) : `<div class="nest-spot" style="${b.wear?.bed && ACC[b.wear.bed] ? `filter:${accFilter(b.wear.bed)}` : ''}">${nestHTML('')}</div>${petHTML()}${guest ? '<div class="pet guest" id="ngpet"><span class="pet-tag"></span><span class="baby-spr"></span></div>' : ''}`}
       ${anim === 'grew' ? '<span class="n-burst">✨</span>' : ''}${egg && anim === 'warm' ? '<span class="n-fx">🔥</span>' : ''}
     </div>
     <div class="n-head">${egg ? '' : `<img class="sface" src="${buddyFace(b)}" alt="">`}<div class="grow"><b>${esc(b.name || (egg ? 'Mystery egg' : B.name))}</b> <span class="pill">${STAGES[b.stage]}</span>

@@ -2084,3 +2084,8 @@ a.ch-chip:hover { background: var(--navy); }
 
 /* pixel portraits keep their crisp pixels inside the black frame too (battles list, her ask 10-29) */
 .portrait.art img[src*="portraits/"] { image-rendering: pixelated; }
+
+/* walk finds (her ask 10-29): umbrella patterns, toys and beds */
+.rainbow { animation: rainbow-hue 3s linear infinite; } @keyframes rainbow-hue { to { filter: hue-rotate(360deg) saturate(1.5); } }
+.prop.toy { display: block; font-size: 30px; line-height: 1; font-style: normal; }
+.n-closet-h { margin: 10px 0 4px; font-size: 16px; }
