@@ -1,7 +1,7 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6ae289f3';
-import { $, $$, esc, toast } from './util.js?v=6ae289f3';
+import * as store from './store.js?v=6ae34124';
+import { $, $$, esc, toast } from './util.js?v=6ae34124';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
@@ -29,6 +29,13 @@ export const RESIDENTS = {
   Gemini: { icon: '🌟', img: 'assets/portraits/cleffa.png' },
   Slakoth: { icon: '💤', img: 'assets/portraits/slakoth.png' },
   Ludicolo: { icon: '🌧️', img: 'assets/portraits/ludicolo.png' },
+  // the game hosts' own posts (her ask 10-29: Pelipper and Noctowl need faces)
+  Pelipper: { icon: '📬', img: 'assets/portraits/pelipper.png' },
+  Noctowl: { icon: '🦉', img: 'assets/portraits/noctowl.png' },
+  Spinda: { icon: '🍲', img: 'assets/portraits/spinda.png' },
+  Beatrice: { icon: '🐝', img: 'assets/portraits/beedrill.png' },
+  Machamp: { icon: '💪', img: 'assets/truck/machamp_face.png' },
+  'Rayson the Wingull': { icon: '✉️', img: 'assets/portraits/wingull.png' },
 };
 
 // Everyday life around Woodland Base. [speaker, kind ('say' | 'do'), text]
