@@ -1,14 +1,14 @@
 // Training Gym (#/gym): one drill per day per character. Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6ae3a980';
-import { $, $$, esc, num, pool } from './util.js?v=6ae3a980';
-import { modal, diceFaces } from './ui.js?v=6ae3a980';
-import { statVal, logRoll } from './play.js?v=6ae3a980';
-import { myId } from './app.js?v=6ae3a980';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3a980';
-import { locations, spots } from './friendzone.js?v=6ae3a980';
-import { RESIDENTS } from './chatter.js?v=6ae3a980';
+import * as store from './store.js?v=6ae3ab67';
+import { $, $$, esc, num, pool } from './util.js?v=6ae3ab67';
+import { modal, closeModal, diceFaces } from './ui.js?v=6ae3ab67';
+import { statVal, logRoll } from './play.js?v=6ae3ab67';
+import { myId } from './app.js?v=6ae3ab67';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3ab67';
+import { locations, spots } from './friendzone.js?v=6ae3ab67';
+import { RESIDENTS } from './chatter.js?v=6ae3ab67';
 
 const BAR = 5;
 // Training partners (her ask 10-29): a player may bring up to 3 Pokémon who live at the guild (Woodland Base in the
@@ -224,7 +224,25 @@ export function renderGym(main) {
   if (gc) gc.onclick = (e) => { e.preventDefault(); const n = prompt('Coach name', COACH()); if (n && n.trim()) store.set('gym/coach', n.trim()); };
 }
 
+// her ask 10-29: before the roll, ask who to bring along (up to 3 guild Pokémon); remembered for next time
 function train(id, drillId) {
+  const c = party()[id]; const all = guildResidents();
+  if (!c || !all.length) return doTrain(id, drillId);
+  if (trainedToday(c) && !store.gmUnlocked()) return;
+  let pick = palsOf(c);
+  const el = modal(`<h2>🤝 Bring anyone along?</h2><p class="small muted">Pick up to ${PALS_MAX} Pokémon from the guild to train with you. They earn their own Training Points.</p>
+    <div class="gym-pal-list">${all.map((n) => { const r = npcRec(n); return `<button class="gym-pal ${pick.includes(n) ? 'on' : ''}" data-askpal="${esc(n)}"><b>${esc(n)}</b><small>${num(r.tp)} TP · bar ${num(r.prog)}/${BAR}</small></button>`; }).join('')}</div>
+    <div class="row" style="margin-top:12px;gap:8px"><button class="btn" id="gogym">💪 Train${pick.length ? ` with ${pick.length}` : ''}</button><button class="btn alt" id="gosolo">Train alone</button></div>`);
+  const go = $('#gogym', el);
+  $$('[data-askpal]', el).forEach((b) => b.onclick = () => {
+    const n = b.dataset.askpal;
+    if (pick.includes(n)) pick = pick.filter((x) => x !== n); else if (pick.length < PALS_MAX) pick = [...pick, n]; else return;
+    b.classList.toggle('on', pick.includes(n)); go.textContent = `💪 Train${pick.length ? ` with ${pick.length}` : ''}`;
+  });
+  const start = (list) => { store.set(`party/${id}/gymPals`, list); closeModal(); setTimeout(() => doTrain(id, drillId), 60); };
+  go.onclick = () => start(pick); $('#gosolo', el).onclick = () => start([]);
+}
+function doTrain(id, drillId) {
   const c = party()[id]; const d0 = DRILLS.find((x) => x.id === drillId); const d = d0 && drillNow(d0);
   if (!c || !d) return;
   if (trainedToday(c) && !store.gmUnlocked()) return;
