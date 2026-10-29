@@ -1,10 +1,10 @@
 // The Index: every effect and interaction in the game, searchable, linked from everywhere.
-import * as store from './store.js?v=6ae3d84a';
-import * as sheet from './sheetdata.js?v=6ae3d84a';
-import { esc, slug, pool, $, $$ } from './util.js?v=6ae3d84a';
-import { modal, diceFaces } from './ui.js?v=6ae3d84a';
-import { merged, editContent } from './content-store.js?v=6ae3d84a';
-import { ATTRS, SKILLS, SOCIAL } from './content.js?v=6ae3d84a';
+import * as store from './store.js?v=6ae3d8e7';
+import * as sheet from './sheetdata.js?v=6ae3d8e7';
+import { esc, slug, pool, $, $$ } from './util.js?v=6ae3d8e7';
+import { modal, diceFaces } from './ui.js?v=6ae3d8e7';
+import { merged, editContent } from './content-store.js?v=6ae3d8e7';
+import { ATTRS, SKILLS, SOCIAL } from './content.js?v=6ae3d8e7';
 
 export const INDEX_SCHEMA = [['name', 'Name'], ['kind', 'Kind'], ['aka', 'Also called', 'list'], ['trigger', 'When it happens', 'area'], ['roll', 'Roll', 'area'],
   ['outcome', 'What it does', 'area'], ['duration', 'How long', 'area'], ['removal', 'How it ends / is removed', 'area'], ['links', 'Related entries', 'list'], ['source', 'Source']];
@@ -13,7 +13,7 @@ let base = null;
 function loadBase() {
   return (base ||= (async () => {
     const [core, moves, abil, treasure] = await Promise.all([
-      fetch('data/index.json').then((r) => r.json()),
+      fetch('data/index.json', { cache: 'no-cache' }).then((r) => r.json()),
       sheet.moves().catch(() => []), sheet.abilities().catch(() => []), sheet.treasure().catch(() => []),
     ]);
     const names = new Set(core.map((e) => e.name.toLowerCase()));
@@ -134,6 +134,7 @@ export async function openEntry(idOrName, { gm = false } = {}) {
     <div class="chips"><span class="pill">${esc(e.kind || '')}</span>${(e.aka || []).map((a) => `<span class="pill" style="opacity:.75">${esc(a)}</span>`).join('')}</div>
     ${e.kind === 'Nature' ? `<p class="nat-short"><b>${esc(natureShort(e))}</b></p>` : ''}${e.name === 'Nature (personality)' ? `<h4 style="margin:10px 0 2px">Every Nature</h4><ul class="nat-list">${ix.list.filter((x) => x.kind === 'Nature').sort((a, b) => a.name.localeCompare(b.name)).map((x) => `<li><a href="#" class="ix" data-ixname="${esc(x.name)}"><b>${esc(x.name)}</b></a> <span class="small">${esc(natureShort(x))}</span></li>`).join('')}</ul>` : ''}
     ${row('What it does', e.outcome)}${row('When it happens', e.trigger)}${row('Roll', e.roll)}${row('How long', e.duration)}${row('How it ends / is removed', e.removal)}${e.kind === 'Species' ? evoHTML(ix, e) || (e.evo ? row('Evolution', e.evo) : '') : e.evo ? row('Evolution', e.evo) : ''}${e.learn ? `<h4 style="margin:10px 0 2px">Moves by rank</h4>${e.learn.split(' | ').map((l) => { const [r, ms] = l.split(': '); return `<p class="small" style="margin:0 0 4px"><b>${esc(r)}:</b> ${(ms || '').split(', ').map((m) => (ix.byName.get(m.toLowerCase()) ? `<a href="#" class="ix" data-ixname="${esc(m)}">${esc(m)}</a>` : esc(m))).join(', ')}</p>`; }).join('')}` : ''}
+    ${(e.img || []).length ? `<h4 style="margin:12px 0 4px">📜 Player handout${e.img.length > 1 ? 's' : ''}</h4><div class="ix-handouts">${e.img.map((h) => `<a class="handout" href="assets/handouts/${esc(h)}.jpg" target="_blank"><img src="assets/handouts/${esc(h)}.jpg" alt="Handout" loading="lazy"></a>`).join('')}</div>` : ''}
     ${chains.length ? `<div class="row" style="margin-top:12px">${chains.map((c, i) => `<button class="btn" data-chain="${i}">Roll ${esc(c)}</button>`).join('')}</div><div class="result" id="ix-res"></div>` : ''}
     ${(e.links || []).length ? `<h4 style="margin:12px 0 4px">Related</h4><div class="chips">${e.links.map((l) => `<a class="chip ix" href="#" data-ixname="${esc(l)}">${esc(l)}</a>`).join('')}</div>` : ''}
     <p class="small muted" style="margin-top:12px">Source: ${esc(e.source || '—')}${e.edited ? ' · edited by the GM' : ''}</p>

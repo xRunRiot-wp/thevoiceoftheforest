@@ -2296,3 +2296,4 @@ a.ch-chip:hover { background: var(--navy); }
   .mc-plate { font-size: 9px; }
   .mc-plate s { display: none; }
 }
+.ix-handouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; } .ix-handouts img { display: block; width: 100%; border-radius: 8px; }   /* player handouts in Index entries (her ask 10-29) */
