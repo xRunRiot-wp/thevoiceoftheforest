@@ -6,18 +6,18 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3af99';
-import { esc } from './util.js?v=6ae3af99';
+import { loadIndex } from './effects.js?v=6ae3b168';
+import { esc } from './util.js?v=6ae3b168';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
-// her Woodland Base map (10-29), cut into squares: [spot key or '' for scenery, picture, row, col, size in cells]
+// her Woodland Base map (10-29), cut into squares (re-cut 10-29 so each picture matches its spot's description): [spot key or '' for scenery, picture, row, col, size in cells]
 const WB = 'assets/friendzone/woodland_';
 export const MAPS = {
   'woodland-base': [['', WB + 'c_tl.jpg', 0, 0], ['acorn-grove', WB + 'acorn.jpg', 0, 1], ['watcher-s-grove', WB + 'watcher.jpg', 0, 2], ['', WB + 'c_tr.jpg', 0, 3],
     ['fernshade-camp', WB + 'fernshade.jpg', 1, 0], ['gravity-falls-guild', WB + 'guild.jpg', 1, 1, 2], ['staff', WB + 'staff.jpg', 1, 3],
     ['mossy-hollow', WB + 'mossy.jpg', 2, 0], ['', WB + 'trail.jpg', 2, 3],
-    ['', WB + 'c_bl.jpg', 3, 0], ['mushroom-rest', WB + 'mushroom.jpg', 3, 1], ['hearthstone-circle', WB + 'hearth.jpg', 3, 2], ['', WB + 'c_br.jpg', 3, 3]],
+    ['', WB + 'c_bl.jpg', 3, 0], ['hearthstone-circle', WB + 'hearth.jpg', 3, 1], ['mushroom-rest', WB + 'mushroom.jpg', 3, 2], ['', WB + 'c_br.jpg', 3, 3]],
 };
 const animCache = new Map();
 // the Walk animation's frame size and timing for one species (from its AnimData.xml)
@@ -70,7 +70,7 @@ export async function mountFzScene(box, cubes, mapId = '') {
     if (!rooms.length) { box.remove(); return; }
     W = rooms.length * 190; H = 200;
   }
-  box.innerHTML = `<div class="fzs-strip ${map ? 'fzs-map' : ''}" style="width:${W}px;height:${H}px">${rooms.map((r) => `<div class="fzs-cube ${r.img ? 'pic' : ''} ${r.name ? 'has-info' : ''}" data-key="${esc(r.key || '')}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;${r.img ? `background-image:url(${r.img})` : ''}">${r.name ? `<span class="fzs-cube-nm">${esc(r.name)}</span>` : ''}</div>`).join('')}</div>`;
+  box.innerHTML = `<div class="fzs-strip ${map ? 'fzs-map' : ''}" style="width:${W}px;height:${H}px">${rooms.map((r) => `<div class="fzs-cube ${r.img ? 'pic' : ''} ${r.name ? 'has-info' : ''}" data-key="${esc(r.key || '')}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;${r.img ? `background-image:url(${r.img}?v=2)` : ''}">${r.name ? `<span class="fzs-cube-nm">${esc(r.name)}</span>` : ''}</div>`).join('')}</div>`;
   box.classList.add('ready', map ? 'map' : 'row'); box.style.setProperty('--fzh', H + 14 + 'px');
   const strip = box.firstChild;
   // tap a room (not a Pokémon) to open that spot's info (her ask 10-29: the spot boxes live inside their squares)
