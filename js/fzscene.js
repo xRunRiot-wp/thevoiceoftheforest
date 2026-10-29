@@ -6,8 +6,8 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3c31b';
-import { esc } from './util.js?v=6ae3c31b';
+import { loadIndex } from './effects.js?v=6ae3c3f4';
+import { esc } from './util.js?v=6ae3c3f4';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -83,7 +83,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
   };
   const map = MAPS[mapId]; let rooms; let W; let H; let S;
   if (solo) { // one big square, the width of the box
-    const size = box.clientWidth || 340; S = size >= 330 ? 3 : 2; W = size; H = size;
+    const size = box.clientWidth || 340; S = size >= 600 ? 2.5 : size >= 330 ? 2 : 1.5; W = size; H = size;   // her ask 10-29: smaller sprites in the zoomed-in window
     rooms = [{ key: cubes[0].key, name: '', img: solo, x: 0, y: 0, w: size, h: size, mons: await withMons(cubes[0]) }];
     if (!box.isConnected) return;
   } else if (map) { // a grid of map squares; the cell size fits the screen (min 96px, up to 270px so it fills a computer screen too)
