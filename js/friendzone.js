@@ -1,10 +1,11 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3b95a';
-import { $, $$, esc, toast } from './util.js?v=6ae3b95a';
-import { modal, closeModal } from './ui.js?v=6ae3b95a';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3b95a';
-import { merged, editContent } from './content-store.js?v=6ae3b95a';
+import * as store from './store.js?v=6ae3bb02';
+import { $, $$, esc, toast } from './util.js?v=6ae3bb02';
+import { modal, closeModal } from './ui.js?v=6ae3bb02';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae3bb02';
+import { merged, editContent } from './content-store.js?v=6ae3bb02';
+import { CHAPTERS } from './content.js?v=6ae3bb02';
 
 export const LOCATIONS = [
   {
@@ -177,6 +178,12 @@ export function renderFriendZone(main, [arg]) {
     // her ask 10-29: the guild's own crew lives in the Gravity Falls Guild square (it's a big 2x2 square, so room for more)
     const home = cubes.find((x) => x.key === GUILD_HOME[loc.id]);
     if (home) { home.mons = [...GUILD_CREW, ...home.mons.filter((m) => !GUILD_CREW.some((g) => g.name === m.name))]; home.max = 8; }
+    // her ask 10-29: the bottom-left corner of the Woodland Base map is the path on to Chapter 2, locked until the GM sets the guild's chapter to 2
+    const ch = Number(store.get('guild')?.chapter) || 0; const ch2 = merged('chapters', CHAPTERS, (c) => 'ch' + c.n).find((c) => Number(c.n) === 2);
+    if (loc.id === 'woodland-base') cubes.push({ key: 'chapter-2', name: 'Path to Chapter 2', mons: [], locked: ch < 2 });
+    const pathCard = () => { const d = document.createElement('div'); d.className = 'card fz-path';
+      d.innerHTML = `<h3 style="margin:0 0 4px">${ch < 2 ? '🔒 ' : ''}Path to Chapter 2</h3>${ch2 ? `<p><b>${esc(ch2.title || '')}</b>${ch2.quote ? `<br><i>“${esc(ch2.quote)}”</i>` : ''}</p>` : ''}
+        <p class="small">${ch < 2 ? 'This trail is locked. It opens when the story reaches Chapter 2.' : 'The trail is open. Chapter 2 is underway!'}</p>`; return d; };
     if (CAMP_CREW[loc.id]) cubes.push({ key: 'camp', name: loc.name, mons: CAMP_CREW[loc.id] });
     const box = $('#fzscene', main);
     if (box) {
@@ -191,7 +198,7 @@ export function renderFriendZone(main, [arg]) {
         box.addEventListener('fzspot', (e) => {
           const key = e.detail; const sq = $(`.fzs-cube[data-key="${key}"]`, box);
           const img = ZOOM_PICS[key] || (MAPS[loc.id].find((x) => x[0] === key) || [])[1]; const cube = cubes.find((x) => x.key === key);
-          const card = $(`.fz-spot[data-spotkey="${key}"]`, main) || (key === 'staff' ? $('.fz-staff', main)?.cloneNode(true) : key === 'camp' ? $('.fz-head', main)?.cloneNode(true) : null);
+          const card = $(`.fz-spot[data-spotkey="${key}"]`, main) || (key === 'staff' ? $('.fz-staff', main)?.cloneNode(true) : key === 'camp' ? $('.fz-head', main)?.cloneNode(true) : key === 'chapter-2' ? pathCard() : null);
           if (!card) return;
           const el = modal(`<div class="fz-zoom"${img ? ` style="background-image:url(${img}?v=4)"` : ''}></div><div class="fz-pop"></div>`);
           $('.fz-pop', el).appendChild(card);

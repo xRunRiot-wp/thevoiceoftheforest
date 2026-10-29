@@ -6,8 +6,8 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3b95a';
-import { esc } from './util.js?v=6ae3b95a';
+import { loadIndex } from './effects.js?v=6ae3bb02';
+import { esc } from './util.js?v=6ae3bb02';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -21,7 +21,7 @@ export const MAPS = {
     ['', WB + 'c_tl.jpg', 1.5, 0], ['acorn-grove', WB + 'acorn.jpg', 1.5, 1], ['watcher-s-grove', WB + 'watcher.jpg', 1.5, 2], ['', WB + 'c_tr.jpg', 1.5, 3],
     ['fernshade-camp', WB + 'fernshade.jpg', 2.5, 0], ['gravity-falls-guild', WB + 'guild.jpg', 2.5, 1, 2], ['staff', WB + 'staff.jpg', 2.5, 3],
     ['mossy-hollow', WB + 'mossy.jpg', 3.5, 0], ['', WB + 'trail.jpg', 3.5, 3],
-    ['', WB + 'c_bl.jpg', 4.5, 0], ['hearthstone-circle', WB + 'hearth.jpg', 4.5, 1], ['mushroom-rest', WB + 'mushroom.jpg', 4.5, 2], ['', WB + 'c_br.jpg', 4.5, 3]],
+    ['chapter-2', WB + 'c_bl.jpg', 4.5, 0, 1, 'Path to Chapter 2'], ['hearthstone-circle', WB + 'hearth.jpg', 4.5, 1], ['mushroom-rest', WB + 'mushroom.jpg', 4.5, 2], ['', WB + 'c_br.jpg', 4.5, 3]],
 };
 // a square that zooms in to a different picture than the one on the map
 export const ZOOM_PICS = { 'gravity-falls-guild': WB + 'guild_inside.jpg' };
@@ -33,9 +33,24 @@ function walkData(dex) {
     const walk = anims.find((a) => /<Name>Walk<\/Name>/.test(a)); if (!walk) return null;
     const num = (tag) => Number((walk.match(new RegExp(`<${tag}>(\\d+)</${tag}>`)) || [])[1]);
     const durs = [...walk.matchAll(/<Duration>(\d+)<\/Duration>/g)].map((m) => Number(m[1]));
-    return { w: num('FrameWidth'), h: num('FrameHeight'), n: durs.length || 1, ms: Math.max(300, durs.reduce((s, d) => s + d, 0) * 1000 / 60) };
+    const a = { w: num('FrameWidth'), h: num('FrameHeight'), n: durs.length || 1, ms: Math.max(300, durs.reduce((s, d) => s + d, 0) * 1000 / 60), foot: 0 };
+    return footRoom(dex, a).then((f) => ({ ...a, foot: f }));
   }).catch(() => null));
   return animCache.get(dex);
+}
+// empty pixel rows under the feet in the facing-down walk frames (her ask 10-29: name plates sit right under the Pokémon,
+// not under its padded frame); 0 if the picture can't be read
+function footRoom(dex, a) {
+  return new Promise((ok) => {
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onerror = () => ok(0);
+    img.onload = () => { try {
+      const c = document.createElement('canvas'); c.width = a.w * a.n; c.height = a.h; const g = c.getContext('2d', { willReadFrequently: true });
+      g.drawImage(img, 0, 0, a.w * a.n, a.h, 0, 0, a.w * a.n, a.h); const d = g.getImageData(0, 0, c.width, c.height).data;
+      for (let y = a.h - 1; y >= 0; y--) for (let x = 0; x < c.width; x++) if (d[(y * c.width + x) * 4 + 3] > 40) return ok(a.h - 1 - y);
+      ok(0); } catch { ok(0); } };
+    img.src = `${RAW}${dex}/Walk-Anim.png`;
+  });
 }
 // "Bramble the Scolipede" -> Scolipede; "Nidorino" -> Nidorino
 function speciesIn(ix, name) {
@@ -71,7 +86,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     rooms = [];
     for (const [key, img, r, c, span = 1, label] of map) {
       const cube = cubes.find((x) => x.key === key); const [sw, sh] = Array.isArray(span) ? span : [span, span];
-      rooms.push({ key, name: label || cube?.name || '', img, x: Math.round(c * cell), y: Math.round(r * cell), w: Math.round(sw * cell), h: Math.round(sh * cell), mons: cube ? await withMons(cube) : [] });
+      rooms.push({ key, name: label || cube?.name || '', img, locked: !!cube?.locked, x: Math.round(c * cell), y: Math.round(r * cell), w: Math.round(sw * cell), h: Math.round(sh * cell), mons: cube ? await withMons(cube) : [] });
       if (!box.isConnected) return;
     }
     W = 4 * cell; H = Math.max(...rooms.map((x) => x.y + x.h));
@@ -81,7 +96,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     if (!rooms.length) { box.remove(); return; }
     W = rooms.length * 190; H = 200;
   }
-  box.innerHTML = `<div class="fzs-strip ${map ? 'fzs-map' : ''}" style="width:${W}px;height:${H}px">${rooms.map((r) => `<div class="fzs-cube ${r.img ? 'pic' : ''} ${r.name ? 'has-info' : ''}" data-key="${esc(r.key || '')}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;${r.img ? `background-image:url(${r.img}?v=4)` : ''}">${r.name ? `<span class="fzs-cube-nm">${esc(r.name)}</span>` : ''}</div>`).join('')}</div>`;
+  box.innerHTML = `<div class="fzs-strip ${map ? 'fzs-map' : ''}" style="width:${W}px;height:${H}px">${rooms.map((r) => `<div class="fzs-cube ${r.img ? 'pic' : ''} ${r.name ? 'has-info' : ''} ${r.locked ? 'locked' : ''}" data-key="${esc(r.key || '')}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;${r.img ? `background-image:url(${r.img}?v=4)` : ''}">${r.locked ? '<span class="fzs-lock">🔒</span>' : ''}${r.name ? `<span class="fzs-cube-nm">${r.locked ? '🔒 ' : ''}${esc(r.name)}</span>` : ''}</div>`).join('')}</div>`;
   box.classList.add('ready', solo ? 'solo' : map ? 'map' : 'row'); box.style.setProperty('--fzh', H + 14 + 'px');
   const strip = box.firstChild;
   // tap a room (not a Pokémon) to open that spot's info (her ask 10-29: the spot boxes live inside their squares)
@@ -92,7 +107,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
   const bots = [];
   rooms.forEach((rm) => rm.mons.forEach((m) => {
     const el = document.createElement('div'); el.className = 'fzs-mon';
-    el.innerHTML = `<div class="fzs-spr" style="width:${m.a.w * S}px;height:${m.a.h * S}px;background-image:url(${RAW}${m.d4}/Walk-Anim.png);background-size:${m.a.w * m.a.n * S}px ${m.a.h * 8 * S}px;--fw:${m.a.w * S}px;--n:${m.a.n};--ms:${m.a.ms}ms"></div><span class="fzs-tag">${esc(m.label || m.name)}</span>`;
+    el.innerHTML = `<div class="fzs-spr" style="width:${m.a.w * S}px;height:${m.a.h * S}px;background-image:url(${RAW}${m.d4}/Walk-Anim.png);background-size:${m.a.w * m.a.n * S}px ${m.a.h * 8 * S}px;--fw:${m.a.w * S}px;--n:${m.a.n};--ms:${m.a.ms}ms"></div><span class="fzs-tag" style="margin-top:${-Math.round(m.a.foot * S) - 2}px">${esc(m.label || m.name)}</span>`;
     strip.appendChild(el);
     const b = { el, spr: el.firstChild, m, home: rm, room: rm, busy: false, w: m.a.w * S, h: m.a.h * S };
     b.spot = (r) => [r.x + 4 + Math.random() * Math.max(2, r.w - b.w - 8), r.y + Math.max(14, r.h * 0.25) + Math.random() * Math.max(2, r.h * 0.75 - b.h - 24)];
@@ -103,6 +118,8 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
       b.face(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')); b.spr.classList.add('walking');
       b.x = tx; b.y = ty; place(ms); setTimeout(() => { b.spr.classList.remove('walking'); b.face('down'); ok(); }, ms); });
     b.say = (t) => { const s = document.createElement('span'); s.className = 'fzs-say'; s.textContent = t; el.appendChild(s); setTimeout(() => s.remove(), 1600); };
+    b.vanish = () => new Promise((ok) => { el.animate([{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.3 }], { duration: 280, easing: 'ease-in' }); setTimeout(() => { el.style.opacity = 0; ok(); }, 260); });
+    b.pop = () => new Promise((ok) => { place(); el.style.opacity = 1; el.animate([{ opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1.2, offset: 0.7 }, { opacity: 1, scale: 1 }], { duration: 340, easing: 'ease-out' }); setTimeout(ok, 420); });
     b.hop = () => { el.classList.remove('hop'); void el.offsetWidth; el.classList.add('hop'); };
     el.onclick = () => { b.say(SAYS[Math.floor(Math.random() * 3)]); b.hop(); el.classList.add('named'); setTimeout(() => el.classList.remove('named'), 2500); };
     b.face('down'); place(); setTimeout(() => (el.style.opacity = 1), 80 + bots.length * 120);
@@ -124,9 +141,13 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
       else if (r < 0.68 && !b.m.stay) { // visit a neighbour, Cube World style (a Pokémon marked stay never leaves its square): walk through to a room touching this one, then back home
         const next = b.room === b.home ? live.filter((x) => touching(x, b.room))[Math.floor(Math.random() * 4)] : b.home;
         if (next) {
+          // her ask 10-29: no walking across the border; they vanish at the edge of their square and pop up just inside the next one
           b.busy = true; const cx = Math.max(Math.max(b.room.x, next.x), Math.min(b.room.x + b.room.w, next.x + next.w) - b.w); const cy = Math.max(Math.max(b.room.y, next.y), Math.min(b.room.y + b.room.h, next.y + next.h) - b.h);
-          await b.go((cx + Math.min(b.room.x + b.room.w, next.x + next.w) - b.w) / 2, (cy + Math.min(b.room.y + b.room.h, next.y + next.h) - b.h) / 2);
-          b.room = next; await b.go(...b.spot(next));
+          const mx = (cx + Math.min(b.room.x + b.room.w, next.x + next.w) - b.w) / 2; const my = (cy + Math.min(b.room.y + b.room.h, next.y + next.h) - b.h) / 2;
+          const inside = (r, gap) => [Math.max(r.x + 4, Math.min(r.x + r.w - b.w - 4, mx + Math.sign(r.x + r.w / 2 - mx - b.w / 2) * gap * (Math.abs(next.x - b.room.x) > 2))),
+            Math.max(r.y + 14, Math.min(r.y + r.h - b.h - 4, my + Math.sign(r.y + r.h / 2 - my - b.h / 2) * gap * (Math.abs(next.y - b.room.y) > 2)))];
+          await b.go(...inside(b.room, b.w * 0.6)); await b.vanish();
+          b.room = next; [b.x, b.y] = inside(next, b.w * 0.6); await b.pop(); await b.go(...b.spot(next));
           const f = bots.filter((o) => o.room === next && o !== b && !o.busy)[0];
           if (f && next !== b.home) await meet(b, f); else { b.hop(); b.say('👋'); }
           b.busy = false;
