@@ -1,26 +1,26 @@
-import { CONFIG } from './config.js?v=6ae34444';
-import * as store from './store.js?v=6ae34444';
-import * as sheet from './sheetdata.js?v=6ae34444';
-import { $, $$, esc, uid, toast } from './util.js?v=6ae34444';
-import { unlockChar, charOpen, pinOf, askForPin } from './charlock.js?v=6ae34444';
-import { closeModal, maxHp } from './ui.js?v=6ae34444';
-import { renderJoin, renderPlay } from './play.js?v=6ae34444';
-import { renderGM } from './gm.js?v=6ae34444';
-import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6ae34444';
-import { renderRules } from './rulebook.js?v=6ae34444';
-import { renderVault } from './vault.js?v=6ae34444';
-import { renderGames } from './games.js?v=6ae34444';
-import { updateHotbar } from './hotbar.js?v=6ae34444';
-import { applyTheme, openSettings } from './theme.js?v=6ae34444';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6ae34444';
-import { resolveFortunes } from './fortune.js?v=6ae34444';
-import { updateSparkle } from './sparkle.js?v=6ae34444';
-import { startDigCursor } from './digcursor.js?v=6ae34444';
-import { renderFriendZone } from './friendzone.js?v=6ae34444';
-import { renderGym } from './gym.js?v=6ae34444';
-import { placeGimmighoul } from './gimmighoul.js?v=6ae34444';
-import { startFriends } from './friends.js?v=6ae34444';
-import { startInstall } from './install.js?v=6ae34444';
+import { CONFIG } from './config.js?v=6ae348de';
+import * as store from './store.js?v=6ae348de';
+import * as sheet from './sheetdata.js?v=6ae348de';
+import { $, $$, esc, uid, toast } from './util.js?v=6ae348de';
+import { unlockChar, charOpen, pinOf, askForPin } from './charlock.js?v=6ae348de';
+import { closeModal, maxHp } from './ui.js?v=6ae348de';
+import { renderJoin, renderPlay } from './play.js?v=6ae348de';
+import { renderGM } from './gm.js?v=6ae348de';
+import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6ae348de';
+import { renderRules } from './rulebook.js?v=6ae348de';
+import { renderVault } from './vault.js?v=6ae348de';
+import { renderGames } from './games.js?v=6ae348de';
+import { updateHotbar } from './hotbar.js?v=6ae348de';
+import { applyTheme, openSettings } from './theme.js?v=6ae348de';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6ae348de';
+import { resolveFortunes } from './fortune.js?v=6ae348de';
+import { updateSparkle } from './sparkle.js?v=6ae348de';
+import { startDigCursor } from './digcursor.js?v=6ae348de';
+import { renderFriendZone } from './friendzone.js?v=6ae348de';
+import { renderGym } from './gym.js?v=6ae348de';
+import { placeGimmighoul } from './gimmighoul.js?v=6ae348de';
+import { startFriends } from './friends.js?v=6ae348de';
+import { startInstall } from './install.js?v=6ae348de';
 
 const main = $('#main');
 let current = '';
@@ -73,6 +73,7 @@ function navHTML(active) {
 function statusChip() {
   applyTheme();
   const sc = $('#setchip'); if (sc && !sc.onclick) sc.onclick = openSettings;
+  const cog = $('#setcog'); if (cog && !cog.onclick) cog.onclick = openSettings;   // phones: just the cog beside the Table box
   // header "join a table" box: type a code, press Join (or Enter); opens that table and asks who you're playing
   const tj = $('#tjoin');
   if (tj && !tj.onsubmit) {

@@ -1941,3 +1941,7 @@ a.ch-chip:hover { background: var(--navy); }
 .mb-more[open] > summary { margin-bottom: 8px; }
 .mb-more > summary:hover, .mb-more > summary:focus-visible { opacity: 1; }
 .mb-turn { margin-top: 8px; text-align: center; font-weight: 700; }
+
+/* phones: Settings becomes a cog to the right of the Table box (her ask 10-29) */
+.set-cog { display: none; border: 1px solid rgba(242, 193, 78, .35); background: var(--brown2); color: var(--cream); width: 32px; height: 32px; border-radius: 50%; font-size: 17px; line-height: 1; padding: 0; cursor: var(--cur-link, pointer); }
+@media (max-width: 759px) { .set-cog { display: inline-grid; place-items: center; } #setchip { display: none; } }
