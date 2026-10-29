@@ -1,26 +1,26 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae374dd';
-import * as sheet from './sheetdata.js?v=6ae374dd';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae374dd';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf } from './ui.js?v=6ae374dd';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae374dd';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae374dd';
-import { unlockChar } from './charlock.js?v=6ae374dd';
-import { CONFIG } from './config.js?v=6ae374dd';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae374dd';
-import { merged, editContent } from './content-store.js?v=6ae374dd';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae374dd';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae374dd';
-import { homeHTML } from './sitepages.js?v=6ae374dd';
-import { burstSet } from './burst.js?v=6ae374dd';
-import { pinsOf, showMap } from './hotbar.js?v=6ae374dd';
-import { chatterLatestHTML } from './chatter.js?v=6ae374dd';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae374dd';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae374dd';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae374dd';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae374dd';
-import { find } from './effects.js?v=6ae374dd';
-import * as dice3d from './dice3d.js?v=6ae374dd';
+import * as store from './store.js?v=6ae37625';
+import * as sheet from './sheetdata.js?v=6ae37625';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae37625';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf } from './ui.js?v=6ae37625';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae37625';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae37625';
+import { unlockChar } from './charlock.js?v=6ae37625';
+import { CONFIG } from './config.js?v=6ae37625';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae37625';
+import { merged, editContent } from './content-store.js?v=6ae37625';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae37625';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae37625';
+import { homeHTML } from './sitepages.js?v=6ae37625';
+import { burstSet } from './burst.js?v=6ae37625';
+import { pinsOf, showMap } from './hotbar.js?v=6ae37625';
+import { chatterLatestHTML } from './chatter.js?v=6ae37625';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae37625';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae37625';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae37625';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae37625';
+import { find } from './effects.js?v=6ae37625';
+import * as dice3d from './dice3d.js?v=6ae37625';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -840,7 +840,7 @@ function useItem(id, c) {
 }
 
 // ---------------------------------------------------------------- view / edit characters
-export function viewCharacter(id) {
+export function viewCharacter(id, { mini = false } = {}) {   // mini: a friend's peek (her ask 10-29), no Edit unless GM
   const c = party()[id]; if (!c) return;
   const mx = maxHp(c);
   modal(`<div class="char-head">${portrait(c)}<div class="grow"><div class="char-name">${esc(c.nickname)}</div><div class="char-sub">${esc(c.pokemon)} · ${esc(c.rank || '')} · ${esc(c.nature || '')}</div>
@@ -851,7 +851,7 @@ export function viewCharacter(id) {
     <p class="small"><b>Moves:</b> ${esc((c.moves || []).join(', ') || '—')}</p>
     ${statGrids(c)}
     ${store.gmUnlocked() ? memoryFeedHTML(c) : ''}
-    <div class="row" style="margin-top:12px"><button class="btn alt" id="ed">Edit</button></div>`, (el) => { $('#ed', el).onclick = () => editCharacter(id); });
+    ${mini && !store.gmUnlocked() ? '' : '<div class="row" style="margin-top:12px"><button class="btn alt" id="ed">Edit</button></div>'}`, (el) => { const e = $('#ed', el); if (e) e.onclick = () => editCharacter(id); });
 }
 
 const FIELD = (k, label, v, type = 'text', extra = '') => `<label class="f">${label}<input data-k="${k}" type="${type}" ${type === 'number' ? 'inputmode="numeric"' : ''} value="${esc(v ?? '')}" ${extra}></label>`;

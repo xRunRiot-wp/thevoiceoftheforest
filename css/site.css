@@ -1947,3 +1947,5 @@ a.ch-chip:hover { background: var(--navy); }
 @media (max-width: 759px) { .set-cog { display: inline-grid; place-items: center; } #setchip { display: none; } }
 /* Friends: Mail and Send are just icons (her ask 10-29) */
 .fr-ico { min-width: 40px; padding-left: 8px; padding-right: 8px; font-size: 18px; line-height: 1; }
+.fr-peek { background: none; border: 0; padding: 0; cursor: var(--cur-link, pointer); border-radius: 12px; }
+.fr-peek:focus-visible { outline: 2px solid var(--gold, #f2c14e); }
