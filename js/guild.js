@@ -1,20 +1,20 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ae3dbfe';
-import * as sheet from './sheetdata.js?v=6ae3dbfe';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae3dbfe';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae3dbfe';
-import { MISSION_GP } from './content.js?v=6ae3dbfe';
-import { ranks } from './rulebook.js?v=6ae3dbfe';
-import { merged, editContent } from './content-store.js?v=6ae3dbfe';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae3dbfe';
-import { myId } from './app.js?v=6ae3dbfe';
-import { lowAlertHTML } from './vault.js?v=6ae3dbfe';
-import { friendZoneSection } from './friendzone.js?v=6ae3dbfe';
-import { ixLink } from './effects.js?v=6ae3dbfe';
-import { burstSet } from './burst.js?v=6ae3dbfe';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae3dbfe';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6ae3dbfe';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6ae3dbfe';
+import * as store from './store.js?v=6ae3dc78';
+import * as sheet from './sheetdata.js?v=6ae3dc78';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae3dc78';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae3dc78';
+import { MISSION_GP } from './content.js?v=6ae3dc78';
+import { ranks } from './rulebook.js?v=6ae3dc78';
+import { merged, editContent } from './content-store.js?v=6ae3dc78';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae3dc78';
+import { myId } from './app.js?v=6ae3dc78';
+import { lowAlertHTML } from './vault.js?v=6ae3dc78';
+import { friendZoneSection } from './friendzone.js?v=6ae3dc78';
+import { ixLink } from './effects.js?v=6ae3dc78';
+import { burstSet } from './burst.js?v=6ae3dc78';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae3dc78';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6ae3dc78';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6ae3dc78';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -148,10 +148,10 @@ export function missionParts(m) {
 
 // Shortcuts above Completed missions: the guild shop and the merchant each have their own page (#/shop, #/merchant)
 // so the Guild page stays lighter.
-export function shopShortcuts() {   // also at the top of the Vault page (her ask 10-29)
+export function shopShortcuts({ gym = true, small = false } = {}) {   // also at the top of the Vault page: small tiles, no Gym (her asks 10-29)
   const m = store.get('merchant') || {};
   const tile = (href, img, title, sub) => `<a class="shop-short" href="${href}"><img src="${img}" alt="" loading="lazy"><b>${title}</b><small>${sub}</small></a>`;
-  return `<div class="shop-shorts">${tile('#/shop', 'assets/banners/guild_shop.jpg', '🐭 Guild Shop', 'Maushold & Chandelure')}${tile('#/merchant', 'assets/merchant/caravan_table.jpg', '🛒 Travelling Merchant', m.away ? 'No table today' : `${esc(m.brother || 'Slash')} is at ${esc(m.place || 'Woodland Base')}`)}<a class="shop-short gym-short" href="#/gym"><img src="assets/headers/wigglytuff_guild.png" alt="" loading="lazy"><span><b>🏋️ Training Gym</b><small>One drill a day for Training Points</small></span></a></div>`;
+  return `<div class="shop-shorts${small ? ' small' : ''}">${tile('#/shop', 'assets/banners/guild_shop.jpg', '🐭 Guild Shop', 'Maushold & Chandelure')}${tile('#/merchant', 'assets/merchant/caravan_table.jpg', '🛒 Travelling Merchant', m.away ? 'No table today' : `${esc(m.brother || 'Slash')} is at ${esc(m.place || 'Woodland Base')}`)}${gym ? `<a class="shop-short gym-short" href="#/gym"><img src="assets/headers/wigglytuff_guild.png" alt="" loading="lazy"><span><b>🏋️ Training Gym</b><small>One drill a day for Training Points</small></span></a>` : ''}</div>`;
 }
 
 export function renderShop(main) {

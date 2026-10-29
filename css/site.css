@@ -2298,3 +2298,14 @@ a.ch-chip:hover { background: var(--navy); }
 }
 .ix-handouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; } .ix-handouts img { display: block; width: 100%; border-radius: 8px; }   /* player handouts in Index entries (her ask 10-29) */
 .fzs-by { display: none; font: 600 9px var(--pix); opacity: .85; } .fzs-mon.named .fzs-tag:has(.fzs-by), .fz-zoom .fzs-mon.named .fzs-tag:has(.fzs-by) { text-align: center; } .fzs-mon.named .fzs-by { display: block; }   /* who recruited it, on tap (her ask 10-29) */
+/* Battles: Friendly Battle and Guild Training lists fill the row as cards (her ask 10-29) */
+.sentry-roster.bt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.sentry-roster.bt-grid li { border: 1px solid rgba(127, 127, 127, .3); border-radius: 12px; padding: 8px 10px; background: rgba(255, 255, 255, .35); }
+.sentry-roster.bt-grid li:first-child { border-top: 1px solid rgba(127, 127, 127, .3); }
+@media (max-width: 560px) { .sentry-roster.bt-grid { grid-template-columns: 1fr 1fr; } .sentry-roster.bt-grid li { flex-direction: column; text-align: center; } .sentry-roster.bt-grid .grow { width: 100%; } }
+/* Vault page: smaller shop tiles (her ask 10-29) */
+.shop-shorts.small { max-width: 420px; margin-left: auto; margin-right: auto; }
+.shop-shorts.small .shop-short img { aspect-ratio: 5 / 2; }
+.shop-shorts.small .shop-short b { font-size: 12px; } .shop-shorts.small .shop-short small { font-size: 11px; }
+/* Battles on phones: picture, name and button stack inside each card */
+@media (max-width: 560px) { .sentry-roster.bt-grid li { display: flex; flex-direction: column; align-items: center; gap: 4px; } .sentry-roster.bt-grid .fr-acts { flex-basis: auto; padding-left: 0; margin: 0; justify-content: center; } }

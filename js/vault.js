@@ -1,13 +1,13 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6ae3dbfe';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae3dbfe';
-import { GUILDS2, guildName, shopShortcuts } from './guild.js?v=6ae3dbfe';
-import { addItem, me } from './play.js?v=6ae3dbfe';
-import { ixLink } from './effects.js?v=6ae3dbfe';
-import { gmTodo } from './chatter.js?v=6ae3dbfe';
-import { palette } from './theme.js?v=6ae3dbfe';
-import { modal, closeModal } from './ui.js?v=6ae3dbfe';
+import * as store from './store.js?v=6ae3dc78';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae3dc78';
+import { GUILDS2, guildName, shopShortcuts } from './guild.js?v=6ae3dc78';
+import { addItem, me } from './play.js?v=6ae3dc78';
+import { ixLink } from './effects.js?v=6ae3dc78';
+import { gmTodo } from './chatter.js?v=6ae3dc78';
+import { palette } from './theme.js?v=6ae3dc78';
+import { modal, closeModal } from './ui.js?v=6ae3dc78';
 
 // Each guild's own colours on this page, so players can tell at a glance whose storage they're looking at.
 const GUILD_TINT = { woodland: '#4f8a2e', vanguard: '#2f5fb8' };
@@ -79,7 +79,7 @@ export function renderVault(main) {
 
   main.innerHTML = `<div class="vault-tint vault-${tab}" style="${tintStyle(tab)}">
   <div class="hero banner"><img class="hdr" src="assets/banners/items_treasure.jpg" alt=""></div>
-  ${shopShortcuts()}
+  ${shopShortcuts({ gym: false, small: true })}
   <h1>Storage & Poké</h1>
   ${lowAlertHTML()}
   <div class="vtabs">${GUILDS2.map(([k, n]) => `<button class="vtab ${k === tab ? 'on' : ''}" data-vtab="${k}" style="${tintStyle(k)}">${k === 'vanguard' ? '🛡️' : '🌳'} ${esc(n)}</button>`).join('')}</div>

@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6ae3dbfe';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae3dbfe';
-import { portrait, maxHp } from './ui.js?v=6ae3dbfe';
-import { allMoves, me, statVal } from './play.js?v=6ae3dbfe';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae3dbfe';
-import { TYPE_ICONS } from './theme.js?v=6ae3dbfe';
+import * as store from './store.js?v=6ae3dc78';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae3dc78';
+import { portrait, maxHp } from './ui.js?v=6ae3dc78';
+import { allMoves, me, statVal } from './play.js?v=6ae3dc78';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae3dc78';
+import { TYPE_ICONS } from './theme.js?v=6ae3dc78';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -159,7 +159,7 @@ async function resolve(bid) {
   // Metronome spins Gemini's Metronome wheel (the Games page one, so the GM's edits count) and plays out the slice
   const metronome = async (id, foe) => {
     let slices = [];
-    try { slices = (await import('./games.js?v=6ae3dbfe')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6ae3dc78')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);
@@ -302,9 +302,9 @@ export function renderBattle(main, g, bid) {
       ${!c ? '<p class="card">Pick your character first (Play tab), then come and battle.</p>' : `
       ${open.length ? `<h2 class="games-h">Your battles</h2><p class="small muted">Battles you started that aren’t finished yet. Tap <b>Continue</b> to go back in.</p><ul class="sentry-roster fr-list">${open.map(([k, B]) => `<li>${face(foeOf(B, c.id))}<span class="grow"><b>vs ${esc(nm(foeOf(B, c.id)))}</b><br><span class="small muted">${B.phase === 'ask' ? (B.a === c.id ? 'Waiting for them to accept' : 'They challenged you!') : `Round ${num(B.round)}`}</span></span><span class="fr-acts"><a class="btn sm" href="#/games/${GAME_ID}/${esc(k)}">${B.phase === 'ask' && B.b === c.id ? '⚔️ Answer' : '▶ Continue'}</a></span></li>`).join('')}</ul>` : ''}
       <h2 class="games-h" id="bt-friends">👥 Friendly Battle</h2>
-      <ul class="sentry-roster fr-list">${others.map((x) => `<li>${face(x.id)}<span class="grow"><b>${esc(x.nickname)}</b>${friends.has(x.id) ? ' <span class="pill">Friend</span>' : ''}<br><span class="small muted">${esc(x.pokemon || '')} · ${maxHp(x)} HP</span></span><span class="fr-acts"><button class="btn sm" data-ch="${esc(x.id)}">⚔️ Challenge</button></span></li>`).join('') || '<li class="muted">Nobody else at the table yet.</li>'}</ul>
+      <ul class="sentry-roster fr-list bt-grid">${others.map((x) => `<li>${face(x.id)}<span class="grow"><b>${esc(x.nickname)}</b>${friends.has(x.id) ? ' <span class="pill">Friend</span>' : ''}<br><span class="small muted">${esc(x.pokemon || '')} · ${maxHp(x)} HP</span></span><span class="fr-acts"><button class="btn sm" data-ch="${esc(x.id)}">⚔️ Challenge</button></span></li>`).join('') || '<li class="muted">Nobody else at the table yet.</li>'}</ul>
       <h2 class="games-h" id="bt-train">🏋️ Guild Training</h2><p class="small muted">Spar with the guild’s members. No prizes, just bragging rights: every guild member you beat goes on the Training Board.</p>
-      <ul class="sentry-roster fr-list">${Object.entries(GUILD).map(([k, n]) => { const r = mine(k); const ch = champs(k);
+      <ul class="sentry-roster fr-list bt-grid">${Object.entries(GUILD).map(([k, n]) => { const r = mine(k); const ch = champs(k);
         return `<li>${face(`npc:${k}`)}<span class="grow"><b>${esc(n.nickname)}</b> <span class="pill">${TIER_ICON[n.tier]} ${esc(n.tier)}</span>${r.w ? ' <span class="pill">🏅 Beaten</span>' : ''}<br><span class="small muted">${esc(n.pokemon)} · ${maxHp(n)} HP${r.w || r.l ? ` · you: ${num(r.w)} win${num(r.w) === 1 ? '' : 's'}, ${num(r.l)} loss${num(r.l) === 1 ? '' : 'es'}` : ''}${ch.length ? ` · beaten by ${esc(ch.slice(0, 4).join(', '))}${ch.length > 4 ? '…' : ''}` : ''}</span></span><span class="fr-acts"><button class="btn sm" data-ch="npc:${k}">🏋️ Train</button></span></li>`; }).join('')}</ul>
       <div class="card bt-board"><h3>🏆 Training Board</h3>${board.length ? `<ol>${board.map(([pid, n, w]) => `<li><b>${esc(party()[pid].nickname)}</b>: beat ${n} of ${Object.keys(GUILD).length} guild members <span class="small muted">(${w} win${w === 1 ? '' : 's'})</span>${n === Object.keys(GUILD).length ? ' 👑' : ''}</li>`).join('')}</ol>` : '<p class="small muted">Nobody has beaten a guild member yet. Be the first!</p>'}</div>`}`;
     $$('[data-ch]', main).forEach((b) => b.onclick = () => challenge(b.dataset.ch));
