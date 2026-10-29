@@ -2150,3 +2150,7 @@ a.ch-chip:hover { background: var(--navy); }
 /* her ask 10-29: every portrait in the guild hall gets the same gold frame (pixel portraits too, not the blue PMD frame) */
 .mh-seat .portrait { border-image: none; border: 3px solid #f0b955; border-radius: 12px; background: #fff; overflow: hidden; }
 .mh-seat .portrait img { object-fit: cover; }
+
+/* Nature short line + list (her ask 10-29) */
+.nat-short { margin: 8px 0 0; padding: 6px 10px; border-radius: 10px; background: rgba(240, 185, 85, .18); }
+.nat-list { margin: 4px 0 0; padding-left: 18px; } .nat-list li { margin: 2px 0; }

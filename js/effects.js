@@ -1,10 +1,10 @@
 // The Index: every effect and interaction in the game, searchable, linked from everywhere.
-import * as store from './store.js?v=6ae3a6ad';
-import * as sheet from './sheetdata.js?v=6ae3a6ad';
-import { esc, slug, pool, $, $$ } from './util.js?v=6ae3a6ad';
-import { modal, diceFaces } from './ui.js?v=6ae3a6ad';
-import { merged, editContent } from './content-store.js?v=6ae3a6ad';
-import { ATTRS, SKILLS, SOCIAL } from './content.js?v=6ae3a6ad';
+import * as store from './store.js?v=6ae3a72b';
+import * as sheet from './sheetdata.js?v=6ae3a72b';
+import { esc, slug, pool, $, $$ } from './util.js?v=6ae3a72b';
+import { modal, diceFaces } from './ui.js?v=6ae3a72b';
+import { merged, editContent } from './content-store.js?v=6ae3a72b';
+import { ATTRS, SKILLS, SOCIAL } from './content.js?v=6ae3a72b';
 
 export const INDEX_SCHEMA = [['name', 'Name'], ['kind', 'Kind'], ['aka', 'Also called', 'list'], ['trigger', 'When it happens', 'area'], ['roll', 'Roll', 'area'],
   ['outcome', 'What it does', 'area'], ['duration', 'How long', 'area'], ['removal', 'How it ends / is removed', 'area'], ['links', 'Related entries', 'list'], ['source', 'Source']];
@@ -99,6 +99,10 @@ export function rollChains(text) {
 let getMe = () => null; let statOf = () => 0; let onRolled = () => {};
 export function wireRolls(me, stat, logFn) { getMe = me; statOf = stat; onRolled = logFn; }
 
+// her ask 10-29: every Nature gets a short line from the PokéRole 2.0 rulebook: its keywords and its Confidence
+const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+export const natureShort = (e) => { if (e?.kind !== 'Nature') return ''; const conf = (String(e.roll || '').match(/Confidence (\d+)/) || [])[1];
+  return `${(e.aka || []).filter((a) => a !== 'nature').map(cap).join(', ')}${conf ? ` · Confidence ${conf}` : ''}`; };
 export async function openEntry(idOrName, { gm = false } = {}) {
   const ix = await loadIndex();
   const e = find(ix, idOrName);
@@ -111,6 +115,7 @@ export async function openEntry(idOrName, { gm = false } = {}) {
   const pic = dex ? `<img class="ix-pic" src="https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/portrait/${dex.padStart(4, '0')}/Normal.png" alt="${esc(e.name)}" onerror="this.remove()">` : '';
   const el = modal(`${pic}<h2>${esc(e.name)}</h2>
     <div class="chips"><span class="pill">${esc(e.kind || '')}</span>${(e.aka || []).map((a) => `<span class="pill" style="opacity:.75">${esc(a)}</span>`).join('')}</div>
+    ${e.kind === 'Nature' ? `<p class="nat-short"><b>${esc(natureShort(e))}</b></p>` : ''}${e.name === 'Nature (personality)' ? `<h4 style="margin:10px 0 2px">Every Nature</h4><ul class="nat-list">${ix.list.filter((x) => x.kind === 'Nature').sort((a, b) => a.name.localeCompare(b.name)).map((x) => `<li><a href="#" class="ix" data-ixname="${esc(x.name)}"><b>${esc(x.name)}</b></a> <span class="small">${esc(natureShort(x))}</span></li>`).join('')}</ul>` : ''}
     ${row('What it does', e.outcome)}${row('When it happens', e.trigger)}${row('Roll', e.roll)}${row('How long', e.duration)}${row('How it ends / is removed', e.removal)}${e.evo ? row('Evolution', e.evo) : ''}${e.learn ? `<h4 style="margin:10px 0 2px">Moves by rank</h4>${e.learn.split(' | ').map((l) => { const [r, ms] = l.split(': '); return `<p class="small" style="margin:0 0 4px"><b>${esc(r)}:</b> ${(ms || '').split(', ').map((m) => (ix.byName.get(m.toLowerCase()) ? `<a href="#" class="ix" data-ixname="${esc(m)}">${esc(m)}</a>` : esc(m))).join(', ')}</p>`; }).join('')}` : ''}
     ${chains.length ? `<div class="row" style="margin-top:12px">${chains.map((c, i) => `<button class="btn" data-chain="${i}">Roll ${esc(c)}</button>`).join('')}</div><div class="result" id="ix-res"></div>` : ''}
     ${(e.links || []).length ? `<h4 style="margin:12px 0 4px">Related</h4><div class="chips">${e.links.map((l) => `<a class="chip ix" href="#" data-ixname="${esc(l)}">${esc(l)}</a>`).join('')}</div>` : ''}

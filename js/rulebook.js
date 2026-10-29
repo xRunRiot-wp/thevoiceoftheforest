@@ -1,12 +1,12 @@
 // Rulebook: quick lookup from inside the game. Index of every effect/interaction, rules, story, cast, guild, items, handouts, links, credits.
-import * as store from './store.js?v=6ae3a6ad';
-import * as sheet from './sheetdata.js?v=6ae3a6ad';
-import { $, $$, esc } from './util.js?v=6ae3a6ad';
-import { portrait } from './ui.js?v=6ae3a6ad';
-import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ae3a6ad';
-import { loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ae3a6ad';
-import { merged, editContent } from './content-store.js?v=6ae3a6ad';
-import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ae3a6ad';
+import * as store from './store.js?v=6ae3a72b';
+import * as sheet from './sheetdata.js?v=6ae3a72b';
+import { $, $$, esc } from './util.js?v=6ae3a72b';
+import { portrait } from './ui.js?v=6ae3a72b';
+import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6ae3a72b';
+import { natureShort, loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6ae3a72b';
+import { merged, editContent } from './content-store.js?v=6ae3a72b';
+import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6ae3a72b';
 
 const gm = () => store.gmUnlocked();
 const editBtn = (attr) => (gm() ? `<button class="btn alt sm" ${attr}>Edit</button>` : '');
@@ -107,7 +107,7 @@ export async function renderRules(main, [sub, arg]) {
     if (!list.length) return '<p class="muted">Nothing found. Try another word.</p>';
     return `<div class="card" style="padding:4px 10px">${list.map((e) => e.id.startsWith('rule:')
       ? `<a class="ixrow" href="#/rules/r/${esc(e.id.slice(5))}"><span class="pill k">Rule page</span><b>${esc(e.name)}</b><p>${esc(e.outcome)}</p></a>`
-      : `<a class="ixrow" href="#" data-ix="${esc(e.id)}"><span class="pill k">${esc(e.kind || '')}</span><b>${esc(e.name)}</b><p>${esc(e.outcome || e.trigger || '')}</p></a>`).join('')}</div>`;
+      : `<a class="ixrow" href="#" data-ix="${esc(e.id)}"><span class="pill k">${esc(e.kind || '')}</span><b>${esc(e.name)}</b><p>${esc(e.kind === 'Nature' ? natureShort(e) : e.outcome || e.trigger || '')}</p></a>`).join('')}</div>`;
   }
 
   function indexPage() {
@@ -230,7 +230,7 @@ export async function renderRules(main, [sub, arg]) {
   }
 
   async function coverage() {
-    const { shop } = await import('./guild.js?v=6ae3a6ad');
+    const { shop } = await import('./guild.js?v=6ae3a72b');
     const [sm, sa, st, g] = await Promise.all([sheet.moves(), sheet.abilities(), sheet.treasure(), sheet.guild().catch(() => ({ chars: [] }))]);
     const party = Object.values(store.get('party') || {});
     const lootNames = [];
