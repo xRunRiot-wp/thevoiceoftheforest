@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae39b27';
-import { $, $$, esc, toast, num } from './util.js?v=6ae39b27';
-import { me, logRoll } from './play.js?v=6ae39b27';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39b27';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39b27';
-import { markWinner } from './sparkle.js?v=6ae39b27';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae39b27';
-import { modal, closeModal } from './ui.js?v=6ae39b27';
+import * as store from './store.js?v=6ae39b40';
+import { $, $$, esc, toast, num } from './util.js?v=6ae39b40';
+import { me, logRoll } from './play.js?v=6ae39b40';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae39b40';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae39b40';
+import { markWinner } from './sparkle.js?v=6ae39b40';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae39b40';
+import { modal, closeModal } from './ui.js?v=6ae39b40';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -444,12 +444,14 @@ function startGuest(root, gb, label) {
   };
   (async () => {
     row('hop', false); fx('👋'); cry(gb); await wait(900);
-    let next = Date.now() + 2500; let last = '';
+    let next = Date.now() + 2500; let last = ''; let beaBooked = false;
     while (alive()) {
       if (asleep()) { row('sleep', true, 1.6); await wait(5000); continue; }
       // every few seconds they play something together; in between it potters about near its friend
       if (Date.now() > next) {
-        const pick = Object.keys(GAMES).filter((g) => g !== last && g !== 'beatrice'); last = last && last !== 'beatrice' && (Math.random() < 0.15 || /beatrice/.test(location.search)) ? 'beatrice' : pick[Math.floor(Math.random() * pick.length)];
+        // a visit booked for a set time (tables/<code>/beatriceAt, her ask 10-29 'show up at 3:16'): once per playdate, within 15 minutes of it
+        const beaDue = () => { const t = num(store.get('beatriceAt')); if (beaBooked || !(t > 0 && Date.now() >= t && Date.now() - t < 15 * 60000)) return false; beaBooked = true; return true; };
+        const pick = Object.keys(GAMES).filter((g) => g !== last && g !== 'beatrice'); last = last && last !== 'beatrice' && (Math.random() < 0.15 || /beatrice/.test(location.search) || beaDue()) ? 'beatrice' : pick[Math.floor(Math.random() * pick.length)];
         try { await GAMES[last](); } catch { /* the room was closed mid-game */ }
         next = Date.now() + 3000 + Math.random() * 3000; continue;
       }
