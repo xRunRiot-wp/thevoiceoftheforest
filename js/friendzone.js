@@ -1,10 +1,10 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae3b168';
-import { $, $$, esc, toast } from './util.js?v=6ae3b168';
-import { modal, closeModal } from './ui.js?v=6ae3b168';
-import { mountFzScene, MAPS } from './fzscene.js?v=6ae3b168';
-import { merged, editContent } from './content-store.js?v=6ae3b168';
+import * as store from './store.js?v=6ae3b1bf';
+import { $, $$, esc, toast } from './util.js?v=6ae3b1bf';
+import { modal, closeModal } from './ui.js?v=6ae3b1bf';
+import { mountFzScene, MAPS } from './fzscene.js?v=6ae3b1bf';
+import { merged, editContent } from './content-store.js?v=6ae3b1bf';
 
 export const LOCATIONS = [
   {
@@ -76,6 +76,9 @@ const NETWORK = [{
     'Clearly marked departure routes and safe relay assembly points.',
   ].join('\n'),
 }];
+// the guild's crew (her characters) shown walking around the guild square of the camp it sits in
+const GUILD_CREW = [{ name: 'Beautifly', label: 'Guildmaster Beautifly' }, { name: 'Beedrill', label: 'Beatrice' }, { name: 'Pikachu', label: 'Mimi' }, { name: 'Mudkip', label: 'Kippy' }];
+const GUILD_HOME = { 'woodland-base': 'gravity-falls-guild' };
 const NET_SCHEMA = [['about', 'About the network', 'area'], ['loyaltyText', 'What loyalty means', 'area'], ['typesText', 'Personality types — one per line: Name | description', 'area'],
   ['relay', 'Relay Network', 'area'], ['relayRulesText', 'Relay rules — one per line: Rule | description', 'area'],
   ['staffText', 'Relay staffing — one per line: Duty | responsibility', 'area'], ['staffNote', 'Staffing note', 'area'],
@@ -167,6 +170,9 @@ export function renderFriendZone(main, [arg]) {
         ...sleepers.filter((c) => keys.some((k) => c.sleep === loc.id + '|' + k)).map((c) => ({ name: c.pokemon || '', label: c.nickname }))].filter((m) => ok(m.name)) }; });
     const staff = [loc.sentinel, loc.caretaker, loc.relay].filter(Boolean).flatMap((t) => String(t).split(/[—–,]| and /).slice(0, 2)).map((t) => t.trim()).filter(ok).map((t) => ({ name: t, label: t.split(/\s+/).slice(0, 3).join(' ') }));
     if (staff.length) cubes.unshift({ key: 'staff', name: 'Camp staff', mons: staff });
+    // her ask 10-29: the guild's own crew lives in the Gravity Falls Guild square (it's a big 2x2 square, so room for more)
+    const home = cubes.find((x) => x.key === GUILD_HOME[loc.id]);
+    if (home) { home.mons = [...GUILD_CREW, ...home.mons.filter((m) => !GUILD_CREW.some((g) => g.name === m.name))]; home.max = 8; }
     const box = $('#fzscene', main);
     if (box) {
       const mapped = !!MAPS[loc.id];

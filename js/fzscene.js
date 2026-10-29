@@ -6,8 +6,8 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae3b168';
-import { esc } from './util.js?v=6ae3b168';
+import { loadIndex } from './effects.js?v=6ae3b1bf';
+import { esc } from './util.js?v=6ae3b1bf';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -50,7 +50,7 @@ export async function mountFzScene(box, cubes, mapId = '') {
     for (const m of c.mons) {
       const e = speciesIn(ix, m.name); const dex = e && (String(e.aka || '').match(/#(\d+)/) || [])[1]; if (!dex) continue;
       const d4 = dex.padStart(4, '0'); const a = await walkData(d4); if (!box.isConnected) return mons; if (a) mons.push({ ...m, d4, a });
-      if (mons.length >= 5) break;
+      if (mons.length >= (c.max || 5)) break;
     }
     return mons;
   };
