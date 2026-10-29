@@ -1,7 +1,7 @@
 // Shared bits of UI: modal sheet, portraits, bars, dice faces.
-import { esc } from './util.js?v=6ae36fb7';
+import { esc } from './util.js?v=6ae370a9';
 
-const PORTRAITS = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'cottoneeshiny', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
+const PORTRAITS = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'cottoneeshiny', 'squirtle', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 
 export function portraitFile(species) {
   const k = String(species || '').toLowerCase().replace(/[^a-z]/g, '');
@@ -17,7 +17,14 @@ export function artFile(c) {
   return null;
 }
 
+// forms a character can switch between (her ask 10-29: Golett's moldable clay; party/<id>/form is the key, '' = their own shape)
+const FORMS = { golett: [['', 'Golett'], ['squirtle', 'Squirtle']] };
+export const formsOf = (c) => FORMS[String(c?.pokemon || c?.species || '').toLowerCase().replace(/[^a-z]/g, '')] || [];
+export const formFace = (c) => (c?.form && formsOf(c).some(([k]) => k === c.form) ? portraitFile(c.form) : null);
+
 export function portrait(c, size = '') {
+  const ff = formFace(c);
+  if (ff) return `<div class="portrait ${size}"><img src="${ff}" alt="${esc(c?.nickname || '')}"></div>`;
   const art = c?.art || artFile(c);
   if (art) return `<div class="portrait art ${size}"><img src="${esc(art)}" alt="${esc(c?.nickname || c?.name || '')}"></div>`;
   // shiny characters (party/<id>/shiny) use the shiny portrait when there is one

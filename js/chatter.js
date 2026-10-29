@@ -1,7 +1,8 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6ae36fb7';
-import { $, $$, esc, toast } from './util.js?v=6ae36fb7';
+import * as store from './store.js?v=6ae370a9';
+import { $, $$, esc, toast } from './util.js?v=6ae370a9';
+import { formFace } from './ui.js?v=6ae370a9';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
@@ -170,7 +171,7 @@ export function gmTodo(text, tag = '') {
   if (!open) store.set('gmtodo/' + store.tid(), { text, tag, done: false, t: Date.now() });
 }
 
-const face = (who) => { const r = RESIDENTS[who] || {}; return r.img ? `<img src="${r.img}" alt="">` : `<span>${r.icon || '💬'}</span>`; };
+const face = (who) => { const r = RESIDENTS[who] || {}; const pc = Object.values(store.get('party') || {}).find((x) => x?.nickname === who); const ff = pc && formFace(pc); if (ff) return `<img src="${ff}" alt="">`; return r.img ? `<img src="${r.img}" alt="">` : `<span>${r.icon || '💬'}</span>`; };
 const ago = (t) => { const m = Math.round((Date.now() - t) / 60e3); return m < 1 ? 'just now' : m < 60 ? `${m}m ago` : m < 1440 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`; };
 
 // The newest few lines for the home page (it refreshes live with the table)

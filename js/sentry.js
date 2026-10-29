@@ -1,15 +1,15 @@
 // Sentry Duty (from Explorers of Time/Sky): stand watch at the Woodland Base gate with Diglett and name each visitor
 // from their footprint. A daily guild chore every character is expected to do, not a gamble: an okay shift is just
 // doing your duty, a great shift pays Poké and can turn up a rare item. One shift per character per day.
-import * as store from './store.js?v=6ae36fb7';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae36fb7';
-import { me, logRoll } from './play.js?v=6ae36fb7';
-import { dailyRoll } from './weather.js?v=6ae36fb7';
-import { gameSay } from './chatter.js?v=6ae36fb7';
-import { markWinner } from './sparkle.js?v=6ae36fb7';
-import * as sheet from './sheetdata.js?v=6ae36fb7';
-import { portraitFile } from './ui.js?v=6ae36fb7';
-import { pageMusic } from './chiptune.js?v=6ae36fb7';
+import * as store from './store.js?v=6ae370a9';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae370a9';
+import { me, logRoll } from './play.js?v=6ae370a9';
+import { dailyRoll } from './weather.js?v=6ae370a9';
+import { gameSay } from './chatter.js?v=6ae370a9';
+import { markWinner } from './sparkle.js?v=6ae370a9';
+import * as sheet from './sheetdata.js?v=6ae370a9';
+import { portraitFile } from './ui.js?v=6ae370a9';
+import { pageMusic } from './chiptune.js?v=6ae370a9';
 
 export const isSentry = (g) => g.kind === 'sentry' || g.id === 'sentry-duty';
 
@@ -28,11 +28,11 @@ const moodOf = (grade) => (GRADES.find((x) => x[1] === grade) || [])[5] || 'wait
 // Faces (her ask 10-27): Explorers-style emotion portraits from PMDCollab, assets/portraits/emo/<species>/<Emotion>.png.
 // Diglett reacts to every footprint; each character's face shows how their shift went.
 const FULL = ['Normal', 'Happy', 'Joyous', 'Inspired', 'Determined', 'Sad', 'Teary-Eyed', 'Sigh', 'Worried', 'Surprised', 'Dizzy', 'Stunned', 'Pain', 'Angry', 'Shouting'];
-const EMO = { spinda: FULL, ralts: FULL, diglett: FULL, sudowoodo: FULL, swablu: FULL, magnemite: FULL, cleffa: FULL, golett: FULL, tinkatink: FULL, jangmoo: FULL, slakoth: ['Normal', 'Happy', 'Inspired', 'Sad', 'Sigh'], cottonee: ['Normal'], cottoneeshiny: ['Normal'] };
+const EMO = { spinda: FULL, ralts: FULL, diglett: FULL, sudowoodo: FULL, swablu: FULL, magnemite: FULL, cleffa: FULL, golett: FULL, tinkatink: FULL, jangmoo: FULL, slakoth: ['Normal', 'Happy', 'Inspired', 'Sad', 'Sigh'], cottonee: ['Normal'], cottoneeshiny: ['Normal'], squirtle: FULL };
 const MOODS = { great: ['Joyous', 'Inspired', 'Happy'], good: ['Happy', 'Joyous'], duty: ['Determined', 'Normal'], sloppy: ['Sad', 'Teary-Eyed', 'Sigh', 'Worried'],
   hit: ['Happy', 'Joyous'], miss: ['Surprised', 'Worried', 'Sad'], slow: ['Dizzy', 'Stunned', 'Sigh'], wait: ['Normal'] };
 const DIG = { great: ['Inspired', 'Joyous'], good: ['Happy'], duty: ['Normal'], sloppy: ['Sigh', 'Sad'], hit: ['Joyous', 'Happy'], miss: ['Shouting', 'Angry'], slow: ['Teary-Eyed', 'Sad'], wait: ['Normal'] };
-export const spKey = (c) => { const k = String(c?.species || c?.pokemon || '').toLowerCase().replace(/[^a-z]/g, ''); return c?.shiny && EMO[k + 'shiny'] ? k + 'shiny' : k; };
+export const spKey = (c) => { if (c?.form && EMO[c.form]) return c.form; const k = String(c?.species || c?.pokemon || '').toLowerCase().replace(/[^a-z]/g, ''); return c?.shiny && EMO[k + 'shiny'] ? k + 'shiny' : k; };
 export function faceSrc(sp, mood, moods = MOODS) {
   const have = EMO[sp]; if (!have) return portraitFile(sp);
   return `assets/portraits/emo/${sp}/${(moods[mood] || []).find((e) => have.includes(e)) || 'Normal'}.png`;
