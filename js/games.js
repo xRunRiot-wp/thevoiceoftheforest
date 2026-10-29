@@ -1,25 +1,26 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6ae389e1';
-import * as store from './store.js?v=6ae389e1';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae389e1';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae389e1';
-import { modal, portrait } from './ui.js?v=6ae389e1';
-import * as sheet from './sheetdata.js?v=6ae389e1';
-import { shop } from './guild.js?v=6ae389e1';
-import { merged, editContent } from './content-store.js?v=6ae389e1';
-import { logRoll, me, addTeamFx } from './play.js?v=6ae389e1';
-import { luckyReaction, gmTodo } from './chatter.js?v=6ae389e1';
-import { ranks } from './rulebook.js?v=6ae389e1';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae389e1';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae389e1';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae389e1';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae389e1';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae389e1';
-import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6ae389e1';
-import { isTruck, renderTruck, truckMini } from './truck.js?v=6ae389e1';
-import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6ae389e1';
-import { isBattle, renderBattle, battleMini } from './battle.js?v=6ae389e1';
+import { markWinner } from './sparkle.js?v=6ae38afb';
+import * as store from './store.js?v=6ae38afb';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae38afb';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae38afb';
+import { modal, portrait } from './ui.js?v=6ae38afb';
+import * as sheet from './sheetdata.js?v=6ae38afb';
+import { shop } from './guild.js?v=6ae38afb';
+import { merged, editContent } from './content-store.js?v=6ae38afb';
+import { logRoll, me, addTeamFx } from './play.js?v=6ae38afb';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ae38afb';
+import { ranks } from './rulebook.js?v=6ae38afb';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae38afb';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae38afb';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae38afb';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae38afb';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae38afb';
+import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6ae38afb';
+import { isTruck, renderTruck, truckMini } from './truck.js?v=6ae38afb';
+import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6ae38afb';
+import { isBattle, renderBattle, battleMini } from './battle.js?v=6ae38afb';
+import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6ae38afb';
 
 export const GAMES = [
   {
@@ -31,6 +32,11 @@ export const GAMES = [
     id: 'noctowl-21', kind: 'cards21', group: 'Gambling Games', name: 'Noctowl’s 21', host: 'Noctowl',
     intro: 'When the lanterns go up, Noctowl deals cards under the old oak. Sit in for 10 Poké, bet against your friends and the owl himself, and get as close to 21 as you dare without going over.',
     cost: '10 Poké', slices: [],
+  },
+  {
+    id: 'boltund-ball-lab', kind: 'balllab', group: 'Skill Games', name: 'Boltund’s Ball Lab', host: 'Dr. Boltund',
+    intro: 'Dr. Boltund runs the guild’s lab in a lab coat and at top speed, and the spare Poké Balls always end up in a wobbly heap. Tap groups of matching balls to pop them, let the rest tumble down, and try to clear the whole pile. Bigger groups score way more!',
+    cost: '', slices: [],
   },
   {
     id: 'machamp-wagon', kind: 'truck', group: 'Skill Games', name: 'Supply Wagon with Machamp', host: 'Machamp',
@@ -225,11 +231,11 @@ export function renderGames(main, [arg, sub]) {
   if (!arg) {
     // her ask 10-27: Chores (daily guild jobs) and Gambling Games in their own sections; the GM picks a game's section in Edit
     const card = (g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''} ${(isSentry(g) && sentryDue()) || (isDance(g) && danceDue()) || (isKitchen(g) && kitchenDue()) || (isNursery(g) && nurseryDue()) ? 'due' : ''}" href="#/games/${esc(g.id)}">${isCards21(g) && c21Live() ? '<span class="live-badge">🔴 Hand in play · tap to watch</span>' : ''}${isSentry(g) && sentryDue() ? '<span class="due-ribbon">⚠️ Today’s shift not done yet!</span>' : isDance(g) && danceDue() ? '<span class="due-ribbon dance">⚠️ Today’s practice not done yet!</span>' : isKitchen(g) && kitchenDue() ? '<span class="due-ribbon stew">⚠️ Today’s stew not made yet!</span>' : isNursery(g) && nurseryDue() ? '<span class="due-ribbon nursery">⚠️ Your buddy needs care today!</span>' : ''}
-        ${isBattle(g) ? battleMini() : isSentry(g) ? sentryMini() : isDance(g) ? danceMini() : isKitchen(g) ? kitchenMini() : isTruck(g) ? truckMini() : isCards21(g) ? cards21Mini() : isMailRun(g) ? mailRunMini() : isNursery(g) ? '<div class="nursery-mini"><img class="egg" src="assets/nursery/egg.png" alt=""></div>' : isFortune(g) ? fortuneMini() : `<canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>`}
+        ${isBattle(g) ? battleMini() : isBallLab(g) ? ballLabMini() : isSentry(g) ? sentryMini() : isDance(g) ? danceMini() : isKitchen(g) ? kitchenMini() : isTruck(g) ? truckMini() : isCards21(g) ? cards21Mini() : isMailRun(g) ? mailRunMini() : isNursery(g) ? '<div class="nursery-mini"><img class="egg" src="assets/nursery/egg.png" alt=""></div>' : isFortune(g) ? fortuneMini() : `<canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>`}
         <div class="gc-text"><h3>${esc(g.name)}</h3>
           <p class="gc-host">${esc(g.host ? (g.only ? '' : 'Run by ') + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}${g.only ? ` · <b>${esc(g.only)} only</b>` : ''}${g.special && g.twists.length ? ` · <b>✨ ${esc(g.special)} twists</b>` : ''}</p>
           <p class="gc-intro">${esc((g.intro || '').split('. ')[0].replace(/\.$/, ''))}.</p>
-          <span class="gc-play">${isBattle(g) ? 'Pick a fight →' : isSentry(g) ? 'Take your shift →' : isDance(g) ? 'Dance with Ralts →' : isKitchen(g) ? 'Start cooking →' : isNursery(g) ? 'Visit your buddy →' : isMailRun(g) ? 'Fly the mail →' : isTruck(g) ? 'Start unloading →' : isCards21(g) ? 'Take a seat →' : isFortune(g) ? 'Draw a card →' : 'Spin the wheel →'}</span></div></a>`;
+          <span class="gc-play">${isBattle(g) ? 'Pick a fight →' : isBallLab(g) ? 'Start sorting →' : isSentry(g) ? 'Take your shift →' : isDance(g) ? 'Dance with Ralts →' : isKitchen(g) ? 'Start cooking →' : isNursery(g) ? 'Visit your buddy →' : isMailRun(g) ? 'Fly the mail →' : isTruck(g) ? 'Start unloading →' : isCards21(g) ? 'Take a seat →' : isFortune(g) ? 'Draw a card →' : 'Spin the wheel →'}</span></div></a>`;
     const chores = list.filter((g) => sectionOf(g) === 'Chores'); const skill = list.filter((g) => sectionOf(g) === 'Skill Games'); const gambling = list.filter((g) => sectionOf(g) === 'Gambling Games'); const battles = list.filter((g) => sectionOf(g) === 'Battles');
     main.innerHTML = `<div class="hero"><img class="hdr" src="assets/banners/items_orbs.jpg" alt=""></div>
       <div class="row" style="justify-content:space-between;margin-top:12px"><h1 style="margin:0">Games</h1>${gm ? '<button class="btn alt sm" id="add">+ Game</button>' : ''}</div>
@@ -247,6 +253,7 @@ export function renderGames(main, [arg, sub]) {
   if (!g) { main.innerHTML = '<p>That game is gone. <a href="#/games">Back</a></p>'; return; }
   // Castform's weather fortune table: cards instead of a wheel
   if (isBattle(g)) { renderBattle(main, g, sub); return; }
+  if (isBallLab(g)) { renderBallLab(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }
   if (isCards21(g)) { renderCards21(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }
   if (isTruck(g)) { renderTruck(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }
   if (isMailRun(g)) { renderMailRun(main, g, gm, () => editContent('games', GAME_SCHEMA, forEdit(g), { title: 'Edit ' + g.name, onSave: () => renderGames(main, [arg]) })); return; }
