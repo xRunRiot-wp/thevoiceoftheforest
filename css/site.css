@@ -2258,3 +2258,10 @@ a.ch-chip:hover { background: var(--navy); }
 .tour-dots i.on { opacity: 1; }
 .tour-nav { justify-content: center; gap: 10px; margin-top: 14px; }
 .tour-skip { opacity: .8; }
+/* Nursery: drag the toy and let go to throw it */
+.ball-wrap.throwable { cursor: grab; touch-action: none; z-index: 6; padding: 6px; margin: -6px; }
+.ball-wrap.throwable.held { cursor: grabbing; scale: 1.15; }
+.ball-wrap.rest .prop.ball, .ball-wrap.held .prop.ball { animation: none; }
+.toy-hint { position: absolute; top: 8px; left: 50%; translate: -50% 0; z-index: 6; white-space: nowrap; font: 700 12px var(--pix); background: rgba(255, 250, 240, .92); color: #3a2c1a; border: 2px solid #3a2c1a; border-radius: 8px; padding: 2px 8px; pointer-events: none; animation: fx-float-hint 1.6s ease-in-out infinite alternate; }
+@keyframes fx-float-hint { to { translate: -50% 4px; } }
+.ball-wrap.throwable img, .ball-wrap.throwable .prop { -webkit-user-drag: none; user-select: none; pointer-events: none; }

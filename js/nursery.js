@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae3c8eb';
-import { $, $$, esc, toast, num } from './util.js?v=6ae3c8eb';
-import { me, logRoll } from './play.js?v=6ae3c8eb';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3c8eb';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3c8eb';
-import { markWinner } from './sparkle.js?v=6ae3c8eb';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae3c8eb';
-import { modal, closeModal } from './ui.js?v=6ae3c8eb';
+import * as store from './store.js?v=6ae3ca00';
+import { $, $$, esc, toast, num } from './util.js?v=6ae3ca00';
+import { me, logRoll } from './play.js?v=6ae3ca00';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3ca00';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3ca00';
+import { markWinner } from './sparkle.js?v=6ae3ca00';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae3ca00';
+import { modal, closeModal } from './ui.js?v=6ae3ca00';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -238,14 +238,62 @@ function startPet(root, b, scene, ownerId) {
       row('eat', true); $('.prop', props)?.classList.add('eaten'); fx('😋'); await wait(900); fx('💕', 10); await wait(1300);
       props.innerHTML = ''; row('hop', false); await wait(700); row('idle');
     },
+    // her ask 10-29: drag the toy and let go to throw it; the baby runs after it. Nobody throws for a while = it plays by itself.
     async play() {
-      props.innerHTML = `<span class="ball-wrap">${toyHTML(b)}</span>`;
+      props.innerHTML = `<span class="ball-wrap throwable rest">${toyHTML(b)}</span>`;
       const ball = $('.ball-wrap', props);
-      for (let i = 0; i < 3 && alive(); i++) {
-        const tx = i % 2 ? 20 : maxX(); ball.style.left = (tx + pw / 2 - 18) + 'px';
-        await wait(150); await walkTo(tx); row('hop', false); fx(i === 2 ? '💕' : '♪'); await wait(650);
+      const W = () => roomEl.clientWidth - 36; const H = () => roomEl.clientHeight - 40;
+      const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+      let bx = x + pw / 2 - 18; let by = 28;
+      const place = () => { ball.style.left = bx + 'px'; ball.style.bottom = by + 'px'; };
+      ball.style.transition = 'none'; place();
+      roomEl.insertAdjacentHTML('beforeend', '<div class="toy-hint">👆 Drag the toy and let go to throw it!</div>');
+      const hint = $('.toy-hint', roomEl);
+      const throwIt = () => new Promise((ok) => {
+        let drag = null; let hist = [];
+        const t = setTimeout(() => { if (!drag) ok(null); }, 9000);
+        ball.onpointerdown = (e) => { e.preventDefault(); e.stopPropagation(); clearTimeout(t); drag = { sx: e.clientX, sy: e.clientY, bx, by }; hist = [[e.clientX, e.clientY, performance.now()]]; try { ball.setPointerCapture(e.pointerId); } catch { /* fine */ } ball.classList.add('held'); hint?.remove(); };
+        ball.onpointermove = (e) => {
+          if (!drag) return;
+          bx = clamp(drag.bx + e.clientX - drag.sx, 0, W()); by = clamp(drag.by - (e.clientY - drag.sy), 0, H()); place();
+          hist.push([e.clientX, e.clientY, performance.now()]); if (hist.length > 6) hist.shift();
+        };
+        ball.onpointerup = ball.onpointercancel = () => {
+          if (!drag) return; drag = null; ball.classList.remove('held'); ball.onpointerdown = ball.onpointermove = ball.onpointerup = null;
+          const a = hist[0]; const z = hist[hist.length - 1]; const dt = Math.max(16, z[2] - a[2]);
+          ok({ vx: clamp((z[0] - a[0]) / dt * 16, -38, 38), vy: clamp(-(z[1] - a[1]) / dt * 16, -38, 38) });
+        };
+      });
+      // it flies, bounces off the walls and slows down on the grass
+      const fly = (vx, vy) => new Promise((ok) => {
+        ball.classList.remove('rest'); let spin = 0;
+        const step = () => {
+          if (!alive()) return ok();
+          bx += vx; by += vy; spin += vx * 6;
+          if (bx < 0 || bx > W()) { vx = -vx * 0.7; bx = clamp(bx, 0, W()); }
+          if (by < 0 || by > H()) { vy = -vy * 0.7; by = clamp(by, 0, H()); }
+          vx *= 0.95; vy *= 0.95; place(); ball.firstElementChild.style.rotate = spin + 'deg';
+          if (Math.hypot(vx, vy) > 0.4) requestAnimationFrame(step); else { ball.classList.add('rest'); ok(); }
+        };
+        requestAnimationFrame(step);
+      });
+      const fetchIt = async (last) => {
+        await walkTo(bx - pw / 2 + 18, 120); if (!alive()) return;
+        bx = x + pw / 2 - 18; ball.style.transition = 'left .3s, bottom .3s'; by = 28; place(); await wait(300); ball.style.transition = 'none';
+        row('hop', false); fx(last ? '💕' : '♪'); cry(b, { vol: 0.5 }); await wait(650); row('idle');
+      };
+      for (let i = 0; i < 6 && alive(); i++) {
+        const v = await throwIt(); if (!alive()) break;
+        if (!v) {   // nobody threw it: the baby plays on its own like before
+          hint?.remove(); ball.classList.remove('rest'); ball.style.transition = '';
+          for (let k = 0; k < 3 && alive(); k++) { const tx = k % 2 ? 20 : maxX(); ball.style.left = (tx + pw / 2 - 18) + 'px'; ball.style.bottom = '28px'; await wait(150); await walkTo(tx); row('hop', false); fx(k === 2 ? '💕' : '♪'); await wait(650); }
+          break;
+        }
+        await fly(v.vx, v.vy); if (!alive()) break;
+        await fetchIt(i === 5);
+        if (ownerId) addBond(ownerId, 1);
       }
-      props.innerHTML = ''; row('nod', false); await wait(800); row('idle');
+      hint?.remove(); props.innerHTML = ''; row('nod', false); await wait(800); row('idle');
     },
     async clean() {
       row('idle'); const bub = Array.from({ length: 16 }, (_, i) => `<i style="left:${x - 10 + Math.random() * (pw + 20)}px;animation-delay:${(i * 0.12).toFixed(2)}s;--s:${(0.6 + Math.random() * 0.9).toFixed(2)}"></i>`).join('');
