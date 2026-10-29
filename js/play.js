@@ -1,26 +1,26 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae37625';
-import * as sheet from './sheetdata.js?v=6ae37625';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae37625';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf } from './ui.js?v=6ae37625';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae37625';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae37625';
-import { unlockChar } from './charlock.js?v=6ae37625';
-import { CONFIG } from './config.js?v=6ae37625';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae37625';
-import { merged, editContent } from './content-store.js?v=6ae37625';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae37625';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae37625';
-import { homeHTML } from './sitepages.js?v=6ae37625';
-import { burstSet } from './burst.js?v=6ae37625';
-import { pinsOf, showMap } from './hotbar.js?v=6ae37625';
-import { chatterLatestHTML } from './chatter.js?v=6ae37625';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae37625';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae37625';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae37625';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae37625';
-import { find } from './effects.js?v=6ae37625';
-import * as dice3d from './dice3d.js?v=6ae37625';
+import * as store from './store.js?v=6ae376c8';
+import * as sheet from './sheetdata.js?v=6ae376c8';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae376c8';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae376c8';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae376c8';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae376c8';
+import { unlockChar } from './charlock.js?v=6ae376c8';
+import { CONFIG } from './config.js?v=6ae376c8';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae376c8';
+import { merged, editContent } from './content-store.js?v=6ae376c8';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae376c8';
+import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae376c8';
+import { homeHTML } from './sitepages.js?v=6ae376c8';
+import { burstSet } from './burst.js?v=6ae376c8';
+import { pinsOf, showMap } from './hotbar.js?v=6ae376c8';
+import { chatterLatestHTML } from './chatter.js?v=6ae376c8';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae376c8';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae376c8';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae376c8';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae376c8';
+import { find } from './effects.js?v=6ae376c8';
+import * as dice3d from './dice3d.js?v=6ae376c8';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -55,7 +55,7 @@ function lastWord(c) {
 const MESS_SPOTS = [[14, 47], [38, 47], [62, 47], [86, 47], [14, 85], [38, 85], [62, 85], [86, 85]];   // two rows of benches, spaced so no bubble hides behind a neighbour
 function messSeatsHTML(p) {
   const seat = (c, i) => { const at = MESS_SPOTS[i]; return `<button class="mh-seat${at ? '' : ' extra'}" data-pick="${c.id}" ${at ? `style="--x:${at[0]}%;--y:${at[1]}%"` : ''}><span class="mh-bubble">${lastWord(c)}</span>
-      ${portrait(c, 'sm')}<span class="mh-plate"><b>${esc(c.nickname)}</b><small>${esc(c.pokemon)}${c.rank ? ' · ' + esc(c.rank) : ''}</small></span></button>`; };
+      ${portrait(c, 'sm')}<span class="mh-plate"><b>${esc(c.nickname)}</b><small>${esc(c.pokemon)}${formName(c) ? ` (${esc(formName(c))})` : ''}${c.rank ? ' · ' + esc(c.rank) : ''}</small></span></button>`; };
   return `<div class="mh-pick">
     <div class="mh-pick-head"><h2>Who are you playing?</h2><p>Supper's on after a long day. Pick your seat.</p></div>
     <div class="mh-scene"><img src="assets/banners/messhall.jpg" alt="The guild mess hall"><div class="mh-spots">${p.slice(0, MESS_SPOTS.length).map(seat).join('') || '<p class="mh-empty">The hall is empty. Pull up a chair!</p>'}</div></div>
@@ -347,7 +347,7 @@ const pips = (v, cols) => `<span class="pips">${[1, 2, 3, 4, 5].map((i) => `<i s
 
 // species, nature, rank, instinct and gear as small labelled boxes (label on top, value below); tap one to read its rule
 const factBoxes = (c) => `<div class="facts">${[
-  ['Species', c.pokemon, ''], ['Nature', c.nature, 'Nature (personality)'], ['Rank', c.rank, c.rank ? c.rank + ' Rank' : ''], ['Instinct', c.instinctRank, 'Instinct'],
+  ['Species', c.pokemon, ''], ['Form', formName(c) || null, ''], ['Nature', c.nature, 'Nature (personality)'], ['Rank', c.rank, c.rank ? c.rank + ' Rank' : ''], ['Instinct', c.instinctRank, 'Instinct'],
   ['Held item', c.held || '—', 'Garments'], ['Garment', c.garments || '—', 'Garments'], ['Training Points', num(c.tp), 'Training'],
 ].filter(([, v]) => v !== undefined && v !== null && v !== '').map(([k, v, ix]) => `<${ix ? `a href="#" data-ixname="${esc(ix)}"` : 'div'} class="fact"><span class="fact-k">${k}</span><span class="fact-v">${esc(v)}</span></${ix ? 'a' : 'div'}>`).join('')}</div>`;
 
@@ -843,7 +843,7 @@ function useItem(id, c) {
 export function viewCharacter(id, { mini = false } = {}) {   // mini: a friend's peek (her ask 10-29), no Edit unless GM
   const c = party()[id]; if (!c) return;
   const mx = maxHp(c);
-  modal(`<div class="char-head">${portrait(c)}<div class="grow"><div class="char-name">${esc(c.nickname)}</div><div class="char-sub">${esc(c.pokemon)} · ${esc(c.rank || '')} · ${esc(c.nature || '')}</div>
+  modal(`<div class="char-head">${portrait(c)}<div class="grow"><div class="char-name">${esc(c.nickname)}</div><div class="char-sub">${esc(c.pokemon)}${formName(c) ? ` (${esc(formName(c))})` : ''} · ${esc(c.rank || '')} · ${esc(c.nature || '')}</div>
     <div class="chips" style="margin-top:4px">${typeChip(c.type1)}${typeChip(c.type2)}${c.ability ? `<span class="pill">${esc(c.ability)}</span>` : ''}</div></div></div>
     <div class="meter"><b>HP</b>${bar(c.hp, mx)}<span class="val">${c.hp}/${mx}</span></div>
     <div class="meter"><b>Will</b>${bar(c.willCur, c.will, 'will')}<span class="val">${c.willCur ?? 0}/${c.will}</span></div>

@@ -1,5 +1,5 @@
 // Shared bits of UI: modal sheet, portraits, bars, dice faces.
-import { esc } from './util.js?v=6ae37625';
+import { esc } from './util.js?v=6ae376c8';
 
 const PORTRAITS = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'cottoneeshiny', 'squirtle', 'golettclay', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 
@@ -24,6 +24,8 @@ export const FORM_ART = { golett: { squirtle: 'golettclay' } };
 const formKey = (c) => FORM_ART[String(c?.pokemon || c?.species || '').toLowerCase().replace(/[^a-z]/g, '')]?.[c.form] || c.form;
 export const formsOf = (c) => FORMS[String(c?.pokemon || c?.species || '').toLowerCase().replace(/[^a-z]/g, '')] || [];
 export const formFace = (c) => (c?.form && formsOf(c).some(([k]) => k === c.form) ? portraitFile(formKey(c)) : null);
+// shown next to the species (her ask 10-29): 'Squirtle form' while reshaped
+export const formName = (c) => { const f = c?.form && formsOf(c).find(([k]) => k === c.form); return f ? `${f[1]} form` : ''; };
 export const formArt = (c) => (c?.form && formsOf(c).some(([k]) => k === c.form) ? formKey(c) : null);
 
 export function portrait(c, size = '') {
