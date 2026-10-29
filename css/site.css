@@ -2090,3 +2090,6 @@ a.ch-chip:hover { background: var(--navy); }
 .rainbow { animation: rainbow-hue 3s linear infinite; } @keyframes rainbow-hue { to { filter: hue-rotate(360deg) saturate(1.5); } }
 .prop.toy { display: block; font-size: 30px; line-height: 1; font-style: normal; }
 .n-closet-h { margin: 10px 0 4px; font-size: 16px; }
+
+/* species picture in the Index sheet (her ask 10-29) */
+.ix-pic { float: right; width: 96px; height: 96px; margin: 44px 0 6px 10px; image-rendering: pixelated; border: 3px solid var(--ink); border-radius: 12px; background: #fff; }

@@ -1,10 +1,10 @@
 // The Index: every effect and interaction in the game, searchable, linked from everywhere.
-import * as store from './store.js?v=6ae39455';
-import * as sheet from './sheetdata.js?v=6ae39455';
-import { esc, slug, pool, $, $$ } from './util.js?v=6ae39455';
-import { modal, diceFaces } from './ui.js?v=6ae39455';
-import { merged, editContent } from './content-store.js?v=6ae39455';
-import { ATTRS, SKILLS, SOCIAL } from './content.js?v=6ae39455';
+import * as store from './store.js?v=6ae39528';
+import * as sheet from './sheetdata.js?v=6ae39528';
+import { esc, slug, pool, $, $$ } from './util.js?v=6ae39528';
+import { modal, diceFaces } from './ui.js?v=6ae39528';
+import { merged, editContent } from './content-store.js?v=6ae39528';
+import { ATTRS, SKILLS, SOCIAL } from './content.js?v=6ae39528';
 
 export const INDEX_SCHEMA = [['name', 'Name'], ['kind', 'Kind'], ['aka', 'Also called', 'list'], ['trigger', 'When it happens', 'area'], ['roll', 'Roll', 'area'],
   ['outcome', 'What it does', 'area'], ['duration', 'How long', 'area'], ['removal', 'How it ends / is removed', 'area'], ['links', 'Related entries', 'list'], ['source', 'Source']];
@@ -106,7 +106,10 @@ export async function openEntry(idOrName, { gm = false } = {}) {
   const me = getMe();
   const chains = me ? [...new Set([...rollChains(e.roll), ...(STATWORDS.includes(e.name) ? [e.name] : [])])] : [];
   const row = (label, v) => (v ? `<h4 style="margin:10px 0 2px">${label}</h4><p style="margin:0">${linkify(v, ix, e.name)}</p>` : '');
-  const el = modal(`<h2>${esc(e.name)}</h2>
+  // species picture (her ask 10-29): the Explorers-style portrait from SpriteCollab by dex number; hidden if there isn't one
+  const dex = e.kind === 'Species' && (String(e.aka || '').match(/#(\d+)/) || [])[1];
+  const pic = dex ? `<img class="ix-pic" src="https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/portrait/${dex.padStart(4, '0')}/Normal.png" alt="${esc(e.name)}" onerror="this.remove()">` : '';
+  const el = modal(`${pic}<h2>${esc(e.name)}</h2>
     <div class="chips"><span class="pill">${esc(e.kind || '')}</span>${(e.aka || []).map((a) => `<span class="pill" style="opacity:.75">${esc(a)}</span>`).join('')}</div>
     ${row('What it does', e.outcome)}${row('When it happens', e.trigger)}${row('Roll', e.roll)}${row('How long', e.duration)}${row('How it ends / is removed', e.removal)}${e.evo ? row('Evolution', e.evo) : ''}${e.learn ? `<h4 style="margin:10px 0 2px">Moves by rank</h4>${e.learn.split(' | ').map((l) => { const [r, ms] = l.split(': '); return `<p class="small" style="margin:0 0 4px"><b>${esc(r)}:</b> ${(ms || '').split(', ').map((m) => (ix.byName.get(m.toLowerCase()) ? `<a href="#" class="ix" data-ixname="${esc(m)}">${esc(m)}</a>` : esc(m))).join(', ')}</p>`; }).join('')}` : ''}
     ${chains.length ? `<div class="row" style="margin-top:12px">${chains.map((c, i) => `<button class="btn" data-chain="${i}">Roll ${esc(c)}</button>`).join('')}</div><div class="result" id="ix-res"></div>` : ''}

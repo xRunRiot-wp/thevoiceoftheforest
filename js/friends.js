@@ -2,12 +2,12 @@
 // friends, see who's on the site right now (and where), and invite them to a game like Noctowl's 21.
 // online/<id> = { t, at } (each open device refreshes it every 2 minutes); party/<id>/friends = [ids];
 // invites/<id>/<inviteId> = { from, fromId, game, name, t } (shown once as a pop-up on the friend's device, then removed).
-import * as store from './store.js?v=6ae39455';
-import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae39455';
-import { sendFx, startLetterWatch } from './letterfx.js?v=6ae39455';
-import { giftNote, writeMail } from './mailbox.js?v=6ae39455';
-import { playingNow, openWatch } from './watch.js?v=6ae39455';
-import { modal, closeModal, portrait } from './ui.js?v=6ae39455';
+import * as store from './store.js?v=6ae39528';
+import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae39528';
+import { sendFx, startLetterWatch } from './letterfx.js?v=6ae39528';
+import { giftNote, writeMail } from './mailbox.js?v=6ae39528';
+import { playingNow, openWatch } from './watch.js?v=6ae39528';
+import { modal, closeModal, portrait } from './ui.js?v=6ae39528';
 
 const ONLINE_FOR = 5 * 60e3; const BEAT = 2 * 60e3;
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -77,12 +77,12 @@ export function openFriends() {
     $$('[data-unfr]', box).forEach((b) => b.onclick = () => { store.set(`party/${me.id}/friends`, mine.filter((id) => id !== b.dataset.unfr)); draw(box); });
     $$('[data-watch]', box).forEach((a) => a.onclick = () => closeModal());
     // her ask 10-29: tap a portrait for a mini look at their character
-    $$('[data-peek]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => import('./play.js?v=6ae39455').then((m) => m.viewCharacter(b.dataset.peek, { mini: true })), 50); });
+    $$('[data-peek]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => import('./play.js?v=6ae39528').then((m) => m.viewCharacter(b.dataset.peek, { mini: true })), 50); });
     // her ask 10-29: a mail button to send just a letter
     $$('[data-mail]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => writeMail(me, b.dataset.mail), 50); });
     $$('[data-send]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openSend(b.dataset.send), 50); });
     // her ask 10-29: battle a friend like the main Pokémon games
-    $$('[data-bt]', box).forEach((b) => b.onclick = () => { closeModal(); import('./battle.js?v=6ae39455').then((m) => m.challenge(b.dataset.bt)); });
+    $$('[data-bt]', box).forEach((b) => b.onclick = () => { closeModal(); import('./battle.js?v=6ae39528').then((m) => m.challenge(b.dataset.bt)); });
     $$('[data-watchp]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openWatch(b.dataset.watchp), 50); });
     $$('[data-inv]', box).forEach((b) => b.onclick = () => {
       const to = party()[b.dataset.inv];
