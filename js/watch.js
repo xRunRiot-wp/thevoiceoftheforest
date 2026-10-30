@@ -3,10 +3,10 @@
 // watching/<player>/<watcher> (refreshed every 30 s) and only then does the player's device stream: canvas games send a small
 // picture ~6 times a second, the dance sends its board. The stream goes to a side table (tables/<code>-live/<id>) so it never
 // wakes up everyone else's pages.
-import { CONFIG } from './config.js?v=6ae3e326';
-import * as store from './store.js?v=6ae3e326';
-import { $, esc, num } from './util.js?v=6ae3e326';
-import { modal, closeModal } from './ui.js?v=6ae3e326';
+import { CONFIG } from './config.js?v=6ae3efa5';
+import * as store from './store.js?v=6ae3efa5';
+import { $, esc, num } from './util.js?v=6ae3efa5';
+import { modal, closeModal } from './ui.js?v=6ae3efa5';
 
 const FRESH = 90e3; const FRAME_MS = 160;
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -15,8 +15,29 @@ const party = () => store.get('party') || {};
 export const playingNow = (id) => { const p = store.get('playing/' + id); return p && Date.now() - num(p.t) < FRESH ? p : null; };
 const watchersOf = (id) => Object.entries(store.get('watching/' + id) || {}).filter(([w, t]) => t && Date.now() - num(t) < FRESH && party()[w]).map(([w]) => party()[w].nickname);
 
+// a page's HTML with each canvas swapped for a small picture of it, so wheels and boards show up for watchers too
+function snapshot(el) {
+  const cvs = el.querySelectorAll('canvas'); if (!cvs.length && !el.querySelector('.watch-badge')) return el.outerHTML;
+  const copy = el.cloneNode(true); copy.querySelectorAll('.watch-badge').forEach((b) => b.remove());
+  copy.querySelectorAll('canvas').forEach((c, i) => {
+    const src = cvs[i]; let d = '';
+    try { const s = document.createElement('canvas'); const w = Math.min(360, src.width || 1); s.width = w; s.height = Math.round(w * src.height / (src.width || 1)); s.getContext('2d').drawImage(src, 0, 0, s.width, s.height); d = s.toDataURL('image/jpeg', 0.6); } catch { /* tainted canvas: leave it blank */ }
+    const img = document.createElement('img'); img.src = d; img.className = c.className; img.style.cssText = c.style.cssText + ';max-width:100%;height:auto'; img.width = src.clientWidth || src.width; c.replaceWith(img);
+  });
+  return copy.outerHTML;
+}
+
+// every game page (her ask 10-29: "allow friends to watch all games"): streams while the player is on that game's page.
+// Games that stream their own runs (dance, mail run, wagon) don't call this.
+let pageStop = null;
+export function watchGamePage(gameId, gameName, main) {
+  pageStop?.(); const hash = location.hash;
+  pageStop = startBroadcast(gameId, gameName, { el: main, box: main, alive: () => location.hash === hash });
+}
+export const stopGamePage = () => { pageStop?.(); pageStop = null; };
+
 // player side: call when a run starts; returns stop()
-export function startBroadcast(gameId, gameName, { canvas, el, box }) {
+export function startBroadcast(gameId, gameName, { canvas, el, box, alive }) {
   const id = meId(); if (!id || !CONFIG.firebaseDbUrl) return () => {};
   let stopped = false; let busy = false; let lastHTML = ''; let tick = 0; let lastBeat = 0;
   const badge = document.createElement('div'); badge.className = 'watch-badge'; badge.hidden = true; box?.prepend(badge);
@@ -27,13 +48,14 @@ export function startBroadcast(gameId, gameName, { canvas, el, box }) {
   const send = (body) => { busy = true; fetch(liveUrl(id), { method: 'PUT', body: JSON.stringify(body) }).catch(() => {}).finally(() => { busy = false; }); };
   const loop = () => {
     if (stopped) return;
-    if (box && !box.isConnected) { stop(); return; }
+    if ((box && !box.isConnected) || (alive && !alive())) { stop(); return; }
     if (Date.now() - lastBeat > 30e3) beat();
     const who = watchersOf(id);
+    if (box && who.length && !badge.isConnected) box.prepend(badge);   // the page redrew itself
     badge.hidden = !who.length; if (who.length) badge.textContent = `👀 Watching you: ${who.join(', ')}`;
     if (who.length && !busy) {
       if (canvas) { const q = shrink.getContext('2d'); q.drawImage(canvas, 0, 0, shrink.width, shrink.height); send({ g: gameId, name: gameName, t: Date.now(), kind: 'img', d: shrink.toDataURL('image/jpeg', 0.6) }); }
-      else if (el) { const h = el.outerHTML; if (h !== lastHTML || ++tick % 20 === 0) { lastHTML = h; send({ g: gameId, name: gameName, t: Date.now(), kind: 'html', d: h }); } }
+      else if (el) { const h = snapshot(el); if (h !== lastHTML || ++tick % 20 === 0) { lastHTML = h; send({ g: gameId, name: gameName, t: Date.now(), kind: 'html', d: h }); } }
     }
     setTimeout(loop, FRAME_MS);
   };
