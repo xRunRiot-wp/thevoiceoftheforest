@@ -1202,15 +1202,13 @@ body[data-sheetonly] .mv-act { margin-top: 14px; }
 .digcur.diglett.act { animation: dig-down 3.4s steps(1) forwards; }
 .digcur.pokeball { width: 32px; height: 32px; margin: 6px 0 0 8px; background: url('../assets/ui/pokeball_cursor.png') 0 0 / 64px 32px no-repeat; }
 .digcur.pokeball::after { content: ''; position: absolute; inset: 0; background: inherit; background-position-x: -32px; opacity: 0; }
-.digcur.pokeball.act { animation: pb-wobble 2.6s ease-in-out forwards; transform-origin: 50% 100%; }
-.digcur.pokeball.act::after { animation: pb-click 2.6s steps(1) forwards; }
+.digcur.pokeball.act { animation: pb-wobble 4.8s ease-in-out forwards; transform-origin: 50% 100%; }   /* her ask 10-29: just a slow, gentle rock now and then */
 /* Time Gear (reward cursor): turns slowly with a soft cyan glow; now and then it spins up fast */
 .digcur.timegear { width: 32px; height: 32px; margin: 6px 0 0 8px; background: url('../assets/ui/timegear_cursor.png') 0 0 / 128px 32px no-repeat; filter: drop-shadow(0 0 4px rgba(95, 242, 255, .8)); animation: tg-turn .9s steps(4) infinite; }
 .digcur.timegear.act { animation: tg-turn .18s steps(4) 12; }
 @keyframes tg-turn { to { background-position-x: -128px; } }
 @keyframes dig-idle { 0% { background-position-x: 0; } 50% { background-position-x: -48px; } }
-@keyframes pb-wobble { 0%, 100% { rotate: 0deg; } 8% { rotate: -22deg; } 18% { rotate: 18deg; } 28% { rotate: 0deg; } 42% { rotate: -16deg; } 52% { rotate: 12deg; } 62% { rotate: 0deg; } 72% { rotate: -10deg; } 80% { rotate: 0deg; } }
-@keyframes pb-click { 0%, 84% { opacity: 0; } 86%, 92% { opacity: 1; } 89% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes pb-wobble { 0%, 100% { rotate: 0deg; } 25% { rotate: -9deg; } 50% { rotate: 0deg; } 75% { rotate: 9deg; } }
 @keyframes dig-down { 0% { background-position-x: -96px; } 4% { background-position-x: -144px; } 8% { background-position-x: -192px; } 12% { background-position-x: -240px; }
   70% { background-position-x: -192px; } 74% { background-position-x: -144px; } 78% { background-position-x: -96px; } 82%, 100% { background-position-x: 0; } }
 @media (prefers-reduced-motion: reduce) { .digcur, .digcur.act, .digcur.act::after { animation: none !important; } }
@@ -1242,7 +1240,7 @@ a.ch-chip:hover { background: var(--navy); }
 .ch-quote { font-size: 17px; line-height: 1.5; margin: 0 6px 10px; }
 .ch-meta { margin: 6px 0; font-size: 14px; color: var(--muted); }
 .ch-meta a { color: inherit; }
-.ch-wide { display: grid; grid-template-columns: 1fr 1.6fr; gap: 20px; align-items: center; margin-bottom: 10px; }
+.ch-wide { display: grid; grid-template-columns: 1fr 1.6fr; gap: 20px; align-items: center; grid-column: span 2; }
 .ch-wide .ch-medal { aspect-ratio: 4 / 3; }
 @media (max-width: 760px) {
   .ch-grid.ch4, .ch-grid.ch3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2058,10 +2056,18 @@ a.ch-chip:hover { background: var(--navy); }
 .walk-spot { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border: 3px solid #3a2c1a; border-radius: 12px; background: rgba(255, 250, 240, .92); font: 700 13px var(--pix); color: #3a2c1a; cursor: var(--cur-link, pointer); }
 .walk-spot.on { background: #fff3b0; border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange-l); }
 .walk-n { position: absolute; top: -10px; right: -8px; width: 24px; height: 24px; border-radius: 50%; background: var(--orange); color: #fff; display: grid; place-items: center; font-size: 14px; }
-.walk-scene { position: relative; height: 240px; border-radius: 14px; overflow: hidden; background: linear-gradient(#8fd0f5, #d4effa 45%, transparent 45%); }
+.walk-scene { position: relative; height: 240px; border-radius: 14px; overflow: hidden; }
+.walk-scene .n-sky { height: 46%; -webkit-mask: none; mask: none; }   /* her ask 10-29: the nursery's sky (time of day + clouds) and its weather */
+.walk-scene .wxfx { z-index: 1; }
+/* the sky takes on the weather too (her ask 10-29): grey for clouds, rain, fog, hail; dark storm for typhoons; dusty for sand; brighter in the sun */
+:has(> .wxfx-cloudy) > .n-sky, :has(> .wxfx-fog) > .n-sky { filter: grayscale(.55) brightness(.92); }
+:has(> .wxfx-rain) > .n-sky, :has(> .wxfx-hail) > .n-sky { filter: grayscale(.75) brightness(.78); }
+:has(> .wxfx-typhoon) > .n-sky { filter: grayscale(.85) brightness(.55) contrast(1.1); }
+:has(> .wxfx-sandstorm) > .n-sky { filter: sepia(.8) saturate(1.3) brightness(.9); }
+:has(> .wxfx-sunny) > .n-sky, :has(> .wxfx-harsh) > .n-sky { filter: saturate(1.25) brightness(1.08); }
 .walk-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 58%; background: url('../assets/nursery/grass.png') 0 0 / 72px 72px repeat; image-rendering: pixelated; box-shadow: inset 0 8px 14px rgba(30, 60, 0, .35); }
 .walk-scene.moving .walk-ground { animation: walk-scroll 1.2s linear infinite; } @keyframes walk-scroll { to { background-position-x: -72px; } }
-.walk-scene.tod-night { filter: brightness(.7) saturate(.8); } .walk-scene.tod-dusk { filter: sepia(.25) saturate(1.1); }
+.walk-scene.tod-night .walk-ground { filter: brightness(.7) saturate(.8); } .walk-scene.tod-dusk .walk-ground { filter: sepia(.25) saturate(1.1); }
 .walk-pet { position: absolute; left: 22%; z-index: 2; } .walk-pet .baby-spr { margin: 0; }
 .walk-sign { position: absolute; top: 14px; right: -60%; z-index: 3; padding: 6px 12px; border: 3px solid #3a2c1a; border-radius: 10px; background: #fffaf0; font: 700 16px var(--pix); color: #3a2c1a; transition: right .6s ease; white-space: nowrap; }
 .walk-sign.show { right: 12px; }

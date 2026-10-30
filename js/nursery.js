@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae3de11';
-import { $, $$, esc, toast, num } from './util.js?v=6ae3de11';
-import { me, logRoll } from './play.js?v=6ae3de11';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3de11';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3de11';
-import { markWinner } from './sparkle.js?v=6ae3de11';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae3de11';
-import { modal, closeModal } from './ui.js?v=6ae3de11';
+import * as store from './store.js?v=6ae3e326';
+import { $, $$, esc, toast, num } from './util.js?v=6ae3e326';
+import { me, logRoll } from './play.js?v=6ae3e326';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae3e326';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae3e326';
+import { markWinner } from './sparkle.js?v=6ae3e326';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae3e326';
+import { modal, closeModal } from './ui.js?v=6ae3e326';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -30,7 +30,8 @@ const LABEL = { warm: ['🔥', 'Warmth', 'Keep warm'], feed: ['🍼', 'Food', 'F
 // the player's own local date and hour (her ask: match the user's time)
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const asleep = (h = new Date().getHours()) => h >= 21 || h < 6;
-const tod = (h = new Date().getHours()) => (asleep(h) ? 'night' : h < 8 ? 'dawn' : h < 17 ? 'day' : 'dusk');
+// the sky: night from 7:30pm (her ask 10-29), even though buddies stay up until 9
+const tod = (d = new Date()) => { const m = d.getHours() * 60 + d.getMinutes(); return m >= 19 * 60 + 30 || m < 6 * 60 ? 'night' : m < 8 * 60 ? 'dawn' : m < 17 * 60 ? 'day' : 'dusk'; };
 // harsh weather: [icon, stat name, button, what Beatrice says, what the buddy wants]. Azurill loves rain, Magby loves the sun.
 const COVER = {
   sunny: ['⛱️', 'Shade', 'Umbrella', 'It’s so hot out!', 'an umbrella for some shade'], harsh: ['⛱️', 'Shade', 'Umbrella', 'It’s scorching out there!', 'an umbrella for some shade'],
@@ -576,7 +577,7 @@ function walkPlan(c, box) {
 async function walkGo(c, box, stops) {
   const b = buddyOf(c.id); const B = BABIES[b.sp]; if (!B) return room(c, box);
   const S = Math.min(SIZE[b.stage] || 3, 2.6); const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
-  box.innerHTML = `<div class="walk"><div class="walk-scene tod-${tod()}"><div class="walk-ground"></div><div class="walk-sign" id="wsign"></div>
+  box.innerHTML = `<div class="walk"><div class="walk-scene tod-${tod()}"><div class="n-sky" aria-hidden="true"><i></i><i></i><i></i></div><div class="walk-ground"></div>${wxFxHTML(wx().key)}<div class="walk-sign" id="wsign"></div>
       <div class="walk-pet" id="wpet" style="width:${pw}px;bottom:${Math.round(40 - ph / 2)}px"><span class="baby-spr" style="width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${pw * 10}px ${ph * 7}px">${accHTML(b, pw, ph)}</span></div>
       <div class="walk-gift" id="wgift"></div><div class="walk-host" id="whost"></div></div><div class="walk-text" id="wtext"></div></div>`;
   const scene = $('.walk-scene', box); const spr = $('.baby-spr', box); const text = $('#wtext', box); const sign = $('#wsign', box); const gift = $('#wgift', box);
@@ -586,7 +587,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6ae3de11').catch(() => null);
+  const fz = import('./fzscene.js?v=6ae3e326').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);

@@ -1,6 +1,6 @@
 // The site's cursor (chosen in Settings, per device): 'diglett' (default), 'pokeball' or 'regular' (the computer's own).
 // Diglett / Poké Ball = a pixel arrow (css) with a little buddy following just under it. Diglett idles with its two
-// game frames and ducks into its hole every 12-25 s; the Poké Ball wobbles like a capture and flashes its button.
+// game frames and ducks into its hole every 12-25 s; the Poké Ball slowly rocks side to side now and then.
 // Mouse only; phones and touch screens never see it.
 // Reward cursors (her ask 10-27: Time Gear for Nimbi and Magnemite) only show for characters given them (party/<id>/cursors;
 // theme.js sets window.cursorAllowed).

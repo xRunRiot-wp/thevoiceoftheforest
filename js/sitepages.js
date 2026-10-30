@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6ae3de11';
-import { esc } from './util.js?v=6ae3de11';
-import { LINKS, CAST } from './content.js?v=6ae3de11';
+import { GS_TEXT } from './gstext.js?v=6ae3e326';
+import { esc } from './util.js?v=6ae3e326';
+import { LINKS, CAST } from './content.js?v=6ae3e326';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -91,7 +91,9 @@ export function navTilesHTML() {
   const tiles = [...SITE_NAV.filter(([k]) => k === STORY), ...SITE_NAV.filter(([k]) => k !== 'home' && k !== STORY && k !== 'meet-the-characters')];   // Meet the Characters lives on the Home page
   return `<div class="navtiles">${tiles.map(([k, t, kids]) => `<div class="navtile${k === STORY ? ' navtile-wide' : ''}">
     <a class="navtile-head" href="${href(k)}"><img src="${TILE_ART[k] || bannerFor(k)}" alt="" loading="lazy"><span>${esc(t)}</span></a>
-    ${kids ? `<div class="navtile-kids">${sub(kids).join('')}</div>` : ''}</div>`).join('')}</div>`;
+    ${kids ? `<div class="navtile-kids">${sub(kids).join('')}</div>` : ''}</div>`).join('')}
+    <div class="navtile"><a class="navtile-head" href="#/friends"><img src="assets/friendzone/woodland_camp.jpg" alt="" loading="lazy"><span>Friend Zone</span></a>
+    <div class="navtile-kids"><a href="#/friends/woodland-base">Woodland Base</a></div></div></div>`;   // her ask 10-29: a Friend Zone box with a Woodland Base shortcut
 }
 
 // Meet the Characters as the guild mess hall at the end of a long day: everyone at the tables, each seat folds open
@@ -143,7 +145,7 @@ const BANNERS = [['guilds_team-meanies', 'team_meanies'], ['guilds_team-skull', 
 export const bannerFor = (key) => `assets/banners/${BANNERS.find(([k]) => key.startsWith(k))[1]}.jpg`;
 
 // Story & Guild Rank Progression in her site's layout: rank chart, then chapter medal cards in a grid
-// (4 across, then 3 across, Chapter 10 wide), each with a chapter label, big title, quote, rank, promotion.
+// (3 across; Chapter 10 wide, sharing Chapter 9's row: her ask 10-29), each with a chapter label, big title, quote, rank, promotion.
 const STORY = 'story-guild-rank-progression';
 function storyRanksHTML(L) {
   const b = GS_TEXT[STORY] || [];
@@ -173,8 +175,7 @@ function storyRanksHTML(L) {
   const last = chs.length > 1 ? chs[chs.length - 1] : null;
   return `<div class="rk-row">
     <div class="rk-story"><h2 class="ch-sect" id="gp-story">Story Progression</h2>
-      <div class="ch-grid ch3">${chs.slice(0, last ? -1 : undefined).map((c) => card(c)).join('')}</div>
-      ${last ? card(last, true) : ''}</div>
+      <div class="ch-grid ch3">${chs.slice(0, last ? -1 : undefined).map((c) => card(c)).join('')}${last ? card(last, true) : ''}</div></div>
     <div class="rk-guild"><h2 class="ch-sect" id="gp-guild">Guild Progression</h2>
       ${chart ? `<span class="site-img wide"><img src="${chart[1]}" alt="Guild ranks and rewards" loading="lazy"></span>` : ''}</div>
   </div>`;
