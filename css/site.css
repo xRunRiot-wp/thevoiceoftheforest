@@ -2309,3 +2309,7 @@ a.ch-chip:hover { background: var(--navy); }
 .shop-shorts.small .shop-short b { font-size: 12px; } .shop-shorts.small .shop-short small { font-size: 11px; }
 /* Battles on phones: picture, name and button stack inside each card */
 @media (max-width: 560px) { .sentry-roster.bt-grid li { display: flex; flex-direction: column; align-items: center; gap: 4px; } .sentry-roster.bt-grid .fr-acts { flex-basis: auto; padding-left: 0; margin: 0; justify-content: center; } }
+/* Guild Shop: items in tidy columns (her ask 10-29), with the item's picture when there is one */
+.log.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 18px; }
+.log.shop-grid li { gap: 8px; }
+.shop-ic { width: 28px; height: 28px; image-rendering: pixelated; object-fit: contain; flex: none; }

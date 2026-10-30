@@ -1,20 +1,20 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ae3dd8a';
-import * as sheet from './sheetdata.js?v=6ae3dd8a';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae3dd8a';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae3dd8a';
-import { MISSION_GP } from './content.js?v=6ae3dd8a';
-import { ranks } from './rulebook.js?v=6ae3dd8a';
-import { merged, editContent } from './content-store.js?v=6ae3dd8a';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae3dd8a';
-import { myId } from './app.js?v=6ae3dd8a';
-import { lowAlertHTML } from './vault.js?v=6ae3dd8a';
-import { friendZoneSection } from './friendzone.js?v=6ae3dd8a';
-import { ixLink } from './effects.js?v=6ae3dd8a';
-import { burstSet } from './burst.js?v=6ae3dd8a';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae3dd8a';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6ae3dd8a';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6ae3dd8a';
+import * as store from './store.js?v=6ae3de11';
+import * as sheet from './sheetdata.js?v=6ae3de11';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae3de11';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae3de11';
+import { MISSION_GP } from './content.js?v=6ae3de11';
+import { ranks } from './rulebook.js?v=6ae3de11';
+import { merged, editContent } from './content-store.js?v=6ae3de11';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae3de11';
+import { myId } from './app.js?v=6ae3de11';
+import { lowAlertHTML } from './vault.js?v=6ae3de11';
+import { friendZoneSection } from './friendzone.js?v=6ae3de11';
+import { ixLink } from './effects.js?v=6ae3de11';
+import { burstSet } from './burst.js?v=6ae3de11';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae3de11';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6ae3de11';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6ae3de11';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -159,7 +159,7 @@ export function renderShop(main) {
   ${pokeBarHTML()}
   <div class="hero banner"><img class="hdr whole" src="assets/banners/guild_shop_hd.jpg" alt="Maushold and Chandelure’s Guild Shop"></div>
   <div class="section-title"><h2>🐭 Maushold & Chandelure’s Shop</h2><button class="btn sm" id="shopsell">💰 Sell items</button></div>
-  <div class="card" style="padding:6px 12px"><ul class="log" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><span class="grow">${ixLink(s.name)}</span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>
+  <div class="card" style="padding:6px 12px"><ul class="log shop-grid" style="max-height:none">${shop().map((s) => `<li class="row nowrap"><img class="shop-ic" src="assets/items/${esc(String(s.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'))}.png" alt="" onerror="this.style.visibility='hidden'"><span class="grow">${ixLink(s.name)}</span><b class="pix">${num(s.price)} P</b><button class="btn sm" data-buy="${esc(s.id)}" ${s.stock === 0 ? 'disabled' : ''}>Buy</button></li>`).join('')}</ul></div>
   ${shopChatHTML('guild', 'Maushold & Chandelure')}`;
   $$('[data-buy]', main).forEach((b) => b.onclick = () => buy(b.dataset.buy));
   $('#shopsell', main).onclick = () => sellDialog({ shop: 'guild', keeper: 'Maushold & Chandelure', valueOf: guildBuys,
