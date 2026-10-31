@@ -1,22 +1,22 @@
 // Training Gym (#/gym): two drills per day per character (her ask 10-31; was one). Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6ae5cca9';
-import { $, $$, esc, num, pool } from './util.js?v=6ae5cca9';
-import { modal, closeModal, diceFaces } from './ui.js?v=6ae5cca9';
-import { statVal, logRoll } from './play.js?v=6ae5cca9';
-import { myId } from './app.js?v=6ae5cca9';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae5cca9';
-import { locations, spots, crewNames } from './friendzone.js?v=6ae5cca9';
-import { RESIDENTS } from './chatter.js?v=6ae5cca9';
+import * as store from './store.js?v=6ae5cf1a';
+import { $, $$, esc, num, pool } from './util.js?v=6ae5cf1a';
+import { modal, closeModal, diceFaces } from './ui.js?v=6ae5cf1a';
+import { statVal, logRoll } from './play.js?v=6ae5cf1a';
+import { myId } from './app.js?v=6ae5cf1a';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae5cf1a';
+import { locations, spots, crewNames } from './friendzone.js?v=6ae5cf1a';
+import { RESIDENTS } from './chatter.js?v=6ae5cf1a';
 
 const BAR = 5;
 // Training partners (her ask 10-29): a player may bring up to 3 Pokémon who live at the guild (Woodland Base in the
 // Friend Zone: its spots' residents, the crew walking its squares, and recruits) to every drill. Each partner trains alongside and keeps its own
 // Training Points: gym/npc/<key> = { name, prog, tp }. party/<id>/gymPals = the names picked.
 const PALS_MAX = 3;
-const palKey = (n) => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-');
-function guildResidents() {
+export const palKey = (n) => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+export function guildResidents() {
   const loc = locations().find((l) => l.id === 'woodland-base') || locations()[0]; if (!loc) return [];
   const players = new Set(Object.values(store.get('party') || {}).map((c) => String(c.nickname || '').toLowerCase()));
   const rec = Object.values(store.get('recruits/' + loc.id) || {}).flatMap((x) => Object.values(x || {}).map((r) => r.name));
@@ -26,13 +26,14 @@ function guildResidents() {
 }
 const palsOf = (c) => (Array.isArray(c.gymPals) ? c.gymPals : []).filter((n) => guildResidents().includes(n)).slice(0, PALS_MAX);
 const npcRec = (n) => store.get('gym/npc/' + palKey(n)) || { name: n, prog: 0, tp: 0 };
+const rankOf = (x) => x.rank || 'Starter';   // her ask 10-31: ranks on the gym page (the GM sets them with Rank up)
 function palsHTML(c) {
   const all = guildResidents(); const mine = palsOf(c);
   if (!all.length) return '';
   return `<div class="card gym-pals"><h3 style="margin:0 0 4px">🤝 Training partners <span class="small muted">${mine.length}/${PALS_MAX}</span></h3>
     <p class="small muted" style="margin:0 0 6px">Bring up to ${PALS_MAX} Pokémon who live at the guild (Friend Zone). They train with you and earn their own Training Points.</p>
     <div class="gym-pal-list">${all.map((n) => { const r = npcRec(n); const on = mine.includes(n);
-      return `<button class="gym-pal ${on ? 'on' : ''}" data-pal="${esc(n)}"><b>${on ? '✅ ' : ''}${esc(n)}</b><small>${num(r.tp)} TP · bar ${num(r.prog)}/${BAR}</small></button>`; }).join('')}</div></div>`;
+      return `<button class="gym-pal ${on ? 'on' : ''}" data-pal="${esc(n)}"><b>${on ? '✅ ' : ''}${esc(n)}</b><small>${esc(rankOf(r))} · ${num(r.tp)} TP · bar ${num(r.prog)}/${BAR}</small></button>`; }).join('')}</div></div>`;
 }
 function togglePal(c, n) {
   const mine = palsOf(c);
@@ -43,7 +44,7 @@ function togglePal(c, n) {
 // each partner rolls the drill too (2 dice + 1 for the Pokémon's own effort) and fills its own bar
 function palsTrain(c, d) {
   return palsOf(c).map((n) => { const r = pool(2, { pain: 0 }); const rec = npcRec(n); const total = num(rec.prog) + r.succ; const tp = Math.floor(total / BAR);
-    store.set('gym/npc/' + palKey(n), { name: n, prog: total % BAR, tp: num(rec.tp) + tp });
+    store.set('gym/npc/' + palKey(n), { ...rec, name: n, prog: total % BAR, tp: num(rec.tp) + tp });   // keeps their rank
     return { n, succ: r.succ, tp, now: num(rec.tp) + tp }; });
 }
 export const DRILLS = [
@@ -203,7 +204,7 @@ export function renderGym(main) {
   const wx = gymWx();
   const lname = (id) => drillNow(DRILLS.find((d) => d.id === id) || {}, wx).name;
   main.innerHTML = head + `
-    <div class="card gym-who"><div class="grow"><b class="pix">${esc(c.nickname)}</b> <span class="small muted">${esc(c.pokemon || '')} · ${esc(c.nature || 'no nature')} · ${num(c.tp)} Training Points</span>
+    <div class="card gym-who"><div class="grow"><b class="pix">${esc(c.nickname)}</b> <span class="small muted">${esc(c.pokemon || '')} · ${esc(c.nature || 'no nature')} · <b>${esc(rankOf(c))} rank</b> · ${num(c.tp)} Training Points</span>
       <p class="small" style="margin:4px 0 0">${loved ? `💖 Loves <b>${esc(lname(loved))}</b> · 💢 Hates <b>${esc(lname(hated))}</b>` : `${esc(c.nature || 'This nature')} has no favourite. Every drill feels the same.`}</p>
       ${TYPE_FLAVOR[c.type1] ? `<p class="small muted" style="margin:4px 0 0">🗣️ ${esc(TYPE_FLAVOR[c.type1])}</p>` : ''}</div>
       <div class="gym-today ${done ? 'rested' : ''}">${done ? '😴 Trained twice today<br><small>back tomorrow</small>' : drillsToday(c) ? '💪 One more drill today' : '💪 Ready to train'}</div></div>
@@ -233,7 +234,7 @@ function train(id, drillId) {
   if (trainedToday(c) && !store.gmUnlocked()) return;
   let pick = palsOf(c);
   const el = modal(`<h2>🤝 Bring anyone along?</h2><p class="small muted">Pick up to ${PALS_MAX} Pokémon from the guild to train with you. They earn their own Training Points.</p>
-    <div class="gym-pal-list">${all.map((n) => { const r = npcRec(n); return `<button class="gym-pal ${pick.includes(n) ? 'on' : ''}" data-askpal="${esc(n)}"><b>${esc(n)}</b><small>${num(r.tp)} TP · bar ${num(r.prog)}/${BAR}</small></button>`; }).join('')}</div>
+    <div class="gym-pal-list">${all.map((n) => { const r = npcRec(n); return `<button class="gym-pal ${pick.includes(n) ? 'on' : ''}" data-askpal="${esc(n)}"><b>${esc(n)}</b><small>${esc(rankOf(r))} · ${num(r.tp)} TP · bar ${num(r.prog)}/${BAR}</small></button>`; }).join('')}</div>
     <div class="row" style="margin-top:12px;gap:8px"><button class="btn" id="gogym">💪 Train${pick.length ? ` with ${pick.length}` : ''}</button><button class="btn alt" id="gosolo">Train alone</button></div>`);
   const go = $('#gogym', el);
   $$('[data-askpal]', el).forEach((b) => b.onclick = () => {

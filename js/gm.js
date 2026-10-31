@@ -1,20 +1,22 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6ae5cca9';
-import * as sheet from './sheetdata.js?v=6ae5cca9';
-import { ledger } from './vault.js?v=6ae5cca9';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ae5cca9';
-import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6ae5cca9';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ae5cca9';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES } from './content.js?v=6ae5cca9';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts } from './play.js?v=6ae5cca9';
-import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ae5cca9';
-import { merged, editContent } from './content-store.js?v=6ae5cca9';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ae5cca9';
-import { CONFIG } from './config.js?v=6ae5cca9';
-import { gmGimmighoulHTML } from './gimmighoul.js?v=6ae5cca9';
-import { locations, spots, personalityTypes } from './friendzone.js?v=6ae5cca9';
-import { rankFor, guildName } from './guild.js?v=6ae5cca9';
-import { gmPinsHTML, bindGmPins } from './charlock.js?v=6ae5cca9';
+import * as store from './store.js?v=6ae5cf1a';
+import * as sheet from './sheetdata.js?v=6ae5cf1a';
+import { ledger } from './vault.js?v=6ae5cf1a';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ae5cf1a';
+import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6ae5cf1a';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ae5cf1a';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES, RANK_NAMES } from './content.js?v=6ae5cf1a';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts, BADGE_FOR_RANK, beginnerCatchUp } from './play.js?v=6ae5cf1a';
+import { giftNote } from './mailbox.js?v=6ae5cf1a';
+import { guildResidents, palKey } from './gym.js?v=6ae5cf1a';
+import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ae5cf1a';
+import { merged, editContent } from './content-store.js?v=6ae5cf1a';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ae5cf1a';
+import { CONFIG } from './config.js?v=6ae5cf1a';
+import { gmGimmighoulHTML } from './gimmighoul.js?v=6ae5cf1a';
+import { locations, spots, personalityTypes } from './friendzone.js?v=6ae5cf1a';
+import { rankFor, guildName } from './guild.js?v=6ae5cf1a';
+import { gmPinsHTML, bindGmPins } from './charlock.js?v=6ae5cf1a';
 
 const PORTRAIT_LIST = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -26,6 +28,7 @@ const explored = () => { const names = Object.values(store.get('dungeonsExplored
 
 export async function renderGM(main) {
   if (!store.gmUnlocked()) return lockScreen(main);
+  Object.values(store.get('party') || {}).forEach(beginnerCatchUp);   // her 10-31 Beginner letters, also for characters nobody has opened
   const G = store.gmData() || {};
   const sess = store.get('session') || {};
   const combat = store.get('combat') || {};
@@ -65,7 +68,7 @@ export async function renderGM(main) {
   <section id="gm-Party" class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Party</h2><button class="btn alt sm" id="addguest">+ Guest</button></div>
     <div style="margin-top:8px">${partyStrip('')}</div>
     ${guests().length ? `<h4 style="margin-top:10px">${ixLink('Guest party member', 'Guests')}</h4>${guests().map((c) => `<div class="row nowrap" style="padding:6px 0;border-bottom:1px dashed var(--cream3)">${portrait(c, 'xs')}<div class="grow"><b class="pix">${esc(c.nickname)}</b> <span class="small muted">leaves ${esc({ mission: 'when the mission ends', floor: 'at the next floor', session: 'at session end', manual: 'when removed' }[c.guest.leaves] || '')} · ${c.guest.controller === 'player' ? 'player-controlled' : 'GM-controlled'}</span></div><button class="btn alt sm" data-gperm="${c.id}">Make permanent</button><button class="btn bad sm" data-gleave="${c.id}">Leaves</button></div>`).join('')}` : ''}
-    <div class="row" style="margin-top:10px"><button class="btn alt" id="callrest">🌙 Call a rest</button><button class="btn alt" id="clearallboosts">Clear everyone's boosts</button></div>
+    <div class="row" style="margin-top:10px"><button class="btn alt" id="callrest">🌙 Call a rest</button><button class="btn alt" id="rankup">⭐ Rank up</button><button class="btn alt" id="clearallboosts">Clear everyone's boosts</button></div>
     <p class="small muted">Tap a character to see the full sheet and edit it.</p>${gmPinsHTML()}</section>
 
   <section id="gm-Dungeon" class="card">
@@ -332,6 +335,41 @@ function bindGM(main) {
     store.pushLimited('log', { t: Date.now(), text: "Everyone's temporary boosts wear off." });
     toast('Boosts cleared');
   };
+  // her ask 10-31: the GM ranks players up herself: new rank (their badge follows on its own) + her letter in their mailbox
+  s('#rankup').onclick = () => {
+    const ps = Object.values(store.get('party') || {}).filter((c) => !c.guest && c.nickname);
+    const pals = guildResidents(); const palRank = (n) => (store.get('gym/npc/' + palKey(n)) || {}).rank || 'Starter';
+    if (!ps.length && !pals.length) return toast('No players yet');
+    const next = (c) => RANK_NAMES[Math.min(RANK_NAMES.length - 1, Math.max(0, RANK_NAMES.indexOf(c.rank)) + 1)];
+    const el = modal(`<h2>⭐ Rank up</h2><p class="small muted">Their new rank badge goes into their bag, and your letter lands in their mailbox. <b>{name}</b> becomes each player's name.</p>
+      <p class="f" style="margin:8px 0 2px"><b>Who</b></p><div class="row rk-who">${ps.map((c) => `<label class="check"><input type="checkbox" value="${esc(c.id)}"> ${esc(c.nickname)} <small class="muted">(${esc(c.rank || 'Starter')})</small></label>`).join('')}</div>
+      ${pals.length ? `<p class="f" style="margin:10px 0 2px"><b>Training partners</b> <small class="muted">(no letter)</small></p><div class="row rk-pals">${pals.map((n) => `<label class="check"><input type="checkbox" value="${esc(n)}"> ${esc(n)} <small class="muted">(${esc(palRank(n))})</small></label>`).join('')}</div>` : ''}
+      <label class="f">New rank<select id="rkto">${RANK_NAMES.filter((r) => r !== 'Starter').map((r) => `<option value="${esc(r)}">${esc(r)} · ${esc(BADGE_FOR_RANK[r])}</option>`).join('')}</select></label>
+      <label class="f">Letter title<input id="rktitle" value="Congratulations on your promotion!"></label>
+      <label class="f">Your letter<textarea id="rktext" rows="9">Dear {name},
+
+Congratulations! You have been promoted to {rank}. Your new {badge} Badge is in your bag.
+
+With warm wings,
+Guildmaster Beautifly</textarea></label>
+      <button class="btn block" id="rkgo" style="margin-top:10px">⭐ Rank up and send the letter</button>`);
+    const to = $('#rkto', el);
+    $$('.rk-who input', el).forEach((b) => b.onchange = () => { const c = ps.find((x) => x.id === b.value); if (b.checked && c) to.value = next(c); });
+    $('#rkgo', el).onclick = () => {
+      const who = ps.filter((c) => $$('.rk-who input:checked', el).some((b) => b.value === c.id));
+      const palsUp = $$('.rk-pals input:checked', el).map((b) => b.value);
+      if (!who.length && !palsUp.length) return toast('Tick who ranks up');
+      const rank = to.value;
+      for (const n of palsUp) { const k = 'gym/npc/' + palKey(n); store.set(k, { name: n, prog: 0, tp: 0, ...(store.get(k) || {}), rank }); } const badge = BADGE_FOR_RANK[rank]; const title = $('#rktitle', el).value.trim() || 'Congratulations on your promotion!';
+      for (const c of who) {
+        store.set(`party/${c.id}/rank`, rank);
+        giftNote(c.id, '⭐', title, $('#rktext', el).value.replaceAll('{name}', c.nickname).replaceAll('{rank}', rank).replaceAll('{badge}', badge));
+      }
+      const names = [...who.map((c) => c.nickname), ...palsUp].join(', ');
+      store.pushLimited('log', { t: Date.now(), text: `⭐ ${names} ranked up to ${rank}!` });
+      closeModal(); toast(`Ranked up: ${names}`);
+    };
+  };
   s('#callrest').onclick = () => {
     const el = modal(`<h2>🌙 Call a rest</h2><p>Every player gets asked where their character sleeps tonight.</p>
       <label class="check"><input type="checkbox" id="rheal"> Everyone recovers: full HP and Will, statuses cleared</label>
@@ -477,7 +515,7 @@ function bindGM(main) {
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6ae5cca9');
+    const { openTable } = await import('./app.js?v=6ae5cf1a');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));

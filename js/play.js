@@ -1,26 +1,27 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae5cca9';
-import * as sheet from './sheetdata.js?v=6ae5cca9';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae5cca9';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae5cca9';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae5cca9';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae5cca9';
-import { unlockChar } from './charlock.js?v=6ae5cca9';
-import { CONFIG } from './config.js?v=6ae5cca9';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae5cca9';
-import { merged, editContent } from './content-store.js?v=6ae5cca9';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae5cca9';
-import { guildName, missionParts, rankFor, guildPath } from './guild.js?v=6ae5cca9';
-import { homeHTML } from './sitepages.js?v=6ae5cca9';
-import { burstSet } from './burst.js?v=6ae5cca9';
-import { pinsOf, showMap } from './hotbar.js?v=6ae5cca9';
-import { chatterLatestHTML } from './chatter.js?v=6ae5cca9';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae5cca9';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae5cca9';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae5cca9';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae5cca9';
-import { find } from './effects.js?v=6ae5cca9';
-import * as dice3d from './dice3d.js?v=6ae5cca9';
+import * as store from './store.js?v=6ae5cf1a';
+import * as sheet from './sheetdata.js?v=6ae5cf1a';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae5cf1a';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae5cf1a';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae5cf1a';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae5cf1a';
+import { unlockChar } from './charlock.js?v=6ae5cf1a';
+import { CONFIG } from './config.js?v=6ae5cf1a';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae5cf1a';
+import { merged, editContent } from './content-store.js?v=6ae5cf1a';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae5cf1a';
+import { guildName, missionParts } from './guild.js?v=6ae5cf1a';
+import { homeHTML } from './sitepages.js?v=6ae5cf1a';
+import { burstSet } from './burst.js?v=6ae5cf1a';
+import { giftNote } from './mailbox.js?v=6ae5cf1a';
+import { pinsOf, showMap } from './hotbar.js?v=6ae5cf1a';
+import { chatterLatestHTML } from './chatter.js?v=6ae5cf1a';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae5cf1a';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae5cf1a';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae5cf1a';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae5cf1a';
+import { find } from './effects.js?v=6ae5cf1a';
+import * as dice3d from './dice3d.js?v=6ae5cf1a';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -477,15 +478,34 @@ function sleepHTML(c) {
     <div class="row nowrap dream-pick"><select id="sleepsel" aria-label="Sleeping spot"><option value="">Choose a spot…</option>${opts}</select>${c.sleep ? '<a class="ft-more" href="#/friends/' + esc(lid) + '">Friend Zone ›</a>' : ''}</div></div>`;
 }
 
-// Guild Rank badge: every character carries the badge of their guild's current rank (bag item + chip by their name).
+// Rank badge: every character carries the badge of their OWN rank (c.rank: Starter, Beginner, ...), so switching guilds
+// never changes it (her ask 10-31); the GM ranks players up from the GM page (bag item + chip by their name).
 // Pictures go in assets/badges/rank_<key>.png; until a picture is added (RANK_PICS), the rank's emoji is shown.
 const RANK_BADGE = { 'Basic Rank': ['🌱', 'basic'], 'Bronze Rank': ['🥉', 'bronze'], 'Silver Rank': ['🥈', 'silver'], 'Gold Rank': ['🥇', 'gold'], 'Diamond Rank': ['💎', 'diamond'], 'Lucario Rank': ['💫', 'lucario'] };
 const RANK_PICS = new Set(['basic', 'bronze', 'silver', 'gold', 'diamond', 'lucario']);
+export const BADGE_FOR_RANK = { Starter: 'Basic Rank', Beginner: 'Basic Rank', Amateur: 'Bronze Rank', Ace: 'Silver Rank', Pro: 'Gold Rank', Master: 'Diamond Rank', Champion: 'Lucario Rank' };
 const badgeOf = (c) => {
-  const r = rankFor(num((store.get(guildPath(c.guild)) || {}).gp)) || { name: 'Basic Rank', alt: 'Beginner' };
-  const [emo, key] = RANK_BADGE[r.name] || RANK_BADGE['Basic Rank'];
-  return [`${r.name} Badge`, emo, RANK_PICS.has(key) ? `assets/badges/rank_${key}.png` : '', r.alt];
+  const alt = RANK_NAMES.includes(c.rank) && c.rank !== 'Starter' ? c.rank : 'Beginner'; const name = BADGE_FOR_RANK[alt];
+  const [emo, key] = RANK_BADGE[name];
+  return [`${name} Badge`, emo, RANK_PICS.has(key) ? `assets/badges/rank_${key}.png` : '', alt];
 };
+// her ask 10-31: everyone who joined goes up to Beginner, with Beautifly's congratulations (held up by the storm). Once per character.
+const STORM_LETTER = (c) => `Dear ${c.nickname},
+
+I'm so sorry this letter is late! The storm grounded every Pelipper in the forest, and this one has been sitting in a soggy mailbag for days.
+
+Congratulations: you are now a Beginner-ranked member of the guild! You may have only just joined officially, but you've already made yourself right at home: pitching in with the chores, helping around camp and looking out for everyone. The whole guild has noticed.
+
+Your new Basic Rank Badge is in your bag. Wear it proudly!
+
+With warm wings,
+Guildmaster Beautifly`;
+export function beginnerCatchUp(c) {
+  if (!c || !c.id || c.guest || c.rankMail) return;
+  store.set(`party/${c.id}/rankMail`, 'beginner');
+  if (!c.rank || c.rank === 'Starter') store.set(`party/${c.id}/rank`, 'Beginner');
+  giftNote(c.id, '🌱', 'Congratulations, Beginner! (delayed by the storm)', STORM_LETTER(c));
+}
 const badgeIcon = (name) => { const r = RANK_BADGE[name.replace(/ Badge$/, '')]; if (!r) return ''; return RANK_PICS.has(r[1]) ? `<img class="bag-badge" src="assets/badges/rank_${r[1]}.png" alt="">` : `<span class="badge-emo">${r[0]}</span>`; };
 const badgeChip = (c) => { const [n, emo, img, alt] = badgeOf(c); return `<span class="pill badge-chip" title="${esc(n)}">${img ? `<img src="${img}" alt="">` : `<span class="badge-emo">${emo}</span>`}${esc(n.replace(' Badge', ''))}${alt ? ` (${esc(alt)})` : ''}</span>`; };
 const isBadge = (name) => / (Rank|Guild) Badge$/.test(name || '');
@@ -496,6 +516,7 @@ const AURA_BOW = { Modest: 'Blue', Hardy: 'Brown', Lax: 'Brown', Lonely: 'Cobalt
 export const auraBow = (c) => { const k = Object.keys(AURA_BOW).find((n) => n.toLowerCase() === String(c?.nature || '').trim().toLowerCase()); return k ? AURA_BOW[k] + ' Bow' : ''; };
 
 export function ensureBadge(c) {
+  beginnerCatchUp(c); c = store.get('party/' + c.id) || c;
   if (!c.garments && auraBow(c)) store.set('party/' + c.id + '/garments', auraBow(c));
   const [want] = badgeOf(c);
   if (!Object.values(store.get('bag') || {}).some((b) => b.owner === c.id && b.name === 'World Map')) store.set('bag/' + uid(), { name: 'World Map', qty: 1, owner: c.id, key: true });
