@@ -1,27 +1,27 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6ae5cf1a';
-import * as store from './store.js?v=6ae5cf1a';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae5cf1a';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae5cf1a';
-import { modal, portrait } from './ui.js?v=6ae5cf1a';
-import * as sheet from './sheetdata.js?v=6ae5cf1a';
-import { shop } from './guild.js?v=6ae5cf1a';
-import { merged, editContent } from './content-store.js?v=6ae5cf1a';
-import { logRoll, me, addTeamFx } from './play.js?v=6ae5cf1a';
-import { luckyReaction, gmTodo } from './chatter.js?v=6ae5cf1a';
-import { ranks } from './rulebook.js?v=6ae5cf1a';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae5cf1a';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae5cf1a';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae5cf1a';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae5cf1a';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae5cf1a';
-import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6ae5cf1a';
-import { isTruck, renderTruck, truckMini } from './truck.js?v=6ae5cf1a';
-import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6ae5cf1a';
-import { isBattle, renderBattle, battleMini } from './battle.js?v=6ae5cf1a';
-import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6ae5cf1a';
-import { watchGamePage, stopGamePage } from './watch.js?v=6ae5cf1a';
+import { markWinner } from './sparkle.js?v=6ae5d191';
+import * as store from './store.js?v=6ae5d191';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae5d191';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae5d191';
+import { modal, portrait } from './ui.js?v=6ae5d191';
+import * as sheet from './sheetdata.js?v=6ae5d191';
+import { shop } from './guild.js?v=6ae5d191';
+import { merged, editContent } from './content-store.js?v=6ae5d191';
+import { logRoll, me, addTeamFx } from './play.js?v=6ae5d191';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ae5d191';
+import { ranks } from './rulebook.js?v=6ae5d191';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae5d191';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae5d191';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae5d191';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae5d191';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae5d191';
+import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6ae5d191';
+import { isTruck, renderTruck, truckMini } from './truck.js?v=6ae5d191';
+import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6ae5d191';
+import { isBattle, renderBattle, battleMini } from './battle.js?v=6ae5d191';
+import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6ae5d191';
+import { watchGamePage, stopGamePage } from './watch.js?v=6ae5d191';
 
 export const GAMES = [
   {

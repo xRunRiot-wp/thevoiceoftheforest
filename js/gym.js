@@ -1,14 +1,14 @@
 // Training Gym (#/gym): two drills per day per character (her ask 10-31; was one). Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6ae5cf1a';
-import { $, $$, esc, num, pool } from './util.js?v=6ae5cf1a';
-import { modal, closeModal, diceFaces } from './ui.js?v=6ae5cf1a';
-import { statVal, logRoll } from './play.js?v=6ae5cf1a';
-import { myId } from './app.js?v=6ae5cf1a';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae5cf1a';
-import { locations, spots, crewNames } from './friendzone.js?v=6ae5cf1a';
-import { RESIDENTS } from './chatter.js?v=6ae5cf1a';
+import * as store from './store.js?v=6ae5d191';
+import { $, $$, esc, num, pool } from './util.js?v=6ae5d191';
+import { modal, closeModal, diceFaces } from './ui.js?v=6ae5d191';
+import { statVal, logRoll } from './play.js?v=6ae5d191';
+import { myId } from './app.js?v=6ae5d191';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae5d191';
+import { locations, spots, crewNames } from './friendzone.js?v=6ae5d191';
+import { RESIDENTS } from './chatter.js?v=6ae5d191';
 
 const BAR = 5;
 // Training partners (her ask 10-29): a player may bring up to 3 Pokémon who live at the guild (Woodland Base in the
@@ -26,7 +26,11 @@ export function guildResidents() {
 }
 const palsOf = (c) => (Array.isArray(c.gymPals) ? c.gymPals : []).filter((n) => guildResidents().includes(n)).slice(0, PALS_MAX);
 const npcRec = (n) => store.get('gym/npc/' + palKey(n)) || { name: n, prog: 0, tp: 0 };
-const rankOf = (x) => x.rank || 'Starter';   // her ask 10-31: ranks on the gym page (the GM sets them with Rank up)
+// her ask 10-31: ranks on the gym page. The GM changes them with Rank up; until then: her ranks below (from her messages and
+// Roll20 sheets), recruits are Starters, and all other guild staff are Pro. Players use their own rank.
+const KNOWN_RANKS = { nidorino: 'Beginner', rayson: 'Beginner', beautifly: 'Champion', beatrice: 'Champion', pikachu: 'Champion', squirtle: 'Champion', mimi: 'Master', kippy: 'Master' };
+const recruitNames = () => new Set(Object.values(store.get('recruits') || {}).flatMap((loc) => Object.values(loc || {}).flatMap((spot) => Object.values(spot || {}).map((r) => palKey(r?.name || '')))));
+export const rankOf = (x) => x.rank || (x.id ? 'Starter' : KNOWN_RANKS[palKey(x.name || '')] || (recruitNames().has(palKey(x.name || '')) ? 'Starter' : 'Pro'));
 function palsHTML(c) {
   const all = guildResidents(); const mine = palsOf(c);
   if (!all.length) return '';

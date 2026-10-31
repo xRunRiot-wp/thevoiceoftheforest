@@ -2319,3 +2319,14 @@ a.ch-chip:hover { background: var(--navy); }
 .log.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 18px; }
 .log.shop-grid li { gap: 8px; }
 .shop-ic { width: 28px; height: 28px; image-rendering: pixelated; object-fit: contain; flex: none; }
+
+/* Level up guide (her ask 10-31) */
+.levelup-btn { margin: 6px 0 10px; background: linear-gradient(180deg, #ffd34d, #f0a81c); border-color: #b9770e; color: #3a2400; box-shadow: 0 3px 0 #b9770e; animation: lu-glow 1.8s ease-in-out infinite; white-space: normal; text-align: center; }
+@keyframes lu-glow { 50% { filter: brightness(1.12); } }
+.levelup-sheet h3 { margin: 14px 0 4px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.levelup-sheet .pill.done { background: #c9efc4; }
+.lu-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--cream3); }
+.lu-val { min-width: 54px; text-align: center; } .lu-plus { color: #2f8a3a; } .lu-cap { min-width: 48px; text-align: right; }
+.lu-moves { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 10px; }
+.lu-moves .lu-new { font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .levelup-btn { animation: none; } }

@@ -1,27 +1,28 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6ae5cf1a';
-import * as sheet from './sheetdata.js?v=6ae5cf1a';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae5cf1a';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae5cf1a';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae5cf1a';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae5cf1a';
-import { unlockChar } from './charlock.js?v=6ae5cf1a';
-import { CONFIG } from './config.js?v=6ae5cf1a';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae5cf1a';
-import { merged, editContent } from './content-store.js?v=6ae5cf1a';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae5cf1a';
-import { guildName, missionParts } from './guild.js?v=6ae5cf1a';
-import { homeHTML } from './sitepages.js?v=6ae5cf1a';
-import { burstSet } from './burst.js?v=6ae5cf1a';
-import { giftNote } from './mailbox.js?v=6ae5cf1a';
-import { pinsOf, showMap } from './hotbar.js?v=6ae5cf1a';
-import { chatterLatestHTML } from './chatter.js?v=6ae5cf1a';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae5cf1a';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae5cf1a';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae5cf1a';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae5cf1a';
-import { find } from './effects.js?v=6ae5cf1a';
-import * as dice3d from './dice3d.js?v=6ae5cf1a';
+import * as store from './store.js?v=6ae5d191';
+import * as sheet from './sheetdata.js?v=6ae5d191';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6ae5d191';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6ae5d191';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6ae5d191';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6ae5d191';
+import { unlockChar } from './charlock.js?v=6ae5d191';
+import { CONFIG } from './config.js?v=6ae5d191';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6ae5d191';
+import { merged, editContent } from './content-store.js?v=6ae5d191';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML } from './vault.js?v=6ae5d191';
+import { guildName, missionParts } from './guild.js?v=6ae5d191';
+import { homeHTML } from './sitepages.js?v=6ae5d191';
+import { burstSet } from './burst.js?v=6ae5d191';
+import { giftNote } from './mailbox.js?v=6ae5d191';
+import { levelUpHTML, openLevelUp } from './levelup.js?v=6ae5d191';
+import { pinsOf, showMap } from './hotbar.js?v=6ae5d191';
+import { chatterLatestHTML } from './chatter.js?v=6ae5d191';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6ae5d191';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6ae5d191';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6ae5d191';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6ae5d191';
+import { find } from './effects.js?v=6ae5d191';
+import * as dice3d from './dice3d.js?v=6ae5d191';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -370,6 +371,7 @@ function charCard(c) {
   return `<div class="card">
     <div class="char-head">${portrait(c)}<div class="grow">
       <div class="char-name-row"><div class="char-name">${esc(c.nickname)}</div><button class="btn alt sm" id="editme2">✏️ Edit sheet</button></div>
+      ${levelUpHTML(c)}
       <div class="workfor"><span class="small">Working for:</span><div class="vtabs wf-tabs">${[['woodland', 'Woodland', 'Base'], ['vanguard', 'Vanguard', 'Guild']].map(([k, n, tail]) => `<button class="vtab ${(c.guild || 'woodland') === k ? 'on' : ''}" data-setguild="${k}" style="${guildTint(k)}">${k === 'vanguard' ? '🛡️' : '🌳'} ${n}<span class="wf-long"> ${tail}</span></button>`).join('')}</div></div>
       ${formsOf(c).length ? `<div class="workfor"><span class="small">🧱 Clay form:</span><div class="vtabs wf-tabs">${formsOf(c).map(([k, n]) => `<button class="vtab ${(c.form || '') === k ? 'on' : ''}" data-setform="${k}">${esc(n)}</button>`).join('')}</div></div>` : ''}
       ${factBoxes(c)}
@@ -500,10 +502,14 @@ Your new Basic Rank Badge is in your bag. Wear it proudly!
 
 With warm wings,
 Guildmaster Beautifly`;
+const STARTERS_1031 = new Set(['8k7y4lqw', 'f21239oy', 'g18dxf2v', 'mx3n111q', 'nmbf089a', 'ovcx1v0a', 'wsm1mec0', 'xchzrl44']);
 export function beginnerCatchUp(c) {
-  if (!c || !c.id || c.guest || c.rankMail) return;
-  store.set(`party/${c.id}/rankMail`, 'beginner');
-  if (!c.rank || c.rank === 'Starter') store.set(`party/${c.id}/rank`, 'Beginner');
+  if (!c || !c.id || c.guest) return;
+  // the players who were Starters on 10-31 and went up to Beginner get the Level up guide once (Slakoth was already Beginner)
+  if (c.rankMail === 'beginner' && !c.luSeeded && STARTERS_1031.has(c.id)) { store.set(`party/${c.id}/luSeeded`, 1); store.set(`party/${c.id}/levelUp`, { from: 'Starter', to: 'Beginner', t: Date.now() }); }
+  if (c.rankMail) return;
+  store.set(`party/${c.id}/rankMail`, 'beginner'); store.set(`party/${c.id}/luSeeded`, 1);
+  if (!c.rank || c.rank === 'Starter') { store.set(`party/${c.id}/rank`, 'Beginner'); store.set(`party/${c.id}/levelUp`, { from: 'Starter', to: 'Beginner', t: Date.now() }); }
   giftNote(c.id, '🌱', 'Congratulations, Beginner! (delayed by the storm)', STORM_LETTER(c));
 }
 const badgeIcon = (name) => { const r = RANK_BADGE[name.replace(/ Badge$/, '')]; if (!r) return ''; return RANK_PICS.has(r[1]) ? `<img class="bag-badge" src="assets/badges/rank_${r[1]}.png" alt="">` : `<span class="badge-emo">${r[0]}</span>`; };
@@ -548,6 +554,9 @@ function bagList(c) {
 function bindCharCard(main, c) {
   const path = 'party/' + c.id;
   ensureBadge(c);
+  const now = store.get(path) || c;   // the rank catch-up may have just added a level up
+  if (now.levelUp && !$('#levelup', main)) $('.workfor', main)?.insertAdjacentHTML('beforebegin', levelUpHTML(now));
+  const lu = $('#levelup', main); if (lu) lu.onclick = () => openLevelUp(store.get(path) || c);
   bindMemory(main, c);
   $$('[data-showmap]', main).forEach((a) => a.onclick = (e) => { e.preventDefault(); showMap(); });
   $$('[data-bagmv]', main).forEach((b) => b.onclick = () => { const [k, d] = b.dataset.bagmv.split('|'); moveBag(party()[c.id] || c, k, num(d)); });
