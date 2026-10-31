@@ -1,9 +1,9 @@
 // "What's new" tutorial (her ask 10-29): a short step-by-step tour of everything added since the 27th.
 // Opens by itself once for players who haven't been on since then (no visit on or after Oct 28), always
 // has a Skip button, and can be replayed any time from Settings. Seen = tourSeen/<id> on the shared table.
-import * as store from './store.js?v=6ae5d191';
-import { $ } from './util.js?v=6ae5d191';
-import { modal, closeModal } from './ui.js?v=6ae5d191';
+import * as store from './store.js?v=6ae64af6';
+import { $ } from './util.js?v=6ae64af6';
+import { modal, closeModal } from './ui.js?v=6ae64af6';
 
 const SINCE = new Date(2026, 9, 28).getTime();   // first visit after the 27th counts as "has seen the new stuff"
 const pic = (src) => `<img class="tour-pic" src="${src}" alt="">`;

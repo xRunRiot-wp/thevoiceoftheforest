@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae5d191';
-import { $, $$, esc, toast, num } from './util.js?v=6ae5d191';
-import { me, logRoll } from './play.js?v=6ae5d191';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae5d191';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae5d191';
-import { markWinner } from './sparkle.js?v=6ae5d191';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae5d191';
-import { modal, closeModal } from './ui.js?v=6ae5d191';
+import * as store from './store.js?v=6ae64af6';
+import { $, $$, esc, toast, num } from './util.js?v=6ae64af6';
+import { me, logRoll } from './play.js?v=6ae64af6';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae64af6';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae64af6';
+import { markWinner } from './sparkle.js?v=6ae64af6';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae64af6';
+import { modal, closeModal } from './ui.js?v=6ae64af6';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -85,7 +85,7 @@ const ACC = {
   umb_cherry: ['☂️', 'Cherry Umbrella', 'umbrella', 'hue-rotate(95deg) saturate(1.4)'], umb_leaf: ['☂️', 'Leaf Umbrella', 'umbrella', 'hue-rotate(-150deg) saturate(1.2)'],
   umb_sky: ['☂️', 'Sky Umbrella', 'umbrella', 'hue-rotate(-60deg)'], umb_sun: ['☂️', 'Sunny Umbrella', 'umbrella', 'hue-rotate(150deg) saturate(1.8) brightness(1.15)'],
   umb_night: ['☂️', 'Starry Umbrella', 'umbrella', 'brightness(.55) saturate(1.3)'], umb_rainbow: ['☂️', 'Rainbow Umbrella', 'umbrella', 'rainbow'],
-  toy_teddy: ['🧸', 'Teddiursa Plush', 'toy'], toy_duck: ['assets/nursery/toy_ducklett.png', 'Rubber Ducklett', 'toy'], toy_kite: ['🪁', 'Kite', 'toy'], toy_yoyo: ['🪀', 'Yo-yo', 'toy'],
+  toy_teddy: ['assets/nursery/toy_teddiursa.png', 'Teddiursa Plush', 'toy'], toy_duck: ['assets/nursery/toy_ducklett.png', 'Rubber Ducklett', 'toy'], toy_kite: ['🪁', 'Kite', 'toy'], toy_yoyo: ['🪀', 'Yo-yo', 'toy'],
   toy_balloon: ['🎈', 'Balloon', 'toy'], toy_star: ['⭐', 'Star Plush', 'toy'],
   bed_moss: ['🛏️', 'Mossy Nest', 'bed', 'hue-rotate(55deg) saturate(1.4)'], bed_cloud: ['☁️', 'Cloud Cushion', 'bed', 'saturate(.15) brightness(1.55)'],
   bed_berry: ['🫐', 'Berry Basket', 'bed', 'hue-rotate(-75deg) saturate(1.5)'], bed_sunset: ['🌅', 'Sunset Nest', 'bed', 'hue-rotate(-25deg) saturate(2.2)'],
@@ -584,10 +584,11 @@ async function walkGo(c, box, stops) {
   const row = (name, loop = true) => { const r = ROW[name]; const n = B.fr[r] || 1; spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
     spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`; accRow(spr, b.sp, name, ph); };
   const alive = () => scene.isConnected;
-  const say = (html) => { text.innerHTML = html; };
+  // one wrapper so the flex box keeps a sentence together (a bare <b> was splitting it into columns)
+  const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6ae5d191').catch(() => null);
+  const fz = import('./fzscene.js?v=6ae64af6').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
@@ -608,7 +609,12 @@ async function walkGo(c, box, stops) {
     if (Math.random() < 0.65 || (!found.length && k === stops[stops.length - 1][0] && !num(b.walkAt))) {
       const left = Object.keys(ACC).filter((x) => !owned[x]);
       const prize = left.length ? left[Math.floor(Math.random() * left.length)] : null;
-      gift.innerHTML = '<button class="walk-box" aria-label="Open the present">🎁</button>'; gift.classList.add('show');
+      gift.innerHTML = '<button class="walk-box" aria-label="Open the present">🎁</button>';
+      // her ask 10-31: the present floats above the head of the Pokémon you're visiting
+      const hr = host.getBoundingClientRect(); const sr = scene.getBoundingClientRect();
+      if (host.classList.contains('show') && hr.width) { gift.style.left = `${Math.round(hr.left - sr.left + hr.width / 2 - gift.offsetWidth / 2)}px`; gift.style.bottom = `${Math.round(sr.bottom - hr.top + 6)}px`; }
+      else { gift.style.left = ''; gift.style.bottom = ''; }
+      gift.classList.add('show');
       say(`${esc(nameOf(b))} sniffed something out! Tap the present!`); row('nod', true);
       await Promise.race([wait(6000), new Promise((ok) => { $('.walk-box', gift).onclick = ok; })]); if (!alive()) return;
       if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = `<span class="walk-prize ${ACC[prize][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[prize][2] !== 'toy' && ACC[prize][3] ? `filter:${accFilter(prize)}` : ''}">${ACC[prize][2] === 'bed' ? '🪺' : accIcon(prize)}</span>`; say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.${ACC[prize][2] === 'toy' ? ' A new toy to play with!' : ACC[prize][2] === 'bed' ? ' A comfy new bed!' : ACC[prize][2] === 'umbrella' ? ' A new umbrella for rainy days!' : ''}`); cry(b, { vol: 0.8 }); }
