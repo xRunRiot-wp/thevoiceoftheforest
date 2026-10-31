@@ -1,20 +1,20 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ae3efa5';
-import * as sheet from './sheetdata.js?v=6ae3efa5';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae3efa5';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae3efa5';
-import { MISSION_GP } from './content.js?v=6ae3efa5';
-import { ranks } from './rulebook.js?v=6ae3efa5';
-import { merged, editContent } from './content-store.js?v=6ae3efa5';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae3efa5';
-import { myId } from './app.js?v=6ae3efa5';
-import { lowAlertHTML } from './vault.js?v=6ae3efa5';
-import { friendZoneSection } from './friendzone.js?v=6ae3efa5';
-import { ixLink } from './effects.js?v=6ae3efa5';
-import { burstSet } from './burst.js?v=6ae3efa5';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae3efa5';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6ae3efa5';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6ae3efa5';
+import * as store from './store.js?v=6ae5cca9';
+import * as sheet from './sheetdata.js?v=6ae5cca9';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae5cca9';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae5cca9';
+import { MISSION_GP } from './content.js?v=6ae5cca9';
+import { ranks } from './rulebook.js?v=6ae5cca9';
+import { merged, editContent } from './content-store.js?v=6ae5cca9';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae5cca9';
+import { myId } from './app.js?v=6ae5cca9';
+import { lowAlertHTML } from './vault.js?v=6ae5cca9';
+import { friendZoneSection } from './friendzone.js?v=6ae5cca9';
+import { ixLink } from './effects.js?v=6ae5cca9';
+import { burstSet } from './burst.js?v=6ae5cca9';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae5cca9';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6ae5cca9';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6ae5cca9';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -151,7 +151,7 @@ export function missionParts(m) {
 export function shopShortcuts({ gym = true, small = false } = {}) {   // also at the top of the Vault page: small tiles, no Gym (her asks 10-29)
   const m = store.get('merchant') || {};
   const tile = (href, img, title, sub) => `<a class="shop-short" href="${href}"><img src="${img}" alt="" loading="lazy"><b>${title}</b><small>${sub}</small></a>`;
-  return `<div class="shop-shorts${small ? ' small' : ''}">${tile('#/shop', 'assets/banners/guild_shop_hd.jpg', '🐭 Guild Shop', 'Maushold & Chandelure')}${tile('#/merchant', 'assets/merchant/caravan_table.jpg', '🛒 Travelling Merchant', m.away ? 'No table today' : `${esc(m.brother || 'Slash')} is at ${esc(m.place || 'Woodland Base')}`)}${gym ? `<a class="shop-short gym-short" href="#/gym"><img src="assets/headers/wigglytuff_guild.png" alt="" loading="lazy"><span><b>🏋️ Training Gym</b><small>One drill a day for Training Points</small></span></a>` : ''}</div>`;
+  return `<div class="shop-shorts${small ? ' small' : ''}">${tile('#/shop', 'assets/banners/guild_shop_hd.jpg', '🐭 Guild Shop', 'Maushold & Chandelure')}${tile('#/merchant', 'assets/merchant/caravan_table.jpg', '🛒 Travelling Merchant', m.away ? 'No table today' : `${esc(m.brother || 'Slash')} is at ${esc(m.place || 'Woodland Base')}`)}${gym ? `<a class="shop-short gym-short" href="#/gym"><img src="assets/headers/wigglytuff_guild.png" alt="" loading="lazy"><span><b>🏋️ Training Gym</b><small>Two drills a day for Training Points</small></span></a>` : ''}</div>`;
 }
 
 export function renderShop(main) {

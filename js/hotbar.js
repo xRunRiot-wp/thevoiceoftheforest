@@ -1,14 +1,14 @@
 // Character hotbar in the top banner: money, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6ae3efa5';
-import { $, esc, num, toast } from './util.js?v=6ae3efa5';
-import { modal } from './ui.js?v=6ae3efa5';
-import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae3efa5';
-import { sentryDue } from './sentry.js?v=6ae3efa5';
-import { kitchenDue } from './kitchen.js?v=6ae3efa5';
-import { nurseryDue } from './nursery.js?v=6ae3efa5';
-import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6ae3efa5';
-import { openFriends, friendsOf, isOnline } from './friends.js?v=6ae3efa5';
+import * as store from './store.js?v=6ae5cca9';
+import { $, esc, num, toast } from './util.js?v=6ae5cca9';
+import { modal } from './ui.js?v=6ae5cca9';
+import { mailWaiting, openMyMailbox } from './mailbox.js?v=6ae5cca9';
+import { sentryDue } from './sentry.js?v=6ae5cca9';
+import { kitchenDue } from './kitchen.js?v=6ae5cca9';
+import { nurseryDue } from './nursery.js?v=6ae5cca9';
+import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6ae5cca9';
+import { openFriends, friendsOf, isOnline } from './friends.js?v=6ae5cca9';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -121,7 +121,7 @@ function choresFor(c) {
     ['👣', 'Sentry Duty with Diglett', sentryDue(), '#/games/sentry-duty'],
     ['🍲', 'Help in Spinda’s Kitchen', kitchenDue(), '#/games/spinda-kitchen'],
     ['🥚', 'Care for your nursery buddy', nurseryDue(), '#/games/fernshade-nursery'],
-    ['🏋️', 'Today’s drill at the Training Gym', c.gym?.day !== gymDay(), '#/gym'],
+    ['🏋️', 'Today’s drills at the Training Gym', c.gym?.day !== gymDay() || num(c.gym?.n || 1) < 2, '#/gym'],   // two a day (her ask 10-31)
   ].map(([icon, label, due, href]) => ({ icon, label, due: !!due, href }));
 }
 function toggleChores(anchor, id) {

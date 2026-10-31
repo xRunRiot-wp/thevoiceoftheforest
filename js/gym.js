@@ -1,14 +1,14 @@
-// Training Gym (#/gym): one drill per day per character. Drills roll Attribute + Skill; the character's nature
+// Training Gym (#/gym): two drills per day per character (her ask 10-31; was one). Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6ae3efa5';
-import { $, $$, esc, num, pool } from './util.js?v=6ae3efa5';
-import { modal, closeModal, diceFaces } from './ui.js?v=6ae3efa5';
-import { statVal, logRoll } from './play.js?v=6ae3efa5';
-import { myId } from './app.js?v=6ae3efa5';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae3efa5';
-import { locations, spots, crewNames } from './friendzone.js?v=6ae3efa5';
-import { RESIDENTS } from './chatter.js?v=6ae3efa5';
+import * as store from './store.js?v=6ae5cca9';
+import { $, $$, esc, num, pool } from './util.js?v=6ae5cca9';
+import { modal, closeModal, diceFaces } from './ui.js?v=6ae5cca9';
+import { statVal, logRoll } from './play.js?v=6ae5cca9';
+import { myId } from './app.js?v=6ae5cca9';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6ae5cca9';
+import { locations, spots, crewNames } from './friendzone.js?v=6ae5cca9';
+import { RESIDENTS } from './chatter.js?v=6ae5cca9';
 
 const BAR = 5;
 // Training partners (her ask 10-29): a player may bring up to 3 Pokémon who live at the guild (Woodland Base in the
@@ -187,14 +187,16 @@ function drillDice(c, d) {
   const base = statVal(c, drillAttr(c, d)) + statVal(c, d.skill);
   return Math.max(1, base + (d.id === loved ? 1 : 0) - (d.id === hated ? 1 : 0) + wxDice(c));
 }
-const trainedToday = (c) => c.gym?.day === easternDay(Date.now());
+export const DRILLS_A_DAY = 2;
+const drillsToday = (c) => (c.gym?.day === easternDay(Date.now()) ? Math.max(1, num(c.gym?.n)) : 0);   // older saves have no count: 1
+const trainedToday = (c) => drillsToday(c) >= DRILLS_A_DAY;
 
 export function renderGym(main) {
   const gm = store.gmUnlocked();
   const c = party()[myId()];
   const head = `<div class="row" style="margin-top:12px"><a class="btn alt sm" href="#/guild">← Guild</a></div>
     <div class="hero banner"><img class="hdr" src="assets/headers/wigglytuff_guild.png" alt=""></div>
-    <div class="section-title"><h2>🏋️ Training Gym</h2><span class="small muted">one drill a day · a full bar = 1 Training Point</span></div>`;
+    <div class="section-title"><h2>🏋️ Training Gym</h2><span class="small muted">two drills a day · a full bar = 1 Training Point</span></div>`;
   if (!c) { main.innerHTML = head + '<div class="card"><p>Pick your character on the Play page first, then come back to train.</p><a class="btn" href="#/join">Choose a character</a></div>'; return; }
   const { loved, hated } = natureLikes(c.nature);
   const done = trainedToday(c);
@@ -204,7 +206,7 @@ export function renderGym(main) {
     <div class="card gym-who"><div class="grow"><b class="pix">${esc(c.nickname)}</b> <span class="small muted">${esc(c.pokemon || '')} · ${esc(c.nature || 'no nature')} · ${num(c.tp)} Training Points</span>
       <p class="small" style="margin:4px 0 0">${loved ? `💖 Loves <b>${esc(lname(loved))}</b> · 💢 Hates <b>${esc(lname(hated))}</b>` : `${esc(c.nature || 'This nature')} has no favourite. Every drill feels the same.`}</p>
       ${TYPE_FLAVOR[c.type1] ? `<p class="small muted" style="margin:4px 0 0">🗣️ ${esc(TYPE_FLAVOR[c.type1])}</p>` : ''}</div>
-      <div class="gym-today ${done ? 'rested' : ''}">${done ? '😴 Trained today<br><small>back tomorrow</small>' : '💪 Ready to train'}</div></div>
+      <div class="gym-today ${done ? 'rested' : ''}">${done ? '😴 Trained twice today<br><small>back tomorrow</small>' : drillsToday(c) ? '💪 One more drill today' : '💪 Ready to train'}</div></div>
     ${wxNoteHTML(c, wx)}
     <div class="gym-grid">${DRILLS.map((d0) => { const d = drillNow(d0, wx);
       const prog = num(c.gym?.bars?.[d.id]); const dice = drillDice(c, d); const tag = d.id === loved ? 'loved' : d.id === hated ? 'hated' : '';
@@ -256,6 +258,7 @@ function doTrain(id, drillId) {
   const gain = r.succ + (d.id === loved && r.succ > 0 ? 1 : 0);
   const total = num(c.gym?.bars?.[d.id]) + gain;
   const tp = Math.floor(total / BAR);
+  store.set(`party/${id}/gym/n`, drillsToday(c) + 1);
   store.set(`party/${id}/gym/day`, easternDay(Date.now()));
   store.set(`party/${id}/gym/bars/${d.id}`, total % BAR);
   if (tp) store.set(`party/${id}/tp`, num(c.tp) + tp);
