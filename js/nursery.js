@@ -7,15 +7,15 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae783ee';
-import { $, $$, esc, toast, num } from './util.js?v=6ae783ee';
-import { me, logRoll } from './play.js?v=6ae783ee';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae783ee';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae783ee';
-import { markWinner } from './sparkle.js?v=6ae783ee';
-import { pageMusic, visitMusic, muted } from './chiptune.js?v=6ae783ee';
-import { modal, closeModal } from './ui.js?v=6ae783ee';
-import { MIMIC } from './mimicdata.js?v=6ae783ee';
+import * as store from './store.js?v=6ae785b8';
+import { $, $$, esc, toast, num } from './util.js?v=6ae785b8';
+import { me, logRoll } from './play.js?v=6ae785b8';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae785b8';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae785b8';
+import { markWinner } from './sparkle.js?v=6ae785b8';
+import { pageMusic, visitMusic, muted } from './chiptune.js?v=6ae785b8';
+import { modal, closeModal } from './ui.js?v=6ae785b8';
+import { MIMIC } from './mimicdata.js?v=6ae785b8';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -61,7 +61,7 @@ const COVER = {
   sunny: ['⛱️', 'Shade', 'Umbrella', 'It’s so hot out!', 'an umbrella for some shade'], harsh: ['⛱️', 'Shade', 'Umbrella', 'It’s scorching out there!', 'an umbrella for some shade'],
   rain: ['☂️', 'Dry', 'Umbrella', 'It’s pouring!', 'an umbrella'], typhoon: ['☂️', 'Dry', 'Umbrella', 'This storm is so scary!', 'an umbrella'],
   hail: ['🧣', 'Cozy', 'Blanket', 'Brr, it’s hailing!', 'a warm blanket'], wind: ['🧣', 'Cozy', 'Blanket', 'The wind is so cold!', 'a warm blanket'],
-  sandstorm: ['⛺', 'Sheltered', 'Tent', 'Sand is getting everywhere!', 'to hide in the tent'],
+  sandstorm: ['⛺', 'Sheltered', 'Canopy', 'Sand is getting everywhere!', 'the canopy put up'],
 };
 const LOVES = { azurill: ['rain', 'typhoon'], magby: ['sunny', 'harsh'] };
 const wx = () => currentWeather();
@@ -193,7 +193,9 @@ function visitorPane(roomEl, img, sym, text) {
 }
 // her ask 11-01: on sunny days a pixel-art beach parasol springs up over the bed and stays there (like the Scarlet/Violet
 // picnic table), with its beach towel lying in the bed. assets/nursery/parasol.png + towel.png
-const parasol = () => lab('cover')[0] === '⛱️';
+// her ask 11-01: sun = parasol, sandstorm = a striped canopy; both stand still over the nest
+const parasol = () => ['⛱️', '⛺'].includes(lab('cover')[0]);
+const canopy = () => lab('cover')[0] === '⛺';
 const petHTML = () => '<span class="nest-umb" aria-hidden="true"><img class="umb-towel" src="assets/nursery/towel.png" alt=""><img class="umb-top" src="assets/nursery/parasol.png" alt=""></span><div class="pet" id="npet"><span class="pet-cover"></span><span class="baby-spr"></span><span class="pet-think"></span></div><div class="props"></div>';
 function startPet(root, b, scene, ownerId) {
   let B = BABIES[b.sp]; const roomEl = $('.nursery-room', root); const pet = $('#npet', root); if (!B || !roomEl || !pet) return;
@@ -208,8 +210,9 @@ function startPet(root, b, scene, ownerId) {
   // an umbrella pattern only changes the umbrella (not the blanket or tent); the sunny parasol swaps to that pattern's picture
   const paintCover = () => { const k = b.wear?.umbrella; const umb = lab('cover')[2] === 'Umbrella' && ACC[k];
     cov.style.filter = umb ? accFilter(k) : ''; cov.classList.toggle('rainbow', !!umb && ACC[k][3] === 'rainbow');
-    const top = umbEl && $('.umb-top', umbEl); if (top) { const src = umbPic(umb ? k : ''); if (top.getAttribute('src') !== src) top.src = src; } };
-  // sun: the parasol over the bed; rain, hail, wind, sand: the cover stays with the buddy
+    umbEl?.classList.toggle('canopy', canopy());
+    const top = umbEl && $('.umb-top', umbEl); if (top) { const src = canopy() ? 'assets/nursery/canopy.png' : umbPic(umb ? k : ''); if (top.getAttribute('src') !== src) top.src = src; } };
+  // sun: the parasol over the bed; sand: the canopy over the bed; rain, hail, wind: the cover stays with the buddy
   const showCover = (on, pop = false) => {
     const sun = on && parasol(); const was = umbEl?.classList.contains('show'); umbEl?.classList.toggle('show', sun); if (sun && (pop || !was)) { umbEl.classList.remove('pop'); void umbEl.offsetWidth; umbEl.classList.add('pop'); }
     cov.textContent = on && !sun ? lab('cover')[0] : ''; cov.classList.toggle('show', on && !sun); if (on && !sun && pop) cov.classList.add('pop'); paintCover();
@@ -678,7 +681,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6ae783ee').catch(() => null);
+  const fz = import('./fzscene.js?v=6ae785b8').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2, 'right', false, !!c.shiny)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
