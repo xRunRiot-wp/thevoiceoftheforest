@@ -1700,6 +1700,12 @@ a.ch-chip:hover { background: var(--navy); }
 .nursery-room:not(.is-egg) { justify-content: flex-start; min-height: 260px; }
 .nest-spot { position: absolute; left: 50%; bottom: 8px; translate: -50% 0; opacity: .95; }
 .nest-spot .nest { height: 110px; }
+/* sunny-day parasol over the bed (her ask 11-01): springs up once and stays put */
+.nest-umb { position: absolute; left: 50%; bottom: 14px; width: 176px; height: 176px; translate: -50% 0; z-index: 2; image-rendering: pixelated; pointer-events: none;
+  opacity: 0; scale: 1 0; transform-origin: 50% 100%; transition: opacity .2s, scale .2s; filter: drop-shadow(0 4px 0 rgba(30, 60, 0, .35)); }
+.nest-umb.show { opacity: 1; scale: 1 1; }
+.nest-umb.pop { animation: umb-spring .7s cubic-bezier(.3, 1.8, .5, 1); }
+@keyframes umb-spring { 0% { scale: .6 0; } 45% { scale: 1.08 1.2; } 70% { scale: .96 .9; } 100% { scale: 1 1; } }
 .pet { position: absolute; z-index: 3; cursor: pointer; }
 .pet .baby-spr { display: block; image-rendering: pixelated; background-repeat: no-repeat; margin: 0; position: static; translate: none; }
 .pet.shake { animation: pet-shake .12s linear 6; }
@@ -2330,3 +2336,21 @@ a.ch-chip:hover { background: var(--navy); }
 .lu-moves { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 10px; }
 .lu-moves .lu-new { font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .levelup-btn { animation: none; } }
+
+/* Bag on phones (her ask 11-01): the title never squashes, its buttons drop below it when there's no room,
+   and each item keeps its name on one line beside compact Pin / Store / Use buttons */
+.bag-title { flex-wrap: wrap; } .bag-title .bag-h { flex: none; } .bag-title .bag-tools { margin-left: auto; flex-wrap: nowrap; }
+.bag-item .grow { min-width: 0; } .bag-qty { white-space: nowrap; }
+@media (max-width: 480px) {
+  .bag-item { gap: 5px; }
+  .bag-item > .btn.sm { min-height: 34px; padding: 2px 7px; font-size: 13px; flex: none; }
+  .bag-item > .pinbtn { padding: 2px 5px; font-size: 14px; }
+  .bag-title .bag-tools .btn.sm { min-height: 34px; padding: 2px 8px; font-size: 13px; }
+}
+
+/* sunny-day parasol parts: towel in the bed, parasol over it */
+.nest-umb { width: 176px; height: 200px; bottom: 26px; filter: none; }
+.nest-umb .umb-top { position: absolute; left: 50%; bottom: 0; width: 176px; height: 192px; translate: -50% 0; image-rendering: pixelated; filter: drop-shadow(0 4px 0 rgba(30, 60, 0, .3)); }
+.nest-umb .umb-towel { position: absolute; left: 50%; bottom: 6px; width: 112px; height: 30px; transform: perspective(120px) rotateX(38deg); translate: -50% 0; image-rendering: pixelated; opacity: 0; transition: opacity .3s; }
+.nest-umb.show .umb-towel { opacity: 1; }
+

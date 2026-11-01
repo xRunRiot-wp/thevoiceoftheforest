@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae64af6';
-import { $, $$, esc, toast, num } from './util.js?v=6ae64af6';
-import { me, logRoll } from './play.js?v=6ae64af6';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae64af6';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae64af6';
-import { markWinner } from './sparkle.js?v=6ae64af6';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae64af6';
-import { modal, closeModal } from './ui.js?v=6ae64af6';
+import * as store from './store.js?v=6ae71fb4';
+import { $, $$, esc, toast, num } from './util.js?v=6ae71fb4';
+import { me, logRoll } from './play.js?v=6ae71fb4';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae71fb4';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae71fb4';
+import { markWinner } from './sparkle.js?v=6ae71fb4';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae71fb4';
+import { modal, closeModal } from './ui.js?v=6ae71fb4';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -153,17 +153,26 @@ function visitorPane(roomEl, img, sym, text) {
   const pane = $('.emo-pane', roomEl); const bye = () => { pane.classList.add('bye'); setTimeout(() => pane.remove(), 300); };
   pane.onclick = bye; setTimeout(bye, 4200);
 }
-const petHTML = () => '<div class="pet" id="npet"><span class="pet-cover"></span><span class="baby-spr"></span><span class="pet-think"></span></div><div class="props"></div>';
+// her ask 11-01: on sunny days a pixel-art beach parasol springs up over the bed and stays there (like the Scarlet/Violet
+// picnic table), with its beach towel lying in the bed. assets/nursery/parasol.png + towel.png
+const parasol = () => lab('cover')[0] === '⛱️';
+const petHTML = () => '<span class="nest-umb" aria-hidden="true"><img class="umb-towel" src="assets/nursery/towel.png" alt=""><img class="umb-top" src="assets/nursery/parasol.png" alt=""></span><div class="pet" id="npet"><span class="pet-cover"></span><span class="baby-spr"></span><span class="pet-think"></span></div><div class="props"></div>';
 function startPet(root, b, scene, ownerId) {
   const B = BABIES[b.sp]; const roomEl = $('.nursery-room', root); const pet = $('#npet', root); if (!B || !roomEl || !pet) return;
-  const spr = $('.baby-spr', pet); const think = $('.pet-think', pet); const cov = $('.pet-cover', pet); const props = $('.props', root);
+  const spr = $('.baby-spr', pet); const think = $('.pet-think', pet); const cov = $('.pet-cover', pet); const props = $('.props', root); const umbEl = $('.nest-umb', root);
   const S = SIZE[b.stage] || 3; const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
   spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
   pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
   spr.innerHTML = accHTML(b, pw, ph);
   // an umbrella pattern only changes the umbrella (not the sun shade, blanket or tent)
   const paintCover = () => { const k = b.wear?.umbrella; const umb = lab('cover')[2] === 'Umbrella' && ACC[k];
-    cov.style.filter = umb ? accFilter(k) : ''; cov.classList.toggle('rainbow', !!umb && ACC[k][3] === 'rainbow'); };
+    cov.style.filter = umb ? accFilter(k) : ''; cov.classList.toggle('rainbow', !!umb && ACC[k][3] === 'rainbow');
+    const top = umbEl && $('.umb-top', umbEl); if (top) { top.style.filter = umb ? `${accFilter(k)} drop-shadow(0 4px 0 rgba(30, 60, 0, .3))` : ''; top.classList.toggle('rainbow', !!umb && ACC[k][3] === 'rainbow'); } };
+  // sun: the parasol over the bed; rain, hail, wind, sand: the cover stays with the buddy
+  const showCover = (on, pop = false) => {
+    const sun = on && parasol(); const was = umbEl?.classList.contains('show'); umbEl?.classList.toggle('show', sun); if (sun && (pop || !was)) { umbEl.classList.remove('pop'); void umbEl.offsetWidth; umbEl.classList.add('pop'); }
+    cov.textContent = on && !sun ? lab('cover')[0] : ''; cov.classList.toggle('show', on && !sun); if (on && !sun && pop) cov.classList.add('pop'); paintCover();
+  };
   const alive = () => roomEl.isConnected;
   const row = (name, loop = true, secs = null) => {
     const r = ROW[name]; const n = B.fr[r] || 1;
@@ -315,7 +324,7 @@ function startPet(root, b, scene, ownerId) {
       pet.classList.add('shake'); props.innerHTML = `<div class="drops">${Array.from({ length: 10 }, (_, i) => `<i style="left:${x + pw / 2}px;--a:${i * 36}deg"></i>`).join('')}</div>`;
       await wait(800); pet.classList.remove('shake'); props.innerHTML = ''; fx('✨', -16); fx('✨', 16); row('hop', false); await wait(700); row('idle');
     },
-    async cover() { cov.textContent = lab('cover')[0]; paintCover(); cov.classList.add('show', 'pop'); row('hop', false); fx('💕'); await wait(800); cov.classList.remove('pop'); row('idle'); },
+    async cover() { showCover(true, true); row('hop', false); fx('💕'); await wait(800); cov.classList.remove('pop'); row('idle'); },
     async grew() { row('hop', false); fx('✨'); await wait(700); row('hop', false); fx('🎉'); await wait(700); row('idle'); },
   };
   // her ask 10-29: a very rare visit from Celebi, who flutters in and plays chase (add ?celebi to the address to see it now),
@@ -348,7 +357,7 @@ function startPet(root, b, scene, ownerId) {
       if (busy) { await wait(400); continue; }
       const h = new Date().getHours(); const m = mood(); const ic = need();
       think.className = 'pet-think' + (ic ? ' show' : ''); think.textContent = ic;
-      const cv = coverNeed(b) && stat(b, 'cover') >= 50; cov.textContent = cv ? lab('cover')[0] : ''; cov.classList.toggle('show', !!cv); paintCover();
+      showCover(!!(coverNeed(b) && stat(b, 'cover') >= 50));
       if (!celebiDone && (Math.random() < (asleep(h) ? 0.004 : 0.002) || /celebi/.test(location.search) || celebiDue())) { busy = true; think.className = 'pet-think'; await celebi(); busy = false; continue; }
       if (asleep(h)) { row('sleep', true, 1.6); think.className = 'pet-think show zz'; think.textContent = 'z Z'; await wait(5000); continue; }
       const r = Math.random();
@@ -588,7 +597,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6ae64af6').catch(() => null);
+  const fz = import('./fzscene.js?v=6ae71fb4').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
