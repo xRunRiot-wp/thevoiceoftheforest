@@ -7,15 +7,15 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae72d90';
-import { $, $$, esc, toast, num } from './util.js?v=6ae72d90';
-import { me, logRoll } from './play.js?v=6ae72d90';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae72d90';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae72d90';
-import { markWinner } from './sparkle.js?v=6ae72d90';
-import { pageMusic, visitMusic, muted } from './chiptune.js?v=6ae72d90';
-import { modal, closeModal } from './ui.js?v=6ae72d90';
-import { MIMIC } from './mimicdata.js?v=6ae72d90';
+import * as store from './store.js?v=6ae74e17';
+import { $, $$, esc, toast, num } from './util.js?v=6ae74e17';
+import { me, logRoll } from './play.js?v=6ae74e17';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae74e17';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae74e17';
+import { markWinner } from './sparkle.js?v=6ae74e17';
+import { pageMusic, visitMusic, muted } from './chiptune.js?v=6ae74e17';
+import { modal, closeModal } from './ui.js?v=6ae74e17';
+import { MIMIC } from './mimicdata.js?v=6ae74e17';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -668,7 +668,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6ae72d90').catch(() => null);
+  const fz = import('./fzscene.js?v=6ae74e17').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2, 'right', false, !!c.shiny)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);

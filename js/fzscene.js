@@ -6,9 +6,9 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae72d90';
-import { esc } from './util.js?v=6ae72d90';
-import { currentWeather, wxFxHTML } from './weather.js?v=6ae72d90';
+import { loadIndex } from './effects.js?v=6ae74e17';
+import { esc } from './util.js?v=6ae74e17';
+import { currentWeather, wxFxHTML } from './weather.js?v=6ae74e17';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -41,7 +41,8 @@ function walkData(dex) {
     const a = read('Walk'); if (!a) return null;
     // a Pokémon that walks underground (Diglett's walk is just a dirt mound) shows its Idle picture, out of the ground, when it stops
     const idle = DIGGERS.has(dex.slice(0, 4)) ? read('Idle') : null;
-    return Promise.all([footRoom(dex, a), idle && footRoom(dex, idle, 'Idle')]).then(([f, fi]) => ({ ...a, foot: f, idle: idle && { ...idle, foot: fi } }));
+    const sleep = read('Sleep');   // her ask 11-01: napping on a bed at your base
+    return Promise.all([footRoom(dex, a), idle && footRoom(dex, idle, 'Idle')]).then(([f, fi]) => ({ ...a, foot: f, idle: idle && { ...idle, foot: fi }, sleep }));
   }).catch(() => null));
   return animCache.get(dex);
 }
@@ -111,7 +112,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
   const map = MAPS[mapId]; let rooms; let W; let H; let S;
   if (solo) { // one big square, the width of the box
     const size = box.clientWidth || 340; S = size >= 600 ? 2.5 : size >= 330 ? 2 : 1.5; W = size; H = size;   // her ask 10-29: smaller sprites in the zoomed-in window
-    rooms = [{ key: cubes[0].key, name: '', img: solo, x: 0, y: 0, w: size, h: size, mons: await withMons(cubes[0]) }];
+    rooms = [{ key: cubes[0].key, name: '', img: solo, x: 0, y: 0, w: size, h: size, floor: cubes[0].floor, mons: await withMons(cubes[0]) }];
     if (!box.isConnected) return;
   } else if (map) { // a grid of map squares; the cell size fits the screen (min 96px, up to 270px so it fills a computer screen too)
     const cell = Math.max(96, Math.min(270, Math.floor(((box.clientWidth || 380) - 4) / 4))); S = cell < 120 ? 1.5 : 2;
@@ -144,7 +145,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     el.innerHTML = `<div class="fzs-spr" style="width:${m.a.w * S}px;height:${m.a.h * S}px;background-image:url(${RAW}${m.d4}/Walk-Anim.png);background-size:${m.a.w * m.a.n * S}px ${m.a.h * 8 * S}px;--fw:${m.a.w * S}px;--n:${m.a.n};--ms:${m.a.ms}ms"></div><span class="fzs-tag" style="margin-top:${-Math.round(m.a.foot * S) - 2}px">${esc(m.label || m.name)}${m.by ? `<small class="fzs-by">Recruited by ${esc(m.by)}</small>` : ''}</span>`;
     strip.appendChild(el);
     const b = { el, spr: el.firstChild, m, home: rm, room: rm, busy: false, w: m.a.w * S, h: m.a.h * S };
-    b.spot = (r) => [r.x + 4 + Math.random() * Math.max(2, r.w - b.w - 8), r.y + Math.max(14, r.h * 0.25) + Math.random() * Math.max(2, r.h * 0.75 - b.h - 24)];
+    b.spot = (r) => { const f = r.floor ?? 0.25; return [r.x + 4 + Math.random() * Math.max(2, r.w - b.w - 8), r.y + Math.max(14, r.h * f) + Math.random() * Math.max(2, r.h * (1 - f) - b.h - 24)]; };
     [b.x, b.y] = b.spot(rm);
     const place = (ms = 0) => { el.style.transition = ms ? `left ${ms}ms linear, top ${ms}ms linear` : 'none'; el.style.left = b.x + 'px'; el.style.top = b.y + 'px'; el.style.zIndex = 10 + Math.round(b.y); };
     // which picture sheet the sprite shows: its walk, or (a digger standing still) its idle, out of the ground. The idle box is
@@ -162,11 +163,18 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     b.vanish = () => new Promise((ok) => { el.animate([{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.3 }], { duration: 280, easing: 'ease-in' }); setTimeout(() => { el.style.opacity = 0; ok(); }, 260); });
     b.pop = () => new Promise((ok) => { place(); el.style.opacity = 1; el.animate([{ opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1.2, offset: 0.7 }, { opacity: 1, scale: 1 }], { duration: 340, easing: 'ease-out' }); setTimeout(ok, 420); });
     b.hop = () => { el.classList.remove('hop'); void el.offsetWidth; el.classList.add('hop'); };
+    b.place = place;
+    // her ask 11-01: lie down for a nap (its Sleep picture, bottom-aligned with the walk), or stand up again
+    b.nap = (on) => { const z = m.a.sleep; const st = b.spr.style;
+      if (!on || !z) { b.sheet(false); b.face('down'); b.spr.classList.remove('idling'); el.classList.toggle('dozing', !!on); return; }
+      st.width = z.w * S + 'px'; st.height = z.h * S + 'px'; st.backgroundImage = `url(${RAW}${m.d4}/Sleep-Anim.png)`; st.backgroundSize = `${z.w * z.n * S}px auto`;
+      st.backgroundPositionY = '0'; st.setProperty('--fw', z.w * S + 'px'); st.setProperty('--n', z.n); st.setProperty('--ms', z.ms + 'ms');
+      st.marginTop = Math.max(0, m.a.h - z.h) * S + 'px'; st.marginBottom = '0'; b.spr.classList.add('idling'); };
     el.onclick = () => { b.say(SAYS[Math.floor(Math.random() * 3)]); b.hop(); el.classList.add('named'); setTimeout(() => el.classList.remove('named'), 2500); };
     if (m.a.idle) b.sheet(true); b.face('down'); place(); setTimeout(() => (el.style.opacity = 1), 80 + bots.length * 120);
     bots.push(b);
   }));
-  if (!bots.length) { if (!map && !solo) box.remove(); return; }
+  if (!bots.length) { if (!map && !solo) box.remove(); return { bots, strip }; }
   const rand = (a, z) => a + Math.random() * (z - a);
   const meet = async (b, f) => {
     b.busy = f.busy = true; const side = f.x > b.x ? -1 : 1;
@@ -210,4 +218,5 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     }
   };
   bots.forEach((b, i) => setTimeout(() => life(b), 600 + i * 300));
+  return { bots, strip };
 }

@@ -3,12 +3,12 @@
 // build with what your rank allows (Beginner: a tent, a campfire, bedrolls, a drying rack and a sad little bed); later
 // ranks will add more, up to a building in someone's likeness. Friends can visit from the Friends list (like visiting an
 // igloo in Club Penguin). base/<charId> = { items: { id: { k, x, y } }, visits: { visitorId: t } }; x and y are % of the scene.
-import * as store from './store.js?v=6ae72d90';
-import { $, $$, esc, toast, uid } from './util.js?v=6ae72d90';
-import { modal, closeModal } from './ui.js?v=6ae72d90';
-import { RANK_NAMES } from './content.js?v=6ae72d90';
-import { mountFzScene } from './fzscene.js?v=6ae72d90';
-import { myId } from './app.js?v=6ae72d90';
+import * as store from './store.js?v=6ae74e17';
+import { $, $$, esc, toast, uid } from './util.js?v=6ae74e17';
+import { modal, closeModal } from './ui.js?v=6ae74e17';
+import { RANK_NAMES } from './content.js?v=6ae74e17';
+import { mountFzScene } from './fzscene.js?v=6ae74e17';
+import { myId } from './app.js?v=6ae74e17';
 
 // what can be built: [name, picture, width on screen (px at full size), what it says when tapped]
 const ITEMS = {
@@ -49,21 +49,34 @@ const nextRank = (c) => RANK_NAMES[rankIx(c) + 1] || '';
 const party = () => store.get('party') || {};
 const baseOf = (id) => store.get('base/' + id) || {};
 const GROUND_TOP = 30;   // % of the scene that is forest edge; things are built below it
+// her ask 11-01: tap the tent to go inside and decorate it. Each built piece is in the clearing or (room: 'tent') inside.
+const ROOMS = { camp: { pic: 'assets/nursery/grass.png', ground: GROUND_TOP }, tent: { pic: 'assets/base/tent_inside.png', ground: 46 } };
+const NOT_INSIDE = new Set(['tent', 'campfire', 'rack']);   // no tents in tents, and no fires
+const roomOf = (it) => (it?.room === 'tent' ? 'tent' : 'camp');
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+// little bits flying out of something (leaves out of the pile, sparks off the fire, Zzz off a sleeper)
+function burst(strip, x, y, chars, n = 8, cls = '') {
+  for (let i = 0; i < n; i++) { const s = document.createElement('span'); s.className = 'base-fx ' + cls; s.textContent = chars[i % chars.length];
+    s.style.left = x + 'px'; s.style.top = y + 'px'; s.style.setProperty('--dx', Math.round((Math.random() - 0.5) * 90) + 'px'); s.style.setProperty('--dy', Math.round(-20 - Math.random() * 50) + 'px');
+    s.style.animationDelay = Math.round(i * 40) + 'ms'; strip.appendChild(s); setTimeout(() => s.remove(), 1500 + i * 40); }
+}
 
 // the scene: a grassy clearing with what's been built, and the owner's (and a visitor's) character walking about
-async function drawScene(scene, owner, visitor) {
-  const mons = [owner, visitor].filter((x) => x?.pokemon).map((x) => ({ name: x.pokemon, label: x.nickname, shiny: !!x.shiny }));
-  await mountFzScene(scene, [{ key: 'base', mons, max: 4 }], '', 'assets/nursery/grass.png');
-  if (!scene.isConnected) return;
-  const strip = scene.firstChild; if (!strip) return;
+async function drawScene(scene, owner, visitor, room = 'camp') {
+  const mons = [owner, visitor].filter((x) => x?.pokemon).map((x) => ({ name: x.pokemon, label: x.nickname, shiny: !!x.shiny, who: x.id }));
+  // a fresh box each time, so the Pokémon of the room left behind stop walking
+  scene.innerHTML = ''; scene.classList.toggle('in-tent', room === 'tent'); const box = document.createElement('div'); box.className = 'base-box'; scene.appendChild(box);
+  const got = await mountFzScene(box, [{ key: 'base', mons, max: 4, floor: (ROOMS[room].ground + 4) / 100 }], '', ROOMS[room].pic);
+  if (!box.isConnected) return;
+  const strip = box.firstChild; if (!strip) return;
   const layer = document.createElement('div'); layer.className = 'base-items'; strip.appendChild(layer);
   const paint = () => {
     const items = baseOf(owner.id).items || {}; const size = strip.clientWidth || 340; const k = size / 420;
-    layer.innerHTML = Object.entries(items).filter(([, it]) => ITEMS[it?.k]).map(([id, it]) => { const [name, img, w] = ITEMS[it.k]; const px = Math.round(w * k);
+    layer.innerHTML = Object.entries(items).filter(([, it]) => ITEMS[it?.k] && roomOf(it) === room).map(([id, it]) => { const [name, img, w] = ITEMS[it.k]; const px = Math.round(w * k);
       return `<button class="base-item bi-${esc(it.k)}" data-bi="${esc(id)}" title="${esc(name)}" style="left:${it.x}%;top:${it.y}%;width:${px}px;z-index:${10 + Math.round(it.y / 100 * size)}"><img src="${img}" alt="${esc(name)}"></button>`; }).join('');
   };
   paint();
-  return { layer, paint, strip };
+  return { layer, paint, strip, bots: got?.bots || [], room };
 }
 
 export function openBase(ownerId, { from = null } = {}) {
@@ -78,7 +91,7 @@ export function openBase(ownerId, { from = null } = {}) {
   if (from) { const a = from.getBoundingClientRect(); const b = scene.getBoundingClientRect();
     if (b.width) scene.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width})` }, { transform: 'none' }], { duration: 450, easing: 'cubic-bezier(.2, .8, .2, 1)' }); }
   let placing = null;   // { k } a new thing, or { id } moving one already built
-  let building = false; let picked = ''; let shopping = false; let buying = '';   // shopping = the catalog is open; buying = the piece being bought   // picked = a built piece tapped while building (Move / Put away)
+  let building = false; let picked = ''; let shopping = false; let buying = ''; let room = 'camp'; let s = null; let acting = false;   // shopping = the catalog is open; buying = the piece being bought   // picked = a built piece tapped while building (Move / Put away)
   const panel = $('#bpanel', el);
   const counts = () => { const n = {}; for (const it of Object.values(baseOf(ownerId).items || {})) if (it) n[it.k] = (n[it.k] || 0) + 1; return n; };
   // the catalog: this season's pieces, what they cost and how many you have
@@ -95,13 +108,15 @@ export function openBase(ownerId, { from = null } = {}) {
       <div class="row" style="justify-content:space-between"><span class="pill">${esc(owner.rank || 'Beginner')} rank base</span><span class="row" style="gap:6px"><button class="btn ${shopping ? '' : 'alt'} sm" id="bcat">${shopping ? '✓ Close catalog' : `📖 Catalog`}</button><button class="btn ${building ? '' : 'alt'} sm" id="bbuild">${building ? '✓ Done building' : '🔨 Build'}</button></span></div>
       ${shopping ? catalogHTML() : ''}
       ${building ? `<p class="small muted">Pick something to build, then tap the ground. Tap something you’ve built to move it or put it away.</p>
-        <div class="base-pal">${Object.entries(lim).map(([k, max]) => `<button class="base-pick ${placing?.k === k ? 'on' : ''}" data-pick="${k}" ${(n[k] || 0) >= max ? 'disabled' : ''}><img src="${ITEMS[k][1]}" alt=""><b>${esc(ITEMS[k][0])}</b><small>${n[k] || 0} / ${max}</small></button>`).join('')}</div>
+        <div class="base-pal">${Object.entries(lim).filter(([k]) => room === 'camp' || !NOT_INSIDE.has(k)).map(([k, max]) => `<button class="base-pick ${placing?.k === k ? 'on' : ''}" data-pick="${k}" ${(n[k] || 0) >= max ? 'disabled' : ''}><img src="${ITEMS[k][1]}" alt=""><b>${esc(ITEMS[k][0])}</b><small>${n[k] || 0} / ${max}</small></button>`).join('')}</div>
         ${nextRank(owner) ? `<p class="small muted">🔒 More to build at ${esc(nextRank(owner))} rank. Keep at it, and one day this camp could be a real building!</p>` : ''}`
       : empty ? `<p class="small">Your very own patch of Woodland Base! Tap <b>🔨 Build</b> to pitch your tent and set up camp.</p>` : ''}
       ${visits.length ? `<p class="small muted" style="margin-top:10px">👣 Recent visitors: ${visits.map(([id]) => esc(party()[id].nickname)).join(', ')}</p>` : ''}`
       : `<p class="small">You’re visiting ${esc(owner.nickname)}’s camp${empty ? '. They haven’t built anything yet!' : '. Make yourself at home!'}</p>`;
-    // her ask 11-01: a button straight to the nursery page
+    // her ask 11-01: a button straight to the nursery page (and, inside the tent, one back out)
+    panel.insertAdjacentHTML('afterbegin', room === 'tent' ? `<p class="base-hint">⛺ Inside the tent${mine ? '. Tap 🔨 Build to decorate it!' : ''} <button class="btn sm" id="bout">🚪 Step outside</button></p>` : '');
     panel.insertAdjacentHTML('beforeend', '<div class="row" style="justify-content:center;margin-top:10px"><button class="btn alt" id="bnurs">🍼 Visit the nursery</button></div>');
+    const bo = $('#bout', panel); if (bo) bo.onclick = () => goRoom('camp');
     $('#bnurs', panel).onclick = () => { closeModal(); location.hash = '#/games/fernshade-nursery'; };
     const bb = $('#bbuild', panel); if (bb) bb.onclick = () => { building = !building; shopping = false; buying = ''; placing = null; picked = ''; drawPanel(); };
     const bk = $('#bcat', panel); if (bk) bk.onclick = () => { shopping = !shopping; building = false; buying = ''; placing = null; picked = ''; drawPanel(); };
@@ -121,26 +136,81 @@ export function openBase(ownerId, { from = null } = {}) {
     $$('[data-pick]', panel).forEach((b) => b.onclick = () => { placing = { k: b.dataset.pick }; picked = ''; drawPanel(); });
   };
   drawPanel();
-  drawScene(scene, owner, visitor).then((s) => {
-    if (!s) return;
-    const unsub = store.subscribe(() => { if (!scene.isConnected) { unsub(); return; } s.paint(); drawPanel(); });
-    // building: tap the ground to place; tap a built piece for Move / Put away. Anyone may tap a piece to read about it.
+  const unsub = store.subscribe(() => { if (!scene.isConnected) { unsub(); return; } s?.paint(); drawPanel(); });
+  // her ask 11-01: everything at the base can be played with. Tap a piece and your Pokémon (the visitor's, when visiting) walks
+  // over and uses it: jumps in the leaves, tends the fire, naps on a bed, gets spooked by the Spinarak web...
+  const actor = () => s?.bots.find((b) => b.m.who === (visitor ? visitor.id : ownerId));
+  const play = async (itEl, v) => {
+    const name = ITEMS[v.k][0]; const b = actor(); const who = visitor || owner; const nick = who.nickname;
+    const wig = (cls = 'wig', ms = 1200) => { itEl.classList.remove(cls); void itEl.offsetWidth; itEl.classList.add(cls); setTimeout(() => itEl.classList.remove(cls), ms); };
+    const ix = itEl.offsetLeft; const iy = itEl.offsetTop; const iw = itEl.offsetWidth; const ih = itEl.offsetHeight; const W = s.strip.clientWidth;
+    const clampX = (x) => Math.max(2, Math.min(W - (b?.w || 40) - 2, x));
+    const onTop = (dy = 0) => [clampX(ix + iw / 2 - b.w / 2), iy + ih * 0.6 - b.h + dy];   // standing on (or in) the piece
+    const beside = () => { const left = ix > W / 2; return [clampX(left ? ix - b.w + 6 : ix + iw - 6), Math.max(iy + ih - b.h, s.strip.clientHeight * ROOMS[room].ground / 100)]; };
+    const over = () => { b.el.style.zIndex = Number(itEl.style.zIndex) + 1; };
+    if (!b || acting) { toast(ITEMS[v.k][3]); wig(); return; }
+    acting = true; b.busy = true;
+    try {
+      const k = v.k;
+      if (k === 'tent') {
+        await b.go(clampX(ix + iw / 2 - b.w / 2), iy + ih - b.h - 2); b.face('up'); await wait(250);
+        toast(`${nick} ducks inside the tent.`); await b.vanish(); acting = false; return goRoom('tent');
+      }
+      if (k === 'leaves') {
+        await b.go(clampX(ix + iw / 2 - b.w / 2), iy + ih - b.h * 0.8); over(); b.hop(); await wait(260); b.el.style.zIndex = Number(itEl.style.zIndex) - 1;   // down into the pile
+        toast(`${nick} jumps into the leaf pile! Crunch crunch!`);
+        for (let i = 0; i < 3; i++) { wig('crunch', 500); burst(s.strip, ix + iw / 2, iy + ih * 0.3, ['🍂', '🍁', '🍂', '🍃'], 7); b.hop(); await wait(650); }
+        b.say('😆'); await wait(500); await b.go(...beside());
+      } else if (k === 'campfire') {
+        await b.go(...beside()); b.face(b.x < ix ? 'right' : 'left'); await wait(300);
+        b.say('🔥'); b.hop(); await wait(500); itEl.classList.add('stoke'); toast(`${nick} adds a stick to the fire. It roars up bright and warm!`);
+        for (let i = 0; i < 4; i++) { burst(s.strip, ix + iw / 2, iy + ih * 0.35, ['✨', '🔥', '✨'], 4, 'up'); await wait(700); }
+        b.say('😊'); await wait(1200); itEl.classList.remove('stoke');
+      } else if (k === 'bedroll' || k === 'sadbed') {
+        await b.go(...onTop(4)); over(); b.nap(true); toast(k === 'sadbed' ? `${nick} lies down on the straw. It’s… lumpy. Zzz…` : `${nick} curls up on the bedroll for a nap. Zzz…`);
+        for (let i = 0; i < 6; i++) { burst(s.strip, b.x + b.w * 0.7, b.y + b.h * 0.3, ['💤'], 1, 'zz'); await wait(1100); }
+        b.nap(false); b.hop(); b.say(k === 'sadbed' ? '😣' : '☀️'); if (k === 'sadbed') toast(`${nick} wakes up a little stiff. A comfier bed someday, maybe!`);
+        await wait(700); await b.go(...beside());
+      } else if (k === 'hay') {
+        await b.go(...onTop(-12)); over(); b.hop(); b.say('😌'); toast(`${nick} sits on the hay bale and swings their feet.`); await wait(3200); b.hop(); await wait(300); await b.go(...beside());
+      } else if (k === 'spinarak') {
+        await b.go(clampX(ix + iw / 2 - b.w / 2), iy + ih + 4 - b.h * 0.2); b.face('up'); await wait(500);
+        wig('drop', 1100); await wait(350); b.say('❗'); b.hop(); toast(`A Spinarak swings down from its web! ${nick} jumps out of their skin!`);
+        await wait(300); b.say('😱'); const away = b.x + (b.x > W / 2 ? -W * 0.35 : W * 0.35); await b.go(clampX(away), Math.min(s.strip.clientHeight - b.h - 20, b.y + 30)); b.hop(); await wait(400); b.say('💦');
+      } else if (k === 'rack') {
+        await b.go(...beside()); b.face(b.x < ix ? 'right' : 'left'); await wait(300); wig(); b.say('🍓'); toast(`${nick} sneaks a berry off the drying rack. Yum!`); await wait(900); b.hop(); b.say('😋'); await wait(600);
+      } else if (k === 'pumpkaboo' || k === 'litwick') {
+        await b.go(...beside()); b.face(b.x < ix ? 'right' : 'left'); itEl.classList.add('glow');
+        toast(k === 'pumpkaboo' ? `The Pumpkaboo lantern glows brighter when ${nick} says hello. Boo!` : `${nick} warms up by the Litwick candles. So cozy!`);
+        b.say(k === 'pumpkaboo' ? '🎃' : '🕯️'); await wait(1500); b.hop(); b.say('😊'); await wait(1300); itEl.classList.remove('glow');
+      } else if (k === 'zubat' || k === 'noibat' || k === 'hoothoot' || k === 'murkrow') {
+        await b.go(...beside()); b.face('up'); wig(); b.say(k === 'hoothoot' ? '🎶' : k === 'murkrow' ? '⭐' : '❗');
+        toast({ zubat: `${nick} bats at the Zubat bunting and sets it swinging.`, noibat: `The Noibat bunting flutters. ${nick} jumps! Eeek!`, hoothoot: `${nick} hoots back at the carved Hoothoot. Hoo-hoo!`, murkrow: `${nick} finds something shiny tucked by the Murkrow post!` }[k]);
+        await wait(900); b.hop(); await wait(900);
+      } else { await b.go(...beside()); toast(ITEMS[k][3]); wig(); b.hop(); await wait(800); }
+    } finally { if (acting) { acting = false; if (b.el.isConnected) { b.face('down'); b.place(); } b.busy = false; } }
+  };
+  const goRoom = (r) => { room = r; placing = null; picked = ''; acting = false; drawPanel(); mount(); };
+  const mount = () => drawScene(scene, owner, visitor, room).then((got) => {
+    if (!got) return; s = got;
+    // building: tap the ground to place; tap a built piece for Move / Put away. Anyone may tap a piece to play with it.
     s.strip.addEventListener('click', (e) => {
       const it = e.target.closest('[data-bi]');
       if (placing && !it) {
         const r = s.strip.getBoundingClientRect(); const item = placing.k || baseOf(ownerId).items?.[placing.id]?.k; const w = ITEMS[item]?.[2] / 420 * r.width || 60;
         const x = Math.max(0, Math.min(100 - w / r.width * 100, ((e.clientX - r.left) - w / 2) / r.width * 100));
-        const y = Math.max(GROUND_TOP, Math.min(88, ((e.clientY - r.top) / r.height * 100) - 8));
+        const y = Math.max(ROOMS[room].ground, Math.min(88, ((e.clientY - r.top) / r.height * 100) - 8));
         const pos = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
         if (placing.id) store.update(`base/${ownerId}/items/${placing.id}`, (v) => (v ? { ...v, ...pos } : v));
         else { const n = counts()[placing.k] || 0; if (n >= (limitsFor(owner)[placing.k] || 0)) { toast('No room for another one of those yet.'); placing = null; drawPanel(); return; }
-          store.set(`base/${ownerId}/items/${uid()}`, { k: placing.k, ...pos, t: Date.now() }); }
+          store.set(`base/${ownerId}/items/${uid()}`, { k: placing.k, ...pos, t: Date.now(), ...(room === 'tent' ? { room: 'tent' } : {}) }); }
         placing = null; drawPanel(); return;
       }
       if (!it) return;
       const id = it.dataset.bi; const v = baseOf(ownerId).items?.[id]; if (!v) return;
       if (mine && building) { picked = id; placing = null; drawPanel(); return; }
-      toast(ITEMS[v.k][3]); it.classList.remove('wig'); void it.offsetWidth; it.classList.add('wig');
+      play(it, v);
     });
   });
+  mount();
 }
