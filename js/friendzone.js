@@ -1,15 +1,16 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae726ab';
-import { $, $$, esc, toast } from './util.js?v=6ae726ab';
-import { modal, closeModal } from './ui.js?v=6ae726ab';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae726ab';
-import { merged, editContent } from './content-store.js?v=6ae726ab';
-import { CHAPTERS } from './content.js?v=6ae726ab';
-import { giftNote } from './mailbox.js?v=6ae726ab';
-import { guildSay } from './chatter.js?v=6ae726ab';
-import { myId } from './app.js?v=6ae726ab';
-import { hasBase, openBase } from './mybase.js?v=6ae726ab';
+import * as store from './store.js?v=6ae727b8';
+import { $, $$, esc, toast } from './util.js?v=6ae727b8';
+import { modal, closeModal } from './ui.js?v=6ae727b8';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae727b8';
+import { merged, editContent } from './content-store.js?v=6ae727b8';
+import { CHAPTERS } from './content.js?v=6ae727b8';
+import { giftNote } from './mailbox.js?v=6ae727b8';
+import { guildSay } from './chatter.js?v=6ae727b8';
+import { myId } from './app.js?v=6ae727b8';
+import { hasBase, openBase } from './mybase.js?v=6ae727b8';
+import { shackButtons } from './miltank.js?v=6ae727b8';
 
 export const LOCATIONS = [
   {
@@ -196,7 +197,7 @@ export function renderFriendZone(main, [arg]) {
       const rooms = []; for (const r of spots(loc).slice(s.i + 1)) { if (!r.room) break; rooms.push(r); }
       return `<div class="card fz-spot" data-spotkey="${esc(s.key)}"><h3 style="margin:0 0 4px">${esc(s.name)}</h3>${s.desc ? `<p class="small">${esc(s.desc)}</p>` : ''}
         <div class="fz-mons">${spotMons(s).filter((m) => !movedAway(m, s.key)).map((m) => `<span class="pill">${esc(m)}</span>`).join('')}${movedIn(s.key).map((m) => `<span class="pill moved">${esc(m.name)}</span>`).join('')}${extra.filter(([, r]) => !movedAway(r.name, s.key)).map(([id, r]) => `<span class="pill recruit">${esc(r.name)}${r.type ? ` <small>· ${esc(r.type.replace(/^The\s+/, ''))}</small>` : ''}${gm ? ` <button class="x" data-unrecruit="${esc(s.key)}/${id}" aria-label="Remove">×</button>` : ''}</span>`).join('')}${sleepers.filter((c) => c.sleep === loc.id + '|' + s.key).map((c) => `<span class="pill sleeper">💤 ${esc(c.nickname)}</span>`).join('')}${!spotMons(s).length && !extra.length && !sleepers.some((c) => c.sleep === loc.id + '|' + s.key) ? '<span class="small muted">Nobody lives here yet.</span>' : ''}</div>
-        ${s.key === 'fernshade-camp' ? nurseryHTML() : ''}<button class="btn alt sm" data-recruit="${esc(s.key)}">+ Recruit or move here</button>${rooms.map((r) => roomHTML(loc, r)).join('')}</div>`; }).join('')}</div>
+        ${s.key === 'fernshade-camp' ? nurseryHTML() + '<button class="btn sm" data-go-nursery>🍼 Visit the nursery</button> ' : ''}<button class="btn alt sm" data-recruit="${esc(s.key)}">+ Recruit or move here</button>${rooms.map((r) => roomHTML(loc, r)).join('')}</div>`; }).join('')}</div>
     <div class="card fz-staff">
       ${loc.awning ? `<p><b>⛺ Central awning:</b> ${esc(loc.awning)}</p>` : ''}${loc.caretaker ? `<p><b>🐝 Caretaker:</b> ${esc(loc.caretaker)}</p>` : ''}
       ${loc.sentinel ? `<p><b>🛡️ Sentinel:</b> ${esc(loc.sentinel)}</p>` : ''}${loc.relay ? `<p><b>📮 Relay station:</b> ${esc(loc.relay)}</p>` : ''}</div>
@@ -226,7 +227,7 @@ export function renderFriendZone(main, [arg]) {
     // her ask 11-01: your own base, next to the Guild (open from Beginner rank)
     if (MAPS[loc.id]?.some((x) => x[0] === 'my-base')) { const meC = (store.get('party') || {})[myId()]; cubes.push({ key: 'my-base', name: meC && hasBase(meC) ? `${meC.nickname}’s Base` : 'Your Base', mons: [], locked: !hasBase(meC) }); }
     for (const [key, ns] of Object.entries(PATHS[loc.id] || {})) cubes.push({ key, name: pathName(ns), mons: [], locked: ch < Math.min(...ns) });
-    const placeCard = (key) => { const d = document.createElement('div'); d.className = 'card fz-place'; d.innerHTML = `<h3 style="margin:0 0 4px">${esc(PLACES[key][0])}</h3><p>${esc(PLACES[key][1])}</p>`; return d; };
+    const placeCard = (key) => { const d = document.createElement('div'); d.className = 'card fz-place'; d.innerHTML = `<h3 style="margin:0 0 4px">${esc(PLACES[key][0])}</h3><p>${esc(PLACES[key][1])}</p>`; if (key === 'miltankshake') shackButtons(d); return d; };
     const pathCard = (key) => { const ns = PATHS[loc.id][key]; const d = document.createElement('div'); d.className = 'card fz-path';
       d.innerHTML = `<h3 style="margin:0 0 4px">${ch < Math.min(...ns) ? '🔒 ' : ''}${esc(pathName(ns))}</h3>${ns.map((n) => { const c = chList.find((x) => Number(x.n) === n);
         return `<p>${ch < n ? '🔒' : '✅'} <b>Chapter ${n}${c?.title && c.title !== 'Chapter ' + n ? `: ${esc(c.title)}` : ''}</b>${c?.quote ? `<br><i>“${esc(c.quote)}”</i>` : ''}</p>`; }).join('')}
@@ -272,6 +273,8 @@ export function renderFriendZone(main, [arg]) {
         });
       }
     } }
+  // her ask 11-01: Fernshade Camp's box has a button straight to the nursery page
+  $$('[data-go-nursery]', main).forEach((b) => b.onclick = () => { closeModal(); location.hash = '#/games/fernshade-nursery'; });
   $$('[data-recruit]', main).forEach((b) => b.onclick = () => {
     const here = areaName(loc, { key: b.dataset.recruit });
     const players = Object.values(store.get('party') || {}).filter((c) => !c.guest && c.nickname);

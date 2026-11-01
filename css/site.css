@@ -2376,3 +2376,25 @@ a.ch-chip:hover { background: var(--navy); }
 .base-hint { background: #fff4d0; border: 2px dashed #e2b04a; border-radius: 10px; padding: 6px 10px; }
 .fzs-cube.locked[data-key="my-base"] { filter: saturate(.6) brightness(.8); }
 
+
+/* the Miltankshack (her ask 11-01): milk and milkshakes to buy, and a milkshake to watch your Pokémon drink */
+.shack-buy { display: grid; gap: 8px; margin-top: 10px; }
+.shack-buy .btn { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.shack-buy .btn img { height: 28px; width: auto; image-rendering: pixelated; }
+.shack-buy .btn small { opacity: .8; font-size: .8em; }
+.shake-scene { position: relative; height: 240px; border-radius: 14px; border: 3px solid #3a2c1a; overflow: hidden;
+  background: url('../assets/friendzone/woodland_miltankshack.jpg') center 30% / cover; display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding-bottom: 30px; }
+.shake-mon { display: flex; align-items: flex-end; filter: drop-shadow(0 3px 0 rgba(30, 20, 0, .4)); }
+.shake-emo { font-size: 64px; }
+.shake-cup { width: 48px; height: auto; image-rendering: pixelated; transform-origin: 50% 100%; filter: drop-shadow(0 3px 0 rgba(30, 20, 0, .4)); transition: clip-path 3s linear; clip-path: inset(0 0 0 0); }
+.shake-scene.excited .shake-mon { animation: shake-bounce .32s ease-in-out infinite alternate; }
+@keyframes shake-bounce { from { transform: translateY(0) rotate(-4deg); } to { transform: translateY(-22px) rotate(4deg); } }
+.shake-scene.sipping .shake-mon { animation: shake-sip .5s ease-in-out infinite alternate; }
+@keyframes shake-sip { from { transform: scale(1, 1); } to { transform: scale(1.06, .94) translateX(-3px); } }
+.shake-scene.sipping .shake-cup { animation: shake-tilt .5s ease-in-out infinite alternate; }
+@keyframes shake-tilt { to { transform: rotate(-12deg); } }
+.shake-scene.done .shake-cup { opacity: .45; }
+.shake-fx { position: absolute; inset: 0; pointer-events: none; }
+.shake-fx span { position: absolute; bottom: 120px; font-size: 26px; animation: fx-float 1.4s ease-out forwards; }
+.shake-say { text-align: center; margin-top: 10px; }
+@media (prefers-reduced-motion: reduce) { .shake-scene .shake-mon, .shake-scene .shake-cup { animation: none !important; } }

@@ -3,12 +3,12 @@
 // build with what your rank allows (Beginner: a tent, a campfire, bedrolls, a drying rack and a sad little bed); later
 // ranks will add more, up to a building in someone's likeness. Friends can visit from the Friends list (like visiting an
 // igloo in Club Penguin). base/<charId> = { items: { id: { k, x, y } }, visits: { visitorId: t } }; x and y are % of the scene.
-import * as store from './store.js?v=6ae726ab';
-import { $, $$, esc, toast, uid } from './util.js?v=6ae726ab';
-import { modal, closeModal } from './ui.js?v=6ae726ab';
-import { RANK_NAMES } from './content.js?v=6ae726ab';
-import { mountFzScene } from './fzscene.js?v=6ae726ab';
-import { myId } from './app.js?v=6ae726ab';
+import * as store from './store.js?v=6ae727b8';
+import { $, $$, esc, toast, uid } from './util.js?v=6ae727b8';
+import { modal, closeModal } from './ui.js?v=6ae727b8';
+import { RANK_NAMES } from './content.js?v=6ae727b8';
+import { mountFzScene } from './fzscene.js?v=6ae727b8';
+import { myId } from './app.js?v=6ae727b8';
 
 // what can be built: [name, picture, width on screen (px at full size), what it says when tapped]
 const ITEMS = {
