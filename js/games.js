@@ -1,27 +1,27 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6ae75503';
-import * as store from './store.js?v=6ae75503';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae75503';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae75503';
-import { modal, portrait } from './ui.js?v=6ae75503';
-import * as sheet from './sheetdata.js?v=6ae75503';
-import { shop } from './guild.js?v=6ae75503';
-import { merged, editContent } from './content-store.js?v=6ae75503';
-import { logRoll, me, addTeamFx } from './play.js?v=6ae75503';
-import { luckyReaction, gmTodo } from './chatter.js?v=6ae75503';
-import { ranks } from './rulebook.js?v=6ae75503';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae75503';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae75503';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae75503';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae75503';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae75503';
-import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6ae75503';
-import { isTruck, renderTruck, truckMini } from './truck.js?v=6ae75503';
-import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6ae75503';
-import { isBattle, renderBattle, battleMini } from './battle.js?v=6ae75503';
-import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6ae75503';
-import { watchGamePage, stopGamePage } from './watch.js?v=6ae75503';
+import { markWinner } from './sparkle.js?v=6ae7830e';
+import * as store from './store.js?v=6ae7830e';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6ae7830e';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae7830e';
+import { modal, portrait } from './ui.js?v=6ae7830e';
+import * as sheet from './sheetdata.js?v=6ae7830e';
+import { shop } from './guild.js?v=6ae7830e';
+import { merged, editContent } from './content-store.js?v=6ae7830e';
+import { logRoll, me, addTeamFx } from './play.js?v=6ae7830e';
+import { luckyReaction, gmTodo } from './chatter.js?v=6ae7830e';
+import { ranks } from './rulebook.js?v=6ae7830e';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6ae7830e';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6ae7830e';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6ae7830e';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6ae7830e';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6ae7830e';
+import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6ae7830e';
+import { isTruck, renderTruck, truckMini } from './truck.js?v=6ae7830e';
+import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6ae7830e';
+import { isBattle, renderBattle, battleMini } from './battle.js?v=6ae7830e';
+import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6ae7830e';
+import { watchGamePage, stopGamePage } from './watch.js?v=6ae7830e';
 
 export const GAMES = [
   {
@@ -127,7 +127,7 @@ And Chandelure quietly turns the Lucky Den wheel so that the Golden Paw faces th
 ];
 const GAME_SCHEMA = [['name', 'Game name'], ['group', 'Section', 'select:Gambling Games|Chores|Skill Games'], ['host', 'Run by'], ['intro', 'About', 'area'], ['cost', 'Cost to play (e.g. 50 Poké)'],
   ['slicesText', 'Slices — one per line: Name | weight | prize (weight 1 = normal, 0.5 = half as likely)', 'area'], ['colorsText', 'Colours (comma separated, optional)'], ['legendTitle', 'Story title (optional)'], ['legend', 'Story (optional)', 'area'],
-  ['special', 'Special character (gets twists when they spin, optional)'], ['winCap', 'Most Poké the special character can win per session (blank = no limit)', 'number'],
+  ['special', 'Special character (gets twists when they spin, optional)'], ['winCap', 'Most Poké the special character can win per day (blank = no limit)', 'number'],
   ['twistsText', 'Twists — one per line: Slice | good, bad or chaos | what happens', 'area']];
 
 const parse = (g) => {
@@ -177,16 +177,17 @@ function giveItem(owner, name, qty = 1) {
 }
 const givePoke = (id, amt) => store.update('party/' + id, (x) => ({ ...x, poke: num(x?.poke) + amt }));
 const LUNCH = { now: 'Now (this session)', soon: 'Soon (next session)', someday: 'Someday (any future session)' };
-// The special character's Poké winnings per session (GM's session number), checked against the game's winCap.
+// The special character's Poké winnings per day (resets at midnight), checked against the game's winCap.
 const sessN = () => parseInt((store.get('session') || {}).n, 10) || 1;
-const winPath = (g) => `gamewins/${g.id}/s${sessN()}`;
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const winPath = (g) => `gamewins/${g.id}/d${today()}`;
 const pokeIn = (text, tw) => {
   let v = [...(text || '').matchAll(/([\d,]+)\s*Poké/g)].reduce((s, m) => s + (parseInt(m[1].replace(/,/g, ''), 10) || 0), 0);
   if (tw && /twice/i.test(tw[2])) v *= 2;
   if (tw && /half/i.test(tw[2])) v = Math.floor(v / 2);
   return v;
 };
-const capLine = (g) => { const won = parseInt(store.get(winPath(g)), 10) || 0; return `${esc(g.special)} has won <b>${won.toLocaleString()} / ${Number(g.winCap).toLocaleString()}</b> Poké this session.`; };
+const capLine = (g) => { const won = parseInt(store.get(winPath(g)), 10) || 0; return `${esc(g.special)} has won <b>${won.toLocaleString()} / ${Number(g.winCap).toLocaleString()}</b> Poké today.`; };
 const TWIST = { good: ['✨', 'Advantage'], bad: ['💢', 'Drawback'], chaos: ['🌀', 'Chaos'] };
 const twistFor = (g, n) => g.twists.find(([s]) => s.toLowerCase() === n.toLowerCase());
 
@@ -327,7 +328,7 @@ export function renderGames(main, [arg, sub]) {
       const cap = Number(g.winCap); const won = parseInt(store.get(winPath(g)), 10) || 0;
       const got = Math.max(0, Math.min(poke, cap - won));
       store.set(winPath(g), won + got);
-      if (got < poke) capNote = `<p class="twist-capped">🚫 Session limit: ${esc(g.special)} only gets <b>${got.toLocaleString()}</b> of the ${poke.toLocaleString()} Poké (max ${cap.toLocaleString()} a session).</p>`;
+      if (got < poke) capNote = `<p class="twist-capped">🚫 Daily limit: ${esc(g.special)} only gets <b>${got.toLocaleString()}</b> of the ${poke.toLocaleString()} Poké (max ${cap.toLocaleString()} a day).</p>`;
       poke = got;
       const cl = $('#capline', main); if (cl) cl.innerHTML = capLine(g);
     }
@@ -411,7 +412,7 @@ export function renderGames(main, [arg, sub]) {
       $('#res', main).innerHTML = `<div class="big">${esc(n)}</div>${p ? `<p>${esc(p)}</p>` : '<p class="small muted">Your GM tells you what you won.</p>'}`
         + (tw ? `<div class="twist ${tw[1]}"><b>${TWIST[tw[1]][0]} ${esc(g.special)}’s ${TWIST[tw[1]][1]}</b><p>${esc(tw[2])}</p>${/Metronome wheel/i.test(tw[2]) ? '<a class="gemini-wag" href="#/games/gemini-metronome">Spin Gemini’s Metronome wheel →</a>' : ''}</div>` : '');
       const capNote = await payout(n, p, tw, (store.get('party') || {})[c.id] || c);
-      logRoll(c.nickname, `${g.name} — spin`, null, (paid ? `paid ${paid} Poké · ` : '') + n + (p ? ` (${p})` : '') + (tw ? ` · ${g.special}’s ${TWIST[tw[1]][1].toLowerCase()}: ${tw[2]}` : '') + (capNote ? ` · capped by the ${Number(g.winCap).toLocaleString()} Poké session limit` : ''), 'note');
+      logRoll(c.nickname, `${g.name} — spin`, null, (paid ? `paid ${paid} Poké · ` : '') + n + (p ? ` (${p})` : '') + (tw ? ` · ${g.special}’s ${TWIST[tw[1]][1].toLowerCase()}: ${tw[2]}` : '') + (capNote ? ` · capped by the ${Number(g.winCap).toLocaleString()} Poké daily limit` : ''), 'note');
       if (g.id === 'lucky-den') luckyReaction(c.nickname, n, p);
       toast(`${g.name}: ${n}`);
     };
