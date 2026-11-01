@@ -2459,6 +2459,6 @@ a.ch-chip:hover { background: var(--navy); }
 div.base-pick { cursor: default; } .base-pick.locked img { filter: brightness(0) opacity(.35); } .base-pick.locked b { opacity: .6; }
 
 /* her ask 11-01: sandstorm canopy stands over the nest like the parasol (no towel) */
-.nest-umb.canopy { width: 224px; }
-.nest-umb.canopy .umb-top { width: 224px; height: 208px; bottom: -40px; }
+.nest-umb.canopy { width: 240px; }
+.nest-umb.canopy .umb-top { width: 240px; height: 216px; bottom: -44px; }
 .nest-umb.canopy .umb-towel { display: none; }
