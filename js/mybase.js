@@ -3,12 +3,12 @@
 // build with what your rank allows (Beginner: a tent, a campfire, bedrolls, a drying rack and a sad little bed); later
 // ranks will add more, up to a building in someone's likeness. Friends can visit from the Friends list (like visiting an
 // igloo in Club Penguin). base/<charId> = { items: { id: { k, x, y } }, visits: { visitorId: t } }; x and y are % of the scene.
-import * as store from './store.js?v=6ae72a5c';
-import { $, $$, esc, toast, uid } from './util.js?v=6ae72a5c';
-import { modal, closeModal } from './ui.js?v=6ae72a5c';
-import { RANK_NAMES } from './content.js?v=6ae72a5c';
-import { mountFzScene } from './fzscene.js?v=6ae72a5c';
-import { myId } from './app.js?v=6ae72a5c';
+import * as store from './store.js?v=6ae72b3d';
+import { $, $$, esc, toast, uid } from './util.js?v=6ae72b3d';
+import { modal, closeModal } from './ui.js?v=6ae72b3d';
+import { RANK_NAMES } from './content.js?v=6ae72b3d';
+import { mountFzScene } from './fzscene.js?v=6ae72b3d';
+import { myId } from './app.js?v=6ae72b3d';
 
 // what can be built: [name, picture, width on screen (px at full size), what it says when tapped]
 const ITEMS = {
@@ -18,13 +18,33 @@ const ITEMS = {
   rack: ['Drying Rack', 'assets/base/rack.png', 102, 'Berries and a towel drying in the breeze.'],
   sadbed: ['Sad Bed', 'assets/base/sadbed.png', 90, 'A thin pile of straw. It’s… a bed. Technically.'],
 };
+// her ask 11-01: a seasonal catalog (like Club Penguin's), fall and Halloween first, with Pokémon in place of animals.
+// Pieces are bought with the owner's Poké and kept in base/<id>/owned/<key> (how many they may place). Pictures from
+// tools/build_decor.py. [name, picture, width, what it says when tapped, price]
+const SEASONS = [
+  { key: 'fall', name: 'Fall & Halloween', icon: '🎃', months: [8, 9, 10], items: {
+    pumpkaboo: ['Pumpkaboo Lantern', 'assets/base/pumpkaboo.png', 54, 'A Pumpkaboo glows softly by the door. Spooky, but cute!', 120],
+    zubat: ['Zubat Bunting', 'assets/base/zubat_bunting.png', 168, 'A string of paper Zubat flutters in the breeze.', 80],
+    noibat: ['Noibat Bunting', 'assets/base/noibat_bunting.png', 168, 'Paper Noibat sway on the line. Eeek!', 80],
+    hoothoot: ['Hoothoot Perch', 'assets/base/hoothoot_perch.png', 54, 'A carved Hoothoot keeps watch. Hoo-hoo!', 150],
+    murkrow: ['Murkrow Post', 'assets/base/murkrow_post.png', 46, 'A wooden Murkrow guards the camp from mischief. Probably.', 150],
+    litwick: ['Litwick Candles', 'assets/base/litwick_candles.png', 84, 'Three little Litwick candles flicker in the dark.', 60],
+    spinarak: ['Spinarak Web', 'assets/base/spinarak_web.png', 72, 'A Spinarak spun its finest web just for you.', 70],
+    leaves: ['Leaf Pile', 'assets/base/leaf_pile.png', 72, 'Crunch! Perfect for jumping in.', 40],
+    hay: ['Hay Bale', 'assets/base/hay_bale.png', 66, 'A cozy hay bale to sit on.', 50],
+  } },
+];
+for (const se of SEASONS) Object.assign(ITEMS, se.items);
+const season = () => SEASONS.find((se) => se.months.includes(new Date().getMonth())) || SEASONS[0];
 // how many of each a rank may build (each rank gets everything the ranks before it had); only Beginner for now
 const BUILD = {
   Beginner: { tent: 1, campfire: 1, bedroll: 2, rack: 1, sadbed: 1 },
 };
 const rankIx = (c) => Math.max(0, RANK_NAMES.indexOf(c?.rank || 'Starter'));
 export const hasBase = (c) => !!c && !c.guest && rankIx(c) >= 1;
-const limitsFor = (c) => { const out = {}; for (const r of RANK_NAMES.slice(1, rankIx(c) + 1)) for (const [k, n] of Object.entries(BUILD[r] || {})) out[k] = Math.max(out[k] || 0, n); return out; };
+const limitsFor = (c) => { const out = {}; for (const r of RANK_NAMES.slice(1, rankIx(c) + 1)) for (const [k, n] of Object.entries(BUILD[r] || {})) out[k] = Math.max(out[k] || 0, n);
+  for (const [k, n] of Object.entries(baseOf(c.id).owned || {})) if (ITEMS[k] && n > 0) out[k] = (out[k] || 0) + n;   // catalog pieces bought
+  return out; };
 const nextRank = (c) => RANK_NAMES[rankIx(c) + 1] || '';
 const party = () => store.get('party') || {};
 const baseOf = (id) => store.get('base/' + id) || {};
@@ -58,16 +78,22 @@ export function openBase(ownerId, { from = null } = {}) {
   if (from) { const a = from.getBoundingClientRect(); const b = scene.getBoundingClientRect();
     if (b.width) scene.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width})` }, { transform: 'none' }], { duration: 450, easing: 'cubic-bezier(.2, .8, .2, 1)' }); }
   let placing = null;   // { k } a new thing, or { id } moving one already built
-  let building = false; let picked = '';   // picked = a built piece tapped while building (Move / Put away)
+  let building = false; let picked = ''; let shopping = false; let buying = '';   // shopping = the catalog is open; buying = the piece being bought   // picked = a built piece tapped while building (Move / Put away)
   const panel = $('#bpanel', el);
   const counts = () => { const n = {}; for (const it of Object.values(baseOf(ownerId).items || {})) if (it) n[it.k] = (n[it.k] || 0) + 1; return n; };
+  // the catalog: this season's pieces, what they cost and how many you have
+  const catalogHTML = () => { const se = season(); const own = baseOf(ownerId).owned || {}; const poke = Number(party()[ownerId]?.poke) || 0;
+    return `<div class="base-cat"><p style="margin:8px 0 2px"><b>${se.icon} ${esc(se.name)} catalog</b> <span class="small muted">· ${esc(owner.nickname)} has ${poke.toLocaleString()} Poké</span></p>
+      ${buying ? `<p class="base-hint">Buy the <b>${esc(ITEMS[buying][0])}</b> for <b>${ITEMS[buying][4]} Poké</b>? <button class="btn sm" id="bbuyyes" ${poke < ITEMS[buying][4] ? 'disabled' : ''}>Buy it</button> <button class="btn alt sm" id="bbuyno">Cancel</button>${poke < ITEMS[buying][4] ? ' <span class="small bad-t">Not enough Poké yet.</span>' : ''}</p>` : ''}
+      <div class="base-pal">${Object.entries(se.items).map(([k, it]) => `<button class="base-pick ${buying === k ? 'on' : ''}" data-buy="${k}"><img src="${it[1]}" alt=""><b>${esc(it[0])}</b><small>${it[4]} Poké${own[k] ? ` · have ${own[k]}` : ''}</small></button>`).join('')}</div></div>`; };
   const drawPanel = () => {
     const lim = limitsFor(owner); const n = counts(); const visits = Object.entries(baseOf(ownerId).visits || {}).filter(([id]) => party()[id] && id !== ownerId).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const empty = !Object.keys(n).length;
     panel.innerHTML = mine ? `
       ${picked && !placing ? `<p class="base-hint">${esc(ITEMS[baseOf(ownerId).items?.[picked]?.k]?.[0] || '')}: <button class="btn sm" id="bmv">↔️ Move</button> <button class="btn alt sm" id="bdel">📦 Put away</button> <button class="btn alt sm" id="bcancel">Cancel</button></p>` : ''}
       ${placing ? `<p class="base-hint">👆 Tap the ground where the ${esc(ITEMS[placing.k || baseOf(ownerId).items?.[placing.id]?.k]?.[0] || 'piece')} should go. <button class="btn alt sm" id="bcancel">Cancel</button></p>` : ''}
-      <div class="row" style="justify-content:space-between"><span class="pill">${esc(owner.rank || 'Beginner')} rank base</span><button class="btn ${building ? '' : 'alt'} sm" id="bbuild">${building ? '✓ Done building' : '🔨 Build'}</button></div>
+      <div class="row" style="justify-content:space-between"><span class="pill">${esc(owner.rank || 'Beginner')} rank base</span><span class="row" style="gap:6px"><button class="btn ${shopping ? '' : 'alt'} sm" id="bcat">${shopping ? '✓ Close catalog' : `📖 Catalog`}</button><button class="btn ${building ? '' : 'alt'} sm" id="bbuild">${building ? '✓ Done building' : '🔨 Build'}</button></span></div>
+      ${shopping ? catalogHTML() : ''}
       ${building ? `<p class="small muted">Pick something to build, then tap the ground. Tap something you’ve built to move it or put it away.</p>
         <div class="base-pal">${Object.entries(lim).map(([k, max]) => `<button class="base-pick ${placing?.k === k ? 'on' : ''}" data-pick="${k}" ${(n[k] || 0) >= max ? 'disabled' : ''}><img src="${ITEMS[k][1]}" alt=""><b>${esc(ITEMS[k][0])}</b><small>${n[k] || 0} / ${max}</small></button>`).join('')}</div>
         ${nextRank(owner) ? `<p class="small muted">🔒 More to build at ${esc(nextRank(owner))} rank. Keep at it, and one day this camp could be a real building!</p>` : ''}`
@@ -77,7 +103,18 @@ export function openBase(ownerId, { from = null } = {}) {
     // her ask 11-01: a button straight to the nursery page
     panel.insertAdjacentHTML('beforeend', '<div class="row" style="justify-content:center;margin-top:10px"><button class="btn alt" id="bnurs">🍼 Visit the nursery</button></div>');
     $('#bnurs', panel).onclick = () => { closeModal(); location.hash = '#/games/fernshade-nursery'; };
-    const bb = $('#bbuild', panel); if (bb) bb.onclick = () => { building = !building; placing = null; picked = ''; drawPanel(); };
+    const bb = $('#bbuild', panel); if (bb) bb.onclick = () => { building = !building; shopping = false; buying = ''; placing = null; picked = ''; drawPanel(); };
+    const bk = $('#bcat', panel); if (bk) bk.onclick = () => { shopping = !shopping; building = false; buying = ''; placing = null; picked = ''; drawPanel(); };
+    $$('[data-buy]', panel).forEach((b) => b.onclick = () => { buying = b.dataset.buy; drawPanel(); });
+    const bno = $('#bbuyno', panel); if (bno) bno.onclick = () => { buying = ''; drawPanel(); };
+    const byes = $('#bbuyyes', panel); if (byes) byes.onclick = () => {
+      const k = buying; const price = ITEMS[k]?.[4] || 0; const me2 = party()[ownerId]; if (!k || !me2) return;
+      if ((Number(me2.poke) || 0) < price) { toast('Not enough Poké for that one yet.'); return; }
+      store.update('party/' + ownerId, (x) => ({ ...x, poke: (Number(x?.poke) || 0) - price }));
+      store.update(`base/${ownerId}/owned/${k}`, (n) => (Number(n) || 0) + 1);
+      store.pushLimited('log', { t: Date.now(), text: `${me2.nickname} bought a ${ITEMS[k][0]} for their base (${price} Poké).` });
+      toast(`🎉 ${ITEMS[k][0]} is yours! Tap 🔨 Build to put it out.`); buying = ''; drawPanel();
+    };
     const bc = $('#bcancel', panel); if (bc) bc.onclick = () => { placing = null; picked = ''; drawPanel(); };
     const bm = $('#bmv', panel); if (bm) bm.onclick = () => { placing = { id: picked }; picked = ''; drawPanel(); };
     const bd = $('#bdel', panel); if (bd) bd.onclick = () => { store.set(`base/${ownerId}/items/${picked}`, null); picked = ''; drawPanel(); };
