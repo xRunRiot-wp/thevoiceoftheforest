@@ -6,9 +6,9 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae74e17';
-import { esc } from './util.js?v=6ae74e17';
-import { currentWeather, wxFxHTML } from './weather.js?v=6ae74e17';
+import { loadIndex } from './effects.js?v=6ae750de';
+import { esc } from './util.js?v=6ae750de';
+import { currentWeather, wxFxHTML } from './weather.js?v=6ae750de';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -166,10 +166,10 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     b.place = place;
     // her ask 11-01: lie down for a nap (its Sleep picture, bottom-aligned with the walk), or stand up again
     b.nap = (on) => { const z = m.a.sleep; const st = b.spr.style;
-      if (!on || !z) { b.sheet(false); b.face('down'); b.spr.classList.remove('idling'); el.classList.toggle('dozing', !!on); return; }
+      if (!on || !z) { b.sheet(false); b.face('down'); b.spr.classList.remove('idling'); el.classList.toggle('dozing', !!on); el.classList.toggle('napping', !!on); return; }
       st.width = z.w * S + 'px'; st.height = z.h * S + 'px'; st.backgroundImage = `url(${RAW}${m.d4}/Sleep-Anim.png)`; st.backgroundSize = `${z.w * z.n * S}px auto`;
       st.backgroundPositionY = '0'; st.setProperty('--fw', z.w * S + 'px'); st.setProperty('--n', z.n); st.setProperty('--ms', z.ms + 'ms');
-      st.marginTop = Math.max(0, m.a.h - z.h) * S + 'px'; st.marginBottom = '0'; b.spr.classList.add('idling'); };
+      st.marginTop = Math.max(0, m.a.h - z.h) * S + 'px'; st.marginBottom = '0'; b.spr.classList.add('idling'); el.classList.add('napping'); };
     el.onclick = () => { b.say(SAYS[Math.floor(Math.random() * 3)]); b.hop(); el.classList.add('named'); setTimeout(() => el.classList.remove('named'), 2500); };
     if (m.a.idle) b.sheet(true); b.face('down'); place(); setTimeout(() => (el.style.opacity = 1), 80 + bots.length * 120);
     bots.push(b);

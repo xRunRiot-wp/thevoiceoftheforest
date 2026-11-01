@@ -2441,3 +2441,8 @@ a.ch-chip:hover { background: var(--navy); }
 @media (prefers-reduced-motion: reduce) { .base-fx, .base-item.crunch img, .base-item.drop img { animation: none; } }
 .bi-campfire.stoke::after { content: ''; position: absolute; left: -45%; right: -45%; top: -55%; bottom: -25%; background: radial-gradient(circle at 50% 60%, rgba(255, 176, 60, .5), rgba(255, 120, 30, 0) 65%); pointer-events: none; animation: base-glow .6s ease-in-out infinite alternate; }
 @keyframes base-glow { to { opacity: .6; } }
+
+/* her asks 11-01: at a base your own Pokémon is always in front, and name tags never cover a sprite (hidden during a nap) */
+.base-scene .fzs-mon.me { z-index: 895 !important; }
+.base-scene .fzs-tag { margin-top: 1px !important; }
+.fzs-mon.napping .fzs-tag { display: none; }

@@ -3,12 +3,12 @@
 // build with what your rank allows (Beginner: a tent, a campfire, bedrolls, a drying rack and a sad little bed); later
 // ranks will add more, up to a building in someone's likeness. Friends can visit from the Friends list (like visiting an
 // igloo in Club Penguin). base/<charId> = { items: { id: { k, x, y } }, visits: { visitorId: t } }; x and y are % of the scene.
-import * as store from './store.js?v=6ae74e17';
-import { $, $$, esc, toast, uid } from './util.js?v=6ae74e17';
-import { modal, closeModal } from './ui.js?v=6ae74e17';
-import { RANK_NAMES } from './content.js?v=6ae74e17';
-import { mountFzScene } from './fzscene.js?v=6ae74e17';
-import { myId } from './app.js?v=6ae74e17';
+import * as store from './store.js?v=6ae750de';
+import { $, $$, esc, toast, uid } from './util.js?v=6ae750de';
+import { modal, closeModal } from './ui.js?v=6ae750de';
+import { RANK_NAMES } from './content.js?v=6ae750de';
+import { mountFzScene } from './fzscene.js?v=6ae750de';
+import { myId } from './app.js?v=6ae750de';
 
 // what can be built: [name, picture, width on screen (px at full size), what it says when tapped]
 const ITEMS = {
@@ -73,7 +73,7 @@ async function drawScene(scene, owner, visitor, room = 'camp') {
   const paint = () => {
     const items = baseOf(owner.id).items || {}; const size = strip.clientWidth || 340; const k = size / 420;
     layer.innerHTML = Object.entries(items).filter(([, it]) => ITEMS[it?.k] && roomOf(it) === room).map(([id, it]) => { const [name, img, w] = ITEMS[it.k]; const px = Math.round(w * k);
-      return `<button class="base-item bi-${esc(it.k)}" data-bi="${esc(id)}" title="${esc(name)}" style="left:${it.x}%;top:${it.y}%;width:${px}px;z-index:${10 + Math.round(it.y / 100 * size)}"><img src="${img}" alt="${esc(name)}"></button>`; }).join('');
+      return `<button class="base-item bi-${esc(it.k)}" data-bi="${esc(id)}" title="${esc(name)}" style="left:${it.x}%;top:${it.y}%;width:${px}px;z-index:${Math.min(880, 10 + Math.round(it.y / 100 * size))}"><img src="${img}" alt="${esc(name)}"></button>`; }).join('');
   };
   paint();
   return { layer, paint, strip, bots: got?.bots || [], room };
@@ -193,6 +193,8 @@ export function openBase(ownerId, { from = null } = {}) {
   const goRoom = (r) => { room = r; placing = null; picked = ''; acting = false; drawPanel(); mount(); };
   const mount = () => drawScene(scene, owner, visitor, room).then((got) => {
     if (!got) return; s = got;
+    // her ask 11-01: your own Pokémon is always in front of everything at the base
+    actor()?.el.classList.add('me');
     // building: tap the ground to place; tap a built piece for Move / Put away. Anyone may tap a piece to play with it.
     s.strip.addEventListener('click', (e) => {
       const it = e.target.closest('[data-bi]');

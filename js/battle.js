@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6ae74e17';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae74e17';
-import { portrait, maxHp } from './ui.js?v=6ae74e17';
-import { allMoves, me, statVal } from './play.js?v=6ae74e17';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae74e17';
-import { TYPE_ICONS } from './theme.js?v=6ae74e17';
+import * as store from './store.js?v=6ae750de';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6ae750de';
+import { portrait, maxHp } from './ui.js?v=6ae750de';
+import { allMoves, me, statVal } from './play.js?v=6ae750de';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6ae750de';
+import { TYPE_ICONS } from './theme.js?v=6ae750de';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -159,7 +159,7 @@ async function resolve(bid) {
   // Metronome spins Gemini's Metronome wheel (the Games page one, so the GM's edits count) and plays out the slice
   const metronome = async (id, foe) => {
     let slices = [];
-    try { slices = (await import('./games.js?v=6ae74e17')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6ae750de')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);
@@ -320,7 +320,7 @@ function renderFight(main, bid) {
   const box = $('#bt', main);
   pageMusic(main, 'battle', 'btmusic');
   const seen = (() => { try { const v = sessionStorage.getItem('dc.bt.' + bid); return v == null ? -1 : num(v); } catch { return -1; } })();
-  let shownRound = seen; let playing = false; let resolving = 0; let waitT = 0; let menu = 'main'; let intro = true;
+  let shownRound = seen; let playing = false; let resolving = 0; let resolvedAt = 0; let waitT = 0; let menu = 'main'; let intro = true;
   const markSeen = (r) => { shownRound = r; try { sessionStorage.setItem('dc.bt.' + bid, String(r)); } catch { /* ignore */ } };
 
   const scene = (B, myId, hpView, text, fx = {}) => {
@@ -372,9 +372,10 @@ function renderFight(main, bid) {
   const maybeResolve = () => {
     const B = store.get(P(bid)); if (!B || B.phase !== 'fight' || ![B.a, B.b].every((id) => B.picks?.[id]) || resolving === B.round) return;
     const myId = me()?.id;
-    if (myId === B.a) { resolving = B.round; resolve(bid); return; }
+    const go = () => { resolving = B.round; resolvedAt = Date.now(); resolve(bid).catch((e) => { console.error(e); resolving = 0; }); };
+    if (myId === B.a || isNpc(B.b)) { go(); return; }
     // player b (or anyone watching) steps in if player a's device doesn't
-    clearTimeout(waitT); waitT = setTimeout(() => { const B2 = store.get(P(bid)); if (B2 && B2.round === B.round && B2.phase === 'fight') { resolving = B.round; resolve(bid); } }, myId === B.b ? 4000 : 9000);
+    clearTimeout(waitT); waitT = setTimeout(() => { const B2 = store.get(P(bid)); if (B2 && B2.round === B.round && B2.phase === 'fight') go(); }, myId === B.b ? 4000 : 9000);
   };
 
   // play the last round's messages one by one (HP bars move with them)
@@ -419,6 +420,17 @@ function renderFight(main, bid) {
     maybeResolve();
   };
   draw();
+  // her report 11-01 (Golett stuck on 'Waiting for Rayson…'): a round that never got worked out (a weak phone signal put back
+  // an older copy, or the device that should have done it went quiet) is picked up again, and a guild member who somehow
+  // has no move yet gets one, so a battle can never sit there waiting forever
+  const watch = setInterval(async () => {
+    if (!box.isConnected) return clearInterval(watch);
+    const B = store.get(P(bid)); const myId = me()?.id; if (!B || B.phase !== 'fight' || ![B.a, B.b].includes(myId) || !B.picks?.[myId]) return;
+    const foe = foeOf(B, myId);
+    if (isNpc(foe) && !B.picks?.[foe]) { store.set(`${P(bid)}/picks/${foe}`, await npcPick(B, foe)); return; }
+    if (resolving === B.round && Date.now() - resolvedAt > 8000) resolving = 0;
+    maybeResolve();
+  }, 3000);
   let last = '';
   const off = store.subscribe(() => { if (!box.isConnected) return off(); const now = JSON.stringify(store.get(P(bid)) || null) + (me()?.id || ''); if (now !== last) { last = now; draw(); } });
 }
