@@ -6,15 +6,15 @@
 // (Rayson loves rain: letters pay extra), strong wind = faster tailwind with gusts, fog = short sight, sandstorm = slower + hazy,
 // hail = heavy wings.
 // Art: Explorers of Sky skies/clouds and Sunshell beach strips (TSR rips), Wingull/Taillow/Starly sprites (SpriteCollab).
-import * as store from './store.js?v=6ae75378';
-import { $, esc, num, uid } from './util.js?v=6ae75378';
-import { me, logRoll } from './play.js?v=6ae75378';
-import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6ae75378';
-import { gameSay } from './chatter.js?v=6ae75378';
-import { markWinner } from './sparkle.js?v=6ae75378';
-import { rareItem } from './sentry.js?v=6ae75378';
-import { startBroadcast } from './watch.js?v=6ae75378';
-import { stepSound, missSound, jingle, ensureAudio, startMusic, stopMusic, muted, setMuted } from './chiptune.js?v=6ae75378';
+import * as store from './store.js?v=6ae75503';
+import { $, esc, num, uid } from './util.js?v=6ae75503';
+import { me, logRoll } from './play.js?v=6ae75503';
+import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6ae75503';
+import { gameSay } from './chatter.js?v=6ae75503';
+import { markWinner } from './sparkle.js?v=6ae75503';
+import { rareItem } from './sentry.js?v=6ae75503';
+import { startBroadcast } from './watch.js?v=6ae75503';
+import { stepSound, missSound, jingle, ensureAudio, startMusic, stopMusic, muted, setMuted } from './chiptune.js?v=6ae75503';
 
 export const isMailRun = (g) => g.kind === 'mailrun' || g.id === 'rayson-mail-run';
 
@@ -262,7 +262,7 @@ function finish(c, box, made, got, hearts, onDone) {
   const pay = (item) => {
     if (poke) store.update('party/' + c.id, (x) => ({ ...x, poke: num(x?.poke) + poke }));
     if (item) store.set('bag/' + uid(), { name: item, qty: 1, owner: c.id });
-    if (poke || item) markWinner(c.id);
+    if (poke || item) markWinner(c.id, 'mail');
     const reward = [poke ? `${poke} Poké` : '', item ? `a rare ${item}` : ''].filter(Boolean).join(' and ');
     logRoll(c.nickname, 'Rayson’s Mail Run', null, `${made ? 'delivered' : 'turned back'} in ${wx.name.toLowerCase()} · ${got}/${LETTERS} letters · ${hearts} ❤️${reward ? ' · ' + reward : ''}`, 'note');
     if (perfect) gameSay('Rayson the Wingull', 'say', `${c.nickname} helped me bring every single letter home! I wasn’t even scared. Okay, a little.`, 'mailrun', c.nickname);

@@ -1,15 +1,15 @@
 // Pelipper Post: a little mailbox above each player's name. Once a day every character gets one letter with a
 // small solo mission; they roll for it and can earn an item, Poké, a recruit chance or a new place to explore.
 // Letters are GM-editable (content/mail). Recruits and new places go on the GM checklist for the GM to play out.
-import * as store from './store.js?v=6ae75378';
-import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae75378';
-import { modal, closeModal } from './ui.js?v=6ae75378';
-import { merged, editContent } from './content-store.js?v=6ae75378';
-import { logRoll, statVal } from './play.js?v=6ae75378';
-import { dailyRoll, hash } from './weather.js?v=6ae75378';
-import { gameSay, gmTodo } from './chatter.js?v=6ae75378';
-import { markWinner } from './sparkle.js?v=6ae75378';
-import { sendFx } from './letterfx.js?v=6ae75378';
+import * as store from './store.js?v=6ae75503';
+import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae75503';
+import { modal, closeModal } from './ui.js?v=6ae75503';
+import { merged, editContent } from './content-store.js?v=6ae75503';
+import { logRoll, statVal } from './play.js?v=6ae75503';
+import { dailyRoll, hash } from './weather.js?v=6ae75503';
+import { gameSay, gmTodo } from './chatter.js?v=6ae75503';
+import { markWinner } from './sparkle.js?v=6ae75503';
+import { sendFx } from './letterfx.js?v=6ae75503';
 
 const KINDS = { item: ['🎁', 'Item'], poke: ['💰', 'Poké'], recruit: ['🤝', 'Recruit chance'], place: ['🧭', 'New place'] };
 export const MAIL_SCHEMA = [['title', 'Title'], ['from', 'From'], ['text', 'Letter', 'area'], ['attr', 'Roll: attribute (e.g. Insight)'], ['skill', 'Roll: skill (e.g. Alert)'],
@@ -80,7 +80,7 @@ function go(c, l, box) {
   store.set('mail/' + c.id, { day: today(), id: l.id, res: ok ? 'win' : 'lose', t: Date.now() });
   logRoll(c.nickname, `Mail — ${l.title} (${l.attr} + ${l.skill})`, r.dice, `${r.succ}/${need} success${need === 1 ? '' : 'es'} · ${ok ? rewardText(l) : 'not this time'}`);
   if (ok) {
-    giveReward(c, l); markWinner(c.id);
+    giveReward(c, l); markWinner(c.id, 'mail');
     store.pushLimited('log', { t: Date.now(), text: `${c.nickname} finished a mail mission: ${l.title} (${rewardText(l)}).` });
     gameSay('Pelipper', 'do', `drops off a thank-you note from ${l.from}: ${c.nickname} finished “${l.title}”!`, 'mail', c.nickname);
   }

@@ -1,6 +1,6 @@
 // Winner's sparkle: anyone who wins something in a Guild game gets a sparkly cursor for a day.
 // Saved per character (sparkle/<id> = until); shown on whatever device is playing that character, mouse only.
-import * as store from './store.js?v=6ae75378';
+import * as store from './store.js?v=6ae75503';
 
 const DAY = 24 * 3600e3;
 const MARKS = ['✦', '✧', '⋆', '✨'];
@@ -8,7 +8,8 @@ const COLORS = ['#ffd75e', '#fff3b0', '#ff9ad5', '#9ee7ff'];
 let on = false;
 let last = 0;
 
-export function markWinner(id) { if (id) store.set('sparkle/' + id, Date.now() + DAY); }
+// her ask 11-01: a win (src 'win') or a mail delivery (src 'mail') may also bring a Secret Base decoration for the winner's base
+export function markWinner(id, src = 'win') { if (!id) return; store.set('sparkle/' + id, Date.now() + DAY); import('./basedecor.js?v=6ae75503').then((m) => m.maybePrize(id, src)).catch(() => {}); }
 export const sparkleUntil = (id) => Number(store.get('sparkle/' + id) || 0);
 
 function trail(e) {

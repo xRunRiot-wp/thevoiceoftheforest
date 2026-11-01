@@ -2452,3 +2452,8 @@ a.ch-chip:hover { background: var(--navy); }
 .base-buddy .bb-egg { display: block; height: auto; image-rendering: pixelated; filter: drop-shadow(0 3px 0 rgba(30, 50, 10, .35)); transform-origin: 50% 100%; }
 .base-buddy .fzs-tag { opacity: 1; }
 .base-buddy.hopb .bb-egg { animation: walk-wiggle .5s ease-in-out 2; }
+
+/* the Secret Base collection in the catalog (her ask 11-01) */
+.base-tabs { gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+.base-grp { margin: 10px 0 0; font: 700 12px var(--pix); color: #3a2c1a; }
+div.base-pick { cursor: default; } .base-pick.locked img { filter: brightness(0) opacity(.35); } .base-pick.locked b { opacity: .6; }

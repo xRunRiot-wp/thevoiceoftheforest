@@ -3,12 +3,13 @@
 // build with what your rank allows (Beginner: a tent, a campfire, bedrolls, a drying rack and a sad little bed); later
 // ranks will add more, up to a building in someone's likeness. Friends can visit from the Friends list (like visiting an
 // igloo in Club Penguin). base/<charId> = { items: { id: { k, x, y } }, visits: { visitorId: t } }; x and y are % of the scene.
-import * as store from './store.js?v=6ae75378';
-import { $, $$, esc, toast, uid } from './util.js?v=6ae75378';
-import { modal, closeModal } from './ui.js?v=6ae75378';
-import { RANK_NAMES } from './content.js?v=6ae75378';
-import { mountFzScene } from './fzscene.js?v=6ae75378';
-import { myId } from './app.js?v=6ae75378';
+import * as store from './store.js?v=6ae75503';
+import { $, $$, esc, toast, uid } from './util.js?v=6ae75503';
+import { modal, closeModal } from './ui.js?v=6ae75503';
+import { RANK_NAMES } from './content.js?v=6ae75503';
+import { mountFzScene } from './fzscene.js?v=6ae75503';
+import { DECOR, KINDS } from './basedecor.js?v=6ae75503';
+import { myId } from './app.js?v=6ae75503';
 
 // what can be built: [name, picture, width on screen (px at full size), what it says when tapped]
 const ITEMS = {
@@ -35,6 +36,7 @@ const SEASONS = [
   } },
 ];
 for (const se of SEASONS) Object.assign(ITEMS, se.items);
+Object.assign(ITEMS, DECOR);   // her ask 11-01: the Secret Base collection (js/basedecor.js)
 const season = () => SEASONS.find((se) => se.months.includes(new Date().getMonth())) || SEASONS[0];
 // how many of each a rank may build (each rank gets everything the ranks before it had); only Beginner for now
 const BUILD = {
@@ -91,14 +93,21 @@ export function openBase(ownerId, { from = null } = {}) {
   if (from) { const a = from.getBoundingClientRect(); const b = scene.getBoundingClientRect();
     if (b.width) scene.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width})` }, { transform: 'none' }], { duration: 450, easing: 'cubic-bezier(.2, .8, .2, 1)' }); }
   let placing = null;   // { k } a new thing, or { id } moving one already built
-  let building = false; let picked = ''; let shopping = false; let buying = ''; let room = 'camp'; let s = null; const busyBots = new Set();   // Pokémon busy playing with something   // shopping = the catalog is open; buying = the piece being bought   // picked = a built piece tapped while building (Move / Put away)
+  let building = false; let picked = ''; let shopping = false; let buying = ''; let catTab = 'season'; let room = 'camp'; let s = null; const busyBots = new Set();   // Pokémon busy playing with something   // shopping = the catalog is open; buying = the piece being bought   // picked = a built piece tapped while building (Move / Put away)
   const panel = $('#bpanel', el);
   const counts = () => { const n = {}; for (const it of Object.values(baseOf(ownerId).items || {})) if (it) n[it.k] = (n[it.k] || 0) + 1; return n; };
   // the catalog: this season's pieces, what they cost and how many you have
   const catalogHTML = () => { const se = season(); const own = baseOf(ownerId).owned || {}; const poke = Number(party()[ownerId]?.poke) || 0;
     return `<div class="base-cat"><p style="margin:8px 0 2px"><b>${se.icon} ${esc(se.name)} catalog</b> <span class="small muted">· ${esc(owner.nickname)} has ${poke.toLocaleString()} Poké</span></p>
       ${buying ? `<p class="base-hint">Buy the <b>${esc(ITEMS[buying][0])}</b> for <b>${ITEMS[buying][4]} Poké</b>? <button class="btn sm" id="bbuyyes" ${poke < ITEMS[buying][4] ? 'disabled' : ''}>Buy it</button> <button class="btn alt sm" id="bbuyno">Cancel</button>${poke < ITEMS[buying][4] ? ' <span class="small bad-t">Not enough Poké yet.</span>' : ''}</p>` : ''}
-      <div class="base-pal">${Object.entries(se.items).map(([k, it]) => `<button class="base-pick ${buying === k ? 'on' : ''}" data-buy="${k}"><img src="${it[1]}" alt=""><b>${esc(it[0])}</b><small>${it[4]} Poké${own[k] ? ` · have ${own[k]}` : ''}</small></button>`).join('')}</div></div>`; };
+      <div class="row base-tabs">${[['season', `${se.icon} ${esc(se.name)}`], ['decor', '🏠 Secret Base shop'], ['prizes', '🏆 Prizes']].map(([t, l]) => `<button class="btn sm ${catTab === t ? '' : 'alt'}" data-ctab="${t}">${l}</button>`).join('')}</div>
+      ${catTab === 'season' ? `<div class="base-pal">${Object.entries(se.items).map(([k, it]) => pick(k, it, own)).join('')}</div>`
+        : catTab === 'decor' ? groups(Object.entries(DECOR).filter(([, it]) => it[5] === 'shop'), (k, it) => pick(k, it, own))
+        : `<p class="small muted">These can’t be bought. 🎮 = won now and then when you win a game; 📬 = found on mail missions and Mail Runs. Up to 3 a day.</p>
+          ${groups(Object.entries(DECOR).filter(([, it]) => it[5] !== 'shop'), (k, it) => `<div class="base-pick ${own[k] ? '' : 'locked'}"><img src="${it[1]}" alt=""><b>${esc(it[0])}</b><small>${it[5] === 'mail' ? '📬' : '🎮'}${own[k] ? ` · have ${own[k]}` : ' · not found yet'}</small></div>`)}`}</div>`; };
+  const pick = (k, it, own) => `<button class="base-pick ${buying === k ? 'on' : ''}" data-buy="${k}"><img src="${it[1]}" alt=""><b>${esc(it[0])}</b><small>${it[4]} Poké${own[k] ? ` · have ${own[k]}` : ''}</small></button>`;
+  const groups = (list, card) => { const by = new Map(); for (const [k, it] of list) { const g = (KINDS.find(([kk]) => kk === it[6]) || [, 'Other'])[1]; if (!by.has(g)) by.set(g, []); by.get(g).push(card(k, it)); }
+    return [...by].map(([g, cards]) => `<h4 class="base-grp">${esc(g)}</h4><div class="base-pal">${cards.join('')}</div>`).join(''); };
   const drawPanel = () => {
     const lim = limitsFor(owner); const n = counts(); const visits = Object.entries(baseOf(ownerId).visits || {}).filter(([id]) => party()[id] && id !== ownerId).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const empty = !Object.keys(n).length;
@@ -121,13 +130,14 @@ export function openBase(ownerId, { from = null } = {}) {
     const bb = $('#bbuild', panel); if (bb) bb.onclick = () => { building = !building; shopping = false; buying = ''; placing = null; picked = ''; drawPanel(); };
     const bk = $('#bcat', panel); if (bk) bk.onclick = () => { shopping = !shopping; building = false; buying = ''; placing = null; picked = ''; drawPanel(); };
     $$('[data-buy]', panel).forEach((b) => b.onclick = () => { buying = b.dataset.buy; drawPanel(); });
+    $$('[data-ctab]', panel).forEach((b) => b.onclick = () => { catTab = b.dataset.ctab; buying = ''; drawPanel(); });
     const bno = $('#bbuyno', panel); if (bno) bno.onclick = () => { buying = ''; drawPanel(); };
     const byes = $('#bbuyyes', panel); if (byes) byes.onclick = () => {
       const k = buying; const price = ITEMS[k]?.[4] || 0; const me2 = party()[ownerId]; if (!k || !me2) return;
       if ((Number(me2.poke) || 0) < price) { toast('Not enough Poké for that one yet.'); return; }
       store.update('party/' + ownerId, (x) => ({ ...x, poke: (Number(x?.poke) || 0) - price }));
       store.update(`base/${ownerId}/owned/${k}`, (n) => (Number(n) || 0) + 1);
-      store.pushLimited('log', { t: Date.now(), text: `${me2.nickname} bought a ${ITEMS[k][0]} for their base (${price} Poké).` });
+      store.pushLimited('log', { t: Date.now(), text: `${me2.nickname} bought ${/^[AEIOU]/i.test(ITEMS[k][0]) ? 'an' : 'a'} ${ITEMS[k][0]} for their base (${price} Poké).` });
       toast(`🎉 ${ITEMS[k][0]} is yours! Tap 🔨 Build to put it out.`); buying = ''; drawPanel();
     };
     const bc = $('#bcancel', panel); if (bc) bc.onclick = () => { placing = null; picked = ''; drawPanel(); };
@@ -187,6 +197,18 @@ export function openBase(ownerId, { from = null } = {}) {
         await b.go(...beside()); b.face('up'); wig(); b.say(k === 'hoothoot' ? '🎶' : k === 'murkrow' ? '⭐' : '❗');
         tell({ zubat: `${nick} bats at the Zubat bunting and sets it swinging.`, noibat: `The Noibat bunting flutters. ${nick} jumps! Eeek!`, hoothoot: `${nick} hoots back at the carved Hoothoot. Hoo-hoo!`, murkrow: `${nick} finds something shiny tucked by the Murkrow post!` }[k]);
         await wait(900); b.hop(); await wait(900);
+      } else if (ITEMS[k][6]) {   // her ask 11-01: the Secret Base pieces
+        const nm = ITEMS[k][0]; const kind = ITEMS[k][6]; const look = () => b.face(b.x < ix ? 'right' : 'left');
+        if (kind === 'doll') { await b.go(...beside()); look(); wig(); b.hop(); b.say('💕'); tell(`${nick} gives the ${nm} a big hug!`); await wait(1400); }
+        else if (kind === 'big') { await b.go(...onTop(-ih * 0.35)); over(); b.hop(); await wait(500); b.hop(); b.say('😄'); tell(`${nick} climbs up on the ${nm}!`); await wait(1800); await b.go(...beside()); }
+        else if (kind === 'cushion' || kind === 'chair') { await b.go(...onTop(kind === 'chair' ? -10 : -6)); over(); b.hop(); b.say('😌'); tell(`${nick} plops down on the ${nm}.`); await wait(3000); b.hop(); await wait(300); await b.go(...beside()); }
+        else if (kind === 'mat' || kind === 'stand') { await b.go(...onTop(kind === 'stand' ? -14 : -2)); over(); for (let i = 0; i < 3; i++) { b.hop(); burst(s.strip, b.x + b.w / 2, b.y + b.h * 0.6, ['✨', '🎵'], 2, 'up'); await wait(600); }
+          b.say(kind === 'stand' ? '⭐' : '😆'); tell(kind === 'stand' ? `${nick} strikes a pose on the ${nm}!` : `${nick} hops around on the ${nm}!`); await wait(700); await b.go(...beside()); }
+        else if (kind === 'slide') { await b.go(clampX(ix), iy + ih - b.h); over(); b.hop(); await wait(400); b.say('😆'); tell(`${nick} zooms down the slide! Wheee!`); await b.go(clampX(ix + iw - b.w / 2), iy + ih - b.h + 6); b.hop(); await wait(600); }
+        else { await b.go(...beside()); look(); wig();
+          const [em, line] = { plant: ['🌸', `${nick} waters the ${nm}.`], desk: ['✏️', `${nick} doodles at the ${nm}.`], tv: ['📺', `${nick} watches a little TV.`], fridge: ['🍰', `${nick} raids the fridge for a snack!`],
+            bookshelf: ['📖', `${nick} reads a story from the Bookshelf.`], cupboard: ['👀', `${nick} peeks inside the Cupboard.`], ornament: ['✨', `${nick} admires the ${nm}.`], poster: ['😊', `${nick} looks at the ${nm}.`] }[kind] || ['😊', ITEMS[k][3]];
+          b.say(em); tell(line); await wait(1600); b.hop(); await wait(400); }
       } else { await b.go(...beside()); tell(ITEMS[k][3]); wig(); b.hop(); await wait(800); }
     } finally { if (busyBots.delete(b)) { if (b.el.isConnected) { b.face('down'); b.place(); } b.busy = false; } }
   };
@@ -242,7 +264,7 @@ export function openBase(ownerId, { from = null } = {}) {
       const el2 = els[Math.floor(Math.random() * els.length)]; play(el2, items[el2.dataset.bi], free[Math.floor(Math.random() * free.length)], true);
     }, 7000);
     // her ask 11-01: the owner's nursery buddy hangs out at the base like a Puffle (an egg sits bundled in a blanket)
-    import('./nursery.js?v=6ae75378').then((n) => n.buddyLook?.(ownerId)).then((bl) => { if (bl && s.strip.isConnected) addBuddy(bl); }).catch(() => {});
+    import('./nursery.js?v=6ae75503').then((n) => n.buddyLook?.(ownerId)).then((bl) => { if (bl && s.strip.isConnected) addBuddy(bl); }).catch(() => {});
     // building: tap the ground to place; tap a built piece for Move / Put away. Anyone may tap a piece to play with it.
     s.strip.addEventListener('click', (e) => {
       const it = e.target.closest('[data-bi]');
