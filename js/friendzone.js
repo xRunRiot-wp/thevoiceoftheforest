@@ -1,16 +1,16 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae72858';
-import { $, $$, esc, toast } from './util.js?v=6ae72858';
-import { modal, closeModal } from './ui.js?v=6ae72858';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae72858';
-import { merged, editContent } from './content-store.js?v=6ae72858';
-import { CHAPTERS } from './content.js?v=6ae72858';
-import { giftNote } from './mailbox.js?v=6ae72858';
-import { guildSay } from './chatter.js?v=6ae72858';
-import { myId } from './app.js?v=6ae72858';
-import { hasBase, openBase } from './mybase.js?v=6ae72858';
-import { shackButtons } from './miltank.js?v=6ae72858';
+import * as store from './store.js?v=6ae72a5c';
+import { $, $$, esc, toast } from './util.js?v=6ae72a5c';
+import { modal, closeModal } from './ui.js?v=6ae72a5c';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae72a5c';
+import { merged, editContent } from './content-store.js?v=6ae72a5c';
+import { CHAPTERS } from './content.js?v=6ae72a5c';
+import { giftNote } from './mailbox.js?v=6ae72a5c';
+import { guildSay } from './chatter.js?v=6ae72a5c';
+import { myId } from './app.js?v=6ae72a5c';
+import { hasBase, openBase } from './mybase.js?v=6ae72a5c';
+import { shackButtons } from './miltank.js?v=6ae72a5c';
 
 export const LOCATIONS = [
   {
@@ -149,7 +149,7 @@ export function friendZoneSection() {
 function nurseryHTML() {
   const party = store.get('party') || {};
   const kids = Object.entries(store.get('nursery') || {}).filter(([id, b]) => b && !b.recruited && party[id] && !party[id].guest);
-  const sp = (k) => String(k || '').replace(/^./, (c) => c.toUpperCase());
+  const sp = (k) => String(k || '').replace(/^m_/, '').replace(/shiny$/, '').replace(/^./, (c) => c.toUpperCase());   // m_<x>: shown as <x>
   return `<div class="fz-nursery"><p class="small" style="margin:8px 0 4px"><b>🍼 In the nursery</b></p><div class="fz-mons">${kids.length ? kids.map(([id, b]) => `<span class="pill nursery">${!b.stage ? '🥚 Egg' : esc(b.name ? `${b.name} the ${sp(b.sp)}` : sp(b.sp))} <small>· ${esc(party[id].nickname)}’s</small></span>`).join('') : '<span class="small muted">No eggs or babies right now.</span>'}</div></div>`;
 }
 const residents = (l) => spots(l).reduce((s, x) => s + x.mons.length, 0) + Object.values(store.get('recruits/' + l.id) || {}).reduce((s, x) => s + Object.keys(x || {}).length, 0);

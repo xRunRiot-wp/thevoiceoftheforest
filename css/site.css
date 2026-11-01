@@ -2398,3 +2398,10 @@ a.ch-chip:hover { background: var(--navy); }
 .shake-fx span { position: absolute; bottom: 120px; font-size: 26px; animation: fx-float 1.4s ease-out forwards; }
 .shake-say { text-align: center; margin-top: 10px; }
 @media (prefers-reduced-motion: reduce) { .shake-scene .shake-mon, .shake-scene .shake-cup { animation: none !important; } }
+
+/* a Ditto slipping up or transforming (her ask 11-01): it melts a little and goes purple for a moment */
+.pet.goo, .walk-pet.goo { animation: ditto-goo .25s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+@keyframes ditto-goo { from { transform: scale(1, 1); filter: none; } to { transform: scale(1.25, .7); filter: hue-rotate(-70deg) saturate(.6) brightness(1.15); } }
+.walk-pet .ditto-copy { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: flex; align-items: flex-end; }
+.walk-pet .ditto-copy.miss { filter: hue-rotate(-70deg) saturate(.7) brightness(1.1); }
+@media (prefers-reduced-motion: reduce) { .pet.goo, .walk-pet.goo { animation: none; filter: hue-rotate(-70deg) saturate(.6); } }

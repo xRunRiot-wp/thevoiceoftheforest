@@ -7,14 +7,15 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae72858';
-import { $, $$, esc, toast, num } from './util.js?v=6ae72858';
-import { me, logRoll } from './play.js?v=6ae72858';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae72858';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae72858';
-import { markWinner } from './sparkle.js?v=6ae72858';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae72858';
-import { modal, closeModal } from './ui.js?v=6ae72858';
+import * as store from './store.js?v=6ae72a5c';
+import { $, $$, esc, toast, num } from './util.js?v=6ae72a5c';
+import { me, logRoll } from './play.js?v=6ae72a5c';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae72a5c';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae72a5c';
+import { markWinner } from './sparkle.js?v=6ae72a5c';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae72a5c';
+import { modal, closeModal } from './ui.js?v=6ae72a5c';
+import { MIMIC } from './mimicdata.js?v=6ae72a5c';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -22,6 +23,29 @@ export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nurs
 // cells cw×ch; faces in assets/portraits/emo/<key>/
 const BABIES = {pichu: { name: 'Pichu', cw: 32, ch: 88, fr: [4, 10, 2, 8, 8, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, cleffa: { name: 'Cleffa', cw: 32, ch: 80, fr: [2, 10, 2, 8, 8, 2, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, igglybuff: { name: 'Igglybuff', cw: 24, ch: 72, fr: [2, 10, 2, 5, 5, 2, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, togepi: { name: 'Togepi', cw: 24, ch: 72, fr: [4, 10, 2, 6, 6, 4, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, tyrogue: { name: 'Tyrogue', cw: 24, ch: 88, fr: [7, 10, 2, 4, 4, 4, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, smoochum: { name: 'Smoochum', cw: 32, ch: 80, fr: [5, 10, 2, 4, 4, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, elekid: { name: 'Elekid', cw: 32, ch: 96, fr: [4, 10, 2, 4, 4, 4, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, magby: { name: 'Magby', cw: 24, ch: 88, fr: [6, 10, 2, 4, 4, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, azurill: { name: 'Azurill', cw: 48, ch: 88, fr: [4, 10, 2, 7, 7, 4, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, wynaut: { name: 'Wynaut', cw: 24, ch: 80, fr: [6, 10, 2, 8, 8, 6, 10], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, budew: { name: 'Budew', cw: 24, ch: 80, fr: [8, 10, 2, 8, 8, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, chingling: { name: 'Chingling', cw: 40, ch: 80, fr: [2, 10, 2, 9, 9, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, bonsly: { name: 'Bonsly', cw: 24, ch: 88, fr: [5, 10, 2, 4, 4, 5, 10], emo: ['Normal', 'Sad'] }, mimejr: { name: 'Mime Jr.', cw: 24, ch: 88, fr: [8, 10, 2, 10, 10, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, happiny: { name: 'Happiny', cw: 32, ch: 80, fr: [5, 10, 2, 8, 8, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, munchlax: { name: 'Munchlax', cw: 32, ch: 88, fr: [4, 10, 2, 4, 4, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }, riolu: { name: 'Riolu', cw: 32, ch: 88, fr: [4, 10, 2, 4, 4, 4, 3], emo: ['Normal', 'Happy', 'Joyous', 'Sad', 'Crying', 'Teary-Eyed', 'Worried', 'Inspired', 'Pain', 'Dizzy'] }};
 const STAGES = ['Egg', 'Baby', 'Kid', 'Teen'];
+// her ask 11-01: a very rare egg hatches as a Ditto that has already copied its owner's Pokémon (sheet m_<species>, from
+// tools/build_mimic.py). It slips up now and then as a baby and a kid; at Teen it shows what it really is (sp 'ditto', was =
+// the disguise) and practises transforming into the Pokémon it meets on walks. If Celebi visits, it turns into Celebi to play.
+// The GM can line one up for a player's next egg (dittoNext/<id> = true); ?dittoegg on the address forces it when testing.
+const BORN = Object.keys(BABIES); Object.assign(BABIES, MIMIC);
+const DITTO_ODDS = 0.02;
+const mimicKey = (c) => { const k = String(c?.pokemon || c?.species || '').toLowerCase().replace(/[^a-z]/g, '');
+  return c?.shiny && MIMIC['m_' + k + 'shiny'] ? 'm_' + k + 'shiny' : MIMIC['m_' + k] ? 'm_' + k : ''; };
+const disguised = (b) => !!b?.ditto && b.stage > 0 && b.stage < 3;
+// what changes when a buddy reaches a new stage (from caring, or the GM's grow button)
+function growUpdates(c, b, stage) {
+  const u = { stage, grown: 0, grewAt: Date.now() };
+  if (b.stage === 0 && stage === 1 && c) {
+    const mk = mimicKey(c); const lined = !!store.get('dittoNext/' + c.id);
+    if (mk && (lined || Math.random() < DITTO_ODDS || /dittoegg/.test(location.search))) { Object.assign(u, { sp: mk, ditto: true }); if (lined) store.set('dittoNext/' + c.id, null); }
+  }
+  if (stage === 3 && b.ditto && b.sp !== 'ditto') Object.assign(u, { sp: 'ditto', was: b.sp });
+  return u;
+}
+// Beatrice notices little things while it's still pretending
+const dittoHint = (b, c, n) => (b.stage === 1
+  ? [`Funny… I don’t remember a ${BABIES[b.sp].name} egg in my nursery.`, `${n} looks just like you, ${c.nickname}. Exactly like you.`, `Did ${n} just… wobble? Must be the light.`]
+  : [`${n}’s face went all droopy for a second there. Did you see that?`, `I could swear ${n} was purple a moment ago…`, `${n} keeps staring at other Pokémon very, very closely.`, `Hmm. ${BABIES[b.sp].name} don’t usually squish like that.`])[Math.floor(Math.random() * (b.stage === 1 ? 3 : 4))];
 const DAYS_TO_GROW = [1, 2, 2]; // cared-for days to leave Egg, Baby, Kid
 const NEEDS = { egg: { warm: 4 }, baby: { feed: 3, play: 3, clean: 2 } };
 const RATE = { warm: 14, feed: 14, play: 12, clean: 8 }; // points lost per hour
@@ -72,7 +96,7 @@ function feeling(b) {
   if (avg >= 45) return [['Happy', 'Normal'], `${n} is happy.`];
   return [['Sad', 'Normal'], `${n} feels a little down.`];
 }
-const faceOf = (b, want) => { const B = BABIES[b.sp]; return B ? `assets/portraits/emo/${b.sp}/${want.find((e) => B.emo.includes(e)) || 'Normal'}.png` : ''; };
+const faceOf = (b, want) => { const B = BABIES[b.sp]; return B ? `assets/portraits/emo/${B.face || b.sp}/${want.find((e) => B.emo.includes(e)) || 'Normal'}.png` : ''; };
 const buddyFace = (b) => faceOf(b, feeling(b)[0]);
 // ---- Nintendogs-style extras (her ask 10-29): walks around Woodland Base that turn up accessories, dress-up, petting by
 // stroking, calling the baby over, and a Bond meter. nursery/<id>: acc = { key: true } (found), wear = { head, face, neck },
@@ -129,7 +153,7 @@ const cryOf = (sp) => (cryAudio[sp] ||= Object.assign(new Audio(`assets/cries/${
 function cry(b, { vol = 0.8, odds = 1, force = false } = {}) {
   if (!b || !BABIES[b.sp] || Math.random() > odds || (!force && (criesOff() || Date.now() - (lastCry[b.sp] || 0) < 3500))) return;
   lastCry[b.sp] = Date.now();
-  const a = cryOf(b.sp); a.pause(); a.currentTime = 0; a.volume = Math.min(1, vol * 0.4); // her ask 10-29: cries softer a.preservesPitch = false; a.playbackRate = [1.2, 1.2, 1.1, 1][b.stage] || 1;
+  const a = cryOf(disguised(b) && Math.random() < 0.25 ? 'ditto' : BABIES[b.sp].cry || b.sp); a.pause(); a.currentTime = 0; a.volume = Math.min(1, vol * 0.4); // her ask 10-29: cries softer a.preservesPitch = false; a.playbackRate = [1.2, 1.2, 1.1, 1][b.stage] || 1;
   a.play().catch(() => { /* not allowed before the first tap */ });
 }
 const listOf = (a) => (a.length < 2 ? a.join('') : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`);
@@ -163,12 +187,15 @@ function visitorPane(roomEl, img, sym, text) {
 const parasol = () => lab('cover')[0] === '⛱️';
 const petHTML = () => '<span class="nest-umb" aria-hidden="true"><img class="umb-towel" src="assets/nursery/towel.png" alt=""><img class="umb-top" src="assets/nursery/parasol.png" alt=""></span><div class="pet" id="npet"><span class="pet-cover"></span><span class="baby-spr"></span><span class="pet-think"></span></div><div class="props"></div>';
 function startPet(root, b, scene, ownerId) {
-  const B = BABIES[b.sp]; const roomEl = $('.nursery-room', root); const pet = $('#npet', root); if (!B || !roomEl || !pet) return;
+  let B = BABIES[b.sp]; const roomEl = $('.nursery-room', root); const pet = $('#npet', root); if (!B || !roomEl || !pet) return;
   const spr = $('.baby-spr', pet); const think = $('.pet-think', pet); const cov = $('.pet-cover', pet); const props = $('.props', root); const umbEl = $('.nest-umb', root);
-  const S = SIZE[b.stage] || 3; const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
-  spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
-  pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
-  spr.innerHTML = accHTML(b, pw, ph);
+  const S = SIZE[b.stage] || 3; let pw; let ph; let lookSp = b.sp;
+  // its look can change for a moment (a Ditto slipping up, or turning into Celebi)
+  const look = (sp) => { B = BABIES[sp]; lookSp = sp; pw = Math.round(B.cw * S); ph = Math.round(B.ch * S);
+    spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
+    pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
+    spr.innerHTML = sp === b.sp ? accHTML(b, pw, ph) : ''; };
+  look(b.sp);
   // an umbrella pattern only changes the umbrella (not the blanket or tent); the sunny parasol swaps to that pattern's picture
   const paintCover = () => { const k = b.wear?.umbrella; const umb = lab('cover')[2] === 'Umbrella' && ACC[k];
     cov.style.filter = umb ? accFilter(k) : ''; cov.classList.toggle('rainbow', !!umb && ACC[k][3] === 'rainbow');
@@ -183,7 +210,7 @@ function startPet(root, b, scene, ownerId) {
     const r = ROW[name]; const n = B.fr[r] || 1;
     spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
     spr.style.animation = 'none'; void spr.offsetWidth;
-    spr.style.animation = `baby-anim ${secs || Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`; accRow(spr, b.sp, name, ph);
+    spr.style.animation = `baby-anim ${secs || Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`; accRow(spr, lookSp, name, ph);
   };
   let x = Math.max(10, roomEl.clientWidth * 0.5 - pw / 2);
   const maxX = () => Math.max(10, roomEl.clientWidth - pw - 10);
@@ -351,10 +378,13 @@ function startPet(root, b, scene, ownerId) {
     const trail = setInterval(() => { const e = document.createElement('span'); e.className = 'pet-fx'; e.textContent = '✨'; e.style.left = (c.offsetLeft + 18) + 'px'; e.style.bottom = '150px'; roomEl.appendChild(e); setTimeout(() => e.remove(), 1400); }, 450);
     await wait(50); await fly(Math.min(W - 70, x + pw + 20), 1800); if (!alive()) return clearInterval(trail);
     fx('❗'); cry(b, { vol: 0.8 }); row('hop', false); await wait(750); row('idle');
+    if (b.ditto) { pet.classList.add('goo'); await wait(600); look('celebipet'); row('idle'); pet.classList.remove('goo'); fx('✨', -14); fx('✨', 14);
+      cap.textContent = b.stage < 3 ? `✨ Celebi came to play… and ${nameOf(b)} turned into a Celebi too?!` : `✨ Celebi came to play, so ${nameOf(b)} turned into Celebi!`; await wait(900); }
     for (let i = 0; i < 3 && alive(); i++) { const tx = i % 2 ? W - 80 : 20; await Promise.all([fly(tx, 1300), (async () => { await wait(250); await walkTo(tx - pw / 2 + 30, 110); })()]); row('hop', false); fx(i === 2 ? '💕' : '♪'); await wait(650); row('idle'); }
     if (!alive()) return clearInterval(trail);
     row('nod', false); fx('💕', -14); fx('💗', 14); await wait(1200); row('idle');
     c.classList.add('bye'); await fly(W + 40, 1600); clearInterval(trail); c.remove(); cap.remove(); fx('✨'); visitMusic();
+    if (b.ditto && alive()) { pet.classList.add('goo'); await wait(600); look(b.sp); row('idle'); pet.classList.remove('goo'); }
   };
   // free time: wander, hop, nod, nap
   const life = async () => {
@@ -365,6 +395,18 @@ function startPet(root, b, scene, ownerId) {
       showCover(!!(coverNeed(b) && stat(b, 'cover') >= 50));
       if (!celebiDone && (Math.random() < (asleep(h) ? 0.004 : 0.002) || /celebi/.test(location.search) || celebiDue())) { busy = true; think.className = 'pet-think'; await celebi(); busy = false; continue; }
       if (asleep(h)) { row('sleep', true, 1.6); think.className = 'pet-think show zz'; think.textContent = 'z Z'; await wait(5000); continue; }
+      // her ask 11-01: a teen Ditto sometimes turns into a copy of its owner's Pokémon for a while
+      const ownMk = b.sp === 'ditto' && b.stage === 3 ? mimicKey((store.get('party') || {})[ownerId]) : '';
+      if (ownMk && Math.random() < 0.05) {
+        pet.classList.add('goo'); await wait(600); look(ownMk); row('idle'); pet.classList.remove('goo'); fx('✨');
+        for (let i = 0; i < 3 && alive(); i++) { await walkTo(10 + Math.random() * maxX()); row('hop', false); await wait(800); row('idle'); }
+        if (!alive()) return; pet.classList.add('goo'); await wait(600); look(b.sp); row('idle'); pet.classList.remove('goo'); await wait(1000); continue;
+      }
+      if (disguised(b) && Math.random() < (b.stage === 2 ? 0.08 : 0.04)) {   // a Ditto slipping up: it melts a little, or (as a kid) flashes its real self
+        pet.classList.add('goo'); fx('❓'); await wait(500);
+        if (b.stage === 2 && Math.random() < 0.5) { look('ditto'); row('idle'); await wait(450); look(b.sp); }
+        await wait(400); pet.classList.remove('goo'); row('idle'); await wait(1200); continue;
+      }
       const r = Math.random();
       if (r < 0.4) await walkTo(10 + Math.random() * maxX());
       else if (r < 0.55 && m >= 60) { row('hop', false); if (Math.random() < 0.5) fx('♪'); cry(b, { vol: 0.6, odds: 0.15 }); await wait(800); row('idle'); }
@@ -383,7 +425,7 @@ const nestHTML = (inner) => `<div class="nest"><img class="nest-b" src="assets/n
 const nameOf = (b) => b.name || (b.stage === 0 ? 'your egg' : BABIES[b.sp]?.name || 'your buddy');
 
 function adopt(c) {
-  const keys = Object.keys(BABIES); const sp = keys[Math.floor(Math.random() * keys.length)];
+  const keys = BORN; const sp = keys[Math.floor(Math.random() * keys.length)];
   const now = Date.now();
   store.set('nursery/' + c.id, { sp, stage: 0, grown: 0, born: now, warmAt: now - 6 * 3600e3, feedAt: now, playAt: now, cleanAt: now, days: {} });
   logRoll(c.nickname, 'Fernshade Nursery', null, 'took home an egg from Beatrice', 'note');
@@ -397,16 +439,16 @@ function act(c, k) {
   // a fully cared-for day counts once toward growing up
   if (!day.counted && Object.entries(needsOf(next)).every(([n, want]) => num(day[n]) >= want)) {
     day.counted = true; next.grown = num(b.grown) + 1;
-    if (b.stage < 3 && next.grown >= DAYS_TO_GROW[b.stage]) { next.stage = b.stage + 1; next.grown = 0; next.grewAt = Date.now(); }
+    if (b.stage < 3 && next.grown >= DAYS_TO_GROW[b.stage]) Object.assign(next, growUpdates(c, b, b.stage + 1));
   }
   // keep only the last 2 weeks of day records
   next.days = Object.fromEntries(Object.entries(next.days).sort().slice(-14));
   next.bond = Math.min(100, num(b.bond) + 2);
   store.set('nursery/' + c.id, next);
   if (next.stage !== b.stage) {
-    const msg = next.stage === 1 ? `${c.nickname}’s egg hatched into a ${BABIES[b.sp].name}!` : `${c.nickname}’s ${BABIES[b.sp].name} grew into a ${STAGES[next.stage].toLowerCase()}!`;
+    const msg = next.was ? `${c.nickname}’s ${BABIES[b.sp].name} grew into a teen… and it was a Ditto all along!` : next.stage === 1 ? `${c.nickname}’s egg hatched into a ${BABIES[next.sp].name}!` : `${c.nickname}’s ${BABIES[b.sp].name} grew into a ${STAGES[next.stage].toLowerCase()}!`;
     store.pushLimited('log', { t: Date.now(), text: msg });
-    gameSay('Beatrice', 'say', next.stage === 1 ? `${c.nickname}’s egg just hatched! Welcome to Fernshade, little ${BABIES[b.sp].name}!` : `${c.nickname}’s ${BABIES[b.sp].name} is growing up so fast!`, 'nursery', c.nickname);
+    gameSay('Beatrice', 'say', next.was ? `Oh my stars! ${c.nickname}’s ${BABIES[b.sp].name} was a Ditto the whole time!` : next.stage === 1 ? `${c.nickname}’s egg just hatched! Welcome to Fernshade, little ${BABIES[next.sp].name}!` : `${c.nickname}’s ${BABIES[b.sp].name} is growing up so fast!`, 'nursery', c.nickname);
     markWinner(c.id);
     return 'grew';
   }
@@ -602,7 +644,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6ae72858').catch(() => null);
+  const fz = import('./fzscene.js?v=6ae72a5c').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2, 'right', false, !!c.shiny)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
@@ -619,6 +661,17 @@ async function walkGo(c, box, stops) {
     const face = RESIDENTS[who]?.img;
     say(`${face ? `<img class="sface" src="${face}" alt="">` : ''}<span><b>${esc(who)}:</b> “${esc(lines[Math.floor(Math.random() * lines.length)])}”</span>`);
     row('hop', false); await wait(1900); if (!alive()) return;
+    if (b.sp === 'ditto' && b.stage === 3) {   // her ask 11-01: a teen Ditto practises transforming into who it meets
+      const copy = await Promise.race([fz.then((m) => m?.walkSprite(WALK_SPECIES[who] || who, 2, 'right', true)).catch(() => null), wait(1500)]);
+      if (copy && alive()) {
+        const wp = $('#wpet', box); wp.classList.add('goo'); await wait(600); if (!alive()) return;
+        const miss = Math.random() < 0.4; spr.style.visibility = 'hidden';
+        wp.insertAdjacentHTML('beforeend', `<span class="ditto-copy${miss ? ' miss' : ''}">${copy.html}</span>`); wp.classList.remove('goo');
+        say(miss ? `${esc(nameOf(b))} tries to turn into ${esc(who)}… but keeps its own goofy Ditto face. Almost!` : `${esc(nameOf(b))} practises its Transform and turns into ${esc(who)}! ${esc(who)} looks very confused.`);
+        await wait(2200); if (!alive()) return;
+        wp.classList.add('goo'); await wait(500); $('.ditto-copy', wp)?.remove(); spr.style.visibility = ''; wp.classList.remove('goo'); row('hop', false); await wait(600);
+      }
+    }
     // a present? (most stops have one; the first walk of the day always finds something)
     if (Math.random() < 0.65 || (!found.length && k === stops[stops.length - 1][0] && !num(b.walkAt))) {
       const left = Object.keys(ACC).filter((x) => !owned[x]);
@@ -664,6 +717,8 @@ function room(c, box, anim) {
   const cared = caredToday(b); const left = b.stage < 3 ? DAYS_TO_GROW[b.stage] - num(b.grown) : 0;
   const low = Object.keys(needs).filter((k) => k !== 'cover' && stat(b, k) < 30); const cv = coverNeed(b) && stat(b, 'cover') < 50 ? COVER[wx().key] : null;
   const line = b.recruited ? `${B.name} is part of your team now. I’m so proud of you both!`
+    : b.stage === 3 && b.was && (anim === 'grew' || Date.now() - num(b.grewAt) < 864e5) ? `Oh my stars, ${c.nickname}! ${b.name ? esc(b.name) : `Your ${BABIES[b.was]?.name || 'baby'}`} was a Ditto all along! It must have copied you the moment it hatched. No wonder it looked so much like you!`
+    : disguised(b) && !anim && Math.random() < 0.3 ? dittoHint(b, c, nameOf(b))
     : b.stage === 3 ? `Look how big ${nameOf(b)} has grown! I think ${B.name} would follow you anywhere. Why not ask?`
     : anim === 'playdate' ? 'A playdate! Play nicely, you two. I’ll bring snacks!'
     : anim === 'grew' ? (b.stage === 1 ? `It hatched! Say hello to your ${B.name}, ${c.nickname}!` : `${nameOf(b)} is a ${STAGES[b.stage].toLowerCase()} now!`)
@@ -753,7 +808,7 @@ export function renderNursery(main, g, gm, onEdit) {
         ${gm ? `<button class="btn alt sm" data-nup="${esc(id)}">Grow</button><button class="btn alt sm" data-nreset="${esc(id)}">Reset</button>` : ''}</li>`; }).join('') || '<li class="muted">No eggs taken home yet.</li>';
     // her ask 10-29: tapping a friend's buddy shows its feelings window, just like tapping your own
     $$('[data-nvisit]', main).forEach((x) => x.onclick = () => { const bb = buddyOf(x.dataset.nvisit); if (!bb) return; visit(party[x.dataset.nvisit], bb); });
-    $$('[data-nup]', main).forEach((x) => x.onclick = () => { const b = buddyOf(x.dataset.nup); if (b && b.stage < 3) store.set(`nursery/${x.dataset.nup}`, { ...b, stage: b.stage + 1, grown: 0 }); renderNursery(main, g, gm, onEdit); });
+    $$('[data-nup]', main).forEach((x) => x.onclick = () => { const b = buddyOf(x.dataset.nup); if (b && b.stage < 3) store.set(`nursery/${x.dataset.nup}`, { ...b, ...growUpdates((store.get('party') || {})[x.dataset.nup], b, b.stage + 1) }); renderNursery(main, g, gm, onEdit); });
     $$('[data-nreset]', main).forEach((x) => x.onclick = () => { if (confirm('Give this buddy back to the nursery? They can take a new egg.')) { store.set('nursery/' + x.dataset.nreset, null); renderNursery(main, g, gm, onEdit); } });
   };
   list();
