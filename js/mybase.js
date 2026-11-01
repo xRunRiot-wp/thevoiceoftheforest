@@ -3,12 +3,12 @@
 // build with what your rank allows (Beginner: a tent, a campfire, bedrolls, a drying rack and a sad little bed); later
 // ranks will add more, up to a building in someone's likeness. Friends can visit from the Friends list (like visiting an
 // igloo in Club Penguin). base/<charId> = { items: { id: { k, x, y } }, visits: { visitorId: t } }; x and y are % of the scene.
-import * as store from './store.js?v=6ae725f9';
-import { $, $$, esc, toast, uid } from './util.js?v=6ae725f9';
-import { modal, closeModal } from './ui.js?v=6ae725f9';
-import { RANK_NAMES } from './content.js?v=6ae725f9';
-import { mountFzScene } from './fzscene.js?v=6ae725f9';
-import { myId } from './app.js?v=6ae725f9';
+import * as store from './store.js?v=6ae726ab';
+import { $, $$, esc, toast, uid } from './util.js?v=6ae726ab';
+import { modal, closeModal } from './ui.js?v=6ae726ab';
+import { RANK_NAMES } from './content.js?v=6ae726ab';
+import { mountFzScene } from './fzscene.js?v=6ae726ab';
+import { myId } from './app.js?v=6ae726ab';
 
 // what can be built: [name, picture, width on screen (px at full size), what it says when tapped]
 const ITEMS = {
@@ -74,6 +74,9 @@ export function openBase(ownerId, { from = null } = {}) {
       : empty ? `<p class="small">Your very own patch of Woodland Base! Tap <b>🔨 Build</b> to pitch your tent and set up camp.</p>` : ''}
       ${visits.length ? `<p class="small muted" style="margin-top:10px">👣 Recent visitors: ${visits.map(([id]) => esc(party()[id].nickname)).join(', ')}</p>` : ''}`
       : `<p class="small">You’re visiting ${esc(owner.nickname)}’s camp${empty ? '. They haven’t built anything yet!' : '. Make yourself at home!'}</p>`;
+    // her ask 11-01: a button straight to the nursery page
+    panel.insertAdjacentHTML('beforeend', '<div class="row" style="justify-content:center;margin-top:10px"><button class="btn alt" id="bnurs">🍼 Visit the nursery</button></div>');
+    $('#bnurs', panel).onclick = () => { closeModal(); location.hash = '#/games/fernshade-nursery'; };
     const bb = $('#bbuild', panel); if (bb) bb.onclick = () => { building = !building; placing = null; picked = ''; drawPanel(); };
     const bc = $('#bcancel', panel); if (bc) bc.onclick = () => { placing = null; picked = ''; drawPanel(); };
     const bm = $('#bmv', panel); if (bm) bm.onclick = () => { placing = { id: picked }; picked = ''; drawPanel(); };
