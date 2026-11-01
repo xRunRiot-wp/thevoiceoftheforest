@@ -2405,3 +2405,14 @@ a.ch-chip:hover { background: var(--navy); }
 .walk-pet .ditto-copy { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: flex; align-items: flex-end; }
 .walk-pet .ditto-copy.miss { filter: hue-rotate(-70deg) saturate(.7) brightness(1.1); }
 @media (prefers-reduced-motion: reduce) { .pet.goo, .walk-pet.goo { animation: none; filter: hue-rotate(-70deg) saturate(.6); } }
+
+/* the Friend Zone and bases follow the time of day and the weather (her ask 11-01), like the nursery */
+.fzs-strip { position: relative; }
+.fz-sky { position: absolute; inset: 0; pointer-events: none; z-index: 900; border-radius: inherit; overflow: hidden; }
+.fz-sky.tod-dawn { background: linear-gradient(180deg, rgba(255, 160, 190, .24), rgba(255, 214, 150, .1)); }
+.fz-sky.tod-dusk { background: linear-gradient(180deg, rgba(255, 120, 40, .28), rgba(130, 40, 110, .2)); }
+.fz-sky.tod-night { background: radial-gradient(circle at 50% 60%, rgba(40, 60, 140, .22), rgba(8, 12, 50, .58) 80%); }
+.fz-sky.tod-night::before { content: ''; position: absolute; inset: 0;
+  background: radial-gradient(3px 3px at 14% 30%, #fbffa0, transparent), radial-gradient(3px 3px at 78% 22%, #fbffa0, transparent), radial-gradient(3px 3px at 62% 64%, #fbffa0, transparent), radial-gradient(3px 3px at 28% 72%, #fbffa0, transparent), radial-gradient(3px 3px at 88% 58%, #fbffa0, transparent);
+  animation: fireflies 3s ease-in-out infinite alternate; }
+.fz-sky .wxfx { z-index: 1; }

@@ -1,15 +1,15 @@
 // Dance Practice with Ralts (her ask 10-27): Ralts dances a short routine of up / down / left / right steps and the
 // player copies it with the arrow buttons (or arrow keys). Rounds grow from 3 to 8 steps. Ralts and the player's own
 // face react to every hit or missed step. A daily chore like Sentry Duty: a great practice pays Poké and maybe a rare item.
-import * as store from './store.js?v=6ae72b3d';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6ae72b3d';
-import { me, logRoll } from './play.js?v=6ae72b3d';
-import { dailyRoll } from './weather.js?v=6ae72b3d';
-import { gameSay } from './chatter.js?v=6ae72b3d';
-import { markWinner } from './sparkle.js?v=6ae72b3d';
-import { faceHTML, faceSrc, spKey, rareItem } from './sentry.js?v=6ae72b3d';
-import { startMusic, stopMusic, stepSound, missSound, jingle, muted, setMuted } from './chiptune.js?v=6ae72b3d';
-import { startBroadcast } from './watch.js?v=6ae72b3d';
+import * as store from './store.js?v=6ae72c61';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6ae72c61';
+import { me, logRoll } from './play.js?v=6ae72c61';
+import { dailyRoll } from './weather.js?v=6ae72c61';
+import { gameSay } from './chatter.js?v=6ae72c61';
+import { markWinner } from './sparkle.js?v=6ae72c61';
+import { faceHTML, faceSrc, spKey, rareItem } from './sentry.js?v=6ae72c61';
+import { startMusic, stopMusic, stepSound, missSound, jingle, muted, setMuted } from './chiptune.js?v=6ae72c61';
+import { startBroadcast } from './watch.js?v=6ae72c61';
 
 export const isDance = (g) => g.kind === 'dance' || g.id === 'ralts-dance';
 

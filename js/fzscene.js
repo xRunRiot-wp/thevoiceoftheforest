@@ -6,8 +6,9 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae72b3d';
-import { esc } from './util.js?v=6ae72b3d';
+import { loadIndex } from './effects.js?v=6ae72c61';
+import { esc } from './util.js?v=6ae72c61';
+import { currentWeather, wxFxHTML } from './weather.js?v=6ae72c61';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -75,6 +76,20 @@ export async function walkSprite(name, S = 2, face = 'right', stand = false, shi
   const p = stand && a.idle ? a.idle : a; const file = p === a ? 'Walk' : 'Idle';
   return { a: p, html: `<div class="fzs-spr" style="width:${p.w * S}px;height:${p.h * S}px;background-image:url(${RAW}${d4}/${file}-Anim.png);background-size:${p.w * p.n * S}px ${p.h * 8 * S}px;--fw:${p.w * S}px;--n:${p.n};--ms:${p.ms}ms;background-position-y:-${ROW[face] * p.h * S}px;margin-bottom:-${p.foot * S}px"></div>` };
 }
+// dawn / day / dusk / night, the same hours as the nursery
+const tod = (d = new Date()) => { const m = d.getHours() * 60 + d.getMinutes(); return m >= 19 * 60 + 30 || m < 6 * 60 ? 'night' : m < 8 * 60 ? 'dawn' : m < 17 * 60 ? 'day' : 'dusk'; };
+// a tint for the time of day and the weather's rain, snow, sun rays... laid over a scene; refreshed every few minutes
+function skyFx(strip) {
+  if (!strip) return;
+  const paint = () => {
+    if (!strip.isConnected) { clearInterval(timer); return; }
+    const key = currentWeather().key; const t = tod(); const was = strip.querySelector(':scope > .fz-sky');
+    if (was && was.dataset.k === key + t) return;
+    was?.remove();
+    strip.insertAdjacentHTML('beforeend', `<div class="fz-sky tod-${t}" data-k="${key + t}" aria-hidden="true">${wxFxHTML(key)}</div>`);
+  };
+  const timer = setInterval(paint, 5 * 60e3); paint();
+}
 const SAYS = ['💕', '♪', '❗', '💬', '✨', '😊', '🍎', '💤'];
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -116,6 +131,8 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
   box.innerHTML = `<div class="fzs-strip ${map ? 'fzs-map' : ''}" style="width:${W}px;height:${H}px">${rooms.map((r) => `<div class="fzs-cube ${r.img ? 'pic' : ''} ${r.name ? 'has-info' : ''} ${r.locked ? 'locked' : ''}" data-key="${esc(r.key || '')}" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;${r.img ? `background-image:url(${r.img}?v=4)` : ''}">${r.locked ? '<span class="fzs-lock">🔒</span>' : ''}${r.name ? `<span class="fzs-cube-nm${!/\s/.test(r.name) && r.name.length > 9 ? ' nm-long' : ''}">${r.locked ? '🔒 ' : ''}${esc(r.name)}</span>` : ''}</div>`).join('')}</div>`;
   box.classList.add('ready', solo ? 'solo' : map ? 'map' : 'row'); box.style.setProperty('--fzh', H + 14 + 'px');
   const strip = box.firstChild;
+  // her ask 11-01: the Friend Zone and bases follow the weather and the time of day, like the nursery
+  skyFx(strip);
   // tap a room (not a Pokémon) to open that spot's info (her ask 10-29: the spot boxes live inside their squares)
   strip.addEventListener('click', (e) => { if (e.target.closest('.fzs-mon')) return; const c = e.target.closest('.fzs-cube.has-info'); if (c) box.dispatchEvent(new CustomEvent('fzspot', { detail: c.dataset.key })); });
   const touching = (a, b) => a !== b && ((Math.abs(a.x + a.w - b.x) < 2 || Math.abs(b.x + b.w - a.x) < 2) && a.y < b.y + b.h && b.y < a.y + a.h
