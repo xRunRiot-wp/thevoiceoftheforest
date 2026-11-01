@@ -7,14 +7,14 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae72174';
-import { $, $$, esc, toast, num } from './util.js?v=6ae72174';
-import { me, logRoll } from './play.js?v=6ae72174';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae72174';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae72174';
-import { markWinner } from './sparkle.js?v=6ae72174';
-import { pageMusic, visitMusic } from './chiptune.js?v=6ae72174';
-import { modal, closeModal } from './ui.js?v=6ae72174';
+import * as store from './store.js?v=6ae723c4';
+import { $, $$, esc, toast, num } from './util.js?v=6ae723c4';
+import { me, logRoll } from './play.js?v=6ae723c4';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae723c4';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae723c4';
+import { markWinner } from './sparkle.js?v=6ae723c4';
+import { pageMusic, visitMusic } from './chiptune.js?v=6ae723c4';
+import { modal, closeModal } from './ui.js?v=6ae723c4';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -94,6 +94,11 @@ const ACC = {
 const accFilter = (k) => (ACC[k]?.[3] === 'rainbow' ? '' : ACC[k]?.[3] || '');
 // an accessory's picture: an emoji, or an image path (the Rubber Ducklett, her ask 10-29)
 const accIcon = (k) => (ACC[k][0].endsWith('.png') ? `<img class="acc-img" src="${ACC[k][0]}" alt="${esc(ACC[k][1])}">` : ACC[k][0]);
+// her ask 11-01: each umbrella pattern has its own pixel parasol, used both in Dress Up and over the bed so they match
+const umbPic = (k) => `assets/nursery/parasol${ACC[k]?.[2] === 'umbrella' ? '_' + k.slice(4) : ''}.png`;
+const isUmb = (k) => ACC[k]?.[2] === 'umbrella';
+const accShow = (k, cls) => (isUmb(k) ? `<span class="${cls} umb-pic"><img class="acc-img" src="${umbPic(k)}" alt="${esc(ACC[k][1])}"></span>`
+  : `<span class="${cls} ${ACC[k][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[k][2] !== 'toy' && ACC[k][3] ? `filter:${accFilter(k)}` : ''}">${ACC[k][2] === 'bed' ? '🪺' : accIcon(k)}</span>`);
 const toyHTML = (b) => (ACC[b?.wear?.toy] ? `<span class="prop ball toy">${accIcon(b.wear.toy)}</span>` : '<img class="prop ball" src="assets/nursery/ball.png" alt="">');
 const SECTIONS = [['Wear', ['head', 'face', 'neck']], ['Umbrellas', ['umbrella']], ['Toys', ['toy']], ['Beds', ['bed']]];
 // where each baby's body sits in its sprite cell (top and bottom of the idle frame, measured from the sprite sheets)
@@ -164,10 +169,10 @@ function startPet(root, b, scene, ownerId) {
   spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
   pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
   spr.innerHTML = accHTML(b, pw, ph);
-  // an umbrella pattern only changes the umbrella (not the sun shade, blanket or tent)
+  // an umbrella pattern only changes the umbrella (not the blanket or tent); the sunny parasol swaps to that pattern's picture
   const paintCover = () => { const k = b.wear?.umbrella; const umb = lab('cover')[2] === 'Umbrella' && ACC[k];
     cov.style.filter = umb ? accFilter(k) : ''; cov.classList.toggle('rainbow', !!umb && ACC[k][3] === 'rainbow');
-    const top = umbEl && $('.umb-top', umbEl); if (top) { top.style.filter = umb ? `${accFilter(k)} drop-shadow(0 4px 0 rgba(30, 60, 0, .3))` : ''; top.classList.toggle('rainbow', !!umb && ACC[k][3] === 'rainbow'); } };
+    const top = umbEl && $('.umb-top', umbEl); if (top) { const src = umbPic(umb ? k : ''); if (top.getAttribute('src') !== src) top.src = src; } };
   // sun: the parasol over the bed; rain, hail, wind, sand: the cover stays with the buddy
   const showCover = (on, pop = false) => {
     const sun = on && parasol(); const was = umbEl?.classList.contains('show'); umbEl?.classList.toggle('show', sun); if (sun && (pop || !was)) { umbEl.classList.remove('pop'); void umbEl.offsetWidth; umbEl.classList.add('pop'); }
@@ -559,7 +564,7 @@ function invite(c, box) {
 function dressUp(c, box) {
   const b = buddyOf(c.id); if (!b) return;
   const have = Object.keys(b.acc || {}).filter((k) => ACC[k]); const wear = b.wear || {};
-  const btn = (k) => `<button class="btn ${wear[ACC[k][2]] === k ? '' : 'alt'}" data-wear="${k}"><span class="big-emo ${ACC[k][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[k][2] !== 'toy' && ACC[k][3] ? `filter:${accFilter(k)}` : ''}">${ACC[k][2] === 'bed' ? '🪺' : accIcon(k)}</span>${esc(ACC[k][1])}</button>`;
+  const btn = (k) => `<button class="btn ${wear[ACC[k][2]] === k ? '' : 'alt'}" data-wear="${k}">${accShow(k, 'big-emo')}${esc(ACC[k][1])}</button>`;
   const el = modal(`<h2>🎀 Dress up ${esc(nameOf(b))}</h2>${have.length ? `<p class="small muted">Tap to use it, tap again to put it away. One of each kind at a time.</p>
     ${SECTIONS.map(([title, slots]) => { const list = have.filter((k) => slots.includes(ACC[k][2])); return list.length ? `<h3 class="n-closet-h">${title}</h3><div class="n-closet">${list.map(btn).join('')}</div>` : ''; }).join('')}`
     : `<p>Nothing found yet! Take ${esc(nameOf(b))} for a <b>🦮 Walk</b> around Woodland Base and look for presents: accessories, umbrella patterns, toys and beds.</p>`}
@@ -597,7 +602,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6ae72174').catch(() => null);
+  const fz = import('./fzscene.js?v=6ae723c4').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
@@ -626,7 +631,7 @@ async function walkGo(c, box, stops) {
       gift.classList.add('show');
       say(`${esc(nameOf(b))} sniffed something out! Tap the present!`); row('nod', true);
       await Promise.race([wait(6000), new Promise((ok) => { $('.walk-box', gift).onclick = ok; })]); if (!alive()) return;
-      if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = `<span class="walk-prize ${ACC[prize][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[prize][2] !== 'toy' && ACC[prize][3] ? `filter:${accFilter(prize)}` : ''}">${ACC[prize][2] === 'bed' ? '🪺' : accIcon(prize)}</span>`; say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.${ACC[prize][2] === 'toy' ? ' A new toy to play with!' : ACC[prize][2] === 'bed' ? ' A comfy new bed!' : ACC[prize][2] === 'umbrella' ? ' A new umbrella for rainy days!' : ''}`); cry(b, { vol: 0.8 }); }
+      if (prize) { owned[prize] = true; found.push(prize); gift.innerHTML = accShow(prize, 'walk-prize'); say(`🎉 It’s a <b>${esc(ACC[prize][1])}</b>! ${esc(nameOf(b))} looks very proud.${ACC[prize][2] === 'toy' ? ' A new toy to play with!' : ACC[prize][2] === 'bed' ? ' A comfy new bed!' : ACC[prize][2] === 'umbrella' ? ' A new umbrella for rainy days!' : ''}`); cry(b, { vol: 0.8 }); }
       else { const poke = 10 + Math.floor(Math.random() * 11); found.push(poke); gift.innerHTML = '<span class="walk-prize">🪙</span>'; say(`🎉 ${poke} Poké! (${esc(nameOf(b))} already has every accessory.)`); store.update('party/' + c.id, (x) => ({ ...x, poke: num(x?.poke) + poke })); }
       row('hop', false); await wait(2200); gift.classList.remove('show'); gift.innerHTML = '';
     }
