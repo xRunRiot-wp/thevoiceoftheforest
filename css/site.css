@@ -2416,3 +2416,9 @@ a.ch-chip:hover { background: var(--navy); }
   background: radial-gradient(3px 3px at 14% 30%, #fbffa0, transparent), radial-gradient(3px 3px at 78% 22%, #fbffa0, transparent), radial-gradient(3px 3px at 62% 64%, #fbffa0, transparent), radial-gradient(3px 3px at 28% 72%, #fbffa0, transparent), radial-gradient(3px 3px at 88% 58%, #fbffa0, transparent);
   animation: fireflies 3s ease-in-out infinite alternate; }
 .fz-sky .wxfx { z-index: 1; }
+
+/* the boombox (her ask 11-01): it thumps to the beat while the baby dances */
+.props .prop.boombox { width: 66px; height: auto; }
+.props .prop.boombox.thump { animation: bb-thump .375s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+@keyframes bb-thump { to { transform: scale(1.08, .92); } }
+@media (prefers-reduced-motion: reduce) { .props .prop.boombox.thump { animation: none; } }
