@@ -1,13 +1,14 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6ae7868c';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae7868c';
-import { GUILDS2, guildName, shopShortcuts } from './guild.js?v=6ae7868c';
-import { addItem, me } from './play.js?v=6ae7868c';
-import { ixLink } from './effects.js?v=6ae7868c';
-import { gmTodo } from './chatter.js?v=6ae7868c';
-import { palette } from './theme.js?v=6ae7868c';
-import { modal, closeModal } from './ui.js?v=6ae7868c';
+import * as store from './store.js?v=6ae78712';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae78712';
+import { GUILDS2, guildName, shopShortcuts } from './guild.js?v=6ae78712';
+import { addItem, me } from './play.js?v=6ae78712';
+import { ixLink } from './effects.js?v=6ae78712';
+import { gmTodo, guildSay } from './chatter.js?v=6ae78712';
+import { DECOR } from './basedecor.js?v=6ae78712';
+import { palette } from './theme.js?v=6ae78712';
+import { modal, closeModal } from './ui.js?v=6ae78712';
 
 // Each guild's own colours on this page, so players can tell at a glance whose storage they're looking at.
 const GUILD_TINT = { woodland: '#4f8a2e', vanguard: '#2f5fb8' };
@@ -159,4 +160,40 @@ export async function stash(bagId, c) {
   if (same) store.set(`storage/${same[0]}/qty`, num(same[1].qty) + put); else store.set('storage/' + uid(), { name: b.name, qty: put, owner: 'team', guild });
   ledger(guild, `${c.nickname} stored ${b.name} ×${put}`);
   toast(`${b.name} ×${put} stored in the ${guildName(guild)} storage`);
+}
+
+// ---- her ask 11-01: putting Poké into the guild coffers is rewarded
+// donors/<id> = { net (given minus taken), best (highest net ever), given (all-time), name }. Rewards count only on a NEW best,
+// so giving Poké, taking it back out and giving it again earns nothing extra.
+export const DONOR_RANKS = [[1000, '🥉', 'Supporter'], [5000, '🥈', 'Patron'], [15000, '🥇', 'Benefactor'], [50000, '👑', 'Guild Hero']];
+export const GIFT_EVERY = 500;   // a thank-you Secret Base piece for every 500 Poké
+export const donorRank = (best) => [...DONOR_RANKS].reverse().find(([n]) => num(best) >= n) || null;
+function thankYouPiece(id) {
+  const own = store.get(`base/${id}/owned`) || {};
+  const all = Object.entries(DECOR).filter(([, it]) => it[5] === 'shop'); const fresh = all.filter(([k]) => !own[k]);
+  const list = fresh.length ? fresh : all; const [k, it] = list[Math.floor(Math.random() * list.length)] || [];
+  if (!k) return null; store.set(`base/${id}/owned/${k}`, num(own[k]) + 1); return it[0];
+}
+export function donated(c, amt) {
+  const d = store.get('donors/' + c.id) || {}; const net = num(d.net) + amt; const best = Math.max(num(d.best), net);
+  const gifts = Math.min(10, Math.floor(best / GIFT_EVERY) - Math.floor(num(d.best) / GIFT_EVERY));
+  const was = donorRank(d.best); const now = donorRank(best);
+  store.set('donors/' + c.id, { net, best, given: num(d.given) + amt, name: c.nickname });
+  const got = []; for (let i = 0; i < gifts; i++) { const n = thankYouPiece(c.id); if (n) got.push(n); }
+  const lines = [`💛 Thank you, ${c.nickname}! The guild is grateful.`];
+  if (got.length) { lines.push(`🎁 Thank-you gift for your base: ${got.join(', ')}. Put it out with 🔨 Build.`); store.pushLimited('log', { t: Date.now(), text: `🎁 ${c.nickname} got a thank-you gift for helping the guild coffers: ${got.join(', ')}.` }); }
+  else { const left = GIFT_EVERY - (best % GIFT_EVERY); if (net >= best) lines.push(`${left.toLocaleString()} more Poké to your next thank-you gift.`); }
+  if (now && now !== was) {
+    lines.push(`${now[1]} You’re now a guild ${now[2]}!`);
+    guildSay('Diglett', 'say', `Everyone, give it up for ${c.nickname}, our newest ${now[1]} ${now[2]}! Dig dig! The coffers thank you!`, 'donor', c.nickname);
+  }
+  setTimeout(() => toast(lines.join(' ')), 300);
+}
+export function withdrew(c, amt) { store.update('donors/' + c.id, (d) => ({ ...(d || {}), net: num(d?.net) - amt, name: c.nickname })); }
+// the Guild page's "Coffers supporters" board: the top givers with their badge
+export function donorBoardHTML() {
+  const rows = Object.values(store.get('donors') || {}).filter((d) => num(d.best) > 0).sort((a, b) => num(b.best) - num(a.best)).slice(0, 5);
+  const next = DONOR_RANKS.map(([n, ic, nm]) => `${ic} ${nm} ${n.toLocaleString()}`).join(' · ');
+  return `<div class="donors"><span class="pix">Coffers supporters</span>${rows.length ? `<ol>${rows.map((d) => { const r = donorRank(d.best); return `<li>${r ? r[1] + ' ' : ''}<b>${esc(d.name || '?')}</b> <span class="small muted">${num(d.best).toLocaleString()} Poké${r ? ' · ' + r[2] : ''}</span></li>`; }).join('')}</ol>` : '<p class="small muted" style="margin:4px 0">Nobody yet. Be the first!</p>'}
+    <p class="small muted" style="margin:4px 0 0">Give Poké to the coffers: a Secret Base thank-you gift every ${GIFT_EVERY} Poké, and a badge at ${next}.</p></div>`;
 }

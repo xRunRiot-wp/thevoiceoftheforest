@@ -1,20 +1,20 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6ae7868c';
-import * as sheet from './sheetdata.js?v=6ae7868c';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae7868c';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae7868c';
-import { MISSION_GP } from './content.js?v=6ae7868c';
-import { ranks } from './rulebook.js?v=6ae7868c';
-import { merged, editContent } from './content-store.js?v=6ae7868c';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae7868c';
-import { myId } from './app.js?v=6ae7868c';
-import { lowAlertHTML } from './vault.js?v=6ae7868c';
-import { friendZoneSection } from './friendzone.js?v=6ae7868c';
-import { ixLink } from './effects.js?v=6ae7868c';
-import { burstSet } from './burst.js?v=6ae7868c';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae7868c';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6ae7868c';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6ae7868c';
+import * as store from './store.js?v=6ae78712';
+import * as sheet from './sheetdata.js?v=6ae78712';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6ae78712';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6ae78712';
+import { MISSION_GP } from './content.js?v=6ae78712';
+import { ranks } from './rulebook.js?v=6ae78712';
+import { merged, editContent } from './content-store.js?v=6ae78712';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6ae78712';
+import { myId } from './app.js?v=6ae78712';
+import { lowAlertHTML, donorBoardHTML } from './vault.js?v=6ae78712';
+import { friendZoneSection } from './friendzone.js?v=6ae78712';
+import { ixLink } from './effects.js?v=6ae78712';
+import { burstSet } from './burst.js?v=6ae78712';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6ae78712';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6ae78712';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6ae78712';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -192,7 +192,7 @@ export function renderGuild(main) {
   <div class="guild-layout"><aside class="guild-side">${shopShortcuts()}${trackerHTML(finished)}${friendZoneSection()}</aside><div class="guild-main">
   ${lowAlertHTML()}
   <div class="guildboxes">${GUILDS2.map(([k]) => guildBox(k)).join('')}</div>
-  <div class="card coffers"><span class="pix">Shared guild coffers:</span> <b class="pix">${(g.coffers || 0).toLocaleString()} Poké</b></div>
+  <div class="card coffers"><span class="pix">Shared guild coffers:</span> <b class="pix">${(g.coffers || 0).toLocaleString()} Poké</b>${donorBoardHTML()}</div>
   ${chatterHTML()}
   <p class="small" style="margin:-4px 0 10px">${ixLink('Guild Points', 'How Guild Points work')} · <a href="#/rules/ranks">All ranks</a></p>
 

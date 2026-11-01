@@ -2462,3 +2462,8 @@ div.base-pick { cursor: default; } .base-pick.locked img { filter: brightness(0)
 .nest-umb.canopy { width: 240px; }
 .nest-umb.canopy .umb-top { width: 240px; height: 216px; bottom: -44px; }
 .nest-umb.canopy .umb-towel { display: none; }
+
+/* her ask 11-01: coffers supporters board */
+.coffers .donors { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line, #c9b48a); }
+.coffers .donors ol { margin: 4px 0 0; padding: 0; list-style: none; }
+.coffers .donors li { margin: 2px 0; }
