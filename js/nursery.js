@@ -7,15 +7,15 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6ae750de';
-import { $, $$, esc, toast, num } from './util.js?v=6ae750de';
-import { me, logRoll } from './play.js?v=6ae750de';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae750de';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae750de';
-import { markWinner } from './sparkle.js?v=6ae750de';
-import { pageMusic, visitMusic, muted } from './chiptune.js?v=6ae750de';
-import { modal, closeModal } from './ui.js?v=6ae750de';
-import { MIMIC } from './mimicdata.js?v=6ae750de';
+import * as store from './store.js?v=6ae75378';
+import { $, $$, esc, toast, num } from './util.js?v=6ae75378';
+import { me, logRoll } from './play.js?v=6ae75378';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6ae75378';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6ae75378';
+import { markWinner } from './sparkle.js?v=6ae75378';
+import { pageMusic, visitMusic, muted } from './chiptune.js?v=6ae75378';
+import { modal, closeModal } from './ui.js?v=6ae75378';
+import { MIMIC } from './mimicdata.js?v=6ae75378';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -112,7 +112,7 @@ const ACC = {
   toy_teddy: ['assets/nursery/toy_teddiursa.png', 'Teddiursa Plush', 'toy'], toy_duck: ['assets/nursery/toy_ducklett.png', 'Rubber Ducklett', 'toy'], toy_kite: ['🪁', 'Kite', 'toy'], toy_yoyo: ['🪀', 'Yo-yo', 'toy'],
   toy_balloon: ['🎈', 'Balloon', 'toy'], toy_star: ['⭐', 'Star Plush', 'toy'],
   // her ask 11-01: a boombox toy, and songs for it found on walks (each is one of the site's tunes; the boombox comes with Dance Party)
-  toy_boombox: ['assets/nursery/toy_boombox.png', 'Boombox', 'toy'],
+  toy_boombox: ['assets/nursery/toy_boombox.png', 'Boombox', 'boombox'],   // her ask 11-01: its own slot, played (not thrown)
   song_dance: ['💿', 'Dance Party', 'song'], song_beach: ['💿', 'Beach Day', 'song'], song_kitchen: ['💿', 'Kitchen Shuffle', 'song'],
   song_march: ['💿', 'Guild March', 'song'], song_musicbox: ['💿', 'Music Box Lullaby', 'song'], song_lab: ['💿', 'Lab Groove', 'song'],
   song_caravan: ['💿', 'Caravan Road', 'song'], song_casino: ['💿', 'Casino Swing', 'song'], song_battle: ['💿', 'Battle Theme', 'song'],
@@ -128,8 +128,10 @@ const umbPic = (k) => `assets/nursery/parasol${ACC[k]?.[2] === 'umbrella' ? '_' 
 const isUmb = (k) => ACC[k]?.[2] === 'umbrella';
 const accShow = (k, cls) => (isUmb(k) ? `<span class="${cls} umb-pic"><img class="acc-img" src="${umbPic(k)}" alt="${esc(ACC[k][1])}"></span>`
   : `<span class="${cls} ${ACC[k][3] === 'rainbow' ? 'rainbow' : ''}" style="${ACC[k][2] !== 'toy' && ACC[k][3] ? `filter:${accFilter(k)}` : ''}">${ACC[k][2] === 'bed' ? '🪺' : accIcon(k)}</span>`);
-const toyHTML = (b) => (ACC[b?.wear?.toy] ? `<span class="prop ball toy">${accIcon(b.wear.toy)}</span>` : '<img class="prop ball" src="assets/nursery/ball.png" alt="">');
-const SECTIONS = [['Wear', ['head', 'face', 'neck']], ['Umbrellas', ['umbrella']], ['Toys', ['toy']], ['Boombox songs', ['song']], ['Beds', ['bed']]];
+// the boombox has its own slot (an older save may still have it as the toy)
+const boomOf = (b) => (b?.wear?.boombox || (b?.wear?.toy === 'toy_boombox' ? 'toy_boombox' : null));
+const toyHTML = (b) => (ACC[b?.wear?.toy] && b.wear.toy !== 'toy_boombox' ? `<span class="prop ball toy">${accIcon(b.wear.toy)}</span>` : '<img class="prop ball" src="assets/nursery/ball.png" alt="">');
+const SECTIONS = [['Wear', ['head', 'face', 'neck']], ['Umbrellas', ['umbrella']], ['Toys', ['toy']], ['Boombox', ['boombox']], ['Boombox songs', ['song']], ['Beds', ['bed']]];
 // the boombox's song: the one picked in Dress Up, else Dance Party
 const songOf = (b) => (ACC[b?.wear?.song] ? b.wear.song.slice(5) : 'dance');
 // where each baby's body sits in its sprite cell (top and bottom of the idle frame, measured from the sprite sheets)
@@ -212,6 +214,8 @@ function startPet(root, b, scene, ownerId) {
     const sun = on && parasol(); const was = umbEl?.classList.contains('show'); umbEl?.classList.toggle('show', sun); if (sun && (pop || !was)) { umbEl.classList.remove('pop'); void umbEl.offsetWidth; umbEl.classList.add('pop'); }
     cov.textContent = on && !sun ? lab('cover')[0] : ''; cov.classList.toggle('show', on && !sun); if (on && !sun && pop) cov.classList.add('pop'); paintCover();
   };
+  // her ask 11-01: the room is redrawn for every feed / bath / play, so put the umbrella (or cover) straight back, without its pop-in
+  { const on0 = !!(coverNeed(b) && stat(b, 'cover') >= 50); umbEl?.classList.toggle('show', on0 && parasol()); showCover(on0); }
   const alive = () => roomEl.isConnected;
   const row = (name, loop = true, secs = null) => {
     const r = ROW[name]; const n = B.fr[r] || 1;
@@ -316,7 +320,6 @@ function startPet(root, b, scene, ownerId) {
     },
     // her ask 10-29: drag the toy and let go to throw it; the baby runs after it. Nobody throws for a while = it plays by itself.
     async play(meh = false) {
-      if (b.wear?.toy === 'toy_boombox' && !meh) return scenes.dance();
       props.innerHTML = `<span class="ball-wrap throwable rest">${toyHTML(b)}</span>`;
       const ball = $('.ball-wrap', props);
       const W = () => roomEl.clientWidth - 36; const H = () => roomEl.clientHeight - 40;
@@ -447,6 +450,13 @@ const eggHTML = (b, cls = '') => `<img class="egg ${cls}" src="assets/nursery/eg
 // her ask 10-27: the egg (and later the baby) sits in a nest on Tiny Woods grass. Nest = two layers so the front rim covers the egg.
 const nestHTML = (inner) => `<div class="nest"><img class="nest-b" src="assets/nursery/nest_back.png" alt="">${inner}<img class="nest-f" src="assets/nursery/nest_front.png" alt=""></div>`;
 const nameOf = (b) => b.name || (b.stage === 0 ? 'your egg' : BABIES[b.sp]?.name || 'your buddy');
+// her ask 11-01: what a character's buddy looks like, for their base (null if they have none, or it joined the team)
+export function buddyLook(id) {
+  const b = buddyOf(id); if (!b || b.recruited) return null;
+  if (b.stage === 0) return { egg: true, name: nameOf(b) };
+  const B = BABIES[b.sp]; if (!B) return null;
+  return { egg: false, name: nameOf(b), stage: b.stage, url: `assets/nursery/${b.sp}.png`, cw: B.cw, ch: B.ch, fr: B.fr };
+}
 
 function adopt(c) {
   const keys = BORN; const sp = keys[Math.floor(Math.random() * keys.length)];
@@ -668,7 +678,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6ae750de').catch(() => null);
+  const fz = import('./fzscene.js?v=6ae75378').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2, 'right', false, !!c.shiny)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
@@ -760,7 +770,7 @@ function room(c, box, anim) {
       ${egg ? '' : '<button class="btn alt sm" id="nname">Name</button>'}</div>
     <div class="n-stats">${Object.keys(needs).map((k) => { const v = stat(b, k); return `<div class="n-stat"><span>${lab(k)[0]} ${lab(k)[1]}</span><div class="n-bar ${v < 30 ? 'low' : ''}"><i style="width:${v}%"></i></div><span class="small muted">${k === 'cover' ? (v ? 'safe now' : 'needed now') : `${Math.min(num(day[k]), needs[k])}/${needs[k]} today`}</span></div>`; }).join('')}</div>
     ${egg ? '' : `<div class="n-bond"><span>❤️ Bond</span><span class="n-hearts">${'❤️'.repeat(hearts(b))}${'🤍'.repeat(5 - hearts(b))}</span><span class="small muted">${hearts(b) >= 5 ? 'Best friends!' : 'Pet, walk and care to grow it'}</span></div>
-      <div class="n-fun"><button class="btn" id="nwalk">🦮 Walk</button><button class="btn alt" id="ncall">📣 Call ${esc(nameOf(b))}</button><button class="btn alt" id="ndress">🎀 Dress up</button></div>
+      <div class="n-fun"><button class="btn" id="nwalk">🦮 Walk</button><button class="btn alt" id="ncall">📣 Call ${esc(nameOf(b))}</button><button class="btn alt" id="ndress">🎀 Dress up</button>${boomOf(b) ? '<button class="btn alt" id="nboom">📻 Play music</button>' : ''}</div>
       <p class="small muted" style="text-align:center;margin:2px 0 6px">Tip: hold and rub ${esc(nameOf(b))} to pet it.</p>`}
     ${b.recruited ? '<button class="btn alt block" id="nnew">Take a new egg home 🥚</button>' : b.stage === 3 ? `<p class="small" style="text-align:center;margin:4px 0">${esc(nameOf(b))} is all grown up. What will you do?</p><div class="n-choice"><button class="btn" id="nrecruit">🤝 Ask ${esc(nameOf(b))} to join the team</button><button class="btn alt" id="nwild">🌿 Let ${esc(nameOf(b))} go into the wild</button></div>`
       : `<div class="n-acts">${Object.keys(needs).map((k) => `<button class="btn ${(k === 'cover' ? stat(b, k) : num(day[k]) >= needs[k]) ? 'alt' : ''}" data-nact="${k}">${lab(k)[0]} ${lab(k)[2]}</button>`).join('')}</div>`}
@@ -776,6 +786,8 @@ function room(c, box, anim) {
   const iv = $('#nvisit', box); if (iv) iv.onclick = () => invite(c, box);
   const cl = $('#ncall', box); if (cl) cl.onclick = () => $('#npet', box)?.dispatchEvent(new Event('call'));
   const dr = $('#ndress', box); if (dr) dr.onclick = () => dressUp(c, box);
+  // her ask 11-01: the boombox gets played: it drops in, plays the song picked in Dress Up, and the buddy dances
+  const mu = $("#nboom", box); if (mu) mu.onclick = () => { if (asleep()) return toast(`${nameOf(buddyOf(c.id))} is asleep. Music in the morning!`); room(c, box, 'dance'); };
   const wk = $('#nwalk', box); if (wk) wk.onclick = () => {
     const bb = buddyOf(c.id); const rest = WALK_REST - (Date.now() - num(bb?.walkAt));
     if (asleep()) return toast(`${nameOf(bb)} is asleep. Walks start again in the morning!`);

@@ -2444,5 +2444,11 @@ a.ch-chip:hover { background: var(--navy); }
 
 /* her asks 11-01: at a base your own Pokémon is always in front, and name tags never cover a sprite (hidden during a nap) */
 .base-scene .fzs-mon.me { z-index: 895 !important; }
-.base-scene .fzs-tag { margin-top: 1px !important; }
 .fzs-mon.napping .fzs-tag { display: none; }
+
+/* the nursery buddy visiting the base (her ask 11-01), like a Puffle */
+.base-buddy { position: absolute; display: flex; flex-direction: column; align-items: center; cursor: var(--cur-link, pointer); }
+.base-buddy .baby-spr { margin-bottom: 0; }
+.base-buddy .bb-egg { display: block; height: auto; image-rendering: pixelated; filter: drop-shadow(0 3px 0 rgba(30, 50, 10, .35)); transform-origin: 50% 100%; }
+.base-buddy .fzs-tag { opacity: 1; }
+.base-buddy.hopb .bb-egg { animation: walk-wiggle .5s ease-in-out 2; }
