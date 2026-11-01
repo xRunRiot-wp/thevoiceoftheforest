@@ -6,8 +6,8 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6ae723c4';
-import { esc } from './util.js?v=6ae723c4';
+import { loadIndex } from './effects.js?v=6ae725f9';
+import { esc } from './util.js?v=6ae725f9';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -39,7 +39,7 @@ function walkData(dex) {
       return { w: num('FrameWidth'), h: num('FrameHeight'), n: durs.length || 1, ms: Math.max(300, durs.reduce((s, d) => s + d, 0) * 1000 / 60), foot: 0 }; };
     const a = read('Walk'); if (!a) return null;
     // a Pokémon that walks underground (Diglett's walk is just a dirt mound) shows its Idle picture, out of the ground, when it stops
-    const idle = DIGGERS.has(dex) ? read('Idle') : null;
+    const idle = DIGGERS.has(dex.slice(0, 4)) ? read('Idle') : null;
     return Promise.all([footRoom(dex, a), idle && footRoom(dex, idle, 'Idle')]).then(([f, fi]) => ({ ...a, foot: f, idle: idle && { ...idle, foot: fi } }));
   }).catch(() => null));
   return animCache.get(dex);
@@ -69,9 +69,9 @@ function speciesIn(ix, name) {
 // one Pokémon's walk sprite by species name (her ask 10-29: the player's character joins the nursery walk);
 // null if it isn't in the Index or SpriteCollab has no walk for it. face = which way it looks; stand = a digger shows
 // its Idle picture (out of the ground) instead of its underground walk.
-export async function walkSprite(name, S = 2, face = 'right', stand = false) {
+export async function walkSprite(name, S = 2, face = 'right', stand = false, shiny = false) {
   const ix = await loadIndex(); const e = speciesIn(ix, name); const dex = e && (String(e.aka || '').match(/#(\d+)/) || [])[1]; if (!dex) return null;
-  const d4 = dex.padStart(4, '0'); const a = await walkData(d4); if (!a) return null;
+  let d4 = dex.padStart(4, '0'); let a = shiny ? await walkData(d4 + '/0000/0001') : null; if (a) d4 += '/0000/0001'; else a = await walkData(d4); if (!a) return null;
   const p = stand && a.idle ? a.idle : a; const file = p === a ? 'Walk' : 'Idle';
   return { a: p, html: `<div class="fzs-spr" style="width:${p.w * S}px;height:${p.h * S}px;background-image:url(${RAW}${d4}/${file}-Anim.png);background-size:${p.w * p.n * S}px ${p.h * 8 * S}px;--fw:${p.w * S}px;--n:${p.n};--ms:${p.ms}ms;background-position-y:-${ROW[face] * p.h * S}px;margin-bottom:-${p.foot * S}px"></div>` };
 }
@@ -86,7 +86,9 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     const mons = [];
     for (const m of c.mons) {
       const e = speciesIn(ix, m.name); const dex = m.dex || (e && (String(e.aka || '').match(/#(\d+)/) || [])[1]); if (!dex) continue;   // m.dex: a Pokémon missing from the Index (Maushold)
-      const d4 = dex.padStart(4, '0'); const a = await walkData(d4); if (!box.isConnected) return mons; if (a) mons.push({ ...m, d4, a });
+      // her ask 11-01 'make Puff shiny': a shiny character walks with SpriteCollab's shiny sheet (<dex>/0000/0001) when it has one
+      let d4 = dex.padStart(4, '0'); let a = m.shiny ? await walkData(d4 + '/0000/0001') : null; if (a) d4 += '/0000/0001'; else a = await walkData(d4);
+      if (!box.isConnected) return mons; if (a) mons.push({ ...m, d4, a });
       if (mons.length >= (c.max || 5)) break;
     }
     return mons;
