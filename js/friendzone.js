@@ -1,14 +1,15 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6ae71fb4';
-import { $, $$, esc, toast } from './util.js?v=6ae71fb4';
-import { modal, closeModal } from './ui.js?v=6ae71fb4';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae71fb4';
-import { merged, editContent } from './content-store.js?v=6ae71fb4';
-import { CHAPTERS } from './content.js?v=6ae71fb4';
-import { giftNote } from './mailbox.js?v=6ae71fb4';
-import { guildSay } from './chatter.js?v=6ae71fb4';
-import { myId } from './app.js?v=6ae71fb4';
+import * as store from './store.js?v=6ae72174';
+import { $, $$, esc, toast } from './util.js?v=6ae72174';
+import { modal, closeModal } from './ui.js?v=6ae72174';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6ae72174';
+import { merged, editContent } from './content-store.js?v=6ae72174';
+import { CHAPTERS } from './content.js?v=6ae72174';
+import { giftNote } from './mailbox.js?v=6ae72174';
+import { guildSay } from './chatter.js?v=6ae72174';
+import { myId } from './app.js?v=6ae72174';
+import { hasBase, openBase } from './mybase.js?v=6ae72174';
 
 export const LOCATIONS = [
   {
@@ -222,6 +223,8 @@ export function renderFriendZone(main, [arg]) {
     // Chapters 3, 4 and 9; top-left forest strip = 5, 7 and 8; bottom-right = 6). A square opens once the GM sets the guild's chapter to its first chapter; each chapter shows its own lock
     const ch = Number(store.get('guild')?.chapter) || 0; const chList = merged('chapters', CHAPTERS, (c) => 'ch' + c.n);
     const pathName = (ns) => `Path to Chapter${ns.length > 1 ? 's' : ''} ${ns.length > 1 ? ns.slice(0, -1).join(', ') + ' & ' + ns[ns.length - 1] : ns[0]}`;
+    // her ask 11-01: your own base, next to the Guild (open from Beginner rank)
+    if (MAPS[loc.id]?.some((x) => x[0] === 'my-base')) { const meC = (store.get('party') || {})[myId()]; cubes.push({ key: 'my-base', name: meC && hasBase(meC) ? `${meC.nickname}’s Base` : 'Your Base', mons: [], locked: !hasBase(meC) }); }
     for (const [key, ns] of Object.entries(PATHS[loc.id] || {})) cubes.push({ key, name: pathName(ns), mons: [], locked: ch < Math.min(...ns) });
     const placeCard = (key) => { const d = document.createElement('div'); d.className = 'card fz-place'; d.innerHTML = `<h3 style="margin:0 0 4px">${esc(PLACES[key][0])}</h3><p>${esc(PLACES[key][1])}</p>`; return d; };
     const pathCard = (key) => { const ns = PATHS[loc.id][key]; const d = document.createElement('div'); d.className = 'card fz-path';
@@ -251,6 +254,7 @@ export function renderFriendZone(main, [arg]) {
         const holder = $('.fz-spots', main); if (holder) holder.classList.add('fz-hidden');
         box.addEventListener('fzspot', (e) => {
           const key = e.detail; const sq = $(`.fzs-cube[data-key="${key}"]`, box);
+          if (key === 'my-base') { openBase(myId(), { from: sq }); return; }
           const img = ZOOM_PICS[key] || (MAPS[loc.id].find((x) => x[0] === key) || [])[1]; const cube = cubes.find((x) => x.key === key);
           const card = $(`.fz-spot[data-spotkey="${key}"]`, main) || (key === 'staff' ? $('.fz-staff', main)?.cloneNode(true) : key === 'camp' ? $('.fz-head', main)?.cloneNode(true) : PATHS[loc.id]?.[key] ? pathCard(key) : PLACES[key] ? placeCard(key) : null);
           if (!card) return;

@@ -2354,3 +2354,23 @@ a.ch-chip:hover { background: var(--navy); }
 .nest-umb .umb-towel { position: absolute; left: 50%; bottom: 6px; width: 112px; height: 30px; transform: perspective(120px) rotateX(38deg); translate: -50% 0; image-rendering: pixelated; opacity: 0; transition: opacity .3s; }
 .nest-umb.show .umb-towel { opacity: 1; }
 
+/* your own base (her ask 11-01): a pixel clearing in the forest, things you build, a build palette */
+.base-scene .fzs-cube.pic { background: radial-gradient(ellipse 62% 48% at 50% 62%, rgba(196, 160, 98, .75) 0 55%, rgba(196, 160, 98, 0) 80%),
+  url('../assets/nursery/grass.png') 0 0 / 72px 72px repeat !important; image-rendering: pixelated; }
+/* the forest edge: her canopy art across the top, fading into the clearing */
+.base-scene .fzs-cube.pic::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 34%; background: url('../assets/friendzone/woodland_band_r.jpg') center 30% / cover;
+  -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); pointer-events: none; }
+.base-items { position: absolute; inset: 0; pointer-events: none; }
+.base-item { position: absolute; padding: 0; border: 0; background: none; pointer-events: auto; cursor: var(--cur-link, pointer); line-height: 0; }
+.base-item img { width: 100%; height: auto; image-rendering: pixelated; filter: drop-shadow(0 3px 0 rgba(30, 50, 10, .35)); }
+.base-item.wig { animation: walk-wiggle .5s ease-in-out 2; }
+.bi-campfire img { animation: base-flicker 1.2s steps(2) infinite; transform-origin: 50% 100%; }
+@keyframes base-flicker { 50% { transform: scale(1.04, .97); filter: drop-shadow(0 3px 0 rgba(30, 50, 10, .35)) brightness(1.12); } }
+.base-pal { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin: 8px 0; }
+.base-pick { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border: 2px solid #3a2c1a; border-radius: 10px; background: #fffaf0; cursor: var(--cur-link, pointer); font: inherit; color: #3a2c1a; }
+.base-pick img { height: 36px; width: auto; max-width: 80px; object-fit: contain; image-rendering: pixelated; }
+.base-pick b { font: 700 11px var(--pix); } .base-pick small { color: var(--muted); }
+.base-pick.on { background: #ffe9a8; outline: 3px solid #f0b955; } .base-pick:disabled { opacity: .45; cursor: default; }
+.base-hint { background: #fff4d0; border: 2px dashed #e2b04a; border-radius: 10px; padding: 6px 10px; }
+.fzs-cube.locked[data-key="my-base"] { filter: saturate(.6) brightness(.8); }
+
