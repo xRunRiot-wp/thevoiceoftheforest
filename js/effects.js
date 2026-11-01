@@ -1,10 +1,10 @@
 // The Index: every effect and interaction in the game, searchable, linked from everywhere.
-import * as store from './store.js?v=6ae7830e';
-import * as sheet from './sheetdata.js?v=6ae7830e';
-import { esc, slug, pool, $, $$ } from './util.js?v=6ae7830e';
-import { modal, diceFaces } from './ui.js?v=6ae7830e';
-import { merged, editContent } from './content-store.js?v=6ae7830e';
-import { ATTRS, SKILLS, SOCIAL } from './content.js?v=6ae7830e';
+import * as store from './store.js?v=6ae783ee';
+import * as sheet from './sheetdata.js?v=6ae783ee';
+import { esc, slug, pool, $, $$ } from './util.js?v=6ae783ee';
+import { modal, diceFaces } from './ui.js?v=6ae783ee';
+import { merged, editContent } from './content-store.js?v=6ae783ee';
+import { ATTRS, SKILLS, SOCIAL } from './content.js?v=6ae783ee';
 
 export const INDEX_SCHEMA = [['name', 'Name'], ['kind', 'Kind'], ['aka', 'Also called', 'list'], ['trigger', 'When it happens', 'area'], ['roll', 'Roll', 'area'],
   ['outcome', 'What it does', 'area'], ['duration', 'How long', 'area'], ['removal', 'How it ends / is removed', 'area'], ['links', 'Related entries', 'list'], ['source', 'Source']];

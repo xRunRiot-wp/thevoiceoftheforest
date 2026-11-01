@@ -3,13 +3,13 @@
 // build with what your rank allows (Beginner: a tent, a campfire, bedrolls, a drying rack and a sad little bed); later
 // ranks will add more, up to a building in someone's likeness. Friends can visit from the Friends list (like visiting an
 // igloo in Club Penguin). base/<charId> = { items: { id: { k, x, y } }, visits: { visitorId: t } }; x and y are % of the scene.
-import * as store from './store.js?v=6ae7830e';
-import { $, $$, esc, toast, uid } from './util.js?v=6ae7830e';
-import { modal, closeModal } from './ui.js?v=6ae7830e';
-import { RANK_NAMES } from './content.js?v=6ae7830e';
-import { mountFzScene } from './fzscene.js?v=6ae7830e';
-import { DECOR, KINDS } from './basedecor.js?v=6ae7830e';
-import { myId } from './app.js?v=6ae7830e';
+import * as store from './store.js?v=6ae783ee';
+import { $, $$, esc, toast, uid } from './util.js?v=6ae783ee';
+import { modal, closeModal } from './ui.js?v=6ae783ee';
+import { RANK_NAMES } from './content.js?v=6ae783ee';
+import { mountFzScene } from './fzscene.js?v=6ae783ee';
+import { DECOR, KINDS } from './basedecor.js?v=6ae783ee';
+import { myId } from './app.js?v=6ae783ee';
 
 // what can be built: [name, picture, width on screen (px at full size), what it says when tapped]
 const ITEMS = {
@@ -218,7 +218,7 @@ export function openBase(ownerId, { from = null } = {}) {
     const el2 = document.createElement('div'); el2.className = 'base-buddy'; strip.appendChild(el2);
     const label = bl.egg ? `${owner.nickname}’s egg` : bl.name;
     let pw; let ph; let spr = null;
-    if (bl.egg) { pw = Math.round(38 * 2.2 * k); ph = Math.round(32 * 2.2 * k); el2.innerHTML = `<img class="bb-egg" src="assets/base/egg_blanket.png" alt="" style="width:${pw}px"><span class="fzs-tag">${esc(label)}</span>`; }
+    if (bl.egg) { pw = Math.round(40 * 1.5 * k); ph = Math.round(33 * 1.5 * k); el2.innerHTML = `<img class="bb-egg" src="assets/base/egg_blanket2.png" alt="" style="width:${pw}px"><span class="fzs-tag">${esc(label)}</span>`; }
     else { const S = [1, 1.1, 1.3, 1.5][bl.stage] * Math.max(1, k * 1.15); pw = Math.round(bl.cw * S); ph = Math.round(bl.ch * S);
       el2.innerHTML = `<span class="baby-spr" style="width:${pw}px;height:${ph}px;background-image:url(${bl.url});background-size:${pw * 10}px ${ph * 7}px"></span><span class="fzs-tag" style="margin-top:-${Math.round(ph * 0.43) + 2}px">${esc(label)}</span>`; spr = el2.firstChild; }
     const R = { idle: 0, hop: 1, right: 3, left: 4 };
@@ -264,7 +264,7 @@ export function openBase(ownerId, { from = null } = {}) {
       const el2 = els[Math.floor(Math.random() * els.length)]; play(el2, items[el2.dataset.bi], free[Math.floor(Math.random() * free.length)], true);
     }, 7000);
     // her ask 11-01: the owner's nursery buddy hangs out at the base like a Puffle (an egg sits bundled in a blanket)
-    import('./nursery.js?v=6ae7830e').then((n) => n.buddyLook?.(ownerId)).then((bl) => { if (bl && s.strip.isConnected) addBuddy(bl); }).catch(() => {});
+    import('./nursery.js?v=6ae783ee').then((n) => n.buddyLook?.(ownerId)).then((bl) => { if (bl && s.strip.isConnected) addBuddy(bl); }).catch(() => {});
     // building: tap the ground to place; tap a built piece for Move / Put away. Anyone may tap a piece to play with it.
     s.strip.addEventListener('click', (e) => {
       const it = e.target.closest('[data-bi]');
