@@ -1,11 +1,11 @@
 // The Miltankshack (her ask 11-01): buy Moomoo Milk for your bag, or buy a milkshake and watch your Pokémon drink it
-import * as store from './store.js?v=6ae727b8';
-import { $, esc, toast, uid } from './util.js?v=6ae727b8';
-import { modal } from './ui.js?v=6ae727b8';
-import { buyDialog, logSale } from './shopkit.js?v=6ae727b8';
+import * as store from './store.js?v=6ae72858';
+import { $, esc, toast, uid } from './util.js?v=6ae72858';
+import { modal } from './ui.js?v=6ae72858';
+import { buyDialog, logSale } from './shopkit.js?v=6ae72858';
 
 const num = (v) => Number(v) || 0;
-export const MILK_PRICE = 100;
+export const MILK_PRICE = 350;   // Pokérole Core 2.0's price for it
 export const SHAKE_PRICE = 30;
 const THANKS = ['*Miltank gives a happy moo*', 'Fresh from the farm! Come back soon!', 'Moo! Enjoy every drop!'];
 const thanks = () => THANKS[Math.floor(Math.random() * THANKS.length)];
@@ -46,7 +46,7 @@ function buyShake() {
 async function drink(c) {
   const el = modal(`<h2>🥤 Milkshake time!</h2><div class="shake-scene"><div class="shake-mon"></div><img class="shake-cup" src="assets/items/milkshake.png" alt=""><div class="shake-fx"></div></div>
     <p class="shake-say" role="status">${esc(c.nickname)} can’t wait…</p>`);
-  const fz = await import('./fzscene.js?v=6ae727b8').catch(() => null);
+  const fz = await import('./fzscene.js?v=6ae72858').catch(() => null);
   const w = c.pokemon && fz ? await fz.walkSprite(c.pokemon, 3, 'down', true, !!c.shiny).catch(() => null) : null;
   const mon = $('.shake-mon', el); if (!mon) return;
   mon.innerHTML = w ? w.html : `<span class="shake-emo">😋</span>`;

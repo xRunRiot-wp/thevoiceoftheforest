@@ -1,18 +1,22 @@
 // Using a bag item from the top bar's pins (her ask 10-27): shows what the item does (from the Index) and, on Use,
 // applies the clear-cut benefits itself (healing HP, curing status, restoring Will) and takes one out of the bag.
 // Anything that needs a roll or a target (seeds thrown at foes, food for Hunger) is used up and logged for the GM.
-import * as store from './store.js?v=6ae727b8';
-import { esc, num, toast } from './util.js?v=6ae727b8';
-import { maxHp } from './ui.js?v=6ae727b8';
-import { loadIndex, find } from './effects.js?v=6ae727b8';
-import { logRoll } from './play.js?v=6ae727b8';
+import * as store from './store.js?v=6ae72858';
+import { esc, num, toast } from './util.js?v=6ae72858';
+import { maxHp } from './ui.js?v=6ae72858';
+import { loadIndex, find } from './effects.js?v=6ae72858';
+import { logRoll } from './play.js?v=6ae72858';
 
 const CURES = [[/heals? poison/i, ['Poison', 'Badly Poisoned']], [/heals? paralysis/i, ['Paralysis']], [/heals? sleep/i, ['Sleep']], [/heals? burn/i, ['Burn']],
   [/heals? frozen/i, ['Frozen']], [/heals? confusion/i, ['Confused']], [/heals? infatuat/i, ['Infatuated']]];
 
+// her ask 11-01: Moomoo Milk heals like the main games (the best of the drinks, 100 HP there), scaled to ours with
+// Pokérole Core 2.0's own number: HealthRestored 7 (src/pokerole-data/v2.0/Items/Moomoo Milk.json). The Index text has no number.
+const EXTRA = { 'Moomoo Milk': 'Heals 7 damage.' };
 export async function itemInfo(name) {
   const ix = await loadIndex().catch(() => null);
-  return (ix && find(ix, name)?.outcome) || '';
+  const t = (ix && find(ix, name)?.outcome) || '';
+  return EXTRA[name] ? `${EXTRA[name]} ${t}`.trim() : t;
 }
 
 // what Use will do for this character, worked out from the Index text
