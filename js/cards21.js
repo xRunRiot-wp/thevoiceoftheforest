@@ -3,13 +3,13 @@
 // second round of betting and the showdown: the best total without going over 21 takes the pot (ties split it).
 // One shared table per campaign table (c21/table), so friends can play together live. Each device only acts for its own
 // character; Noctowl's moves and slow players' turns are played by the first seated player's device (or anyone's after a wait).
-import * as store from './store.js?v=6ae7ea9c';
-import { portrait } from './ui.js?v=6ae7ea9c';
-import { $, $$, esc, toast, num } from './util.js?v=6ae7ea9c';
-import { logRoll, me } from './play.js?v=6ae7ea9c';
-import { gameSay } from './chatter.js?v=6ae7ea9c';
-import { markWinner } from './sparkle.js?v=6ae7ea9c';
-import { startMusic, stopMusic, ensureAudio, cardSound, jingle, muted, setMuted } from './chiptune.js?v=6ae7ea9c';
+import * as store from './store.js?v=6ae7ec8f';
+import { portrait } from './ui.js?v=6ae7ec8f';
+import { $, $$, esc, toast, num } from './util.js?v=6ae7ec8f';
+import { logRoll, me } from './play.js?v=6ae7ec8f';
+import { gameSay } from './chatter.js?v=6ae7ec8f';
+import { markWinner } from './sparkle.js?v=6ae7ec8f';
+import { startMusic, stopMusic, ensureAudio, cardSound, jingle, muted, setMuted } from './chiptune.js?v=6ae7ec8f';
 
 export const isCards21 = (g) => g.kind === 'cards21' || g.id === 'noctowl-21';
 // a hand is being played right now (her ask 10-27: people can watch a match that's going)
@@ -105,7 +105,10 @@ function act(id, move) {
   const t = T(); if (!t.order || t.order[t.turn] !== id || !['bet1', 'draw', 'bet2'].includes(t.phase)) return;
   const s = t.seats[id]; const owe = t.toCall - s.bet;
   if (move === 'fold') { s.folded = true; t.line = id === NOCT ? t.line : say('fold'); }
-  else if (move === 'check' || move === 'call') { if (owe > 0) { if (pokeOf(id) < owe) return toast('Not enough Poké to call. You can fold.'); pay(id, owe); s.bet += owe; s.paid = num(s.paid) + owe; t.pot += owe; } }
+  else if (move === 'check' || move === 'call') { if (owe > 0) {
+    // her ask 11-01: short of Poké? Go all in with what you have and stay in the hand (no more getting stuck)
+    const amt = Math.min(owe, pokeOf(id)); if (amt < owe) { s.allIn = true; t.line = `${s.name} goes all in! Hoo!`; }
+    pay(id, amt); s.bet += owe; s.paid = num(s.paid) + amt; t.pot += amt; } }
   else if (move === 'raise') {
     const amt = owe + RAISE; if (t.raises >= MAX_RAISES) return; if (pokeOf(id) < amt) return toast(`Not enough Poké to raise (needs ${amt}).`);
     pay(id, amt); s.bet += amt; s.paid = num(s.paid) + amt; t.pot += amt; t.toCall += RAISE; t.raises++; t.acted = {}; t.line = id === NOCT ? 'Hoo… I raise.' : say('raise');
@@ -156,8 +159,8 @@ function controlsHTML(t, c) {
   const s = t.seats[c.id]; const owe = t.toCall - s.bet;
   if (t.phase === 'draw') return `<div class="c21-acts"><p><b>Your turn:</b> you have <b>${total(s.hand)}</b>. Take another card or stay?</p><button class="btn" data-c21="hit">🃏 Hit</button><button class="btn alt" data-c21="stand">✋ Stand</button></div>`;
   return `<div class="c21-acts"><p><b>Your turn to bet.</b> ${owe ? `It’s <b>${owe} Poké</b> to call.` : 'Nobody has raised.'} Pot: <b>${t.pot}</b>.</p>
-    ${owe ? `<button class="btn" data-c21="call">📞 Call ${owe}</button>` : '<button class="btn" data-c21="check">✔️ Check</button>'}
-    ${t.raises < MAX_RAISES ? `<button class="btn alt" data-c21="raise">⬆️ Raise ${owe + RAISE}</button>` : ''}<button class="btn alt" data-c21="fold">🏳️ Fold</button></div>`;
+    ${owe ? (pokeOf(c.id) < owe ? `<button class="btn" data-c21="call">💰 All in (${pokeOf(c.id)})</button>` : `<button class="btn" data-c21="call">📞 Call ${owe}</button>`) : '<button class="btn" data-c21="check">✔️ Check</button>'}
+    ${t.raises < MAX_RAISES && pokeOf(c.id) >= owe + RAISE ? `<button class="btn alt" data-c21="raise">⬆️ Raise ${owe + RAISE}</button>` : ''}<button class="btn alt" data-c21="fold">🏳️ Fold</button></div>`;
 }
 
 export function renderCards21(main, g, gm, onEdit) {
@@ -167,7 +170,7 @@ export function renderCards21(main, g, gm, onEdit) {
     <details class="card small"><summary><b>How to play</b></summary><ol>
       <li><b>Sit in</b> for ${ANTE} Poké. Anyone at the table can join before the cards are dealt. Then anyone seated presses <b>Deal</b>.</li>
       <li>Everyone gets 2 cards. You see yours; others only see your first card. Aces count 1 or 11, J/Q/K count 10.</li>
-      <li><b>Betting:</b> <b>Check</b> (bet nothing more), <b>Raise</b> (+${RAISE} Poké, up to ${MAX_RAISES} times a round), <b>Call</b> (match a raise) or <b>Fold</b> (give up the hand).</li>
+      <li><b>Betting:</b> <b>Check</b> (bet nothing more), <b>Raise</b> (+${RAISE} Poké, up to ${MAX_RAISES} times a round), <b>Call</b> (match a raise) or <b>Fold</b> (give up the hand). Short of Poké? <b>All in</b> puts in what you have and keeps you in the hand.</li>
       <li><b>Drawing:</b> <b>Hit</b> for another card or <b>Stand</b>. Over 21 and you’re out.</li>
       <li>A second round of betting, then everyone shows their cards. The best total without going over 21 wins the pot; ties split it. Noctowl plays too and keeps whatever it wins.</li>
       <li>Slow players get ${TURN_WAIT / 1000} seconds, then they check (or fold if there’s a raise to call).</li></ol></details>
@@ -215,7 +218,8 @@ export function renderCards21(main, g, gm, onEdit) {
         ${gm && t.order && t.phase !== 'done' ? '<p><button class="btn alt sm" id="c21reset">GM: end this hand (refund the pot)</button></p>' : ''}</div>`;
     } else if (gm) body += '<p><button class="btn alt sm" id="c21reset">GM: end this hand (refund the pot)</button></p>';
     box.innerHTML = body;
-    $$('[data-c21]', box).forEach((b) => b.onclick = () => { $$('[data-c21]', box).forEach((x) => { x.disabled = true; }); act(c.id, b.dataset.c21); });
+    $$('[data-c21]', box).forEach((b) => b.onclick = () => { $$('[data-c21]', box).forEach((x) => { x.disabled = true; }); act(c.id, b.dataset.c21);
+      setTimeout(() => $$('[data-c21]', box).forEach((x) => { x.disabled = false; }), 1500); });   // a refused move never leaves the buttons locked
     const sit = $('#c21sit', box); if (sit) sit.onclick = () => { sit.disabled = true; if (pokeOf(c.id) < ANTE) return; ensureAudio(); cardSound('chips'); pay(c.id, ANTE); store.set(`${PATH}/waiting/${c.id}`, c.nickname); if (T().phase === 'done') store.set(`${PATH}/line`, `${c.nickname} sits down. Hoo!`); };
     const lv = $('#c21leave', box); if (lv) lv.onclick = () => { pay(c.id, -ANTE); store.set(`${PATH}/waiting/${c.id}`, null); };
     const dl = $('#c21deal', box); if (dl) dl.onclick = () => { dl.disabled = true; deal(T()); };
