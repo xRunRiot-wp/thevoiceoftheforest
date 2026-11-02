@@ -1,15 +1,15 @@
 // Pelipper Post: a little mailbox above each player's name. Once a day every character gets one letter with a
 // small solo mission; they roll for it and can earn an item, Poké, a recruit chance or a new place to explore.
 // Letters are GM-editable (content/mail). Recruits and new places go on the GM checklist for the GM to play out.
-import * as store from './store.js?v=6ae7ec8f';
-import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae7ec8f';
-import { modal, closeModal } from './ui.js?v=6ae7ec8f';
-import { merged, editContent } from './content-store.js?v=6ae7ec8f';
-import { logRoll, statVal } from './play.js?v=6ae7ec8f';
-import { dailyRoll, hash } from './weather.js?v=6ae7ec8f';
-import { gameSay, gmTodo } from './chatter.js?v=6ae7ec8f';
-import { markWinner } from './sparkle.js?v=6ae7ec8f';
-import { sendFx } from './letterfx.js?v=6ae7ec8f';
+import * as store from './store.js?v=6ae7eeca';
+import { $, $$, esc, toast, num, pool, uid } from './util.js?v=6ae7eeca';
+import { modal, closeModal } from './ui.js?v=6ae7eeca';
+import { merged, editContent } from './content-store.js?v=6ae7eeca';
+import { logRoll, statVal } from './play.js?v=6ae7eeca';
+import { dailyRoll, hash } from './weather.js?v=6ae7eeca';
+import { gameSay, gmTodo } from './chatter.js?v=6ae7eeca';
+import { markWinner } from './sparkle.js?v=6ae7eeca';
+import { sendFx, unpackFx } from './letterfx.js?v=6ae7eeca';
 
 const KINDS = { item: ['🎁', 'Item'], poke: ['💰', 'Poké'], recruit: ['🤝', 'Recruit chance'], place: ['🧭', 'New place'] };
 export const MAIL_SCHEMA = [['title', 'Title'], ['from', 'From'], ['text', 'Letter', 'area'], ['attr', 'Roll: attribute (e.g. Insight)'], ['skill', 'Roll: skill (e.g. Alert)'],
@@ -52,7 +52,27 @@ export function letterFor(c, day = today()) {
   return all[Math.floor(hash(`${store.tableCode()}|mail|${day}|${c.id}`) * all.length)];
 }
 // gift notes (her ask 10-27): when the GM gives a theme or dice, a note lands in that player's mailbox (giftmail/<id>/<note>)
-export function giftNote(id, icon, title, text) { store.set(`giftmail/${id}/${uid()}`, { t: Date.now(), icon, title, text }); }
+export function giftNote(id, icon, title, text, extra = {}) { store.set(`giftmail/${id}/${uid()}`, { t: Date.now(), icon, title, text, ...(extra.attach ? { attach: extra.attach } : {}) }); }
+// her ask 11-01: a gift waits in its envelope (attach = { poke } or { item, qty }) until the player opens their mail
+const attachText = (a) => (a.poke ? `${num(a.poke).toLocaleString()} Poké` : `${num(a.qty) > 1 ? num(a.qty) + '× ' : ''}${a.item}`);
+function claim(c, k) {
+  const n = store.get(`giftmail/${c.id}/${k}`); if (!n || !n.attach || n.claimed) return null;
+  store.set(`giftmail/${c.id}/${k}/claimed`, Date.now()); const a = n.attach;
+  if (a.poke) store.update('party/' + c.id, (x) => ({ ...x, poke: num(x?.poke) + num(a.poke) }));
+  else if (a.item) {
+    const same = Object.entries(store.get('bag') || {}).find(([, x]) => x && x.owner === c.id && String(x.name).toLowerCase() === String(a.item).toLowerCase());
+    if (same) store.set(`bag/${same[0]}/qty`, num(same[1].qty) + Math.max(1, num(a.qty))); else store.set('bag/' + uid(), { name: a.item, qty: Math.max(1, num(a.qty)), owner: c.id });
+  }
+  return { ...a, from: (n.title.match(/from (.+)$/) || [])[1] || '' };
+}
+async function unpackAll(c, box) {
+  const todo = giftsOf(c).filter(([, n]) => n.attach && !n.claimed).reverse();
+  for (const [k] of todo) {
+    const a = claim(c, k); if (!a) continue;
+    await unpackFx(a.from, attachText(a), a.poke ? 'poke' : a.item);
+    const row = box.querySelector(`[data-note="${k}"] .gn-att`); if (row) row.textContent = `✔ ${attachText(a)} went into your bag`;
+  }
+}
 const giftsOf = (c) => Object.entries(store.get('giftmail/' + c.id) || {}).filter(([, n]) => n && n.title).sort((a, b) => num(b[1].t) - num(a[1].t));
 const unreadGifts = (c) => giftsOf(c).filter(([, n]) => !n.read);
 export const mailWaiting = (c) => !!c && ((!!letterFor(c) && slot(c.id).day !== today()) || unreadGifts(c).length > 0);
@@ -98,13 +118,14 @@ export function openMailbox(c) {
   const gifts = giftsOf(c).slice(0, 40); const fresh = new Set(unreadGifts(c).map(([k]) => k));
   const box = modal(`<h2>📬 Pelipper Post</h2>
     <div class="mail-tools"><button class="btn sm" id="mailnew">✏️ New mail</button>${gifts.length ? `<button class="btn alt sm" id="maildelall">🗑️ Delete all read</button>` : ''}</div>
-    ${gifts.length ? `<div class="gift-notes">${gifts.map(([k, n]) => `<div class="gift-note ${fresh.has(k) ? 'new' : ''}" data-note="${esc(k)}"><span class="gn-icon">${esc(n.icon || '🎁')}</span><span class="grow"><b>${esc(n.title)}</b>${fresh.has(k) ? ' <span class="pill">New!</span>' : ''}<br><span class="small gn-text">${esc(n.text)}</span>${n.fromId && n.fromId !== c.id && store.get('party/' + n.fromId) ? `<br><button class="btn alt sm gn-reply" data-reply="${esc(n.fromId)}">↩️ Reply</button>` : ''}</span><button class="gn-del" data-del="${esc(k)}" title="Delete this mail" aria-label="Delete this mail">🗑️</button></div>`).join('')}</div>` : ''}<p class="small muted">One letter a day for ${esc(c.nickname)}. Help out and earn a reward!</p>
+    ${gifts.length ? `<div class="gift-notes">${gifts.map(([k, n]) => `<div class="gift-note ${fresh.has(k) ? 'new' : ''}" data-note="${esc(k)}"><span class="gn-icon">${esc(n.icon || '🎁')}</span><span class="grow"><b>${esc(n.title)}</b>${fresh.has(k) ? ' <span class="pill">New!</span>' : ''}<br><span class="small gn-text">${esc(n.text)}</span>${n.attach ? `<br><span class="small gn-att">${n.claimed ? `✔ ${esc(attachText(n.attach))} went into your bag` : `📎 ${esc(attachText(n.attach))} inside the envelope`}</span>` : ''}${n.fromId && n.fromId !== c.id && store.get('party/' + n.fromId) ? `<br><button class="btn alt sm gn-reply" data-reply="${esc(n.fromId)}">↩️ Reply</button>` : ''}</span><button class="gn-del" data-del="${esc(k)}" title="Delete this mail" aria-label="Delete this mail">🗑️</button></div>`).join('')}</div>` : ''}<p class="small muted">One letter a day for ${esc(c.nickname)}. Help out and earn a reward!</p>
     ${l ? letterHTML(l) : '<p class="muted">No mail today.</p>'}
     <div class="mail-act result">${!l ? '' : done ? resultHTML(letters().find((x) => x.id === s.id) || l, s.res) : '<button class="btn block" id="mailgo">Take the mission 🎲</button>'}</div>
     ${gm ? `<h3 style="margin-top:16px">Letters (GM)</h3><ul class="mail-list">${letters().map((x) => `<li><span class="grow">${KINDS[x.kind]?.[0] || '🎁'} ${esc(x.title || '(untitled)')}</span><button class="btn alt sm" data-mailed="${esc(x.id)}">Edit</button></li>`).join('')}</ul>
       <button class="btn alt" id="mailadd">Add a letter</button>${done ? ' <button class="btn alt" id="mailreset">Let them try again today</button>' : ''}` : ''}`);
   box.classList.add('mail-sheet');
   fresh.forEach((k) => store.set(`giftmail/${c.id}/${k}/read`, true));
+  setTimeout(() => unpackAll(c, box), 400);
   const g = $('#mailgo', box); if (g) g.onclick = () => { g.disabled = true; go(c, l, box); };
   $('#mailnew', box).onclick = () => writeMail(c);
   $$('[data-reply]', box).forEach((b) => b.onclick = () => writeMail(c, b.dataset.reply));

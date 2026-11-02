@@ -2,9 +2,9 @@
 // a wax seal stamps it and it flies away. Receiving one: a sealed letter swoops in across the screen and dives into the
 // mailbox, which bounces. Tap anywhere to skip. Arrivals are noticed from the gift notes in giftmail/<me>; each note
 // plays once per device (dc.lfx.seen).
-import * as store from './store.js?v=6ae7ec8f';
-import { ensureAudio, mailChime } from './chiptune.js?v=6ae7ec8f';
-import { esc, num } from './util.js?v=6ae7ec8f';
+import * as store from './store.js?v=6ae7eeca';
+import { ensureAudio, mailChime } from './chiptune.js?v=6ae7eeca';
+import { esc, num } from './util.js?v=6ae7eeca';
 
 const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // her ask 10-29: the wax seal carries the sender's guild crest (Woodland Base or Vanguard Guild), bigger
@@ -28,6 +28,25 @@ export function sendFx(toName, what, note) {
   setTimeout(() => env.classList.add('sealed'), 2050);     // the wax seal stamps down
   setTimeout(() => { el.querySelector('.lfx-cap').textContent = `Off to ${toName}!`; env.classList.add('away'); }, 2700);
   setTimeout(done, 3600);
+}
+
+// her ask 11-01: opening mail with a gift: the seal pops, the flap opens, the gift rises out and drops into your bag
+const slug = (n) => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+export function unpackFx(from, label, what) {
+  return new Promise((resolve) => {
+    if (reduce()) { resolve(); return; }
+    const el = overlay(`<div class="lfx-stage unpack">${envHTML(false, '', guildOf(from))}<div class="lfx-gift"><span class="lfx-gem">${what === 'poke' ? '💰' : '🎁'}</span><b>${esc(label)}</b></div></div>
+      <img class="lfx-bag" src="assets/ui/backpack.png" alt=""><div class="lfx-cap">🎁 ${from ? `A gift from <b>${esc(from)}</b>!` : 'A gift!'}</div>`);
+    if (what !== 'poke') { const img = new Image(); img.onload = () => { const g = el.querySelector('.lfx-gem'); if (g) g.replaceWith(img); }; img.src = `assets/items/${slug(what)}.png`; }
+    const env = el.querySelector('.lfx-env'); env.classList.add('sealed');
+    let over = false; const done = () => { if (over) return; over = true; el.remove(); resolve(); };
+    el.onclick = done;
+    setTimeout(() => { env.classList.remove('sealed'); env.classList.add('popseal', 'open'); }, 700);   // the seal pops, the flap opens
+    setTimeout(() => el.querySelector('.lfx-gift')?.classList.add('out'), 1300);                       // the gift rises out
+    setTimeout(() => el.querySelector('.lfx-gift')?.classList.add('drop'), 2500);                      // ...and drops into the bag
+    setTimeout(() => { if (over) return; el.querySelector('.lfx-bag').classList.add('got'); el.querySelector('.lfx-cap').innerHTML = `🎒 <b>${esc(label)}</b> went into your bag!`; mailChime(); }, 3200);
+    setTimeout(done, 4600);
+  });
 }
 
 // the receiver's side: a sealed letter flies across the screen into the mailbox

@@ -3,13 +3,13 @@
 // second round of betting and the showdown: the best total without going over 21 takes the pot (ties split it).
 // One shared table per campaign table (c21/table), so friends can play together live. Each device only acts for its own
 // character; Noctowl's moves and slow players' turns are played by the first seated player's device (or anyone's after a wait).
-import * as store from './store.js?v=6ae7ec8f';
-import { portrait } from './ui.js?v=6ae7ec8f';
-import { $, $$, esc, toast, num } from './util.js?v=6ae7ec8f';
-import { logRoll, me } from './play.js?v=6ae7ec8f';
-import { gameSay } from './chatter.js?v=6ae7ec8f';
-import { markWinner } from './sparkle.js?v=6ae7ec8f';
-import { startMusic, stopMusic, ensureAudio, cardSound, jingle, muted, setMuted } from './chiptune.js?v=6ae7ec8f';
+import * as store from './store.js?v=6ae7eeca';
+import { portrait } from './ui.js?v=6ae7eeca';
+import { $, $$, esc, toast, num } from './util.js?v=6ae7eeca';
+import { logRoll, me } from './play.js?v=6ae7eeca';
+import { gameSay } from './chatter.js?v=6ae7eeca';
+import { markWinner } from './sparkle.js?v=6ae7eeca';
+import { startMusic, stopMusic, ensureAudio, cardSound, jingle, muted, setMuted } from './chiptune.js?v=6ae7eeca';
 
 export const isCards21 = (g) => g.kind === 'cards21' || g.id === 'noctowl-21';
 // a hand is being played right now (her ask 10-27: people can watch a match that's going)

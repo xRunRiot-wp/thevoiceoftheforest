@@ -2,14 +2,14 @@
 // friends, see who's on the site right now (and where), and invite them to a game like Noctowl's 21.
 // online/<id> = { t, at } (each open device refreshes it every 2 minutes); party/<id>/friends = [ids];
 // invites/<id>/<inviteId> = { from, fromId, game, name, t } (shown once as a pop-up on the friend's device, then removed).
-import * as store from './store.js?v=6ae7ec8f';
-import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae7ec8f';
-import { sendFx, startLetterWatch } from './letterfx.js?v=6ae7ec8f';
-import { giftNote, writeMail } from './mailbox.js?v=6ae7ec8f';
-import { playingNow, openWatch } from './watch.js?v=6ae7ec8f';
-import { modal, closeModal, portrait } from './ui.js?v=6ae7ec8f';
-import { keepsake } from './shopkit.js?v=6ae7ec8f';
-import { hasBase, openBase } from './mybase.js?v=6ae7ec8f';
+import * as store from './store.js?v=6ae7eeca';
+import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6ae7eeca';
+import { sendFx, startLetterWatch } from './letterfx.js?v=6ae7eeca';
+import { giftNote, writeMail } from './mailbox.js?v=6ae7eeca';
+import { playingNow, openWatch } from './watch.js?v=6ae7eeca';
+import { modal, closeModal, portrait } from './ui.js?v=6ae7eeca';
+import { keepsake } from './shopkit.js?v=6ae7eeca';
+import { hasBase, openBase } from './mybase.js?v=6ae7eeca';
 
 const ONLINE_FOR = 5 * 60e3; const BEAT = 2 * 60e3;
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -79,12 +79,12 @@ export function openFriends() {
     $$('[data-unfr]', box).forEach((b) => b.onclick = () => { store.set(`party/${me.id}/friends`, mine.filter((id) => id !== b.dataset.unfr)); draw(box); });
     $$('[data-watch]', box).forEach((a) => a.onclick = () => closeModal());
     // her ask 10-29: tap a portrait for a mini look at their character
-    $$('[data-peek]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => import('./play.js?v=6ae7ec8f').then((m) => m.viewCharacter(b.dataset.peek, { mini: true })), 50); });
+    $$('[data-peek]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => import('./play.js?v=6ae7eeca').then((m) => m.viewCharacter(b.dataset.peek, { mini: true })), 50); });
     // her ask 10-29: a mail button to send just a letter
     $$('[data-mail]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => writeMail(me, b.dataset.mail), 50); });
     $$('[data-send]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openSend(b.dataset.send), 50); });
     // her ask 10-29: battle a friend like the main Pokémon games
-    $$('[data-bt]', box).forEach((b) => b.onclick = () => { closeModal(); import('./battle.js?v=6ae7ec8f').then((m) => m.challenge(b.dataset.bt)); });
+    $$('[data-bt]', box).forEach((b) => b.onclick = () => { closeModal(); import('./battle.js?v=6ae7eeca').then((m) => m.challenge(b.dataset.bt)); });
     // her ask 11-01: visit a friend's base, like visiting an igloo in Club Penguin
     $$('[data-visit]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openBase(b.dataset.visit), 50); });
     $$('[data-watchp]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openWatch(b.dataset.watchp), 50); });
@@ -102,7 +102,12 @@ export function openFriends() {
 // Send a friend Poké or items from your own bag (her ask 10-27). They get a note in their mailbox.
 // her ask 10-29: rank badges, the World Map and key items can't be sent
 const myItems = (id) => Object.entries(store.get('bag') || {}).filter(([, b]) => b && b.owner === id && num(b.qty) > 0 && !keepsake(b));
-function giveItem(from, to, key, qty) {
+function takeItem(from, key, qty) {
+  const b = store.get('bag/' + key); if (!b || b.owner !== from || num(b.qty) < qty || keepsake(b)) return false;
+  if (num(b.qty) === qty) store.set('bag/' + key, null); else store.set(`bag/${key}/qty`, num(b.qty) - qty);
+  return b.name;
+}
+export function giveItem(from, to, key, qty) {
   const b = store.get('bag/' + key); if (!b || b.owner !== from || num(b.qty) < qty || keepsake(b)) return false;
   if (num(b.qty) === qty) store.set('bag/' + key, null); else store.set(`bag/${key}/qty`, num(b.qty) - qty);
   const same = Object.entries(store.get('bag') || {}).find(([, x]) => x && x.owner === to && x.name.toLowerCase() === b.name.toLowerCase());
@@ -120,8 +125,9 @@ export function openSend(toId) {
       <input type="number" id="sdqty" min="1" value="1" style="max-width:80px"><button class="btn" id="sditemgo">Send item</button></div>` : '<p class="muted">Your bag is empty.</p>'}
     <label class="f" style="margin-top:14px">Note (optional)<input id="sdnote" maxlength="120" placeholder="Good luck out there!"></label>`);
   const note = () => ($('#sdnote', box).value || '').trim();
-  const done = (what) => {
-    giftNote(to.id, '🎁', `A gift from ${me.nickname}`, `${me.nickname} sent you ${what}!${note() ? ` “${note()}”` : ''}`);
+  // her ask 11-01: the gift rides inside the envelope; it pops out into their bag when they open their mail
+  const done = (what, attach) => {
+    giftNote(to.id, '🎁', `A gift from ${me.nickname}`, `${me.nickname} sent you ${what}!${note() ? ` “${note()}”` : ''}`, { attach });
     store.pushLimited('log', { t: Date.now(), text: `${me.nickname} sent ${to.nickname} ${what}.` });
     closeModal(); sendFx(to.nickname, what, note());
   };
@@ -130,14 +136,13 @@ export function openSend(toId) {
     if (amt <= 0) return toast('Type how much Poké to send.');
     if (amt > have) return toast(`You only have ${have.toLocaleString()} Poké.`);
     store.update('party/' + me.id, (x) => ({ ...x, poke: num(x?.poke) - amt }));
-    store.update('party/' + to.id, (x) => ({ ...x, poke: num(x?.poke) + amt }));
-    done(`${amt.toLocaleString()} Poké`);
+    done(`${amt.toLocaleString()} Poké`, { poke: amt });
   };
   const ig = $('#sditemgo', box);
   if (ig) ig.onclick = () => {
     const key = $('#sditem', box).value; const qty = Math.max(1, num($('#sdqty', box).value, 1)); const b = store.get('bag/' + key);
     if (!b || num(b.qty) < qty) return toast(`You only have ${num(b?.qty)} of those.`);
-    const name = giveItem(me.id, to.id, key, qty); if (!name) return toast('That item is gone from your bag.');
-    done(qty > 1 ? `${qty}× ${name}` : name);
+    const name = takeItem(me.id, key, qty); if (!name) return toast('That item is gone from your bag.');
+    done(qty > 1 ? `${qty}× ${name}` : name, { item: name, qty });
   };
 }
