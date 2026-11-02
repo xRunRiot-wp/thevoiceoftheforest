@@ -1,22 +1,23 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6ae78712';
-import * as sheet from './sheetdata.js?v=6ae78712';
-import { ledger } from './vault.js?v=6ae78712';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ae78712';
-import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6ae78712';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ae78712';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES, RANK_NAMES } from './content.js?v=6ae78712';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts, BADGE_FOR_RANK, beginnerCatchUp } from './play.js?v=6ae78712';
-import { giftNote } from './mailbox.js?v=6ae78712';
-import { guildResidents, palKey, rankOf } from './gym.js?v=6ae78712';
-import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ae78712';
-import { merged, editContent } from './content-store.js?v=6ae78712';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ae78712';
-import { CONFIG } from './config.js?v=6ae78712';
-import { gmGimmighoulHTML } from './gimmighoul.js?v=6ae78712';
-import { locations, spots, personalityTypes } from './friendzone.js?v=6ae78712';
-import { rankFor, guildName } from './guild.js?v=6ae78712';
-import { gmPinsHTML, bindGmPins } from './charlock.js?v=6ae78712';
+import * as store from './store.js?v=6ae7ea9c';
+import * as sheet from './sheetdata.js?v=6ae7ea9c';
+import { ledger } from './vault.js?v=6ae7ea9c';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6ae7ea9c';
+import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6ae7ea9c';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6ae7ea9c';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES, RANK_NAMES } from './content.js?v=6ae7ea9c';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts, BADGE_FOR_RANK, beginnerCatchUp } from './play.js?v=6ae7ea9c';
+import { giftNote } from './mailbox.js?v=6ae7ea9c';
+import { guildResidents, palKey, rankOf } from './gym.js?v=6ae7ea9c';
+import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6ae7ea9c';
+import { merged, editContent } from './content-store.js?v=6ae7ea9c';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6ae7ea9c';
+import { CONFIG } from './config.js?v=6ae7ea9c';
+import { gmGimmighoulHTML } from './gimmighoul.js?v=6ae7ea9c';
+import { locations, spots, personalityTypes } from './friendzone.js?v=6ae7ea9c';
+import { nurseryRecruits } from './nursery.js?v=6ae7ea9c';
+import { rankFor, guildName } from './guild.js?v=6ae7ea9c';
+import { gmPinsHTML, bindGmPins } from './charlock.js?v=6ae7ea9c';
 
 const PORTRAIT_LIST = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -516,7 +517,7 @@ Guildmaster Beautifly</textarea></label>
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6ae78712');
+    const { openTable } = await import('./app.js?v=6ae7ea9c');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));
@@ -715,7 +716,7 @@ function recruitChance(dice, will) {
   return Math.round((win / N) * 100);
 }
 // the GM page redraws on every table change, so the picks and the last result live here between redraws
-const RC = { who: '', target: null, name: '', will: 3, extra: 0, result: '', won: '' };
+const RC = { who: '', target: null, name: '', will: 3, extra: 0, result: '', won: '', wonN: '' };
 const recruitCount = () => locations().reduce((s, l) => s + Object.values(store.get('recruits/' + l.id) || {}).reduce((a, x) => a + Object.keys(x || {}).length, 0), 0);
 
 function recruitHTML(G) {
@@ -724,7 +725,7 @@ function recruitHTML(G) {
   return `<p class="small muted">After the team beats a Pokémon, pick who tries and which Pokémon. The odds update as you change things. Only you see the odds and its Will.</p>
     <div class="rc-form">
       <label class="f">Who tries<select id="rcwho">${rs.map((c) => `<option value="${esc(c.id)}"${c.id === RC.who ? ' selected' : ''}>${esc(c.nickname)}</option>`).join('')}</select></label>
-      <label class="f">Pokémon<select id="rctarget">${ts.map(([id, e]) => `<option value="${esc(id)}"${id === RC.target ? ' selected' : ''}>${esc(e.name)}${e.will ? ` (Will ${esc(e.will)})` : ''}</option>`).join('')}<option value=""${RC.target === '' ? ' selected' : ''}>Other…</option></select></label>
+      <label class="f">Pokémon<select id="rctarget">${ts.map(([id, e]) => `<option value="${esc(id)}"${id === RC.target ? ' selected' : ''}>${esc(e.name)}${e.will ? ` (Will ${esc(e.will)})` : ''}</option>`).join('')}${nurseryRecruits().map((n) => `<option value="n:${esc(n.id)}"${'n:' + n.id === RC.target ? ' selected' : ''}>🍼 ${esc(n.label)} (Will ${n.will})</option>`).join('')}<option value=""${RC.target === '' ? ' selected' : ''}>Other…</option></select></label>
       <label class="f rc-other">Name<input id="rcname" placeholder="e.g. Sandile" value="${esc(RC.name)}"></label>
       <label class="f">Its Will<input id="rcwill" type="number" min="0" max="12" value="${RC.will}"></label>
       <label class="f">Extra dice<select id="rcextra">${[-3, -2, -1, 0, 1, 2, 3].map((n) => `<option value="${n}"${n === RC.extra ? ' selected' : ''}>${n > 0 ? '+' + n : n}</option>`).join('')}</select></label>
@@ -741,9 +742,9 @@ function bindRecruit(main) {
   const q = (s) => $(s, sec);
   const state = () => {
     const c = (store.get('party') || {})[q('#rcwho').value];
-    const tid = q('#rctarget').value; const e = (G.enemies || {})[tid];
+    const tid = q('#rctarget').value; const nr = tid.startsWith('n:') ? nurseryRecruits().find((x) => 'n:' + x.id === tid) : null; const e = (G.enemies || {})[tid] || nr;
     Object.assign(RC, { who: q('#rcwho').value, target: tid, name: q('#rcname').value, will: num(q('#rcwill').value, 0), extra: num(q('#rcextra').value, 0) });
-    return { c, tid, name: e ? e.name : (q('#rcname').value.trim() || 'the Pokémon'), will: Math.max(0, num(q('#rcwill').value, 0)), extra: num(q('#rcextra').value, 0) };
+    return { c, tid, nr, name: e ? e.name : (q('#rcname').value.trim() || 'the Pokémon'), will: Math.max(0, num(q('#rcwill').value, 0)), extra: num(q('#rcextra').value, 0) };
   };
   const note = (r) => (r.onesPen ? ` (two 1s cancelled ${r.onesPen})` : '');
   const rollRecruit = (a) => {
@@ -752,7 +753,7 @@ function bindRecruit(main) {
     const won = me.succ > it.succ;
     logRoll(s.c.nickname, `${a.name} recruit: ${s.name}`, me.dice, `${me.succ} success${me.succ === 1 ? '' : 'es'}${note(me)} vs its ${it.succ}: ${won ? 'it joins!' : 'it refuses'}`);
     store.pushLimited('log', { t: Date.now(), text: won ? `${s.c.nickname} recruited ${s.name} (${a.name})!` : `${s.name} refused to join ${s.c.nickname}.` });
-    RC.won = won ? s.name : '';
+    RC.won = won ? s.name : ''; RC.wonN = won && s.nr ? s.nr.id : '';
     RC.result = `<div class="rc-res ${won ? 'good' : 'low'}"><b>${won ? `🎉 ${esc(s.name)} wants to join!` : `✋ ${esc(s.name)} says no.`}</b>
       <div class="small">${esc(s.c.nickname)} got ${me.succ}${esc(note(me))} vs its Will roll of ${it.succ}${it.succ === me.succ ? ' (ties go to the Pokémon)' : ''}.</div>
       ${won ? '<button class="btn sm" id="rcmove" style="margin-top:8px">Move into the Friend Zone…</button>' : ''}</div>`;
@@ -780,12 +781,15 @@ function bindRecruit(main) {
     $('#rcgo', el).onclick = () => {
       const [lid, key] = $('#rcspot', el).value.split('|'); const loc = locations().find((l) => l.id === lid);
       store.set(`recruits/${lid}/${key}/${store.tid()}`, { name, type: $('#rctype', el).value, t: Date.now() });
+      if (RC.wonN) { store.set(`nursery/${RC.wonN}/joinedAt`, Date.now()); store.set(`nursery/${RC.wonN}/recruited`, Date.now()); RC.wonN = ''; }   // leaves the Recruit list
       store.pushLimited('log', { t: Date.now(), text: `${name} joined ${loc ? loc.name + '’s' : 'the'} Friend Zone.` });
       RC.result = `<div class="rc-res good"><b>🏡 ${esc(name)} moved into ${esc(loc ? loc.name : 'the Friend Zone')}.</b></div>`; RC.won = '';
       closeModal(); toast(`${name} moved in!`); q('#rcresult').innerHTML = RC.result; draw();
     };
   };
-  const pick = () => { const e = (G.enemies || {})[q('#rctarget').value]; if (e) q('#rcwill').value = num(e.will, 3); RC.result = ''; RC.won = ''; q('#rcresult').innerHTML = ''; draw(); };
+  const pick = () => { const tv = q('#rctarget').value; const nr = tv.startsWith('n:') ? nurseryRecruits().find((x) => 'n:' + x.id === tv) : null;
+    if (nr) { q('#rcwill').value = nr.will; if ([...q('#rcwho').options].some((o) => o.value === nr.id)) q('#rcwho').value = nr.id; }   // its owner tries by default
+    const e = (G.enemies || {})[tv]; if (e) q('#rcwill').value = num(e.will, 3); RC.result = ''; RC.won = ''; q('#rcresult').innerHTML = ''; draw(); };
   q('#rctarget').onchange = pick; ['#rcwho', '#rcextra'].forEach((x) => q(x).onchange = draw); q('#rcwill').oninput = draw;
   if (RC.target === null) pick(); else { draw(); bindMove(); }
 }
