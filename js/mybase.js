@@ -3,13 +3,13 @@
 // build with what your rank allows (Beginner: a tent, a campfire, bedrolls, a drying rack and a sad little bed); later
 // ranks will add more, up to a building in someone's likeness. Friends can visit from the Friends list (like visiting an
 // igloo in Club Penguin). base/<charId> = { items: { id: { k, x, y } }, visits: { visitorId: t } }; x and y are % of the scene.
-import * as store from './store.js?v=6ae7eeca';
-import { $, $$, esc, toast, uid } from './util.js?v=6ae7eeca';
-import { modal, closeModal } from './ui.js?v=6ae7eeca';
-import { RANK_NAMES } from './content.js?v=6ae7eeca';
-import { mountFzScene } from './fzscene.js?v=6ae7eeca';
-import { DECOR, KINDS } from './basedecor.js?v=6ae7eeca';
-import { myId } from './app.js?v=6ae7eeca';
+import * as store from './store.js?v=6aed795e';
+import { $, $$, esc, toast, uid } from './util.js?v=6aed795e';
+import { modal, closeModal } from './ui.js?v=6aed795e';
+import { RANK_NAMES } from './content.js?v=6aed795e';
+import { mountFzScene } from './fzscene.js?v=6aed795e';
+import { DECOR, KINDS } from './basedecor.js?v=6aed795e';
+import { myId } from './app.js?v=6aed795e';
 
 // what can be built: [name, picture, width on screen (px at full size), what it says when tapped]
 const ITEMS = {
@@ -22,20 +22,36 @@ const ITEMS = {
 // her ask 11-01: a seasonal catalog (like Club Penguin's), fall and Halloween first, with Pokémon in place of animals.
 // Pieces are bought with the owner's Poké and kept in base/<id>/owned/<key> (how many they may place). Pictures from
 // tools/build_decor.py. [name, picture, width, what it says when tapped, price]
+// her ask 11-06: "update the seasonal catalog to more fall and thanksgiving themed items. Halloween items sold at a
+// discount" -> the season is now Fall & Thanksgiving (pictures: tools/build_fall.py), and the Halloween pieces moved to
+// their own sale tab at half price (WAS keeps the old price to show it crossed out).
 const SEASONS = [
-  { key: 'fall', name: 'Fall & Halloween', icon: '🎃', months: [8, 9, 10], items: {
-    pumpkaboo: ['Pumpkaboo Lantern', 'assets/base/pumpkaboo.png', 54, 'A Pumpkaboo glows softly by the door. Spooky, but cute!', 120],
-    zubat: ['Zubat Bunting', 'assets/base/zubat_bunting.png', 168, 'A string of paper Zubat flutters in the breeze.', 80],
-    noibat: ['Noibat Bunting', 'assets/base/noibat_bunting.png', 168, 'Paper Noibat sway on the line. Eeek!', 80],
-    hoothoot: ['Hoothoot Perch', 'assets/base/hoothoot_perch.png', 54, 'A carved Hoothoot keeps watch. Hoo-hoo!', 150],
-    murkrow: ['Murkrow Post', 'assets/base/murkrow_post.png', 46, 'A wooden Murkrow guards the camp from mischief. Probably.', 150],
-    litwick: ['Litwick Candles', 'assets/base/litwick_candles.png', 84, 'Three little Litwick candles flicker in the dark.', 60],
-    spinarak: ['Spinarak Web', 'assets/base/spinarak_web.png', 72, 'A Spinarak spun its finest web just for you.', 70],
+  { key: 'fall', name: 'Fall & Thanksgiving', icon: '🍂', months: [8, 9, 10], items: {
+    harvest_table: ['Harvest Table', 'assets/base/harvest_table.png', 132, 'A feast for the whole guild: pie, corn, a little pumpkin and warm cider.', 220],
+    cornucopia: ['Cornucopia', 'assets/base/cornucopia.png', 96, 'A horn of plenty, spilling over with the harvest.', 120],
+    applin_basket: ['Applin Basket', 'assets/base/applin_basket.png', 80, 'A basket of fresh Applin. They insist they’re not for eating.', 110],
+    skwovet_stash: ['Skwovet’s Acorn Stash', 'assets/base/skwovet_stash.png', 90, 'Skwovet has been saving these all fall. Don’t touch!', 100],
+    deerling_autumn: ['Autumn Deerling Statue', 'assets/base/deerling_autumn.png', 56, 'A Deerling in its autumn coat, carved in loving detail.', 160],
+    phantump_stump: ['Phantump Stump', 'assets/base/phantump_stump.png', 60, 'An old stump. Is it… watching you?', 90],
+    sewaddle_bunting: ['Sewaddle Leaf Bunting', 'assets/base/sewaddle_bunting.png', 168, 'Paper Sewaddle in their leaf hoods sway on the line.', 80],
+    harvest_wreath: ['Harvest Wreath', 'assets/base/harvest_wreath.png', 64, 'A wreath of autumn leaves and berries, tied with a red bow.', 70],
+    pumpkin_stack: ['Pumpkin Stack', 'assets/base/pumpkin_stack.png', 64, 'Fresh from the patch. Perfect for pie!', 60],
     leaves: ['Leaf Pile', 'assets/base/leaf_pile.png', 72, 'Crunch! Perfect for jumping in.', 40],
     hay: ['Hay Bale', 'assets/base/hay_bale.png', 66, 'A cozy hay bale to sit on.', 50],
   } },
 ];
+const SALE = { name: 'Halloween sale', icon: '🎃', off: 50, items: {
+  pumpkaboo: ['Pumpkaboo Lantern', 'assets/base/pumpkaboo.png', 54, 'A Pumpkaboo glows softly by the door. Spooky, but cute!', 60],
+  zubat: ['Zubat Bunting', 'assets/base/zubat_bunting.png', 168, 'A string of paper Zubat flutters in the breeze.', 40],
+  noibat: ['Noibat Bunting', 'assets/base/noibat_bunting.png', 168, 'Paper Noibat sway on the line. Eeek!', 40],
+  hoothoot: ['Hoothoot Perch', 'assets/base/hoothoot_perch.png', 54, 'A carved Hoothoot keeps watch. Hoo-hoo!', 75],
+  murkrow: ['Murkrow Post', 'assets/base/murkrow_post.png', 46, 'A wooden Murkrow guards the camp from mischief. Probably.', 75],
+  litwick: ['Litwick Candles', 'assets/base/litwick_candles.png', 84, 'Three little Litwick candles flicker in the dark.', 30],
+  spinarak: ['Spinarak Web', 'assets/base/spinarak_web.png', 72, 'A Spinarak spun its finest web just for you.', 35],
+} };
+const WAS = { pumpkaboo: 120, zubat: 80, noibat: 80, hoothoot: 150, murkrow: 150, litwick: 60, spinarak: 70 };
 for (const se of SEASONS) Object.assign(ITEMS, se.items);
+Object.assign(ITEMS, SALE.items);
 Object.assign(ITEMS, DECOR);   // her ask 11-01: the Secret Base collection (js/basedecor.js)
 const season = () => SEASONS.find((se) => se.months.includes(new Date().getMonth())) || SEASONS[0];
 // how many of each a rank may build (each rank gets everything the ranks before it had); only Beginner for now
@@ -100,12 +116,13 @@ export function openBase(ownerId, { from = null } = {}) {
   const catalogHTML = () => { const se = season(); const own = baseOf(ownerId).owned || {}; const poke = Number(party()[ownerId]?.poke) || 0;
     return `<div class="base-cat"><p style="margin:8px 0 2px"><b>${se.icon} ${esc(se.name)} catalog</b> <span class="small muted">· ${esc(owner.nickname)} has ${poke.toLocaleString()} Poké</span></p>
       ${buying ? `<p class="base-hint">Buy the <b>${esc(ITEMS[buying][0])}</b> for <b>${ITEMS[buying][4]} Poké</b>? <button class="btn sm" id="bbuyyes" ${poke < ITEMS[buying][4] ? 'disabled' : ''}>Buy it</button> <button class="btn alt sm" id="bbuyno">Cancel</button>${poke < ITEMS[buying][4] ? ' <span class="small bad-t">Not enough Poké yet.</span>' : ''}</p>` : ''}
-      <div class="row base-tabs">${[['season', `${se.icon} ${esc(se.name)}`], ['decor', '🏠 Secret Base shop'], ['prizes', '🏆 Prizes']].map(([t, l]) => `<button class="btn sm ${catTab === t ? '' : 'alt'}" data-ctab="${t}">${l}</button>`).join('')}</div>
+      <div class="row base-tabs">${[['season', `${se.icon} ${esc(se.name)}`], ['sale', `${SALE.icon} ${SALE.name} (${SALE.off}% off)`], ['decor', '🏠 Secret Base shop'], ['prizes', '🏆 Prizes']].map(([t, l]) => `<button class="btn sm ${catTab === t ? '' : 'alt'}" data-ctab="${t}">${l}</button>`).join('')}</div>
       ${catTab === 'season' ? `<div class="base-pal">${Object.entries(se.items).map(([k, it]) => pick(k, it, own)).join('')}</div>`
+        : catTab === 'sale' ? `<p class="small muted">Last season’s spooky pieces, now ${SALE.off}% off while they last.</p><div class="base-pal">${Object.entries(SALE.items).map(([k, it]) => pick(k, it, own)).join('')}</div>`
         : catTab === 'decor' ? groups(Object.entries(DECOR).filter(([, it]) => it[5] === 'shop'), (k, it) => pick(k, it, own))
         : `<p class="small muted">These can’t be bought. 🎮 = won now and then when you win a game; 📬 = found on mail missions and Mail Runs. Up to 3 a day.</p>
           ${groups(Object.entries(DECOR).filter(([, it]) => it[5] !== 'shop'), (k, it) => `<div class="base-pick ${own[k] ? '' : 'locked'}"><img src="${it[1]}" alt=""><b>${esc(it[0])}</b><small>${it[5] === 'mail' ? '📬' : '🎮'}${own[k] ? ` · have ${own[k]}` : ' · not found yet'}</small></div>`)}`}</div>`; };
-  const pick = (k, it, own) => `<button class="base-pick ${buying === k ? 'on' : ''}" data-buy="${k}"><img src="${it[1]}" alt=""><b>${esc(it[0])}</b><small>${it[4]} Poké${own[k] ? ` · have ${own[k]}` : ''}</small></button>`;
+  const pick = (k, it, own) => `<button class="base-pick ${buying === k ? 'on' : ''}" data-buy="${k}"><img src="${it[1]}" alt=""><b>${esc(it[0])}</b><small>${WAS[k] ? `<s>${WAS[k]}</s> ` : ''}${it[4]} Poké${own[k] ? ` · have ${own[k]}` : ''}</small></button>`;
   const groups = (list, card) => { const by = new Map(); for (const [k, it] of list) { const g = (KINDS.find(([kk]) => kk === it[6]) || [, 'Other'])[1]; if (!by.has(g)) by.set(g, []); by.get(g).push(card(k, it)); }
     return [...by].map(([g, cards]) => `<h4 class="base-grp">${esc(g)}</h4><div class="base-pal">${cards.join('')}</div>`).join(''); };
   const drawPanel = () => {
@@ -264,7 +281,7 @@ export function openBase(ownerId, { from = null } = {}) {
       const el2 = els[Math.floor(Math.random() * els.length)]; play(el2, items[el2.dataset.bi], free[Math.floor(Math.random() * free.length)], true);
     }, 7000);
     // her ask 11-01: the owner's nursery buddy hangs out at the base like a Puffle (an egg sits bundled in a blanket)
-    import('./nursery.js?v=6ae7eeca').then((n) => n.buddyLook?.(ownerId)).then((bl) => { if (bl && s.strip.isConnected) addBuddy(bl); }).catch(() => {});
+    import('./nursery.js?v=6aed795e').then((n) => n.buddyLook?.(ownerId)).then((bl) => { if (bl && s.strip.isConnected) addBuddy(bl); }).catch(() => {});
     // building: tap the ground to place; tap a built piece for Move / Put away. Anyone may tap a piece to play with it.
     s.strip.addEventListener('click', (e) => {
       const it = e.target.closest('[data-bi]');

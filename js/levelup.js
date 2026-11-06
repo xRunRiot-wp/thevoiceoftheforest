@@ -1,11 +1,11 @@
 // Level up (her ask 10-31): when the GM ranks a player up, party/<id>/levelUp = { from, to } and a button shows on their
 // Play page. It walks them through what the new rank gives (PokéRole rank benefits): Attribute and Social points,
 // Skill points with the new Skill Limit, and the moves their species can now learn (Pokédex learnset by rank).
-import * as store from './store.js?v=6ae7eeca';
-import { $, $$, esc, num, toast } from './util.js?v=6ae7eeca';
-import { modal, closeModal } from './ui.js?v=6ae7eeca';
-import { ATTRS, SKILLS, SOCIAL, RANK_NAMES } from './content.js?v=6ae7eeca';
-import { loadIndex, find } from './effects.js?v=6ae7eeca';
+import * as store from './store.js?v=6aed795e';
+import { $, $$, esc, num, toast } from './util.js?v=6aed795e';
+import { modal, closeModal } from './ui.js?v=6aed795e';
+import { ATTRS, SKILLS, SOCIAL, RANK_NAMES } from './content.js?v=6aed795e';
+import { loadIndex, find } from './effects.js?v=6aed795e';
 
 // what each rank adds (rulebook "Ranking"); limit = the most points one Skill may hold
 const GAINS = {

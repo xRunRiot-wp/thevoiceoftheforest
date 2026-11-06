@@ -1,8 +1,8 @@
 // 3D dice: every d6 roll on this device plays as tumbling dice over the screen, then shows the result.
 // Results always come from the site's own roller; the animation just lands each die on its value.
 // Skins are per device (each player picks their own) and saved in this browser.
-import { $, $$, esc } from './util.js?v=6ae7eeca';
-import { modal } from './ui.js?v=6ae7eeca';
+import { $, $$, esc } from './util.js?v=6aed795e';
+import { modal } from './ui.js?v=6aed795e';
 
 const THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 const KEY = 'dc.dice';
@@ -22,8 +22,10 @@ export const PRESETS = {
   // her asks 10-27: Time Gear dice (Nimbi, Magnemite) and rune dice (Golett)
   timegear: { name: 'Time Gear', body: '#13284a', pip: '#5ff2ff', style: 'timegear' },
   runes: { name: 'Runes', body: '#6d6a66', pip: '#ffb84a', style: 'rune' },
+  // her ask 11-06: "fall dice with little leaves that float around inside when rolled (with sparkles like in a liquid)"
+  fall: { name: 'Autumn Leaf', body: '#d2701e', pip: '#fff3d6', style: 'fall' },
 };
-const STYLES = [['solid', 'Solid'], ['pokeball', 'Poké Ball band'], ['marble', 'Marble'], ['gem', 'Gem (see-through)'], ['metal', 'Metal'], ['wood', 'Wood'], ['timegear', 'Time Gear'], ['rune', 'Carved runes']];
+const STYLES = [['solid', 'Solid'], ['pokeball', 'Poké Ball band'], ['marble', 'Marble'], ['gem', 'Gem (see-through)'], ['metal', 'Metal'], ['wood', 'Wood'], ['timegear', 'Time Gear'], ['rune', 'Carved runes'], ['fall', 'Liquid with leaves']];
 
 export function skin() {
   let s = {};
@@ -52,10 +54,27 @@ function shade(hex, f) {
   return `rgb(${ch(n >> 16)},${ch((n >> 8) & 255)},${ch(n & 255)})`;
 }
 
-export function drawFace(v, s, size = 128) {
+export function drawFace(v, s, size = 128, preview = false) {
   const c = document.createElement('canvas'); c.width = c.height = size; const g = c.getContext('2d'); const S = size;
   const grad = g.createLinearGradient(0, 0, S, S); grad.addColorStop(0, shade(s.body, 1.15)); grad.addColorStop(1, shade(s.body, .85));
   g.fillStyle = grad; g.fillRect(0, 0, S, S);
+  if (s.style === 'fall') {
+    // see-through amber liquid: the face is mostly clear so the leaves and sparkles inside show; a glossy streak on top
+    g.clearRect(0, 0, S, S);
+    const lq = g.createLinearGradient(0, 0, S, S); lq.addColorStop(0, hexA(shade(s.body, 1.25), .22)); lq.addColorStop(1, hexA(shade(s.body, .8), .4));
+    g.fillStyle = lq; g.fillRect(0, 0, S, S);
+    if (preview) { // the picker shows a flat picture, so draw a few leaves and sparkles into it
+      [[.22, .7, .5, '#e0702a'], [.72, .3, 2.1, '#c0392b'], [.6, .78, 4, '#f2b437'], [.3, .28, 3.2, '#a0522d']].forEach(([x, y, r, c2]) => { g.save(); g.translate(x * S, y * S); g.rotate(r); g.drawImage(leafCanvas(c2, 32), -S * .11, -S * .11, S * .22, S * .22); g.restore(); });
+      g.fillStyle = 'rgba(255,250,220,.95)'; [[.45, .2], [.15, .45], [.85, .6], [.5, .9], [.8, .85]].forEach(([x, y]) => { g.beginPath(); g.arc(x * S, y * S, S * .018, 0, Math.PI * 2); g.fill(); });
+    }
+    const gl = g.createLinearGradient(0, 0, 0, S * .45); gl.addColorStop(0, 'rgba(255,255,255,.38)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gl; g.beginPath(); g.moveTo(S * .1, S * .08); g.quadraticCurveTo(S * .5, S * .02, S * .9, S * .08); g.lineTo(S * .82, S * .32); g.quadraticCurveTo(S * .5, S * .24, S * .18, S * .32); g.fill();
+    g.strokeStyle = hexA(shade(s.body, .6), .85); g.lineWidth = S * .06; g.strokeRect(0, 0, S, S);
+    g.fillStyle = s.pip; g.strokeStyle = 'rgba(70,30,8,.9)'; g.lineWidth = S * .02;
+    if (s.numbers) { g.font = `bold ${S * .55}px Georgia, serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.strokeText(String(v), S / 2, S * .54); g.fillText(String(v), S / 2, S * .54); }
+    else for (const [x, y] of PIPS[v]) { g.beginPath(); g.arc(x * S, y * S, S * (v === 1 ? .12 : .085), 0, Math.PI * 2); g.fill(); g.stroke(); }
+    return c;
+  }
   if (s.style === 'pokeball') {
     g.fillStyle = '#f4f4f4'; g.fillRect(0, S * .5, S, S * .5);
     g.fillStyle = '#1b1b1b'; g.fillRect(0, S * .46, S, S * .08);
@@ -90,6 +109,76 @@ export function drawFace(v, s, size = 128) {
     for (const [x, y] of PIPS[v]) { g.beginPath(); g.arc(x * S, y * S, S * (v === 1 ? .12 : .085), 0, Math.PI * 2); g.fill(); }
   }
   return c;
+}
+
+const hexA = (rgb, a) => rgb.replace('rgb(', 'rgba(').replace(')', `,${a})`);
+// a little maple leaf (five points, a stem and veins), used inside the Autumn Leaf dice
+const leafCache = new Map();
+function leafCanvas(color, size = 64) {
+  const key = color + size; if (leafCache.has(key)) return leafCache.get(key);
+  const c = document.createElement('canvas'); c.width = c.height = size; const g = c.getContext('2d'); const h = size / 2;
+  g.translate(h, h * 1.05); g.beginPath();
+  for (let i = 0; i <= 200; i++) { const a = (i / 200) * Math.PI * 2; const r = h * .78 * (0.62 + 0.38 * Math.pow(Math.abs(Math.cos(a * 2.5)), .6)) * (1 - .25 * Math.max(0, Math.sin(a)));
+    const x = Math.cos(a - Math.PI / 2) * r; const y = Math.sin(a - Math.PI / 2) * r; if (i) g.lineTo(x, y); else g.moveTo(x, y); }
+  g.closePath(); g.fillStyle = color; g.fill(); g.strokeStyle = 'rgba(60,25,5,.55)'; g.lineWidth = size * .03; g.stroke();
+  g.strokeStyle = 'rgba(255,230,180,.55)'; g.lineWidth = size * .025; g.beginPath(); g.moveTo(0, h * .55); g.lineTo(0, -h * .6); g.moveTo(0, 0); g.lineTo(-h * .4, -h * .35); g.moveTo(0, 0); g.lineTo(h * .4, -h * .35); g.stroke();
+  g.strokeStyle = 'rgba(90,45,15,.9)'; g.lineWidth = size * .04; g.beginPath(); g.moveTo(0, h * .45); g.lineTo(0, h * .85); g.stroke();
+  leafCache.set(key, c); return c;
+}
+function sparkCanvas() {
+  const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d');
+  const r = g.createRadialGradient(16, 16, 0, 16, 16, 16); r.addColorStop(0, 'rgba(255,255,240,1)'); r.addColorStop(.3, 'rgba(255,236,150,.95)'); r.addColorStop(.6, 'rgba(240,170,40,.45)'); r.addColorStop(1, 'rgba(240,170,40,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 32, 32); g.fillStyle = 'rgba(255,255,255,.95)'; g.fillRect(15, 2, 2, 28); g.fillRect(2, 15, 28, 2);
+  return c;
+}
+const LEAF_COLORS = ['#e0702a', '#c0392b', '#f2b437', '#a0522d', '#d9661c'];
+
+// Autumn Leaf dice: leaves and sparkles drift in the liquid inside each die. When the die turns, the liquid only
+// follows part of the turn (so the leaves swirl); when it lands they keep drifting and slowly settle.
+function addFluid(THREE, scene, mesh) {
+  const fluid = new THREE.Group(); scene.add(fluid);
+  const leafTex = LEAF_COLORS.map((c) => new THREE.CanvasTexture(leafCanvas(c)));
+  const sparkTex = new THREE.CanvasTexture(sparkCanvas());
+  const plane = new THREE.PlaneGeometry(.27, .27);
+  const bits = [];
+  const rnd = () => (Math.random() - .5) * .56;
+  for (let i = 0; i < 9; i++) {
+    const m = new THREE.Mesh(plane, new THREE.MeshBasicMaterial({ map: leafTex[i % leafTex.length], transparent: true, side: THREE.DoubleSide, depthWrite: false }));
+    m.renderOrder = 1; m.rotation.set(-Math.PI / 2 + (Math.random() - .5) * 1.4, (Math.random() - .5) * 1.4, Math.random() * 6); fluid.add(m);
+    bits.push({ o: m, home: new THREE.Vector3(rnd(), rnd(), rnd()), k: .6 + Math.random() * .8, p: new THREE.Vector3(), v: new THREE.Vector3(), spin: new THREE.Vector3(Math.random() - .5, Math.random() - .5, Math.random() - .5).multiplyScalar(1.4), ph: Math.random() * 6 });
+  }
+  for (let i = 0; i < 14; i++) {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: sparkTex, transparent: true, depthWrite: false }));
+    sp.scale.setScalar(.09 + Math.random() * .06); sp.renderOrder = 1; fluid.add(sp);
+    bits.push({ o: sp, spark: true, home: new THREE.Vector3(rnd(), rnd(), rnd()), k: .6 + Math.random() * .8, p: new THREE.Vector3(), v: new THREE.Vector3(), ph: Math.random() * 6, tw: 3 + Math.random() * 4 });
+  }
+  for (const b of bits) b.p.copy(b.home).applyQuaternion(mesh.quaternion);
+  const tmp = new THREE.Vector3();
+  const lastQ = mesh.quaternion.clone(); const lastPos = mesh.position.clone(); const lastVel = new THREE.Vector3();
+  const dq = new THREE.Quaternion(); const inv = new THREE.Quaternion(); const idq = new THREE.Quaternion(); const vel = new THREE.Vector3(); const acc = new THREE.Vector3();
+  const LIM = .3;
+  return {
+    step(dt, time) {
+      fluid.position.copy(mesh.position);
+      inv.copy(lastQ).invert(); dq.copy(mesh.quaternion).multiply(inv); lastQ.copy(mesh.quaternion);
+      idq.identity().slerp(dq, .4);                    // the liquid follows 40% of the turn
+      vel.copy(mesh.position).sub(lastPos).divideScalar(Math.max(dt, 1e-3)); lastPos.copy(mesh.position);
+      acc.copy(vel).sub(lastVel); lastVel.copy(vel);
+      for (const b of bits) {
+        b.p.applyQuaternion(idq);
+        b.v.addScaledVector(acc, -.004 * b.k);          // sloshes against the die's moves (each bit a little differently)
+        tmp.copy(b.home).applyQuaternion(mesh.quaternion).sub(b.p); b.v.addScaledVector(tmp, .012 * b.k);   // and drifts back to its own spot, so they stay spread out
+        b.v.x += Math.sin(time * .9 + b.ph) * .0009; b.v.z += Math.cos(time * .7 + b.ph * 1.3) * .0009;
+        b.v.y += (b.spark ? .0004 : -.0003) + Math.sin(time * 1.1 + b.ph) * .0006;   // sparkles rise a touch, leaves sink a touch
+        b.v.multiplyScalar(.95); b.p.add(b.v);
+        for (const ax of ['x', 'y', 'z']) if (Math.abs(b.p[ax]) > LIM) { b.p[ax] = Math.sign(b.p[ax]) * LIM; b.v[ax] *= -.4; }
+        b.o.position.copy(b.p);
+        if (b.spark) b.o.material.opacity = .45 + .55 * Math.max(0, Math.sin(time * b.tw + b.ph));
+        else { b.o.rotation.x += b.spin.x * dt + b.v.y * 2; b.o.rotation.y += b.spin.y * dt; b.o.rotation.z += b.spin.z * dt + b.v.x * 2; }
+      }
+    },
+    dispose() { scene.remove(fluid); plane.dispose(); leafTex.forEach((t) => t.dispose()); sparkTex.dispose(); bits.forEach((b) => b.o.material.dispose()); },
+  };
 }
 
 // Rune dice: every pip is a small carved, glowing rune (so the count still reads at a glance)
@@ -165,12 +254,12 @@ export async function show(values, { kind = 'pool', sides = 6 } = {}) {
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(span * 4, span * 4), new THREE.ShadowMaterial({ opacity: .28 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
 
-  const look = { gem: { transparent: true, opacity: .82, roughness: .08, metalness: .1 }, metal: { roughness: .25, metalness: .75 }, wood: { roughness: .85 }, timegear: { roughness: .2, metalness: .6, emissive: 0x0a2a3a }, rune: { roughness: .95 } }[s.style] || { roughness: .45 };
+  const look = { gem: { transparent: true, opacity: .82, roughness: .08, metalness: .1 }, metal: { roughness: .25, metalness: .75 }, wood: { roughness: .85 }, timegear: { roughness: .2, metalness: .6, emissive: 0x0a2a3a }, rune: { roughness: .95 }, fall: { transparent: true, roughness: .05, metalness: .05, depthWrite: false } }[s.style] || { roughness: .45 };
   const mats = FACE_VALUES.map((v) => { const t = new THREE.CanvasTexture(drawFace(v, s)); t.anisotropy = 4; return new THREE.MeshStandardMaterial({ map: t, ...look }); });
   const geo = roundedBox(THREE, 0.14, 10);
   const up = new THREE.Vector3(0, 1, 0);
   const objs = dice.map((v, i) => {
-    const mesh = new THREE.Mesh(geo, mats.map((m) => m.clone())); mesh.castShadow = true; scene.add(mesh);
+    const mesh = new THREE.Mesh(geo, mats.map((m) => m.clone())); mesh.castShadow = true; mesh.renderOrder = 2; scene.add(mesh);
     const face = FACE_VALUES.indexOf(v);
     const qFace = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(...NORMALS[face]), up);
     const qEnd = new THREE.Quaternion().setFromAxisAngle(up, Math.random() * Math.PI * 2).multiply(qFace);
@@ -180,14 +269,16 @@ export async function show(values, { kind = 'pool', sides = 6 } = {}) {
     const axis = new THREE.Vector3(Math.random() - .5, Math.random() - .5, Math.random() - .5).normalize();
     return { mesh, v, qEnd, start, end, axis, spin: 10 + Math.random() * 8, delay: i * 35 };
   });
+  const fluids = s.style === 'fall' ? objs.map((o) => addFluid(THREE, scene, o.mesh)) : [];
 
-  const T = 1250, HOLD = 900, FADE = 250;
+  const T = 1250, HOLD = fluids.length ? 1800 : 900, FADE = 250;   // leaf dice stay a little longer so the leaves can be seen settling
+  let lastNow = performance.now();
   const t0 = performance.now(); let raf = 0; let done = false;
   const q = new THREE.Quaternion();
   const finish = () => {
     if (done) return; done = true; cancelAnimationFrame(raf);
     wrap.classList.add('out');
-    setTimeout(() => { renderer.dispose(); geo.dispose(); objs.forEach((o) => o.mesh.material.forEach((m) => { m.map?.dispose(); m.dispose(); })); wrap.remove(); }, FADE);
+    setTimeout(() => { renderer.dispose(); geo.dispose(); objs.forEach((o) => o.mesh.material.forEach((m) => { m.map?.dispose(); m.dispose(); })); fluids.forEach((f) => f.dispose()); wrap.remove(); }, FADE);
     busy = null;
   };
   busy = finish;
@@ -207,6 +298,8 @@ export async function show(values, { kind = 'pool', sides = 6 } = {}) {
         if (glow) o.mesh.material.forEach((m) => { m.emissive = new THREE.Color(glow); m.emissiveIntensity = .3; });
       }
     }
+    if (fluids.length) { const dt = Math.min(.05, (now - lastNow) / 1000); fluids.forEach((f) => f.step(dt, now / 1000)); }
+    lastNow = now;
     renderer.render(scene, cam);
     if (el < T + objs.length * 35 + HOLD) raf = requestAnimationFrame(frame); else finish();
   };
@@ -216,7 +309,7 @@ export async function show(values, { kind = 'pool', sides = 6 } = {}) {
 // ---------------------------------------------------------------- skin picker
 export function skinPicker() {
   let s = skin();
-  const preview = (x) => drawFace(5, x, 96).toDataURL();
+  const preview = (x) => drawFace(5, x, 96, true).toDataURL();
   const el = modal(`<h2>Your dice</h2>
     <p class="small muted">Pick how your dice look. This is saved on this device, so everyone at the table can have their own.</p>
     <label class="check"><input type="checkbox" id="on" ${s.on ? 'checked' : ''}> Show 3D dice when I roll</label>
