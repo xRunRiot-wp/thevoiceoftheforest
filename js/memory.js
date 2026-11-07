@@ -2,8 +2,8 @@
 // Humanity 0 = only Pokémon thoughts; the closer to 5, the more of their human life comes back
 // in daydreams, and in dreams or nightmares when they rest. Memories are built from the
 // character's own memory seeds (written by the player or GM, never pulled from private forms).
-import * as store from './store.js?v=6aef8dd0';
-import { $, $$, esc, num, toast } from './util.js?v=6aef8dd0';
+import * as store from './store.js?v=6aef9089';
+import { $, $$, esc, num, toast } from './util.js?v=6aef9089';
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const TIERS = { 5: 'Human memories clear', 4: 'Details begin to fade', 3: 'Two lives in conflict', 2: 'Instinct overrides memory', 1: 'The human self is almost gone', 0: 'Fully Pokémon' };
@@ -118,7 +118,8 @@ const ICON = { thought: '🐾', daydream: '☁️', dream: '🌙', nightmare: '�
 export function memoryHTML(c) {
   const h = humanityOf(c);
   const list = Object.entries(store.get(`memories/${c.id}`) || {}).sort().reverse().slice(0, 20);
-  return `<div class="memory"><div class="row" style="justify-content:space-between"><b>🧠 Remembering <span class="small muted">(only you and the GM)</span></b><span class="pill">${c.bornMon ? 'Born a Pokémon · memories of home' : `Humanity ${h} · ${esc(TIERS[h])}`}</span></div>
+  // her ask 11-07: the box folds up; open or shut is remembered on this device
+  return `<details class="memory mem-fold" ${memOpen() ? 'open' : ''}><summary class="row" style="justify-content:space-between"><b>🧠 Remembering <span class="small muted">(only you and the GM)</span></b><span class="pill">${c.bornMon ? 'Born a Pokémon · memories of home' : `Humanity ${h} · ${esc(TIERS[h])}`}</span></summary>
     <div class="mem-feed">${list.length ? list.map(([, x]) => `<div class="mem ${esc(x.kind)}"><span class="ic">${ICON[x.kind] || '💭'}</span><span class="grow">${esc(x.text)}</span></div>`).join('') : `<p class="small muted">${h ? 'No memories have surfaced yet.' : `${esc(c.nickname)} only thinks Pokémon thoughts now.`}</p>`}</div>
     ${store.gmUnlocked() && c.primalEcho ? '<div class="row" style="margin:6px 0"><button class="btn alt sm" id="memecho">⚡ Primal energy nearby (fragment)</button><span class="small muted">GM only</span></div>' : ''}
     <div class="row nowrap mem-actions"><button class="btn alt sm" id="memday">${h || c.bornMon ? '☁️ Daydream' : '🐾 Think'}</button><input id="memnote" placeholder="Write a thought or memory…"><button class="btn sm" id="memadd">Add</button></div>
@@ -129,14 +130,16 @@ export function memoryHTML(c) {
         <input id="sd-what" placeholder="What do you remember? (a red bicycle with a squeaky bell)">
         <div class="grid g2"><input id="sd-who" placeholder="Who was there? (a nickname)"><input id="sd-where" placeholder="Where? (the bakery on the corner)"></div>
         <div class="grid g2"><input id="sd-sense" placeholder="A smell, sound or sight (warm bread)"><input id="sd-feeling" placeholder="How it felt (safe, happy)"></div>
-        <button class="btn alt sm" id="sdadd">🌱 Plant this seed</button></div></details></div>`;
+        <button class="btn alt sm" id="sdadd">🌱 Plant this seed</button></div></details></details>`;
 }
+const memOpen = () => { try { return localStorage.getItem('dc.memshut') !== '1'; } catch { return true; } };
 // GM's read-only look at a character's memories (character pop-up)
 export function memoryFeedHTML(c) {
   const list = Object.entries(store.get(`memories/${c.id}`) || {}).sort().reverse().slice(0, 12);
   return `<div class="memory"><b>🧠 Remembering</b> <span class="small muted">(only this player and the GM see this)</span><div class="mem-feed">${list.length ? list.map(([, x]) => `<div class="mem ${esc(x.kind)}"><span class="ic">${ICON[x.kind] || '💭'}</span><span class="grow">${esc(x.text)}</span></div>`).join('') : '<p class="small muted">Nothing yet.</p>'}</div>${seeds(c).length ? `<p class="small"><b>Memory seeds:</b> ${esc(seeds(c).map((x) => x.what).join(' · '))}</p>` : ''}</div>`;
 }
 export function bindMemory(main, c) {
+  const fold = $('.mem-fold', main); if (fold) fold.ontoggle = () => { try { localStorage.setItem('dc.memshut', fold.open ? '' : '1'); } catch { /* ignore */ } };
   const d = $('#memday', main);
   if (d) d.onclick = () => addMemory(c, makeMemory(c, (c.status || []).includes('Primal State') && (Math.random() < 0.5 || (humanityOf(c) === 0 && c.primalEcho)) ? 'primal' : 'daydream'));
   const e = $('#memecho', main);

@@ -2506,26 +2506,26 @@ html[data-theme="fall"] .top::after { content: ''; position: absolute; left: 0; 
 .lq-qty { align-items: center; gap: 8px; margin-bottom: 8px; }
 
 /* her ask 11-07: TV display mode (js/tv.js): flat Windows 8 / Echo Show tiles around the Friend Zone, overview at the side */
-body[data-tv] { --tvside: clamp(250px, 19vw, 360px); --tvgap: 10px; --tvbar: clamp(64px, 11vh, 120px); --tvmid: calc(100vh - 2 * var(--tvbar) - 4 * var(--tvgap)); }
+body[data-tv] { --tv1: var(--orange); --tv2: var(--brown2); --tv3: var(--orange-d); --tv4: var(--brown3); --tv5: color-mix(in srgb, var(--orange) 55%, var(--brown)); --tv6: color-mix(in srgb, var(--brown3) 60%, var(--orange)); --tvside: clamp(250px, 19vw, 360px); --tvgap: 10px; --tvbar: clamp(64px, 11vh, 120px); --tvmid: calc(100vh - 2 * var(--tvbar) - 4 * var(--tvgap)); }
 body[data-tv] .top, body[data-tv] footer { display: none; }
 body[data-tv] main { max-width: none; margin: 0 var(--tvside) 0 0; }
-body[data-tvhome] { background: #15161d; }
+body[data-tvhome] { background: var(--cream); }
 body[data-tvhome] main { padding: var(--tvgap); }
-#tvside { position: fixed; top: 0; right: 0; bottom: 0; z-index: 15; width: var(--tvside); box-sizing: border-box; padding: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; background: #1d1f29; color: #f2f3f7; }
+#tvside { position: fixed; top: 0; right: 0; bottom: 0; z-index: 15; width: var(--tvside); box-sizing: border-box; padding: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; background: var(--brown); color: var(--cream); }
 .tv-card { padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, .08); }
-.tv-card h4 { margin: 0 0 2px; font: 600 clamp(12px, .95vw, 18px) var(--sans); letter-spacing: .03em; color: #b9bdcb; }
+.tv-card h4 { margin: 0 0 2px; font: 600 clamp(12px, .95vw, 18px) var(--sans); letter-spacing: .03em; color: var(--cream2); opacity: .85; }
 .tv-clock { font: 300 clamp(38px, 4vw, 72px)/1.05 var(--sans); }
 .tv-big { font: 600 clamp(24px, 2.2vw, 42px)/1.15 var(--sans); }
-.tv-big small { font-size: .5em; font-weight: 400; color: #b9bdcb; }
-.tv-sub { font-size: clamp(12px, .9vw, 17px); color: #d5d8e2; }
-.tv-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 4px 0; text-align: center; font-size: clamp(10px, .75vw, 14px); color: #b9bdcb; }
+.tv-big small { font-size: .5em; font-weight: 400; color: var(--cream2); opacity: .85; }
+.tv-sub { font-size: clamp(12px, .9vw, 17px); color: var(--cream); }
+.tv-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 4px 0; text-align: center; font-size: clamp(10px, .75vw, 14px); color: var(--cream2); opacity: .85; }
 .tv-nums b { display: block; font-size: clamp(24px, 2.2vw, 42px); line-height: 1.1; font-weight: 600; color: #fff; }
 .tv-list { margin: 6px 0 2px; padding: 0; list-style: none; font-size: clamp(12px, .9vw, 17px); }
 .tv-list li { padding: 2px 0; border-top: 1px solid rgba(255, 255, 255, .12); }
 .tv-home { display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--tvmid) * .7) minmax(0, 1fr); gap: var(--tvgap); height: calc(100vh - 2 * var(--tvgap)); }
 .tv-col { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); gap: var(--tvgap); min-height: 0; }
 .tv-mid { display: grid; grid-template-rows: var(--tvbar) minmax(0, 1fr) var(--tvbar); gap: var(--tvgap); min-height: 0; }
-.tv-tile { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; padding: 10px; min-width: 0; border: 0; border-radius: 6px; color: #fff !important; font: 600 clamp(14px, 1.35vw, 28px) var(--sans); text-decoration: none; cursor: var(--cur-link, pointer); transition: transform .12s, filter .12s; }
+.tv-tile { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; padding: 10px; min-width: 0; border: 0; border-radius: 6px; color: #fff !important; font: 600 clamp(14px, 1.35vw, 28px) var(--sans); text-decoration: none; text-shadow: 0 2px 3px rgba(0, 0, 0, .35); cursor: var(--cur-link, pointer); transition: transform .12s, filter .12s; }
 .tv-tile.wide { grid-column: 1 / -1; }
 .tv-tile.tvbar { flex-direction: row; gap: 12px; }
 .tv-tile:hover, .tv-tile:focus-visible { transform: scale(1.02); filter: brightness(1.12); outline: 3px solid #fff; outline-offset: -3px; }
@@ -2538,10 +2538,17 @@ body[data-tvhome] main { padding: var(--tvgap); }
 @media (max-width: 1000px) {
   body[data-tv] main { margin: 0; }
   #tvside { position: static; width: auto; }
-  body[data-tv] { background: #15161d; }
+  body[data-tv] { background: var(--cream); }
   .tv-home { display: block; height: auto; }
   .tv-col { grid-template-rows: none; grid-auto-rows: 110px; margin: var(--tvgap) 0; }
   .tv-mid { display: block; }
   .tv-mid > * { margin-bottom: var(--tvgap); }
   .tv-mid .tvbar { height: var(--tvbar); }
 }
+
+/* her ask 11-07: the Remembering box folds up (tap its title bar) */
+.mem-fold > summary { list-style: none; cursor: var(--cur-link, pointer); }
+.mem-fold > summary::-webkit-details-marker { display: none; }
+.mem-fold > summary b::before { content: '▸ '; display: inline-block; transition: transform .15s; }
+.mem-fold[open] > summary b::before { transform: rotate(90deg); }
+.mem-fold:not([open]) > summary { margin-bottom: 0; }
