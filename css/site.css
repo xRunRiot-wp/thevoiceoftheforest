@@ -2506,7 +2506,7 @@ html[data-theme="fall"] .top::after { content: ''; position: absolute; left: 0; 
 .lq-qty { align-items: center; gap: 8px; margin-bottom: 8px; }
 
 /* her ask 11-07: TV display mode (js/tv.js): flat Windows 8 / Echo Show tiles around the Friend Zone, overview at the side */
-body[data-tv] { --tv1: var(--orange); --tv2: var(--brown2); --tv3: var(--orange-d); --tv4: var(--brown3); --tv5: color-mix(in srgb, var(--orange) 55%, var(--brown)); --tv6: color-mix(in srgb, var(--brown3) 60%, var(--orange)); --tvside: clamp(250px, 19vw, 360px); --tvgap: 10px; --tvbar: clamp(64px, 11vh, 120px); --tvmid: calc(100vh - 2 * var(--tvbar) - 4 * var(--tvgap)); }
+body[data-tv] { --tva: 72%; --tv1: color-mix(in srgb, var(--orange) var(--tva), transparent); --tv2: color-mix(in srgb, var(--brown2) var(--tva), transparent); --tv3: color-mix(in srgb, var(--orange-d) var(--tva), transparent); --tv4: color-mix(in srgb, var(--brown3) var(--tva), transparent); --tv5: color-mix(in srgb, color-mix(in srgb, var(--orange) 55%, var(--brown)) var(--tva), transparent); --tv6: color-mix(in srgb, color-mix(in srgb, var(--brown3) 60%, var(--orange)) var(--tva), transparent); --tvside: clamp(250px, 19vw, 360px); --tvgap: 10px; --tvbar: clamp(64px, 11vh, 120px); --tvmid: calc(100vh - 2 * var(--tvbar) - 4 * var(--tvgap)); }
 body[data-tv] .top, body[data-tv] footer { display: none; }
 body[data-tv] main { max-width: none; margin: 0 var(--tvside) 0 0; }
 body[data-tvhome] { background: var(--cream); }
@@ -2552,3 +2552,8 @@ body[data-tvhome] main { padding: var(--tvgap); }
 .mem-fold > summary b::before { content: '▸ '; display: inline-block; transition: transform .15s; }
 .mem-fold[open] > summary b::before { transform: rotate(90deg); }
 .mem-fold:not([open]) > summary { margin-bottom: 0; }
+
+/* her asks 11-07: on the TV the tiles are see-through (not the Friend Zone), and the Friend Zone's square names are small enough to leave the Pokémon visible */
+.tv-tile { backdrop-filter: blur(2px); }
+.tv-fz .fzs-cube.pic .fzs-cube-nm, .tv-fz .fzs-cube.pic .fzs-cube-nm.nm-long { font-size: 10px; line-height: 1.15; padding: 1px 4px; border-width: 1px; max-width: 90%; bottom: 3px; }
+.tv-fz .fzs-lock { font-size: 26px; }

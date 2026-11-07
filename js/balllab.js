@@ -3,13 +3,13 @@
 // Balls above fall down, empty columns slide together, and bigger groups score far more: (size − 1)² × 10.
 // The game ends when no two matching balls touch; clearing the whole heap is +1000.
 // First finished game each day pays Poké by score. balllab/<id> = { best, runs, paidDay, last }.
-import * as store from './store.js?v=6aef9089';
-import { $, esc, num } from './util.js?v=6aef9089';
-import { me, logRoll } from './play.js?v=6aef9089';
-import { dailyRoll } from './weather.js?v=6aef9089';
-import { gameSay } from './chatter.js?v=6aef9089';
-import { markWinner } from './sparkle.js?v=6aef9089';
-import { ensureAudio, jingle, pageMusic } from './chiptune.js?v=6aef9089';
+import * as store from './store.js?v=6aef954c';
+import { $, esc, num } from './util.js?v=6aef954c';
+import { me, logRoll } from './play.js?v=6aef954c';
+import { dailyRoll } from './weather.js?v=6aef954c';
+import { gameSay } from './chatter.js?v=6aef954c';
+import { markWinner } from './sparkle.js?v=6aef954c';
+import { ensureAudio, jingle, pageMusic } from './chiptune.js?v=6aef954c';
 
 export const isBallLab = (g) => g.kind === 'balllab' || g.id === 'boltund-ball-lab';
 const COLS = 9; const ROWS = 11; const CLEAR_BONUS = 1000;

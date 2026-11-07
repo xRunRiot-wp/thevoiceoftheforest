@@ -1,12 +1,13 @@
 // her ask 11-07: TV display mode for in-person sessions. A home screen of big flat tiles (Echo Show / Windows 8 feel)
 // around the Friend Zone, and an overview panel that stays at the side on every page. Turned on in Settings, per device.
 // This screen faces the whole table, so nothing here may show hidden missions or other GM-only data.
-import * as store from './store.js?v=6aef9089';
-import { $, esc, num } from './util.js?v=6aef9089';
-import { tvMode, openSettings } from './theme.js?v=6aef9089';
-import { renderFriendZone, locations } from './friendzone.js?v=6aef9089';
-import { rankFor, missionBy } from './guild.js?v=6aef9089';
-import { currentWeather, WEATHERS } from './weather.js?v=6aef9089';
+import * as store from './store.js?v=6aef954c';
+import { $, esc, num } from './util.js?v=6aef954c';
+import { tvMode, openSettings } from './theme.js?v=6aef954c';
+import { renderFriendZone, locations } from './friendzone.js?v=6aef954c';
+import { rankFor, missionBy } from './guild.js?v=6aef954c';
+import { currentWeather, WEATHERS } from './weather.js?v=6aef954c';
+import { sitePages } from './sitepages.js?v=6aef954c';
 
 const tile = ([href, icon, label, color, wide]) => `<a class="tv-tile${wide ? ' wide' : ''}" style="background:${color}" href="${href}"><span class="tv-ic">${icon}</span><span class="tv-lb">${esc(label)}</span></a>`;
 // her ask 11-07: tile colours come from the character's site theme (--tv1..--tv6 in site.css are built from the theme's colours)
@@ -16,6 +17,8 @@ const RIGHT = [['#/games', '🎮', 'Games', 'var(--tv1)', 1], ['#/games/fernshad
 // the Friend Zone for the story so far. Woodland Base is the only one built; its chapter trails open as the chapter goes up.
 const currentZone = () => locations()[0];
 let shownChapter = null;
+// her ask 11-07: the chapter bar opens that chapter's story page (the Story overview if the chapter has no page yet)
+const chapterLink = (n) => { const p = sitePages().find((x) => x.key.includes(`_chapter-${n}-`)); return `#/rules/site/${p ? p.key : 'story-guild-rank-progression'}`; };
 
 export function renderTV(main) {
   shownChapter = store.get('guild')?.chapter ?? null;
@@ -25,7 +28,7 @@ export function renderTV(main) {
   main.innerHTML = `<div class="tv-home">
     <div class="tv-col">${LEFT.map(tile).join('')}</div>
     <div class="tv-mid">
-      <a class="tv-tile tvbar" style="background:var(--tv6)" href="#/friends"><span class="tv-ic">🏕️</span><span class="tv-lb">${esc(zone?.name || 'Friend Zone')} · Chapter ${esc(shownChapter ?? '—')}</span></a>
+      <a class="tv-tile tvbar" style="background:var(--tv6)" href="${chapterLink(shownChapter)}"><span class="tv-ic">🏕️</span><span class="tv-lb">${esc(zone?.name || 'Friend Zone')} · Chapter ${esc(shownChapter ?? '—')}</span></a>
       <div class="tv-fz" id="tvfz"></div>
       <button type="button" class="tv-tile tvbar" style="background:var(--tv6)" id="tvset"><span class="tv-ic">⚙️</span><span class="tv-lb">Settings</span></button>
     </div>
