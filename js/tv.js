@@ -1,26 +1,43 @@
 // her ask 11-07: TV display mode for in-person sessions. A home screen of big flat tiles (Echo Show / Windows 8 feel)
 // around the Friend Zone, and an overview panel that stays at the side on every page. Turned on in Settings, per device.
 // This screen faces the whole table, so nothing here may show hidden missions or other GM-only data.
-import * as store from './store.js?v=6aef9ad5';
-import { $, esc, num } from './util.js?v=6aef9ad5';
-import { tvMode, openSettings } from './theme.js?v=6aef9ad5';
-import { renderFriendZone, locations } from './friendzone.js?v=6aef9ad5';
-import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6aef9ad5';
-import { renderMessHall } from './play.js?v=6aef9ad5';
-import { renderNurseryParty } from './nursery.js?v=6aef9ad5';
-import { chatterLatestHTML } from './chatter.js?v=6aef9ad5';
-import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6aef9ad5';
-import { sitePages } from './sitepages.js?v=6aef9ad5';
+import * as store from './store.js?v=6aef9c9b';
+import { $, esc, num } from './util.js?v=6aef9c9b';
+import { tvMode, openSettings } from './theme.js?v=6aef9c9b';
+import { renderFriendZone, locations } from './friendzone.js?v=6aef9c9b';
+import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6aef9c9b';
+import { renderMessHall } from './play.js?v=6aef9c9b';
+import { renderNurseryParty } from './nursery.js?v=6aef9c9b';
+import { chatterLatestHTML } from './chatter.js?v=6aef9c9b';
+import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6aef9c9b';
+import { sitePages } from './sitepages.js?v=6aef9c9b';
+import { openBase, hasBase } from './mybase.js?v=6aef9c9b';
+import { portrait } from './ui.js?v=6aef9c9b';
+
+// her ask 11-07: the Bases tile (in place of GM): every character's base as a door to knock on, like igloos on a map
+function renderBases(main) {
+  const p = Object.values(store.get('party') || {}).filter((c) => c && !c.guest).sort((a, b) => String(a.nickname).localeCompare(String(b.nickname)));
+  main.innerHTML = `<div class="tv-page"><h1>🏡 Whose base shall we visit?</h1>
+    <div class="tv-bases">${p.map((c) => `<button class="tv-base ${hasBase(c) ? '' : 'none'}" data-base="${esc(c.id)}">${portrait(c, 'sm')}<b>${esc(c.nickname)}</b><small>${hasBase(c) ? 'Visit their base' : 'No base yet'}</small></button>`).join('') || '<p class="muted">No characters yet.</p>'}</div></div>`;
+  main.querySelectorAll('[data-base]').forEach((b) => b.onclick = () => openBase(b.dataset.base, { from: b }));
+}
+// her ask 11-07: the WHOLE TEAM effects show as buffs under the clock
+const buffsHTML = () => { const fx = Object.values(store.get('teamfx') || {}).filter((x) => x && x.name).sort((a, b) => (a.t || 0) - (b.t || 0));
+  return fx.length ? `<div class="tv-buffs">${fx.map((x) => `<span class="tv-buff" title="${esc(x.text || '')}">🌟 ${esc(x.name)}</span>`).join('')}</div>` : ''; };
 
 // her ask 11-07: the Guild tile carries a mini menu with both guilds' GP and rank (moved off the side panel)
 const guildMini = () => ['woodland', 'vanguard'].map((k) => { const g = store.get(k === 'vanguard' ? 'vanguard' : 'guild') || {}; const r = rankFor(num(g.gp));
   return `<a class="tv-mini" href="#/guild"><span>${GUILD_ICON[k]} ${k === 'vanguard' ? 'Vanguard' : 'Woodland'}</span><b>${num(g.gp)} GP</b><small>${esc(r?.name || '')}</small></a>`; }).join('');
-const tile = ([href, icon, label, color, wide]) => href === '#/guild'
-  ? `<div class="tv-tile tv-guild" style="background:${color}"><a class="tv-gmain" href="#/guild"><span class="tv-ic">${icon}</span><span class="tv-lb">${esc(label)}</span></a><div class="tv-minis">${guildMini()}</div></div>`
+// her ask 11-07: the Vault tile has the same kind of mini menu, one per guild bank (opens the Vault on that guild)
+const vaultMini = () => ['woodland', 'vanguard'].map((k) => { const g = store.get(k === 'vanguard' ? 'vanguard' : 'guild') || {};
+  return `<a class="tv-mini" href="#/vault/${k}"><span>${GUILD_ICON[k]} ${k === 'vanguard' ? 'Vanguard' : 'Woodland'}</span><b>${num(g.money).toLocaleString()} Poké</b><small>Bank</small></a>`; }).join('');
+const MINIS = { '#/guild': guildMini, '#/vault': vaultMini };
+const tile = ([href, icon, label, color, wide]) => MINIS[href]
+  ? `<div class="tv-tile tv-guild" style="background:${color}"><a class="tv-gmain" href="${href}"><span class="tv-ic">${icon}</span><span class="tv-lb">${esc(label)}</span></a><div class="tv-minis">${MINIS[href]()}</div></div>`
   : `<a class="tv-tile${wide ? ' wide' : ''}" style="background:${color}" href="${href}"><span class="tv-ic">${icon}</span><span class="tv-lb">${esc(label)}</span></a>`;
 // her ask 11-07: tile colours come from the character's site theme (--tv1..--tv6 in site.css are built from the theme's colours)
 const LEFT = [['#/tv/hall', '🎭', 'Characters', 'var(--tv1)', 1], ['#/guild', '🏰', 'Guild', 'var(--tv2)'], ['#/vault', '💰', 'Vault', 'var(--tv5)'], ['#/shop', '🛒', 'Shop', 'var(--tv3)'], ['#/merchant', '🎒', 'Merchant', 'var(--tv4)']];
-const RIGHT = [['#/games', '🎮', 'Games', 'var(--tv1)', 1], ['#/tv/nursery', '🍼', 'Nursery', 'var(--tv4)'], ['#/gym', '💪', 'Gym', 'var(--tv3)'], ['#/rules', '📖', 'Rulebook', 'var(--tv5)'], ['#/gm', '🎲', 'GM', 'var(--tv2)']];
+const RIGHT = [['#/games', '🎮', 'Games', 'var(--tv1)', 1], ['#/tv/nursery', '🍼', 'Nursery', 'var(--tv4)'], ['#/gym', '💪', 'Gym', 'var(--tv3)'], ['#/rules', '📖', 'Rulebook', 'var(--tv5)'], ['#/tv/bases', '🏡', 'Bases', 'var(--tv2)']];
 
 // the Friend Zone for the story so far. Woodland Base is the only one built; its chapter trails open as the chapter goes up.
 const currentZone = () => locations()[0];
@@ -33,6 +50,7 @@ export const tvHome = () => /^#?\/?(tv\/?)?$/.test(location.hash);
 export function renderTV(main, rest = []) {
   if (rest[0] === 'hall') { document.body.toggleAttribute('data-tvhome', false); renderMessHall(main); return; }
   if (rest[0] === 'nursery') { document.body.toggleAttribute('data-tvhome', false); renderNurseryParty(main); return; }
+  if (rest[0] === 'bases') { document.body.toggleAttribute('data-tvhome', false); renderBases(main); return; }
   shownChapter = store.get('guild')?.chapter ?? null;
   const zone = currentZone();
   // the TV layout must be in place before the Friend Zone measures its box (her report 11-07: it came out too big and scrolled)
@@ -63,7 +81,7 @@ function sideHTML() {
   const cw = currentWeather(); const w = WEATHERS[cw.key] || {};
   const live = !!store.get('session/live');
   const row = (m, tag) => `<a class="trk tv-trk" href="#/guild">${m.art ? `<img src="${esc(m.art)}" alt="" loading="lazy">` : '<span class="trk-noart"></span>'}<span class="grow"><b>${esc(m.title || '')}</b><span class="small">${esc(m.rank || '')} Rank · ${tag}</span></span></a>`;
-  return `<div class="tv-card now"><div class="tv-clock" id="tvclock">${clock()}</div><div class="tv-sub" id="tvdate">${day()}</div><div class="tv-sub">Session ${esc(store.get('session/n') ?? '—')} · ${live ? '🟢 live' : '⚪ not live'}</div></div>
+  return `<div class="tv-card now"><div class="tv-clock" id="tvclock">${clock()}</div><div class="tv-sub" id="tvdate">${day()}</div><div class="tv-sub">Session ${esc(store.get('session/n') ?? '—')} · ${live ? '🟢 live' : '⚪ not live'}</div>${buffsHTML()}</div>
     <a class="tv-tile tvbar home" style="background:var(--tv1)" href="#/tv"><span class="tv-ic">🏠</span><span class="tv-lb">Home</span></a>
     <button type="button" class="wxcard fortune tv-wx" id="tvwx">${wxFxHTML(cw.key)}<div class="ft-top">✦ What’s the Weather? ✦</div>
       <div class="ft-orb" aria-hidden="true">${wxIconHTML(cw.key)}</div><div class="ft-name">${esc(w.name || '')}</div>

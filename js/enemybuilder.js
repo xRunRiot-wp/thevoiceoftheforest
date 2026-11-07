@@ -3,13 +3,13 @@
 // -> stats, skills, HP, Will and moves are rolled for each one -> save them as enemy sheets (and drop them into the battle).
 // Board: every enemy in the current battle gets its own card with HP and Will +/- and quick rolls for its moves and actions.
 // Rolls follow PokéRole's rank steps roughly; the GM can change anything afterwards in the sheet editor.
-import * as store from './store.js?v=6aef9ad5';
-import { $, $$, esc, num, uid, clamp, pool, toast } from './util.js?v=6aef9ad5';
-import { modal, closeModal, portrait, diceFaces } from './ui.js?v=6aef9ad5';
-import { loadIndex, find } from './effects.js?v=6aef9ad5';
-import { RANK_NAMES } from './content.js?v=6aef9ad5';
-import { HABITATS } from './habitats.js?v=6aef9ad5';
-import { logRoll } from './play.js?v=6aef9ad5';
+import * as store from './store.js?v=6aef9c9b';
+import { $, $$, esc, num, uid, clamp, pool, toast } from './util.js?v=6aef9c9b';
+import { modal, closeModal, portrait, diceFaces } from './ui.js?v=6aef9c9b';
+import { loadIndex, find } from './effects.js?v=6aef9c9b';
+import { RANK_NAMES } from './content.js?v=6aef9c9b';
+import { HABITATS } from './habitats.js?v=6aef9c9b';
+import { logRoll } from './play.js?v=6aef9c9b';
 
 const ATTRS = ['Strength', 'Dexterity', 'Vitality', 'Special', 'Insight'];
 const SKILLS = ['Alert', 'Brawl', 'Channel', 'Evasion', 'Clash'];
@@ -58,10 +58,12 @@ export async function openEnemyBuilder() {
           <div class="small muted">${SKILLS.filter((k) => e[k]).map((k) => `${k} ${e[k]}`).join(' · ') || 'No skills'}</div>
           <div class="small">${e.mv.map((m) => `<span class="pill">${esc(m.name)}</span>`).join(' ') || '<span class="muted">No moves found</span>'}</div></div>
           <button class="btn alt sm" data-ebre="${i}" title="Roll again">🎲</button></div>`).join('')}</div>
+        <label class="check" style="margin-top:8px"><input type="checkbox" id="ebstory"> 📖 Save them in the Story folder</label>
         <div class="row" style="margin-top:10px"><button class="btn" id="ebsave">💾 Save sheets</button><button class="btn alt" id="ebfight">⚔️ Save and add to the battle</button><button class="btn alt" id="ebback">← Back</button></div>`;
       $$('[data-ebre]', box).forEach((b) => b.onclick = () => { const e = B.rolled[+b.dataset.ebre]; B.rolled[+b.dataset.ebre] = rollEnemy(find(ix, e.species), B.rank, ix, e.name); draw(); });
       const save = (fight) => {
-        const ids = B.rolled.map((e) => { const id = uid(); store.gmUpdate('enemies', (all) => ({ ...(all || {}), [id]: e })); return [id, e]; });
+        const story = $('#ebstory', box).checked;
+        const ids = B.rolled.map((e) => { const id = uid(); if (story) e.story = true; store.gmUpdate('enemies', (all) => ({ ...(all || {}), [id]: e })); return [id, e]; });
         if (fight) ids.forEach(([id, e]) => addToBattle(id, e));
         toast(`${ids.length} enemy sheet${ids.length === 1 ? '' : 's'} saved${fight ? ' and added to the battle (hidden until you reveal them)' : ''}`);
         Object.assign(B, { picks: {}, rolled: [] }); closeModal();

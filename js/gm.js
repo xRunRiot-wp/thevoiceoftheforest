@@ -1,25 +1,25 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6aef9ad5';
-import * as sheet from './sheetdata.js?v=6aef9ad5';
-import { ledger } from './vault.js?v=6aef9ad5';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6aef9ad5';
-import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6aef9ad5';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6aef9ad5';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES, RANK_NAMES } from './content.js?v=6aef9ad5';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts, BADGE_FOR_RANK, beginnerCatchUp } from './play.js?v=6aef9ad5';
-import { giftNote } from './mailbox.js?v=6aef9ad5';
-import { guildResidents, palKey, rankOf } from './gym.js?v=6aef9ad5';
-import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6aef9ad5';
-import { merged, editContent } from './content-store.js?v=6aef9ad5';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6aef9ad5';
-import { CONFIG } from './config.js?v=6aef9ad5';
-import { gmGimmighoulHTML } from './gimmighoul.js?v=6aef9ad5';
-import { locations, spots, personalityTypes } from './friendzone.js?v=6aef9ad5';
-import { nurseryRecruits, nurseryJoined } from './nursery.js?v=6aef9ad5';
-import { lootMenuHTML, bindLootMenu } from './lootmenu.js?v=6aef9ad5';
-import { openEnemyBuilder, addToBattle, enemyBoardHTML, bindEnemyBoard } from './enemybuilder.js?v=6aef9ad5';
-import { rankFor, guildName } from './guild.js?v=6aef9ad5';
-import { gmPinsHTML, bindGmPins } from './charlock.js?v=6aef9ad5';
+import * as store from './store.js?v=6aef9c9b';
+import * as sheet from './sheetdata.js?v=6aef9c9b';
+import { ledger } from './vault.js?v=6aef9c9b';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6aef9c9b';
+import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6aef9c9b';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6aef9c9b';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES, RANK_NAMES } from './content.js?v=6aef9c9b';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts, BADGE_FOR_RANK, beginnerCatchUp } from './play.js?v=6aef9c9b';
+import { giftNote } from './mailbox.js?v=6aef9c9b';
+import { guildResidents, palKey, rankOf } from './gym.js?v=6aef9c9b';
+import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6aef9c9b';
+import { merged, editContent } from './content-store.js?v=6aef9c9b';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6aef9c9b';
+import { CONFIG } from './config.js?v=6aef9c9b';
+import { gmGimmighoulHTML } from './gimmighoul.js?v=6aef9c9b';
+import { locations, spots, personalityTypes } from './friendzone.js?v=6aef9c9b';
+import { nurseryRecruits, nurseryJoined } from './nursery.js?v=6aef9c9b';
+import { lootMenuHTML, bindLootMenu } from './lootmenu.js?v=6aef9c9b';
+import { openEnemyBuilder, addToBattle, enemyBoardHTML, bindEnemyBoard } from './enemybuilder.js?v=6aef9c9b';
+import { rankFor, guildName } from './guild.js?v=6aef9c9b';
+import { gmPinsHTML, bindGmPins } from './charlock.js?v=6aef9c9b';
 
 const PORTRAIT_LIST = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -64,7 +64,11 @@ export async function renderGM(main) {
     <button class="btn block" id="ebuild" style="margin-top:10px">🌿 Build enemies from an area</button>
     <details style="margin-top:10px"><summary class="pix" style="font-size:17px;cursor:var(--cur-link, pointer);min-height:40px">Enemy sheets (${Object.keys(G.enemies || {}).length}) — only you see these</summary>
       <div class="row" style="margin:8px 0"><button class="btn alt sm" id="newenemy">+ New enemy sheet</button></div>
-      ${Object.entries(G.enemies || {}).map(([id, e]) => `<div class="row nowrap" style="padding:6px 0;border-bottom:1px dashed var(--cream3)">${portrait({ pokemon: e.species, nickname: e.name }, 'xs')}<div class="grow"><b class="pix">${esc(e.name)}</b> <span class="small muted">${esc(e.species || '')} · ${e.hp} HP · Def ${e.def ?? '–'}/${e.sdef ?? '–'}</span></div><button class="btn sm" data-fight="${id}">Fight</button><button class="btn alt sm" data-erec="${id}" title="Players can try to recruit it">${e.recruitable ? '✅ In Recruit' : '🤝 To Recruit'}</button><button class="btn alt sm" data-eedit="${id}">Edit</button></div>`).join('') || '<p class="muted small">No enemy sheets yet.</p>'}
+      ${(() => { const row = ([id, e]) => `<div class="row nowrap" style="padding:6px 0;border-bottom:1px dashed var(--cream3)">${portrait({ pokemon: e.species, nickname: e.name }, 'xs')}<div class="grow"><b class="pix">${esc(e.name)}</b> <span class="small muted">${esc(e.species || '')} · ${e.hp} HP · Def ${e.def ?? '–'}/${e.sdef ?? '–'}</span></div><button class="btn sm" data-fight="${id}">Fight</button><button class="btn alt sm" data-erec="${id}" title="Players can try to recruit it">${e.recruitable ? '✅ In Recruit' : '🤝 To Recruit'}</button><button class="btn alt sm" data-estory="${id}" title="Keep it in the Story folder">${e.story ? '📖 Story' : '📁 To Story'}</button><button class="btn alt sm" data-eedit="${id}">Edit</button></div>`;
+        // her ask 11-07: story enemies are kept in their own folder
+        const all = Object.entries(G.enemies || {}); const story = all.filter(([, e]) => e.story); const rest = all.filter(([, e]) => !e.story);
+        return `<details class="eb-folder" ${story.length ? 'open' : ''}><summary><b>📖 Story enemies (${story.length})</b></summary>${story.map(row).join('') || '<p class="muted small">Tap 📁 To Story on any sheet to keep it here.</p>'}</details>
+          ${rest.map(row).join('') || (story.length ? '' : '<p class="muted small">No enemy sheets yet.</p>')}`; })()}
     </details>
   </section>
 
@@ -312,6 +316,8 @@ function bindGM(main) {
   });
   // her ask 11-07: enemy builder, battle board, and moving an enemy into the Recruit list
   s('#ebuild').onclick = () => openEnemyBuilder();
+  $$('[data-estory]', main).forEach((b) => b.onclick = () => { const id = b.dataset.estory; const on = !(store.gmData().enemies || {})[id]?.story;
+    store.gmUpdate('enemies', (all) => { if (all?.[id]) all[id].story = on; return all; }); toast(on ? 'Saved in the Story folder' : 'Taken out of the Story folder'); });
   bindEnemyBoard(main);
   $$('[data-erec]', main).forEach((b) => b.onclick = () => {
     const id = b.dataset.erec; const on = !(store.gmData().enemies || {})[id]?.recruitable;
@@ -532,7 +538,7 @@ Guildmaster Beautifly</textarea></label>
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6aef9ad5');
+    const { openTable } = await import('./app.js?v=6aef9c9b');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));
@@ -661,8 +667,10 @@ function enemyEditor(id) {
     <div class="grid" style="grid-template-columns:repeat(2,1fr)">${ENEMY_SCHEMA.map((k) => `<label class="f">${k === 'hp' ? 'HP' : k === 'def' ? 'Defense' : k === 'sdef' ? 'Sp. Defense' : k[0].toUpperCase() + k.slice(1)}<input data-k="${k}" ${['name', 'species', 'rank'].includes(k) ? '' : 'type="number" inputmode="numeric"'} value="${esc(e[k] ?? '')}"></label>`).join('')}</div>
     <label class="f" style="margin-top:8px">Moves (e.g. "Bite — Str + Brawl, Power 2, Flinch 1 chance die")<textarea data-k="moves">${esc(e.moves || '')}</textarea></label>
     <label class="f">Notes<textarea data-k="notes">${esc(e.notes || '')}</textarea></label>
+    <label class="check"><input type="checkbox" id="estory" ${e.story ? 'checked' : ''}> 📖 Keep in the Story folder</label>
     <div class="row" style="margin-top:10px"><button class="btn" id="ok">Save</button>${id ? '<button class="btn alt" id="dup">Duplicate</button><button class="btn bad" id="del">Delete</button>' : ''}</div>`);
-  const read = () => { const o = {}; $$('[data-k]', el).forEach((f) => { o[f.dataset.k] = f.type === 'number' ? (f.value === '' ? null : num(f.value)) : f.value.trim(); }); return o; };
+  // keeps what the form doesn't show (rolled moves for the battle board, Recruit and Story flags)
+  const read = () => { const o = { ...(id ? e : {}) }; $$('[data-k]', el).forEach((f) => { o[f.dataset.k] = f.type === 'number' ? (f.value === '' ? null : num(f.value)) : f.value.trim(); }); o.story = $('#estory', el).checked; return o; };
   $('#ok', el).onclick = () => { const o = read(); store.gmUpdate('enemies', (all) => ({ ...(all || {}), [id || uid()]: o })); closeModal(); };
   if (id) {
     $('#dup', el).onclick = () => { const o = read(); o.name += ' (copy)'; store.gmUpdate('enemies', (all) => ({ ...(all || {}), [uid()]: o })); closeModal(); };

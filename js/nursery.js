@@ -7,15 +7,15 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6aef9ad5';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6aef9ad5';
-import { me, logRoll } from './play.js?v=6aef9ad5';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6aef9ad5';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6aef9ad5';
-import { markWinner } from './sparkle.js?v=6aef9ad5';
-import { pageMusic, visitMusic, muted } from './chiptune.js?v=6aef9ad5';
-import { modal, closeModal } from './ui.js?v=6aef9ad5';
-import { MIMIC } from './mimicdata.js?v=6aef9ad5';
+import * as store from './store.js?v=6aef9c9b';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6aef9c9b';
+import { me, logRoll } from './play.js?v=6aef9c9b';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6aef9c9b';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6aef9c9b';
+import { markWinner } from './sparkle.js?v=6aef9c9b';
+import { pageMusic, visitMusic, muted } from './chiptune.js?v=6aef9c9b';
+import { modal, closeModal } from './ui.js?v=6aef9c9b';
+import { MIMIC } from './mimicdata.js?v=6aef9c9b';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -703,7 +703,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6aef9ad5').catch(() => null);
+  const fz = import('./fzscene.js?v=6aef9c9b').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2, 'right', false, !!c.shiny)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
@@ -899,14 +899,15 @@ export function renderNurseryParty(main) {
     </div></div>`;
   const roomEl = $('.np-room', main);
   for (const [id, b] of babies) startPartyPet(roomEl, $(`[data-np="${CSS.escape(id)}"]`, main), b, b.name || `${party[id].nickname}’s ${BABIES[b.sp].name}`);
-  if (babies.length) partyBeatrice(roomEl);
+  if (all.length) partyBeatrice(roomEl);
 }
 function startPartyPet(roomEl, pet, b, label) {
   const B = BABIES[b.sp]; const spr = $('.baby-spr', pet); if (!B || !spr) return;
-  const S = (SIZE[b.stage] || 3) * Math.max(0.85, Math.min(2.6, roomEl.clientHeight / 260)); const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
+  // her ask 11-07: the same size as in the nursery itself (scaling them up made them blurry)
+  const S = SIZE[b.stage] || 3; const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
   spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
   spr.innerHTML = accHTML(b, pw, ph); $('.pet-tag', pet).textContent = label;
-  pet.style.width = pw + 'px'; pet.style.height = ph + 'px'; pet.style.bottom = Math.round(roomEl.clientHeight * (0.04 + Math.random() * 0.3)) + "px";
+  pet.style.width = pw + 'px'; pet.style.height = ph + 'px'; pet.style.bottom = Math.round(10 + Math.random() * 50) + 'px';
   const alive = () => pet.isConnected;
   const row = (name, loop = true, secs = null) => {
     const r = ROW[name]; const n = B.fr[r] || 1;
@@ -914,10 +915,12 @@ function startPartyPet(roomEl, pet, b, label) {
     spr.style.animation = 'none'; void spr.offsetWidth;
     spr.style.animation = `baby-anim ${secs || Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`; accRow(spr, b.sp, name, ph);
   };
-  const maxX = () => Math.max(10, roomEl.clientWidth - pw - 10);
-  let x = 10 + Math.random() * maxX(); pet.style.left = x + 'px';
+  // her ask 11-07: they stay gathered around Beatrice in the middle, not spread across the whole screen
+  const mid = () => roomEl.clientWidth / 2 - pw / 2; const spread = () => Math.min(300, roomEl.clientWidth / 2 - pw);
+  const minX = () => Math.max(10, mid() - spread()); const maxX = () => Math.min(roomEl.clientWidth - pw - 10, mid() + spread());
+  let x = minX() + Math.random() * (maxX() - minX()); pet.style.left = x + 'px';
   const fx = (ch) => { const e = document.createElement('span'); e.className = 'pet-fx'; e.textContent = ch; e.style.left = (x + pw / 2 - 12) + 'px'; roomEl.appendChild(e); setTimeout(() => e.remove(), 1400); };
-  const walkTo = async (tx) => { tx = Math.max(10, Math.min(maxX(), tx)); const d = Math.abs(tx - x); if (d < 4) return;
+  const walkTo = async (tx) => { tx = Math.max(minX(), Math.min(maxX(), tx)); const d = Math.abs(tx - x); if (d < 4) return;
     row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / 70).toFixed(2)}s linear`; pet.style.left = tx + 'px'; x = tx; await wait(d / 70 * 1000); row('idle'); };
   pet.onclick = async () => { row('hop', false); fx('💕'); cry(b); await wait(700); row('idle'); };
   (async () => {
@@ -932,18 +935,15 @@ function startPartyPet(roomEl, pet, b, label) {
     }
   })();
 }
-// Beatrice buzzes in now and then to check on everyone
+// her ask 11-07: Beatrice stays in the middle with the little ones, hovering over them and talking now and then
 async function partyBeatrice(roomEl) {
   const lines = ['Play nicely, everyone! Share the toys!', 'My, what a lovely bunch of little ones.', 'Snack time soon, dears!', 'Gently, gently! Mind the eggs.', 'Inside voices, please!'];
+  const bz = document.createElement('span'); bz.className = 'flyer bea-fly np-bea';
+  bz.onclick = () => visitorPane(roomEl, beaFace('happy'), '♪', 'Beatrice is keeping a close eye on the little ones.');
+  roomEl.appendChild(bz);
   while (roomEl.isConnected) {
-    await wait(12000 + Math.random() * 14000); if (!roomEl.isConnected || asleep()) continue;
-    const W = roomEl.clientWidth; const bz = document.createElement('span'); bz.className = 'flyer bea-fly';
-    const fly = async (cx, ms) => { bz.style.backgroundPositionY = `-${(cx > parseFloat(bz.style.left) ? 1 : 2) * 120}px`; bz.style.transition = `left ${ms}ms ease-in-out`; bz.style.left = cx + 'px'; await wait(ms); bz.style.backgroundPositionY = '0px'; };
-    bz.onclick = () => visitorPane(roomEl, beaFace('happy'), '♪', 'Beatrice is keeping a close eye on the little ones.');
-    bz.style.left = W + 'px'; roomEl.appendChild(bz); await wait(50);
-    await fly(W / 2 - 40, 1500); if (!roomEl.isConnected) return;
+    await wait(9000 + Math.random() * 9000); if (!roomEl.isConnected || asleep()) continue;
     let c = $('.duo-cap', roomEl); if (!c) { c = document.createElement('div'); c.className = 'duo-cap'; roomEl.appendChild(c); }
     c.textContent = `Beatrice: “${lines[Math.floor(Math.random() * lines.length)]}”`; c.classList.remove('show'); void c.offsetWidth; c.classList.add('show');
-    await wait(3200); await fly(-90, 1500); bz.remove();
   }
 }

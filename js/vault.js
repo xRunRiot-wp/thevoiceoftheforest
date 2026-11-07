@@ -1,14 +1,14 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6aef9ad5';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6aef9ad5';
-import { GUILDS2, guildName, shopShortcuts } from './guild.js?v=6aef9ad5';
-import { addItem, me } from './play.js?v=6aef9ad5';
-import { ixLink } from './effects.js?v=6aef9ad5';
-import { gmTodo, guildSay } from './chatter.js?v=6aef9ad5';
-import { DECOR } from './basedecor.js?v=6aef9ad5';
-import { palette } from './theme.js?v=6aef9ad5';
-import { modal, closeModal } from './ui.js?v=6aef9ad5';
+import * as store from './store.js?v=6aef9c9b';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6aef9c9b';
+import { GUILDS2, guildName, shopShortcuts } from './guild.js?v=6aef9c9b';
+import { addItem, me } from './play.js?v=6aef9c9b';
+import { ixLink } from './effects.js?v=6aef9c9b';
+import { gmTodo, guildSay } from './chatter.js?v=6aef9c9b';
+import { DECOR } from './basedecor.js?v=6aef9c9b';
+import { palette } from './theme.js?v=6aef9c9b';
+import { modal, closeModal } from './ui.js?v=6aef9c9b';
 
 // Each guild's own colours on this page, so players can tell at a glance whose storage they're looking at.
 const GUILD_TINT = { woodland: '#4f8a2e', vanguard: '#2f5fb8' };
@@ -64,11 +64,16 @@ export const lowAlertHTML = () => {
 const guildOfItem = (b) => (b.guild === 'vanguard' ? 'vanguard' : 'woodland');
 let tab = null;   // which guild is showing (stays while the page refreshes live)
 let tabFrom = ''; // the player + guild the default came from
+// a #/vault/<guild> link picks the tab once per visit, so tapping the other tab (or a live refresh) doesn't snap back
+let linkUsed = false;
+window.addEventListener('hashchange', () => { linkUsed = false; });
 
-export function renderVault(main) {
+export function renderVault(main, rest = []) {
   // opens on the guild the player is working for right now (her ask 10-27), and follows them if they switch guilds or characters
   const c = me(); const works = c?.guild === 'vanguard' ? 'vanguard' : 'woodland'; const from = `${c?.id || ''}|${works}`;
   if (!tab || from !== tabFrom) { tab = works; tabFrom = from; }
+  // her ask 11-07: the TV's Vault tile opens straight on one guild's bank (#/vault/woodland or #/vault/vanguard)
+  if (['woodland', 'vanguard'].includes(rest[0]) && !linkUsed) { tab = rest[0]; linkUsed = true; }
   const g = store.get('guild') || {};
   const lines = Object.values(store.get('ledger') || {}).filter((l) => (l.guild || 'woodland') === tab).sort((a, b) => b.t - a.t);
   const pin = lines.filter((l) => l.amt > 0).reduce((s, l) => s + l.amt, 0);
