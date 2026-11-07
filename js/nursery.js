@@ -7,15 +7,15 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6aed795e';
-import { $, $$, esc, toast, num } from './util.js?v=6aed795e';
-import { me, logRoll } from './play.js?v=6aed795e';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6aed795e';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6aed795e';
-import { markWinner } from './sparkle.js?v=6aed795e';
-import { pageMusic, visitMusic, muted } from './chiptune.js?v=6aed795e';
-import { modal, closeModal } from './ui.js?v=6aed795e';
-import { MIMIC } from './mimicdata.js?v=6aed795e';
+import * as store from './store.js?v=6aef4d5d';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6aef4d5d';
+import { me, logRoll } from './play.js?v=6aef4d5d';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6aef4d5d';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6aef4d5d';
+import { markWinner } from './sparkle.js?v=6aef4d5d';
+import { pageMusic, visitMusic, muted } from './chiptune.js?v=6aef4d5d';
+import { modal, closeModal } from './ui.js?v=6aef4d5d';
+import { MIMIC } from './mimicdata.js?v=6aef4d5d';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -70,12 +70,23 @@ const lab = (k) => (k === 'cover' ? COVER[wx().key] || ['☂️', 'Cover', 'Cove
 const buddyOf = (id) => store.get('nursery/' + id) || null;
 // her ask 11-01: a nursery teen (ready to join a team) shows in the GM's Recruit list until it has moved into the Friend Zone.
 // Its Will drops as the bond grows: no hearts = Will 3, 5 hearts = Will 0.
+// her report 11-07: a teen waiting to be recruited moves to nurseryGrads when its owner takes a new egg, so the egg can't wipe it off this list.
+const recruitWill = (b) => Math.max(0, 3 - Math.floor(num(b.bond) / 25));
 export function nurseryRecruits() {
   const party = store.get('party') || {};
-  return Object.entries(store.get('nursery') || {}).filter(([id, b]) => b && b.stage === 3 && !b.joinedAt && party[id]).map(([id, b]) => {
+  const row = (id, owner, b) => {
     const sp = BABIES[b.sp]?.name || 'Pokémon';
-    return { id, name: b.name ? `${b.name} the ${sp}` : sp, label: `${b.name ? b.name + ' — ' : ''}${party[id].nickname}’s nursery ${sp}`, will: Math.max(0, 3 - Math.floor(num(b.bond) / 25)) };
-  });
+    return { id, owner, name: b.name ? `${b.name} the ${sp}` : sp, label: `${b.name ? b.name + ' — ' : ''}${party[owner].nickname}’s nursery ${sp}`, will: recruitWill(b) };
+  };
+  return [
+    ...Object.entries(store.get('nursery') || {}).filter(([id, b]) => b && b.stage === 3 && !b.joinedAt && party[id]).map(([id, b]) => row(id, id, b)),
+    ...Object.entries(store.get('nurseryGrads') || {}).filter(([, b]) => b && party[b.owner]).map(([k, b]) => row('grad:' + k, b.owner, b)),
+  ];
+}
+// the recruit worked: take it off the list
+export function nurseryJoined(id) {
+  if (id.startsWith('grad:')) { store.set('nurseryGrads/' + id.slice(5), null); return; }
+  store.set(`nursery/${id}/joinedAt`, Date.now()); store.set(`nursery/${id}/recruited`, Date.now());
 }
 const stat = (b, k) => k === 'cover' ? (b.coverBlock === wx().block ? 100 : 0) : Math.max(0, Math.min(100, Math.round(100 - (Date.now() - num(b[k + 'At'])) / 3600e3 * RATE[k])));
 const needsOf = (b) => (b.stage === 0 ? NEEDS.egg : { ...NEEDS.baby, ...(coverNeed(b) ? { cover: 1 } : {}) });
@@ -471,6 +482,8 @@ export function buddyLook(id) {
 }
 
 function adopt(c) {
+  const old = buddyOf(c.id);
+  if (old && old.stage === 3 && !old.joinedAt) { const { days, ...teen } = old; store.set('nurseryGrads/' + uid(), { ...teen, owner: c.id }); }
   const keys = BORN; const sp = keys[Math.floor(Math.random() * keys.length)];
   const now = Date.now();
   store.set('nursery/' + c.id, { sp, stage: 0, grown: 0, born: now, warmAt: now - 6 * 3600e3, feedAt: now, playAt: now, cleanAt: now, days: {} });
@@ -690,7 +703,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6aed795e').catch(() => null);
+  const fz = import('./fzscene.js?v=6aef4d5d').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2, 'right', false, !!c.shiny)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
