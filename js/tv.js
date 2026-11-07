@@ -1,13 +1,13 @@
 // her ask 11-07: TV display mode for in-person sessions. A home screen of big flat tiles (Echo Show / Windows 8 feel)
 // around the Friend Zone, and an overview panel that stays at the side on every page. Turned on in Settings, per device.
 // This screen faces the whole table, so nothing here may show hidden missions or other GM-only data.
-import * as store from './store.js?v=6aef954c';
-import { $, esc, num } from './util.js?v=6aef954c';
-import { tvMode, openSettings } from './theme.js?v=6aef954c';
-import { renderFriendZone, locations } from './friendzone.js?v=6aef954c';
-import { rankFor, missionBy } from './guild.js?v=6aef954c';
-import { currentWeather, WEATHERS } from './weather.js?v=6aef954c';
-import { sitePages } from './sitepages.js?v=6aef954c';
+import * as store from './store.js?v=6aef9669';
+import { $, esc, num } from './util.js?v=6aef9669';
+import { tvMode, openSettings } from './theme.js?v=6aef9669';
+import { renderFriendZone, locations } from './friendzone.js?v=6aef9669';
+import { missionBy, guildBox, GUILD_ICON } from './guild.js?v=6aef9669';
+import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6aef9669';
+import { sitePages } from './sitepages.js?v=6aef9669';
 
 const tile = ([href, icon, label, color, wide]) => `<a class="tv-tile${wide ? ' wide' : ''}" style="background:${color}" href="${href}"><span class="tv-ic">${icon}</span><span class="tv-lb">${esc(label)}</span></a>`;
 // her ask 11-07: tile colours come from the character's site theme (--tv1..--tv6 in site.css are built from the theme's colours)
@@ -41,25 +41,27 @@ export function renderTV(main) {
 let resizeTimer = 0;
 window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { const main = $('#main'); if (document.body.hasAttribute('data-tvhome') && main && !document.querySelector('.sheet-bg')) renderTV(main); }, 400); });
 
-const guildCard = (name, g) => { const r = rankFor(num(g.gp)); return `<div class="tv-card"><h4>${esc(name)}</h4><div class="tv-big">${num(g.gp).toLocaleString()} <small>GP</small></div><div class="tv-sub">${esc(r?.name || '')}${g.chapter != null ? ` · Chapter ${esc(g.chapter)}` : ''}</div></div>`; };
-
+// her ask 11-07: the side panel uses the site's own widgets (the weather fortune card, the guild windows, the missions tracker)
 function sideHTML() {
-  const g = store.get('guild') || {}; const v = store.get('vanguard') || {};
+  const g = store.get('guild') || {};
   const missions = Object.values(store.get('missions') || {}).filter((m) => m && !m.hidden);
   const open = missions.filter((m) => (m.status || 'open') === 'open');
   const taken = missions.filter((m) => m.status === 'taken');
   const done = missions.filter((m) => m.status === 'done');
-  const by = (k) => done.filter((m) => missionBy(m) === k).length;
   const cw = currentWeather(); const w = WEATHERS[cw.key] || {};
   const live = !!store.get('session/live');
-  return `<div class="tv-card now"><div class="tv-clock" id="tvclock">${clock()}</div><div class="tv-sub" id="tvdate">${day()}</div><div class="tv-sub">${esc(w.icon || '')} ${esc(w.name || '')}</div></div>
+  const row = (m, tag) => `<a class="trk tv-trk" href="#/guild">${m.art ? `<img src="${esc(m.art)}" alt="" loading="lazy">` : '<span class="trk-noart"></span>'}<span class="grow"><b>${esc(m.title || '')}</b><span class="small">${esc(m.rank || '')} Rank · ${tag}</span></span></a>`;
+  return `<div class="tv-card now"><div class="tv-clock" id="tvclock">${clock()}</div><div class="tv-sub" id="tvdate">${day()}</div><div class="tv-sub">Session ${esc(store.get('session/n') ?? '—')} · ${live ? '🟢 live' : '⚪ not live'}</div></div>
     <a class="tv-tile tvbar home" style="background:var(--tv1)" href="#/tv"><span class="tv-ic">🏠</span><span class="tv-lb">Home</span></a>
-    <div class="tv-card"><h4>Session ${esc(store.get('session/n') ?? '—')}</h4><div class="tv-sub">${live ? '🟢 Game is live' : '⚪ Not live'}</div></div>
-    ${guildCard('Woodland Base', g)}${guildCard('Vanguard Guild', v)}
-    <div class="tv-card"><h4>Guild coffers</h4><div class="tv-big">${num(g.coffers).toLocaleString()} <small>Poké</small></div></div>
-    <div class="tv-card"><h4>Missions</h4><div class="tv-nums"><span><b>${open.length}</b>available</span><span><b>${taken.length}</b>in progress</span><span><b>${done.length}</b>completed</span></div>
-      <div class="tv-sub">Completed: Woodland ${by('woodland')} · Vanguard ${by('vanguard')}</div>
-      ${open.length ? `<ul class="tv-list">${open.slice(0, 6).map((m) => `<li><b>${esc(m.rank || '')}</b> ${esc(m.title || '')}</li>`).join('')}</ul>${open.length > 6 ? `<div class="tv-sub">and ${open.length - 6} more</div>` : ''}` : ''}</div>`;
+    <button type="button" class="wxcard fortune tv-wx" id="tvwx">${wxFxHTML(cw.key)}<div class="ft-top">✦ What’s the Weather? ✦</div>
+      <div class="ft-orb" aria-hidden="true">${wxIconHTML(cw.key)}</div><div class="ft-name">${esc(w.name || '')}</div>
+      <div class="ft-say">Today’s sky roll: ${esc(cw.daily?.roll ?? '—')}</div></button>
+    ${guildBox('woodland')}${guildBox('vanguard')}
+    <div class="card coffers tv-coffers"><span class="pix">Guild coffers</span><br><b class="pix">${num(g.coffers).toLocaleString()} Poké</b></div>
+    <div class="tracker tv-tracker"><h2>Missions</h2>
+      <div class="trk-tally"><span class="trk-by tv-chip">📋 Available: <b>${open.length}</b></span><span class="trk-by tv-chip">🏃 In progress: <b>${taken.length}</b></span>${['woodland', 'vanguard'].map((k) => `<span class="trk-by by-${k}">${GUILD_ICON[k]} ${k === 'vanguard' ? 'Vanguard' : 'Woodland'} done: <b>${done.filter((m) => missionBy(m) === k).length}</b></span>`).join('')}</div>
+      ${[...taken.map((m) => row(m, '🏃 in progress')), ...open.map((m) => row(m, '📋 available'))].slice(0, 6).join('') || '<p class="small muted">No missions on the board.</p>'}
+      ${open.length + taken.length > 6 ? `<p class="small muted">and ${open.length + taken.length - 6} more on the Guild page</p>` : ''}</div>`;
 }
 const clock = () => new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 const day = () => new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
@@ -71,6 +73,7 @@ export function updateTvSide(page) {
   if (!tvMode()) { side?.remove(); return; }
   if (!side) { side = document.createElement('aside'); side.id = 'tvside'; document.body.append(side); }
   side.innerHTML = sideHTML();
+  const wx = document.getElementById('tvwx'); if (wx) wx.onclick = showWeather;
   // the chapter went up while this screen was showing: redraw so the newly opened trail shows
   const main = $('#main');
   if (page === 'tv' && (store.get('guild')?.chapter ?? null) !== shownChapter && !document.querySelector('.sheet-bg')) renderTV(main);

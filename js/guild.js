@@ -1,20 +1,20 @@
 // Between sessions: guild status, mission board, shop & storage, characters, session history.
-import * as store from './store.js?v=6aef954c';
-import * as sheet from './sheetdata.js?v=6aef954c';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6aef954c';
-import { portrait, modal, closeModal, maxHp } from './ui.js?v=6aef954c';
-import { MISSION_GP } from './content.js?v=6aef954c';
-import { ranks } from './rulebook.js?v=6aef954c';
-import { merged, editContent } from './content-store.js?v=6aef954c';
-import { editCharacter, viewCharacter, addItem } from './play.js?v=6aef954c';
-import { myId } from './app.js?v=6aef954c';
-import { lowAlertHTML, donorBoardHTML } from './vault.js?v=6aef954c';
-import { friendZoneSection } from './friendzone.js?v=6aef954c';
-import { ixLink } from './effects.js?v=6aef954c';
-import { burstSet } from './burst.js?v=6aef954c';
-import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6aef954c';
-import { merchantHTML, bindMerchant } from './merchant.js?v=6aef954c';
-import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6aef954c';
+import * as store from './store.js?v=6aef9669';
+import * as sheet from './sheetdata.js?v=6aef9669';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6aef9669';
+import { portrait, modal, closeModal, maxHp } from './ui.js?v=6aef9669';
+import { MISSION_GP } from './content.js?v=6aef9669';
+import { ranks } from './rulebook.js?v=6aef9669';
+import { merged, editContent } from './content-store.js?v=6aef9669';
+import { editCharacter, viewCharacter, addItem } from './play.js?v=6aef9669';
+import { myId } from './app.js?v=6aef9669';
+import { lowAlertHTML, donorBoardHTML } from './vault.js?v=6aef9669';
+import { friendZoneSection } from './friendzone.js?v=6aef9669';
+import { ixLink } from './effects.js?v=6aef9669';
+import { burstSet } from './burst.js?v=6aef9669';
+import { chatterHTML, bindChatter, ambientTick, guildSay, gmTodo } from './chatter.js?v=6aef9669';
+import { merchantHTML, bindMerchant } from './merchant.js?v=6aef9669';
+import { buyDialog, logSale, pokeBarHTML, shopChatHTML, sellDialog } from './shopkit.js?v=6aef9669';
 
 export const SHOP_DEFAULTS = [
   ['Apple', 20, 'Food'], ['Big Apple', 50, 'Food'], ['Oran Berry', 50, 'Berry'], ['Pecha Berry', 50, 'Berry'], ['Rawst Berry', 50, 'Berry'], ['Cheri Berry', 50, 'Berry'],
@@ -29,7 +29,7 @@ export const MISSION_SCHEMA = [['rank', 'Rank', 'select:E|D|C|B|A|S|X'], ['title
 export const GUILDS2 = [['woodland', 'Woodland Base'], ['vanguard', 'Vanguard Guild']];
 export const guildPath = (k) => (k === 'vanguard' ? 'vanguard' : 'guild');
 export const guildName = (k) => (k === 'vanguard' ? 'Vanguard Guild' : 'Woodland Base');
-const guildBox = (k) => {
+export const guildBox = (k) => {
   const g = store.get(guildPath(k)) || {}; const r = rankFor(g.gp || 0);
   const nx = ranks().find((x) => x.gp != null && x.gp > (g.gp || 0));
   return `<div class="card emblem guildbox"><h3>${esc(guildName(k))}</h3>

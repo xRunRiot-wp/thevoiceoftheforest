@@ -2557,3 +2557,20 @@ body[data-tvhome] main { padding: var(--tvgap); }
 .tv-tile { backdrop-filter: blur(2px); }
 .tv-fz .fzs-cube.pic .fzs-cube-nm, .tv-fz .fzs-cube.pic .fzs-cube-nm.nm-long { font-size: 10px; line-height: 1.15; padding: 1px 4px; border-width: 1px; max-width: 90%; bottom: 3px; }
 .tv-fz .fzs-lock { font-size: 26px; }
+
+/* her ask 11-07: the TV side panel uses the site's widgets; just fitted to the narrow column */
+#tvside .wxcard.fortune { margin: 0; width: 100%; border: 0; font: inherit; cursor: var(--cur-link, pointer); padding: 10px; }
+#tvside .ft-orb { width: 58px; height: 58px; margin: 6px auto 4px; font-size: 30px; }
+#tvside .ft-name { font-size: 18px; }
+#tvside .guildbox { padding: 10px; }
+#tvside .guildbox h3 { margin: 0 0 4px; font-size: 16px; }
+#tvside .guildbox .win { font-size: 13px; }
+#tvside .tv-coffers { margin: 0; padding: 8px; color: var(--ink); }
+#tvside .tracker { color: var(--ink); padding: 8px; }
+#tvside .tracker h2 { font-size: 17px; margin-bottom: 6px; }
+#tvside .trk-tally { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+.tv-trk { display: flex; gap: 8px; align-items: center; padding: 5px; color: var(--ink) !important; text-decoration: none; }
+.tv-trk img, .tv-trk .trk-noart { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; flex: none; background: var(--cream3); }
+.tv-trk b { display: block; font-size: 14px; line-height: 1.2; }
+#tvside .nextrank { color: var(--ink); }
+#tvside .trk-by.tv-chip { background: var(--cream2); color: var(--ink); border: 1px solid var(--cream3); }
