@@ -1,16 +1,16 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6aef9c9b';
-import { $, $$, esc, toast } from './util.js?v=6aef9c9b';
-import { modal, closeModal } from './ui.js?v=6aef9c9b';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6aef9c9b';
-import { merged, editContent } from './content-store.js?v=6aef9c9b';
-import { CHAPTERS } from './content.js?v=6aef9c9b';
-import { giftNote } from './mailbox.js?v=6aef9c9b';
-import { guildSay } from './chatter.js?v=6aef9c9b';
-import { myId } from './app.js?v=6aef9c9b';
-import { hasBase, openBase } from './mybase.js?v=6aef9c9b';
-import { shackButtons } from './miltank.js?v=6aef9c9b';
+import * as store from './store.js?v=6aefabe8';
+import { $, $$, esc, toast } from './util.js?v=6aefabe8';
+import { modal, closeModal } from './ui.js?v=6aefabe8';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6aefabe8';
+import { merged, editContent } from './content-store.js?v=6aefabe8';
+import { CHAPTERS } from './content.js?v=6aefabe8';
+import { giftNote } from './mailbox.js?v=6aefabe8';
+import { guildSay } from './chatter.js?v=6aefabe8';
+import { myId } from './app.js?v=6aefabe8';
+import { hasBase, openBase } from './mybase.js?v=6aefabe8';
+import { shackButtons } from './miltank.js?v=6aefabe8';
 
 export const LOCATIONS = [
   {
@@ -206,7 +206,7 @@ export function renderFriendZone(main, [arg]) {
   // and any player characters sleeping there, rooms inside it included), plus a cube for the camp's staff
   { const ok = (n) => n && n.split(/\s+/).length <= 4 && !/guild|team|members/i.test(n);
     const all = spots(loc); const cubes = all.filter((x) => !x.room).map((x) => { const keys = [x.key]; for (const r of all.slice(x.i + 1)) { if (!r.room) break; keys.push(r.key); }
-      return { key: x.key, name: x.name.replace(/^[^\w]*\d*\.?\s*/, ''), mons: [...spotMons(x).filter(ok).map((n) => ({ name: n })), ...keys.flatMap((k) => Object.values(recruits[k] || {})).map((r) => ({ name: r.name })),
+      return { key: x.key, name: x.name.replace(/^[^\w]*\d*\.?\s*/, ''), mons: [...spotMons(x).filter(ok).map((n) => ({ name: n })), ...keys.flatMap((k) => Object.values(recruits[k] || {})).map((r) => ({ name: r.name, ...(r.walk ? { walk: r.walk } : {}) })),
         ...sleepers.filter((c) => keys.some((k) => c.sleep === loc.id + '|' + k)).map((c) => ({ name: c.pokemon || '', label: c.nickname, shiny: !!c.shiny }))].filter((m) => ok(m.name)) }; });
     // a long piece ('Ralts rotate shifts beside ...') keeps its first word, the Pokémon (her ask 10-29: add Ralts)
     const staff = [loc.sentinel, loc.caretaker, loc.relay].filter(Boolean).flatMap((t) => String(t).split(/[—–,]| and /).slice(0, 3)).map((t) => t.trim())

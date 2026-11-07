@@ -2621,10 +2621,17 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .tv-guild .tv-gmain { margin-bottom: 30%; }
 .np-bea { position: absolute; left: 50%; top: 8px; translate: -50% 0; z-index: 4; cursor: pointer; }
 .tv-buffs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-.tv-buff { padding: 2px 8px; border-radius: 99px; background: rgba(242, 180, 55, .25); border: 1px solid rgba(242, 180, 55, .6); font-size: 13px; }
+.tv-buff { padding: 2px 8px; border-radius: 99px; background: rgba(242, 180, 55, .25); border: 1px solid rgba(242, 180, 55, .6); font: inherit; font-size: 13px; color: inherit; cursor: var(--cur-link, pointer); }
+.tv-buff:hover, .tv-buff:focus-visible { background: rgba(242, 180, 55, .5); }
+.tv-buff-pop { position: fixed; z-index: 60; width: min(300px, calc(100vw - 16px)); padding: 10px 12px; border-radius: 8px; background: var(--cream); color: var(--ink, #3a2a1a); box-shadow: 0 6px 22px rgba(0, 0, 0, .35); border: 2px solid rgba(242, 180, 55, .9); }
+.tv-buff-pop p { margin: 4px 0; } .tv-buff-name { font-weight: 700; }
+.tv-buff-pop .tfx-used, .tv-buff-sheet .tfx-used { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; }
+.tv-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--tvgap); min-height: 0; }
 .tv-bases { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
 .tv-base { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 10px; border: 3px solid var(--brown3); border-radius: 50% 50% 14px 14px / 40% 40% 14px 14px; background: var(--paper); color: var(--ink); font: inherit; cursor: var(--cur-link, pointer); }
 .tv-base:hover { border-color: var(--orange); transform: translateY(-3px); }
 .tv-base.none { opacity: .55; }
 .tv-base b { font-size: 18px; } .tv-base small { color: var(--muted); }
 .eb-folder { margin: 6px 0; padding: 4px 8px; border: 2px dashed var(--cream3); border-radius: 10px; } .eb-folder summary { cursor: var(--cur-link, pointer); padding: 4px 0; }
+.trap-list { max-height: 50vh; overflow-y: auto; margin-top: 6px; } .trap-row { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--cream3); }
+.tv-patron { position: absolute; left: 8px; right: 8px; top: 8px; padding: 4px 8px; border-radius: 6px; background: rgba(0, 0, 0, .22); font-size: clamp(11px, .85vw, 16px); font-weight: 400; text-align: center; }

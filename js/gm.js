@@ -1,25 +1,25 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6aef9c9b';
-import * as sheet from './sheetdata.js?v=6aef9c9b';
-import { ledger } from './vault.js?v=6aef9c9b';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6aef9c9b';
-import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6aef9c9b';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6aef9c9b';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES, RANK_NAMES } from './content.js?v=6aef9c9b';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts, BADGE_FOR_RANK, beginnerCatchUp } from './play.js?v=6aef9c9b';
-import { giftNote } from './mailbox.js?v=6aef9c9b';
-import { guildResidents, palKey, rankOf } from './gym.js?v=6aef9c9b';
-import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6aef9c9b';
-import { merged, editContent } from './content-store.js?v=6aef9c9b';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6aef9c9b';
-import { CONFIG } from './config.js?v=6aef9c9b';
-import { gmGimmighoulHTML } from './gimmighoul.js?v=6aef9c9b';
-import { locations, spots, personalityTypes } from './friendzone.js?v=6aef9c9b';
-import { nurseryRecruits, nurseryJoined } from './nursery.js?v=6aef9c9b';
-import { lootMenuHTML, bindLootMenu } from './lootmenu.js?v=6aef9c9b';
-import { openEnemyBuilder, addToBattle, enemyBoardHTML, bindEnemyBoard } from './enemybuilder.js?v=6aef9c9b';
-import { rankFor, guildName } from './guild.js?v=6aef9c9b';
-import { gmPinsHTML, bindGmPins } from './charlock.js?v=6aef9c9b';
+import * as store from './store.js?v=6aefabe8';
+import * as sheet from './sheetdata.js?v=6aefabe8';
+import { ledger } from './vault.js?v=6aefabe8';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6aefabe8';
+import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6aefabe8';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6aefabe8';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES, RANK_NAMES } from './content.js?v=6aefabe8';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts, BADGE_FOR_RANK, beginnerCatchUp } from './play.js?v=6aefabe8';
+import { giftNote } from './mailbox.js?v=6aefabe8';
+import { guildResidents, palKey, rankOf } from './gym.js?v=6aefabe8';
+import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6aefabe8';
+import { merged, editContent } from './content-store.js?v=6aefabe8';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6aefabe8';
+import { CONFIG } from './config.js?v=6aefabe8';
+import { gmGimmighoulHTML } from './gimmighoul.js?v=6aefabe8';
+import { locations, spots, personalityTypes } from './friendzone.js?v=6aefabe8';
+import { nurseryRecruits, nurseryJoined } from './nursery.js?v=6aefabe8';
+import { lootMenuHTML, bindLootMenu } from './lootmenu.js?v=6aefabe8';
+import { openEnemyBuilder, addToBattle, enemyBoardHTML, bindEnemyBoard } from './enemybuilder.js?v=6aefabe8';
+import { rankFor, guildName } from './guild.js?v=6aefabe8';
+import { gmPinsHTML, bindGmPins } from './charlock.js?v=6aefabe8';
 
 const PORTRAIT_LIST = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -89,7 +89,7 @@ export async function renderGM(main) {
     <div class="row nowrap" style="margin-top:8px"><input id="dnew" placeholder="Add a dungeon name…"><button class="btn alt sm" id="dadd">+ Add</button></div>
     <p class="small muted" style="margin:4px 0 0">Dungeons explored: only names are kept. Floors and items change every time you go in.</p>
     <div class="row" style="margin-top:8px"><span class="pix" style="font-size:20px">Floor ${sess.floor || 1}</span><button class="btn alt sm" id="fdown">−</button><button class="btn alt sm" id="fup">Next floor</button><button class="btn alt sm" id="dleave">Leave dungeon</button></div>
-    <div class="row" style="margin-top:10px"><button class="btn" id="event">Roll event (every 2 tiles)</button><button class="btn alt" id="trap">Random trap</button><button class="btn alt" id="wind">+1 turn on floor (${G.windTurns || 0})</button></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="event">Roll event (every 2 tiles)</button><button class="btn alt" id="wind">+1 turn on floor (${G.windTurns || 0})</button></div>
     <div id="evres" class="result">${G.lastEvent ? `${G.lastEvent.html}${G.lastEvent.say ? '<button class="btn alt sm" id="evrev">Tell the players</button>' : ''}` : ''}</div>
     <p class="small muted">Enemy-team threat counter: ${G.threat || 0}/6 · ${ixLink('Dungeon event roll', 'Event table')} · ${ixLink('Floor time limit (wind)', 'Wind rule')} · ${ixLink('Hunger')}: ${sess.hunger || 0} <button class="btn alt sm" id="hunger">+1</button></p>
     ${(G.dlog || []).length ? `<ul class="log small">${G.dlog.slice(-12).reverse().map((l) => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}
@@ -114,6 +114,15 @@ export async function renderGM(main) {
     <div class="row" style="margin-top:8px"><button class="btn" id="genloot">Roll the dungeon's loot</button><button class="btn alt" id="onesite">Roll one treasure</button></div>
     <div id="lootres">${lootTable(G.loot || [])}</div>
     ${lootMenuHTML()}
+  </section>
+
+  <section id="gm-Traps" class="card">
+    <h2>Traps</h2>
+    <p class="small muted">Roll a random trap, or pick one from the list. Rules: ${ixLink('Detect Trap or Hazard')} · ${ixLink('Disarm Trap')} · ${ixLink('Avoid Trap')} · ${ixLink('Resist Lures')}</p>
+    <div class="row"><button class="btn" id="trap">🎲 Random trap</button><label class="check"><input type="checkbox" id="trapkind"> Beginner-friendly</label></div>
+    <div id="trapres" class="result">${G.lastTrap ? `${G.lastTrap.html}<button class="btn alt sm" id="traprev">Tell the players</button>` : ''}</div>
+    <input id="trapq" type="search" placeholder="🔍 Find a trap…" style="width:100%;margin-top:8px">
+    <div id="traplist" class="trap-list"><p class="small muted">Loading traps…</p></div>
   </section>
 
   <section id="gm-Missions" class="card">
@@ -198,11 +207,13 @@ export async function renderGM(main) {
 
 // Her layout: every GM section is a compact square tile (like the folded Battle / Actions tabs on Play).
 // Tap a tile to open that section full width; tap its title bar to fold it back. Open ones are remembered per device.
-const GM_ICONS = { Battle: '⚔️', Recruit: '🤝', Party: '👥', Dungeon: '🏔️', Weather: '🌦️', Loot: '💰', Missions: '📋', Reveal: '👁️', Endsession: '🌙', Notes: '📝', Index: '📚', Editcontent: '✏️', Table: '⚙️', Dicelog: '🎲' };
+const GM_ICONS = { Traps: '⚠️', Battle: '⚔️', Recruit: '🤝', Party: '👥', Dungeon: '🏔️', Weather: '🌦️', Loot: '💰', Missions: '📋', Reveal: '👁️', Endsession: '🌙', Notes: '📝', Index: '📚', Editcontent: '✏️', Table: '⚙️', Dicelog: '🎲' };
 const gmOpen = () => { try { return new Set(JSON.parse(localStorage.getItem('dc.gmopen') || '[]')); } catch { return new Set(); } };
 function tileGM(main) {
   // her ask 10-27: the Index is an always-open search bar at the top, not a folding tile
-  const secs = [...main.querySelectorAll(':scope > section.card[id^="gm-"]')].filter((x) => x.id !== 'gm-Index'); if (!secs.length) return;
+  // her ask 11-07: the dungeon-run tools sit next to each other: Battle, Recruit, Dungeon, Loot, Traps first
+  const FIRST = ['gm-Battle', 'gm-Recruit', 'gm-Dungeon', 'gm-Loot', 'gm-Traps']; const rank = (x) => { const i = FIRST.indexOf(x.id); return i < 0 ? FIRST.length : i; };
+  const secs = [...main.querySelectorAll(':scope > section.card[id^="gm-"]')].filter((x) => x.id !== 'gm-Index').map((x, i) => [x, i]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(([x]) => x); if (!secs.length) return;
   main.querySelector(':scope > .filters')?.remove();   // the tiles replace the jump chips
   const grid = document.createElement('div'); grid.className = 'gm-grid';
   secs[0].before(grid);
@@ -420,11 +431,22 @@ Guildmaster Beautifly</textarea></label>
     store.gmSet('lastEvent', { html: `${diceFaces([d], { pool: false })}<div class="big">${d} — ${esc(name)}</div><p class="small">${esc(text)}</p>${extra ? `<p>${extra}</p>` : ''}`, say: { title: name, text: `${text} ${extra.replace(/<[^>]+>/g, '')}`.trim() } });
     addLog(store.gmData(), `Floor ${sess.floor || 1}: ${name}. ${extra.replace(/<[^>]+>/g, '')}`);
   };
+  // her ask 11-07: Traps has its own section: a random roll, the full list with a search, and "tell the players"
+  const trapHTML = (t) => `<div class="big"><a href="#" data-ix="${esc(t.id)}">${esc(t.name)}</a></div><p class="small">${esc(t.outcome || '')}</p><p class="small muted">${esc(t.roll || '')}</p>`;
+  const setTrap = (t) => { store.gmSet('lastTrap', { html: trapHTML(t), say: { title: 'Trap!', text: `${t.name}: ${t.outcome || ''}` } }); addLog(store.gmData(), `Floor ${sess.floor || 1}: trap — ${t.name}`); };
+  const allTraps = async () => (await loadIndex()).list.filter((e) => e.kind === 'Trap' && !/^(Detect|Disarm|Avoid|Resist)/.test(e.name));
   s('#trap').onclick = async () => {
-    const ix = await loadIndex(); const traps = ix.list.filter((e) => e.kind === 'Trap' && !/^(Detect|Disarm|Avoid|Resist)/.test(e.name));
-    const t = traps[die(traps.length) - 1];
-    store.gmSet('lastEvent', { html: `<div class="big"><a href="#" data-ix="${esc(t.id)}">${esc(t.name)}</a></div><p class="small">${esc(t.outcome)}</p><p class="small muted">${esc(t.roll || '')}</p>`, say: { title: 'Trap!', text: `${t.name}: ${t.outcome}` } });
+    let traps = await allTraps(); if (s('#trapkind').checked) traps = traps.filter((t) => !/Doom|Hunger|Vile|faint|knock(ed)? out/i.test(`${t.name} ${t.outcome}`));
+    setTrap(traps[die(traps.length) - 1]);
   };
+  if (s('#traprev')) s('#traprev').onclick = () => { store.pushLimited('reveal', { t: Date.now(), ...store.gmData().lastTrap.say }); toast('Shown to players'); };
+  allTraps().then((traps) => {
+    const box = s('#traplist'); if (!box) return;
+    const draw = () => { const q = (s('#trapq')?.value || '').toLowerCase(); const list = traps.filter((t) => !q || `${t.name} ${t.outcome}`.toLowerCase().includes(q));
+      box.innerHTML = list.map((t) => `<div class="trap-row"><span class="grow"><b>${esc(t.name)}</b><span class="small muted"> ${esc(t.outcome || '')}</span></span><button class="btn alt sm" data-usetrap="${esc(t.id)}">Use</button></div>`).join('') || '<p class="small muted">No trap by that name.</p>';
+      $$('[data-usetrap]', box).forEach((b) => b.onclick = () => setTrap(traps.find((t) => t.id === b.dataset.usetrap))); };
+    s('#trapq').oninput = draw; draw();
+  });
 
   if (s('#evrev')) s('#evrev').onclick = () => { store.pushLimited('reveal', { t: Date.now(), ...store.gmData().lastEvent.say }); toast('Shown to players'); };
 
@@ -538,7 +560,7 @@ Guildmaster Beautifly</textarea></label>
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6aef9c9b');
+    const { openTable } = await import('./app.js?v=6aefabe8');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));

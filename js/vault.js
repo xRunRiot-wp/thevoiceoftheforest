@@ -1,14 +1,14 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6aef9c9b';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6aef9c9b';
-import { GUILDS2, guildName, shopShortcuts } from './guild.js?v=6aef9c9b';
-import { addItem, me } from './play.js?v=6aef9c9b';
-import { ixLink } from './effects.js?v=6aef9c9b';
-import { gmTodo, guildSay } from './chatter.js?v=6aef9c9b';
-import { DECOR } from './basedecor.js?v=6aef9c9b';
-import { palette } from './theme.js?v=6aef9c9b';
-import { modal, closeModal } from './ui.js?v=6aef9c9b';
+import * as store from './store.js?v=6aefabe8';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6aefabe8';
+import { GUILDS2, guildName, shopShortcuts } from './guild.js?v=6aefabe8';
+import { addItem, me } from './play.js?v=6aefabe8';
+import { ixLink } from './effects.js?v=6aefabe8';
+import { gmTodo, guildSay } from './chatter.js?v=6aefabe8';
+import { DECOR } from './basedecor.js?v=6aefabe8';
+import { palette } from './theme.js?v=6aefabe8';
+import { modal, closeModal } from './ui.js?v=6aefabe8';
 
 // Each guild's own colours on this page, so players can tell at a glance whose storage they're looking at.
 const GUILD_TINT = { woodland: '#4f8a2e', vanguard: '#2f5fb8' };
@@ -201,4 +201,10 @@ export function donorBoardHTML() {
   const next = DONOR_RANKS.map(([n, ic, nm]) => `${ic} ${nm} ${n.toLocaleString()}`).join(' · ');
   return `<div class="donors"><span class="pix">Coffers supporters</span>${rows.length ? `<ol>${rows.map((d) => { const r = donorRank(d.best); return `<li>${r ? r[1] + ' ' : ''}<b>${esc(d.name || '?')}</b> <span class="small muted">${num(d.best).toLocaleString()} Poké${r ? ' · ' + r[2] : ''}</span></li>`; }).join('')}</ol>` : '<p class="small muted" style="margin:4px 0">Nobody yet. Be the first!</p>'}
     <p class="small muted" style="margin:4px 0 0">Give Poké to the coffers: a Secret Base thank-you gift every ${GIFT_EVERY} Poké, and a badge at ${next}.</p></div>`;
+}
+// her ask 11-07: the TV's Vault tile names the current best patron (whoever has given the coffers the most)
+export function topPatron() {
+  const d = Object.values(store.get('donors') || {}).filter((x) => num(x.best) > 0).sort((a, b) => num(b.best) - num(a.best))[0];
+  if (!d) return null; const r = donorRank(d.best);
+  return { name: d.name || '?', best: num(d.best), icon: r ? r[1] : '💛', title: r ? r[2] : 'Supporter' };
 }

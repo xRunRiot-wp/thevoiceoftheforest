@@ -6,9 +6,9 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6aef9c9b';
-import { esc } from './util.js?v=6aef9c9b';
-import { currentWeather, wxFxHTML } from './weather.js?v=6aef9c9b';
+import { loadIndex } from './effects.js?v=6aefabe8';
+import { esc } from './util.js?v=6aefabe8';
+import { currentWeather, wxFxHTML } from './weather.js?v=6aefabe8';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -142,7 +142,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
   const bots = [];
   rooms.forEach((rm) => rm.mons.forEach((m) => {
     const el = document.createElement('div'); el.className = 'fzs-mon';
-    el.innerHTML = `<div class="fzs-spr" style="width:${m.a.w * S}px;height:${m.a.h * S}px;background-image:url(${RAW}${m.d4}/Walk-Anim.png);background-size:${m.a.w * m.a.n * S}px ${m.a.h * 8 * S}px;--fw:${m.a.w * S}px;--n:${m.a.n};--ms:${m.a.ms}ms"></div><span class="fzs-tag" style="margin-top:${-Math.round(m.a.foot * S) - 2}px">${esc(m.label || m.name)}${m.by ? `<small class="fzs-by">Recruited by ${esc(m.by)}</small>` : ''}</span>`;
+    el.innerHTML = `<div class="fzs-spr" style="width:${m.a.w * S}px;height:${m.a.h * S}px;background-image:url(${m.walk || `${RAW}${m.d4}/Walk-Anim.png`});background-size:${m.a.w * m.a.n * S}px ${m.a.h * 8 * S}px;--fw:${m.a.w * S}px;--n:${m.a.n};--ms:${m.a.ms}ms"></div><span class="fzs-tag" style="margin-top:${-Math.round(m.a.foot * S) - 2}px">${esc(m.label || m.name)}${m.by ? `<small class="fzs-by">Recruited by ${esc(m.by)}</small>` : ''}</span>`;
     strip.appendChild(el);
     const b = { el, spr: el.firstChild, m, home: rm, room: rm, busy: false, w: m.a.w * S, h: m.a.h * S };
     b.spot = (r) => { const f = r.floor ?? 0.25; return [r.x + 4 + Math.random() * Math.max(2, r.w - b.w - 8), r.y + Math.max(14, r.h * f) + Math.random() * Math.max(2, r.h * (1 - f) - b.h - 24)]; };
@@ -151,7 +151,7 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     // which picture sheet the sprite shows: its walk, or (a digger standing still) its idle, out of the ground. The idle box is
     // padded so its feet land where the walk's feet were and the whole box keeps the walk's height
     b.sheet = (out) => { const a = out && m.a.idle ? m.a.idle : m.a; const st = b.spr.style; b.cur = a;
-      st.width = a.w * S + 'px'; st.height = a.h * S + 'px'; st.backgroundImage = `url(${RAW}${m.d4}/${a === m.a ? 'Walk' : 'Idle'}-Anim.png)`;
+      st.width = a.w * S + 'px'; st.height = a.h * S + 'px'; st.backgroundImage = `url(${a === m.a && m.walk ? m.walk : `${RAW}${m.d4}/${a === m.a ? 'Walk' : 'Idle'}-Anim.png`})`;   // m.walk: a dressed-up sheet (her ask 11-07: Pichu's blue scarf)
       st.backgroundSize = `${a.w * a.n * S}px ${a.h * 8 * S}px`; st.setProperty('--fw', a.w * S + 'px'); st.setProperty('--n', a.n); st.setProperty('--ms', a.ms + 'ms');
       st.marginTop = a === m.a ? '0' : ((m.a.h - m.a.foot) - (a.h - a.foot)) * S + 'px'; st.marginBottom = a === m.a ? '0' : (m.a.foot - a.foot) * S + 'px';
       b.spr.classList.toggle('idling', a !== m.a); };
