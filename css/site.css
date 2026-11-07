@@ -2592,3 +2592,28 @@ body[data-tv] .tv-nparty .nursery-room { min-height: calc(100vh - 170px); }
 .tv-mini { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 4px 8px; border-radius: 6px; background: rgba(0, 0, 0, .22); color: #fff !important; text-decoration: none; font-size: clamp(11px, .85vw, 16px); }
 .tv-mini small { grid-column: 1 / -1; opacity: .85; font-weight: 400; }
 .tv-mini:hover { background: rgba(0, 0, 0, .35); }
+
+/* her ask 11-07: GM enemy builder (area tiles -> pick Pokémon -> rank -> rolled sheets) and the enemy battle board */
+.eb-areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.eb-area { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border: 2px solid var(--cream3); border-radius: 12px; background: var(--paper); color: var(--ink); font: inherit; cursor: var(--cur-link, pointer); text-align: center; }
+.eb-area span { font-size: 28px; line-height: 1; } .eb-area b { font-size: 13px; line-height: 1.2; } .eb-area small { color: var(--muted); }
+.eb-area:hover { border-color: var(--orange); }
+.eb-mons { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; max-height: 50vh; overflow-y: auto; margin: 6px 0; }
+.eb-mon { position: relative; display: flex; align-items: center; gap: 6px; padding: 4px 6px; border: 2px solid var(--cream3); border-radius: 10px; background: var(--paper); color: var(--ink); font: inherit; font-size: 13px; cursor: var(--cur-link, pointer); text-align: left; }
+.eb-mon.on { border-color: var(--orange); background: var(--cream2); }
+.eb-n { margin-left: auto; color: var(--orange-d); }
+.eb-minus { position: absolute; top: -8px; right: -6px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--bad, #b8322a); color: #fff; font-weight: 700; }
+.eb-foot { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; position: sticky; bottom: 0; background: var(--paper); padding-top: 6px; }
+.eb-rolled { display: grid; gap: 8px; max-height: 60vh; overflow-y: auto; }
+.eb-card { display: flex; gap: 8px; align-items: flex-start; padding: 8px; border: 2px solid var(--cream3); border-radius: 12px; background: var(--paper); }
+.eboard { margin-top: 12px; }
+.eboard h3 { margin: 0 0 6px; }
+.eb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.eb-fight { padding: 8px; border: 2px solid var(--brown2); border-radius: 12px; background: var(--paper); }
+.eb-fight.down { opacity: .55; filter: grayscale(.6); }
+.eb-bar { display: grid; grid-template-columns: auto 1fr auto auto; gap: 6px; align-items: center; margin-top: 6px; font-size: 13px; }
+.eb-bar .n-bar { height: 10px; border-radius: 99px; background: var(--cream3); overflow: hidden; }
+.eb-bar .n-bar i { display: block; height: 100%; background: #4caf50; }
+.eb-bar.will .n-bar i { background: #e08a1f; }
+.eb-acts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.eb-res { margin-top: 6px; font-size: 13px; }

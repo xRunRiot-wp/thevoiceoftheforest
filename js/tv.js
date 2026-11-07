@@ -1,16 +1,16 @@
 // her ask 11-07: TV display mode for in-person sessions. A home screen of big flat tiles (Echo Show / Windows 8 feel)
 // around the Friend Zone, and an overview panel that stays at the side on every page. Turned on in Settings, per device.
 // This screen faces the whole table, so nothing here may show hidden missions or other GM-only data.
-import * as store from './store.js?v=6aef99b5';
-import { $, esc, num } from './util.js?v=6aef99b5';
-import { tvMode, openSettings } from './theme.js?v=6aef99b5';
-import { renderFriendZone, locations } from './friendzone.js?v=6aef99b5';
-import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6aef99b5';
-import { renderMessHall } from './play.js?v=6aef99b5';
-import { renderNurseryParty } from './nursery.js?v=6aef99b5';
-import { chatterLatestHTML } from './chatter.js?v=6aef99b5';
-import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6aef99b5';
-import { sitePages } from './sitepages.js?v=6aef99b5';
+import * as store from './store.js?v=6aef9ad5';
+import { $, esc, num } from './util.js?v=6aef9ad5';
+import { tvMode, openSettings } from './theme.js?v=6aef9ad5';
+import { renderFriendZone, locations } from './friendzone.js?v=6aef9ad5';
+import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6aef9ad5';
+import { renderMessHall } from './play.js?v=6aef9ad5';
+import { renderNurseryParty } from './nursery.js?v=6aef9ad5';
+import { chatterLatestHTML } from './chatter.js?v=6aef9ad5';
+import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6aef9ad5';
+import { sitePages } from './sitepages.js?v=6aef9ad5';
 
 // her ask 11-07: the Guild tile carries a mini menu with both guilds' GP and rank (moved off the side panel)
 const guildMini = () => ['woodland', 'vanguard'].map((k) => { const g = store.get(k === 'vanguard' ? 'vanguard' : 'guild') || {}; const r = rankFor(num(g.gp));
