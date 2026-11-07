@@ -3,10 +3,10 @@
 // watching/<player>/<watcher> (refreshed every 30 s) and only then does the player's device stream: canvas games send a small
 // picture ~6 times a second, the dance sends its board. The stream goes to a side table (tables/<code>-live/<id>) so it never
 // wakes up everyone else's pages.
-import { CONFIG } from './config.js?v=6aef4d5d';
-import * as store from './store.js?v=6aef4d5d';
-import { $, esc, num } from './util.js?v=6aef4d5d';
-import { modal, closeModal } from './ui.js?v=6aef4d5d';
+import { CONFIG } from './config.js?v=6aef8dd0';
+import * as store from './store.js?v=6aef8dd0';
+import { $, esc, num } from './util.js?v=6aef8dd0';
+import { modal, closeModal } from './ui.js?v=6aef8dd0';
 
 const FRESH = 90e3; const FRAME_MS = 160;
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };

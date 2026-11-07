@@ -1,27 +1,28 @@
-import { CONFIG } from './config.js?v=6aef4d5d';
-import * as store from './store.js?v=6aef4d5d';
-import * as sheet from './sheetdata.js?v=6aef4d5d';
-import { $, $$, esc, uid, toast } from './util.js?v=6aef4d5d';
-import { unlockChar, charOpen, pinOf, askForPin } from './charlock.js?v=6aef4d5d';
-import { closeModal, maxHp } from './ui.js?v=6aef4d5d';
-import { renderJoin, renderPlay } from './play.js?v=6aef4d5d';
-import { renderGM } from './gm.js?v=6aef4d5d';
-import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6aef4d5d';
-import { renderRules } from './rulebook.js?v=6aef4d5d';
-import { renderVault } from './vault.js?v=6aef4d5d';
-import { renderGames } from './games.js?v=6aef4d5d';
-import { updateHotbar } from './hotbar.js?v=6aef4d5d';
-import { applyTheme, openSettings } from './theme.js?v=6aef4d5d';
-import { weatherTick, updateWeatherChip } from './weather.js?v=6aef4d5d';
-import { resolveFortunes } from './fortune.js?v=6aef4d5d';
-import { updateSparkle } from './sparkle.js?v=6aef4d5d';
-import { startDigCursor } from './digcursor.js?v=6aef4d5d';
-import { renderFriendZone } from './friendzone.js?v=6aef4d5d';
-import { renderGym } from './gym.js?v=6aef4d5d';
-import { placeGimmighoul } from './gimmighoul.js?v=6aef4d5d';
-import { startFriends } from './friends.js?v=6aef4d5d';
-import { startInstall } from './install.js?v=6aef4d5d';
-import { maybeTour } from './tour.js?v=6aef4d5d';
+import { CONFIG } from './config.js?v=6aef8dd0';
+import * as store from './store.js?v=6aef8dd0';
+import * as sheet from './sheetdata.js?v=6aef8dd0';
+import { $, $$, esc, uid, toast } from './util.js?v=6aef8dd0';
+import { unlockChar, charOpen, pinOf, askForPin } from './charlock.js?v=6aef8dd0';
+import { closeModal, maxHp } from './ui.js?v=6aef8dd0';
+import { renderJoin, renderPlay } from './play.js?v=6aef8dd0';
+import { renderGM } from './gm.js?v=6aef8dd0';
+import { renderGuild, renderMerchant, renderShop } from './guild.js?v=6aef8dd0';
+import { renderRules } from './rulebook.js?v=6aef8dd0';
+import { renderVault } from './vault.js?v=6aef8dd0';
+import { renderGames } from './games.js?v=6aef8dd0';
+import { updateHotbar } from './hotbar.js?v=6aef8dd0';
+import { applyTheme, openSettings, tvMode } from './theme.js?v=6aef8dd0';
+import { renderTV, updateTvSide } from './tv.js?v=6aef8dd0';
+import { weatherTick, updateWeatherChip } from './weather.js?v=6aef8dd0';
+import { resolveFortunes } from './fortune.js?v=6aef8dd0';
+import { updateSparkle } from './sparkle.js?v=6aef8dd0';
+import { startDigCursor } from './digcursor.js?v=6aef8dd0';
+import { renderFriendZone } from './friendzone.js?v=6aef8dd0';
+import { renderGym } from './gym.js?v=6aef8dd0';
+import { placeGimmighoul } from './gimmighoul.js?v=6aef8dd0';
+import { startFriends } from './friends.js?v=6aef8dd0';
+import { startInstall } from './install.js?v=6aef8dd0';
+import { maybeTour } from './tour.js?v=6aef8dd0';
 
 const main = $('#main');
 let current = '';
@@ -72,7 +73,7 @@ function navHTML(active) {
 }
 
 function statusChip() {
-  applyTheme();
+  applyTheme(); updateTvSide(current);
   const sc = $('#setchip'); if (sc && !sc.onclick) sc.onclick = openSettings;
   const cog = $('#setcog'); if (cog && !cog.onclick) cog.onclick = openSettings;   // phones: just the cog beside the Table box
   // header "join a table" box: type a code, press Join (or Enter); opens that table and asks who you're playing
@@ -106,12 +107,12 @@ function statusChip() {
 async function route() {
   closeModal();
   const [path, ...rest] = (location.hash.replace(/^#\/?/, '') || '').split('/');
-  let page = path || 'join'; // the bare link always opens the home page; Play remembers your character
+  let page = path || (tvMode() ? 'tv' : 'join'); // the bare link always opens the home page; Play remembers your character
   if (page === 'play' && !joined()) page = 'join';
   current = page;
   $('#tabs').innerHTML = navHTML(page === 'join' ? 'play' : ['friends', 'merchant', 'shop', 'gym'].includes(page) ? 'guild' : page);   // Friend Zone lives under Guild
   window.scrollTo(0, 0);
-  const render = { join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, merchant: renderMerchant, shop: renderShop, gym: renderGym, vault: renderVault, games: renderGames, friends: renderFriendZone, rules: renderRules }[page] || renderJoin;
+  const render = { tv: renderTV, join: renderJoin, play: renderPlay, gm: renderGM, guild: renderGuild, merchant: renderMerchant, shop: renderShop, gym: renderGym, vault: renderVault, games: renderGames, friends: renderFriendZone, rules: renderRules }[page] || renderJoin;
   rerender = async () => { await render(main, rest); placeGimmighoul(page, rest.filter(Boolean).join('/')); };
   await rerender();
   statusChip(); updateHotbar();

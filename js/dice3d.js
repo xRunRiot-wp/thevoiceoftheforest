@@ -1,8 +1,9 @@
 // 3D dice: every d6 roll on this device plays as tumbling dice over the screen, then shows the result.
 // Results always come from the site's own roller; the animation just lands each die on its value.
-// Skins are per device (each player picks their own) and saved in this browser.
-import { $, $$, esc } from './util.js?v=6aef4d5d';
-import { modal } from './ui.js?v=6aef4d5d';
+// Each player picks their own skin. her ask 11-07: it's saved on the character so it matches on every browser; this browser's copy is only the fallback.
+import { $, $$, esc } from './util.js?v=6aef8dd0';
+import { modal } from './ui.js?v=6aef8dd0';
+import * as store from './store.js?v=6aef8dd0';
 
 const THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 const KEY = 'dc.dice';
@@ -27,16 +28,24 @@ export const PRESETS = {
 };
 const STYLES = [['solid', 'Solid'], ['pokeball', 'Poké Ball band'], ['marble', 'Marble'], ['gem', 'Gem (see-through)'], ['metal', 'Metal'], ['wood', 'Wood'], ['timegear', 'Time Gear'], ['rune', 'Carved runes'], ['fall', 'Liquid with leaves']];
 
+const charPath = () => { try { const id = localStorage.getItem('dc.me.' + store.tableCode()); return id && store.get('party/' + id) ? `party/${id}/prefs/dice` : ''; } catch { return ''; } };
+const charSkin = () => { const p = charPath(); return p ? store.get(p) : null; };
 export function skin() {
   let s = {};
   try { s = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { /* private mode */ }
+  s = charSkin() || s;
   const out = { on: true, preset: 'classic', ...PRESETS.classic, numbers: false, ...s };
   // dice sets are unlocked per player (theme.js sets window.diceAllowed); a locked set falls back to Classic
   const ok = window.diceAllowed;
   if (ok && !ok.has(out.preset in PRESETS ? out.preset : 'custom')) return { ...out, preset: 'classic', ...PRESETS.classic };
   return out;
 }
-function saveSkin(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* ignore */ } }
+let skinTimer = 0;
+function saveSkin(s) {
+  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* ignore */ }
+  // short wait so dragging a colour slider doesn't send every step
+  clearTimeout(skinTimer); const p = charPath(); if (p) skinTimer = setTimeout(() => store.set(p, s), 400);
+}
 
 let threeP = null;
 function loadThree() {

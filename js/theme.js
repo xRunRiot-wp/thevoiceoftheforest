@@ -1,15 +1,15 @@
 // Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
 // and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
-import { CURSORS, REWARD_CURSORS, cursorKind, cursorChoices, setCursorKind, refreshCursor } from './digcursor.js?v=6aef4d5d';
-import * as store from './store.js?v=6aef4d5d';
-import { $, $$, esc, toast } from './util.js?v=6aef4d5d';
-import { giftNote } from './mailbox.js?v=6aef4d5d';
-import { unlockChar } from './charlock.js?v=6aef4d5d';
-import { modal, closeModal, portrait } from './ui.js?v=6aef4d5d';
-import { skinPicker } from './dice3d.js?v=6aef4d5d';
-import { appSection, wireAppSection } from './install.js?v=6aef4d5d';
-import { openTour } from './tour.js?v=6aef4d5d';
-import { setLeafFall } from './leaffall.js?v=6aef4d5d';
+import { CURSORS, REWARD_CURSORS, cursorKind, cursorChoices, setCursorKind, refreshCursor } from './digcursor.js?v=6aef8dd0';
+import * as store from './store.js?v=6aef8dd0';
+import { $, $$, esc, toast } from './util.js?v=6aef8dd0';
+import { giftNote } from './mailbox.js?v=6aef8dd0';
+import { unlockChar } from './charlock.js?v=6aef8dd0';
+import { modal, closeModal, portrait } from './ui.js?v=6aef8dd0';
+import { skinPicker } from './dice3d.js?v=6aef8dd0';
+import { appSection, wireAppSection } from './install.js?v=6aef8dd0';
+import { openTour } from './tour.js?v=6aef8dd0';
+import { setLeafFall } from './leaffall.js?v=6aef8dd0';
 
 export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
   Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',
@@ -67,11 +67,19 @@ export function setSheetOnly(on) {
   try { localStorage.setItem('dc.sheetonly', on ? '1' : ''); } catch { /* ignore */ }
   document.body.toggleAttribute('data-sheetonly', on);
 }
+// her ask 11-07: TV display mode (per device): the home screen and side overview live in tv.js
+export const tvMode = () => { try { return localStorage.getItem('dc.tv') === '1'; } catch { return false; } };
+export function setTvMode(on) {
+  try { localStorage.setItem('dc.tv', on ? '1' : ''); } catch { /* ignore */ }
+  document.body.toggleAttribute('data-tv', on);
+}
 export function applyTheme() {
   document.body.toggleAttribute('data-sheetonly', sheetOnly());
+  document.body.toggleAttribute('data-tv', tvMode());
   window.diceAllowed = store.gmUnlocked() ? null : diceUnlocked();
   { const c = me(); window.cursorAllowed = store.gmUnlocked() ? null : new Set(c && Array.isArray(c.cursors) ? c.cursors : []); refreshCursor(); }
-  let k = 'woodland'; try { k = localStorage.getItem(KEY()) || 'woodland'; } catch { /* default */ }
+  // her ask 11-07: the theme is saved on the character, so it matches on every browser; this browser's own choice is only the fallback
+  let k = me()?.prefs?.theme || 'woodland'; if (!me()?.prefs?.theme) { try { k = localStorage.getItem(KEY()) || 'woodland'; } catch { /* default */ } }
   if (!unlocked().includes(k)) k = 'woodland';
   const root = document.documentElement; const vars = THEMES[k].vars || {};
   for (const v of Object.keys(THEMES['type-fire'].vars)) root.style.removeProperty(v);
@@ -79,7 +87,7 @@ export function applyTheme() {
   root.dataset.theme = k;
   setLeafFall(k === 'fall');
 }
-const setTheme = (k) => { try { localStorage.setItem(KEY(), k); } catch { /* ignore */ } applyTheme(); };
+const setTheme = (k) => { try { localStorage.setItem(KEY(), k); } catch { /* ignore */ } if (me()) store.set(`party/${meId()}/prefs/theme`, k); applyTheme(); };
 
 const swatch = (t) => `<span class="th-sw">${t.swatch.map((c) => `<i style="background:${c}"></i>`).join('')}</span>`;
 
@@ -93,6 +101,8 @@ export function openSettings() {
     <h3 style="margin-top:14px">🎲 Dice skin</h3><p class="small muted">How your 3D dice look when you roll. You start with Classic, Poké Ball and your type’s set; the GM hands out more as rewards.</p><button class="btn alt" id="setdice">Change dice skin</button>
     <h3 style="margin-top:14px">📄 Character sheet only</h3>
     <label class="check"><input type="checkbox" id="setsheetonly" ${sheetOnly() ? 'checked' : ''}> Just show my stats, moves and items. Hides the roll buttons, actions and extras, for players who roll at the table or on Roll20. (This device only.)</label>
+    <h3 style="margin-top:14px">📺 TV display mode</h3>
+    <label class="check"><input type="checkbox" id="settv" ${tvMode() ? 'checked' : ''}> For showing the game on a TV at the table: big buttons around the Friend Zone, with the guild and mission overview always at the side. Opens this way every time. (This device only.)</label>
     <h3 style="margin-top:14px">🖱️ Cursor</h3><p class="small muted">Who follows your mouse around the site. (This device only; phones don't show it.)</p>
     <div class="themes">${cursorChoices().map((k) => [k, CURSORS[k]]).map(([k, n]) => `<button class="th ${k === cursorKind() ? 'sel' : ''}" data-cur="${k}"><span>${esc(n)}</span></button>`).join('')}</div>
     <h3 style="margin-top:14px">🎨 Theme</h3>
@@ -127,6 +137,7 @@ export function openSettings() {
   $('#settour', el).onclick = () => openTour(c?.id);
   wireAppSection(el);
   $('#setsheetonly', el).onchange = (e) => { setSheetOnly(e.target.checked); window.dispatchEvent(new Event('refreshpage')); };
+  $('#settv', el).onchange = (e) => { setTvMode(e.target.checked); closeModal(); location.hash = e.target.checked ? '#/tv' : '#/play'; };
   $$('[data-cur]', el).forEach((b) => b.onclick = () => { setCursorKind(b.dataset.cur); $$('[data-cur]', el).forEach((x) => x.classList.toggle('sel', x === b)); });
   $$('[data-th]', el).forEach((b) => b.onclick = () => { setTheme(b.dataset.th); $$('[data-th]', el).forEach((x) => x.classList.toggle('sel', x === b)); });
   const gd = $('#gdgo', el);
