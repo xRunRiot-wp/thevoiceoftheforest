@@ -2574,3 +2574,21 @@ body[data-tvhome] main { padding: var(--tvgap); }
 .tv-trk b { display: block; font-size: 14px; line-height: 1.2; }
 #tvside .nextrank { color: var(--ink); }
 #tvside .trk-by.tv-chip { background: var(--cream2); color: var(--ink); border: 1px solid var(--cream3); }
+
+/* her ask 11-07 (TV mode): the whole nursery on one playdate */
+.np-room { min-height: min(62vh, 640px); align-items: flex-start; }
+.np-nests { position: absolute; left: 0; right: 0; top: 14px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; z-index: 1; }
+.np-egg { position: relative; display: flex; flex-direction: column; align-items: center; transform: scale(1.1); transform-origin: top center; margin-bottom: -36px; }
+.np-egg .np-tag { position: static; translate: none; margin-top: -6px; }
+.np-pet .np-tag { position: absolute; left: 50%; top: 100%; translate: -50% 0; white-space: nowrap; }
+#tvside .tv-chatter .gboard { margin: 0; padding: 8px; color: var(--ink); }
+#tvside .tv-chatter h3 { font-size: 16px; margin: 0; }
+#tvside .tv-chatter .gb-more { display: none; }
+.tv-page { padding: 10px; }
+body[data-tv] .tv-nparty .nursery-room { min-height: calc(100vh - 170px); }
+.tv-guild { justify-content: space-between; }
+.tv-gmain { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #fff !important; text-decoration: none; }
+.tv-minis { display: grid; gap: 6px; width: 100%; }
+.tv-mini { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 4px 8px; border-radius: 6px; background: rgba(0, 0, 0, .22); color: #fff !important; text-decoration: none; font-size: clamp(11px, .85vw, 16px); }
+.tv-mini small { grid-column: 1 / -1; opacity: .85; font-weight: 400; }
+.tv-mini:hover { background: rgba(0, 0, 0, .35); }
