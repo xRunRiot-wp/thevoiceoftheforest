@@ -7,15 +7,15 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6af09330';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6af09330';
-import { me, logRoll } from './play.js?v=6af09330';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6af09330';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6af09330';
-import { markWinner } from './sparkle.js?v=6af09330';
-import { pageMusic, visitMusic, muted } from './chiptune.js?v=6af09330';
-import { modal, closeModal } from './ui.js?v=6af09330';
-import { MIMIC } from './mimicdata.js?v=6af09330';
+import * as store from './store.js?v=6af0a616';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6af0a616';
+import { me, logRoll } from './play.js?v=6af0a616';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6af0a616';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6af0a616';
+import { markWinner } from './sparkle.js?v=6af0a616';
+import { pageMusic, visitMusic, muted, tempMusic } from './chiptune.js?v=6af0a616';
+import { modal, closeModal } from './ui.js?v=6af0a616';
+import { MIMIC } from './mimicdata.js?v=6af0a616';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -703,7 +703,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6af09330').catch(() => null);
+  const fz = import('./fzscene.js?v=6af0a616').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2, 'right', false, !!c.shiny)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
@@ -896,18 +896,45 @@ export function renderNurseryParty(main) {
     <div class="nursery-room tod-${tod()} np-room"><div class="n-sky" aria-hidden="true"><i></i><i></i><i></i></div>${wxFxHTML(wx().key)}
       <div class="np-nests">${eggs.map(([id, b]) => `<div class="np-egg">${nestHTML(eggHTML(b))}<span class="pet-tag front np-tag">${esc(party[id].nickname)}’s egg</span></div>`).join('')}</div>
       ${babies.map(([id]) => `<div class="pet np-pet" data-np="${esc(id)}"><span class="baby-spr"></span><span class="pet-tag np-tag"></span></div>`).join('')}
-    </div></div>`;
+    </div>
+    <div class="np-btns"><button class="btn" data-npa="feed">🍓 Feed everyone</button><button class="btn" data-npa="play">🧸 Play</button><button class="btn" data-npa="party">📻 Boombox party</button><button class="btn" data-npa="spring">♨️ Hot spring</button><button class="btn alt" id="nmusic"></button></div></div>`;
   const roomEl = $('.np-room', main);
-  for (const [id, b] of babies) startPartyPet(roomEl, $(`[data-np="${CSS.escape(id)}"]`, main), b, b.name || `${party[id].nickname}’s ${BABIES[b.sp].name}`);
+  babies.forEach(([id, b], i) => startPartyPet(roomEl, $(`[data-np="${CSS.escape(id)}"]`, main), b, b.name || `${party[id].nickname}’s ${BABIES[b.sp].name}`, i, id));
   if (all.length) partyBeatrice(roomEl);
+  // her ask 11-08: a new tune for the TV nursery, and four buttons that make everyone do something together
+  pageMusic(main, 'playdate', 'nmusic', { rain: wx().key === 'typhoon' ? 'heavy' : wx().key === 'rain' ? 'light' : '' });
+  const btns = $$('[data-npa]', main); let going = false;
+  const cap = (t) => { let c = $('.duo-cap', roomEl); if (!c) { c = document.createElement('div'); c.className = 'duo-cap'; roomEl.appendChild(c); } c.textContent = t; c.classList.remove('show'); void c.offsetWidth; c.classList.add('show'); };
+  btns.forEach((bt) => bt.onclick = async () => {
+    if (going) return;
+    if (!all.length) return cap('The nursery is empty… no eggs or babies yet!');
+    if (!babies.length) return cap('Only eggs so far. Nothing to do until they hatch!');
+    if (asleep()) return cap('Shh… everyone’s fast asleep. Try again in the morning!');
+    going = true; btns.forEach((x) => { x.disabled = true; });
+    const k = bt.dataset.npa; const pets = $$('.np-pet', main);
+    try {
+      if (k === 'feed') { cap('Beatrice: “Snack time, everyone!”'); await Promise.all(pets.map((p) => p.npAct?.('feed'))); }
+      else if (k === 'play') { cap('Playtime! Everyone grab a toy!'); await Promise.all(pets.map((p) => p.npAct?.('play'))); }
+      else if (k === 'party') {
+        cap('📻 Boombox party!'); tempMusic('party', 22000);
+        roomEl.insertAdjacentHTML('beforeend', '<img class="prop boombox thump np-boom" src="assets/nursery/toy_boombox.png" alt="Boombox">');
+        $$('.egg', main).forEach((e) => { e.classList.remove('wiggle'); void e.offsetWidth; e.classList.add('wiggle'); });
+        await Promise.all(pets.map((p) => p.npAct?.('party'))); $('.np-boom', roomEl)?.remove();
+      } else {
+        cap('♨️ Off to the nearest hot spring!'); roomEl.insertAdjacentHTML('beforeend', '<div class="np-spring"><i></i><i></i><i></i><i></i></div>');
+        await wait(900); await Promise.all(pets.map((p) => p.npAct?.('spring'))); $('.np-spring', roomEl)?.classList.add('fade'); await wait(900); $('.np-spring', roomEl)?.remove();
+      }
+      cap('All done! Everyone looks happy. 💕');
+    } finally { going = false; btns.forEach((x) => { x.disabled = false; }); }
+  });
 }
-function startPartyPet(roomEl, pet, b, label) {
+function startPartyPet(roomEl, pet, b, label, idx = 0, ownerId = '') {
   const B = BABIES[b.sp]; const spr = $('.baby-spr', pet); if (!B || !spr) return;
   // her ask 11-07: the same size as in the nursery itself (scaling them up made them blurry)
   const S = SIZE[b.stage] || 3; const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
   spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${b.sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
   spr.innerHTML = accHTML(b, pw, ph); $('.pet-tag', pet).textContent = label;
-  pet.style.width = pw + 'px'; pet.style.height = ph + 'px'; pet.style.bottom = Math.round(10 + Math.random() * 50) + 'px';
+  pet.style.width = pw + 'px'; pet.style.height = ph + 'px'; pet.style.bottom = (26 + (idx % 4) * 16 + Math.round(Math.random() * 6)) + 'px';
   const alive = () => pet.isConnected;
   const row = (name, loop = true, secs = null) => {
     const r = ROW[name]; const n = B.fr[r] || 1;
@@ -922,10 +949,40 @@ function startPartyPet(roomEl, pet, b, label) {
   const fx = (ch) => { const e = document.createElement('span'); e.className = 'pet-fx'; e.textContent = ch; e.style.left = (x + pw / 2 - 12) + 'px'; roomEl.appendChild(e); setTimeout(() => e.remove(), 1400); };
   const walkTo = async (tx) => { tx = Math.max(minX(), Math.min(maxX(), tx)); const d = Math.abs(tx - x); if (d < 4) return;
     row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / 70).toFixed(2)}s linear`; pet.style.left = tx + 'px'; x = tx; await wait(d / 70 * 1000); row('idle'); };
-  pet.onclick = async () => { row('hop', false); fx('💕'); cry(b); await wait(700); row('idle'); };
+  pet.onclick = async () => { if (pet.npBusy) return; row('hop', false); fx('💕'); cry(b); await wait(700); row('idle'); };
+  // her ask 11-08: the group buttons (feed / play / boombox party / hot spring). Feeding, playing and bathing count as real care.
+  const free = async (tx) => { const d = Math.abs(tx - x); if (d < 4) return; row(tx > x ? 'right' : 'left'); pet.style.transition = `left ${(d / 90).toFixed(2)}s linear`; pet.style.left = tx + 'px'; x = tx; await wait(d / 90 * 1000); row('idle'); };
+  const care = (k) => { const c = (store.get('party') || {})[ownerId]; if (c && ownerId) { try { act({ ...c, id: ownerId }, k); } catch { /* fine */ } } };
+  pet.npAct = async (what) => {
+    pet.npBusy = true; await wait(1300 + Math.random() * 500);
+    try {
+      if (what === 'feed') {
+        const full = stat(buddyOf(ownerId) || b, 'feed') >= 90; const berry = ['oran', 'sitrus', 'pecha', 'leppa'][Math.floor(Math.random() * 4)];
+        const bx = Math.max(20, Math.min(roomEl.clientWidth - 60, x + (Math.random() < 0.5 ? -1 : 1) * (pw + 30)));
+        roomEl.insertAdjacentHTML('beforeend', `<img class="prop np-berry" src="assets/items/${berry}-berry.png" alt="" style="left:${bx}px;bottom:${parseInt(pet.style.bottom, 10)}px">`);
+        const bry = roomEl.lastElementChild; await wait(600); await free(bx - pw / 2 + 16);
+        if (full) { fx('😑'); row(bx > x ? 'left' : 'right'); await wait(1200); bry.classList.add('fade'); } else { row('eat', true); bry.classList.add('eaten'); fx('😋'); await wait(1500); care('feed'); fx('💕'); row('hop', false); await wait(700); }
+        row('idle'); await wait(600); bry.remove();
+      } else if (what === 'play') {
+        const toys = Object.keys(b.acc || {}).filter((k) => ACC[k]?.[2] === 'toy'); const list = toys.length ? toys : [''];
+        const spots = list.map((k, i) => { const t = document.createElement('span'); t.className = 'np-toy'; t.innerHTML = k ? accIcon(k) : '<img class="prop ball" src="assets/nursery/ball.png" alt="">';
+          const tx = Math.max(12, Math.min(roomEl.clientWidth - 50, mid() + (i - (list.length - 1) / 2) * 60 + (Math.random() - 0.5) * 40)); t.style.left = tx + 'px'; t.style.bottom = pet.style.bottom; roomEl.appendChild(t); return [t, tx]; });
+        for (const [t, tx] of spots) { await free(tx - pw / 2 + 16); row('hop', false); t.classList.add('bounce'); fx(['⭐', '♪', '💕'][Math.floor(Math.random() * 3)]); await wait(900); row('idle'); }
+        care('play'); await wait(500); spots.forEach(([t]) => t.remove());
+      } else if (what === 'party') {
+        for (let i = 0; i < 12 && alive(); i++) { if (i % 4 === 3) await free(Math.max(10, Math.min(roomEl.clientWidth - pw - 10, x + (Math.random() - 0.5) * 160))); row(i % 2 ? 'nod' : 'hop', false); fx(['♪', '🎵', '♫', '💃'][i % 4], i % 2 ? 14 : -14); await wait(750); }
+        row('idle');
+      } else if (what === 'spring') {
+        const tx = mid() + (Math.random() - 0.5) * 300; await free(tx); pet.style.clipPath = 'inset(0 0 26% 0)';
+        row('sleep', true, 1.6); for (let i = 0; i < 4 && alive(); i++) { fx(i % 2 ? '♨️' : '😌'); await wait(1800); }
+        care('clean'); pet.style.clipPath = ''; row('hop', false); fx('💕'); await wait(800); row('idle');
+      }
+    } finally { pet.style.clipPath = ''; pet.npBusy = false; }
+  };
   (async () => {
     row('idle'); await wait(Math.random() * 2000);
     while (alive()) {
+      if (pet.npBusy) { await wait(400); continue; }
       if (asleep()) { row('sleep', true, 1.6); await wait(5000); continue; }
       const r = Math.random();
       if (r < 0.45) await walkTo(x + (Math.random() - 0.5) * 360);

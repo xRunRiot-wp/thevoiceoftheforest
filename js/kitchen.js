@@ -3,17 +3,17 @@
 // stirs it, and Spinda comes to taste. Good stew = dinner on time. Bad = Spinda spits it out and dinner is late.
 // REALLY REALLY good = it's served at dinner and the whole team gets a WHOLE TEAM effect from the recipe.
 // One stew a day for the guild. Recipes are GM-editable (content/recipes).
-import * as store from './store.js?v=6af09330';
-import { $, $$, esc, toast, num, uid, slug } from './util.js?v=6af09330';
-import { me, logRoll, addTeamFx } from './play.js?v=6af09330';
-import { dailyRoll, hash } from './weather.js?v=6af09330';
-import { gameSay, gmTodo } from './chatter.js?v=6af09330';
-import { markWinner } from './sparkle.js?v=6af09330';
-import { merged, editContent, saveContent, deleteContent } from './content-store.js?v=6af09330';
-import { modal, closeModal } from './ui.js?v=6af09330';
-import { ledger } from './vault.js?v=6af09330';
-import { faceHTML, faceSrc } from './sentry.js?v=6af09330';
-import { pageMusic } from './chiptune.js?v=6af09330';
+import * as store from './store.js?v=6af0a616';
+import { $, $$, esc, toast, num, uid, slug } from './util.js?v=6af0a616';
+import { me, logRoll, addTeamFx } from './play.js?v=6af0a616';
+import { dailyRoll, hash } from './weather.js?v=6af0a616';
+import { gameSay, gmTodo } from './chatter.js?v=6af0a616';
+import { markWinner } from './sparkle.js?v=6af0a616';
+import { merged, editContent, saveContent, deleteContent } from './content-store.js?v=6af0a616';
+import { modal, closeModal } from './ui.js?v=6af0a616';
+import { ledger } from './vault.js?v=6af0a616';
+import { faceHTML, faceSrc } from './sentry.js?v=6af0a616';
+import { pageMusic } from './chiptune.js?v=6af0a616';
 
 export const isKitchen = (g) => g.kind === 'kitchen' || g.id === 'spinda-kitchen';
 

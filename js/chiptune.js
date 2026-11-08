@@ -86,6 +86,16 @@ const CARAVAN_BARS = ['D', 'D', 'Gm', 'D', 'Cm', 'Gm', 'Eb', 'D'].map((c) => CV[
 const CARAVAN_BASS = CARAVAN_BARS.flatMap(([r]) => [r, 0, r + 7, 0, r, r, r + 7, 0]);
 const CARAVAN_ARP = CARAVAN_BARS.flatMap(([, a, b, c]) => [0, a + 12, 0, b + 12, 0, a + 12, 0, c + 12]);
 const CARAVAN_DRUMS = CARAVAN_BARS.flatMap((_, k) => (k === 7 ? ['k', 0, 's', 's', 'k', 's', 's', 's'] : ['k', 0, 0, 'k', 's', 0, 's', 0]));
+// Nursery Playdate (her ask 11-08: new nursery music): an original sunny little skip in C, a triangle lead, oom-pah bass
+// and plinky off-beat arpeggios. Party Time (the nursery boombox): a livelier tune in D with kick, snare and hats.
+const PLAY_LEAD = [72, 0, 76, 79, 76, 0, 72, 0, 69, 0, 72, 76, 72, 0, 69, 0, 65, 0, 69, 72, 77, 0, 72, 0, 67, 0, 71, 74, 79, 0, 74, 0,
+  76, 0, 79, 84, 79, 0, 76, 0, 81, 0, 79, 76, 72, 0, 76, 0, 77, 0, 76, 72, 69, 0, 72, 0, 74, 0, 71, 67, 72, 0, 0, 0];
+const PLAY_BARS = [[48, 55, [64, 67]], [45, 52, [64, 69]], [41, 48, [65, 69]], [43, 50, [62, 67]], [48, 55, [64, 67]], [45, 52, [64, 69]], [41, 48, [65, 69]], [43, 50, [62, 67]]];
+const PLAY_BASS = PLAY_BARS.flatMap(([r, f]) => [r, 0, f, 0, r, 0, f, 0]);
+const PLAY_ARP = PLAY_BARS.flatMap(([, , [a, b]]) => [0, 0, a + 12, 0, 0, 0, b + 12, 0]);
+const PARTY_LEAD = [74, 0, 78, 81, 78, 0, 74, 0, 79, 0, 83, 86, 83, 0, 79, 0, 81, 0, 85, 88, 85, 81, 0, 85, 86, 0, 81, 78, 74, 0, 0, 0];
+const PARTY_BASS = [38, 43, 45, 38].flatMap((r) => [r, 0, r + 12, 0, r, 0, r + 12, r]);
+const PARTY_DRUMS = [0, 1, 2, 3].flatMap((b) => (b === 3 ? ['k', 0, 's', 0, 'k', 's', 's', 's'] : ['k', 0, 's', 0, 'k', 0, 's', 0]));
 const SONGS = {
   battle: { bpm: 168, lead: BATTLE_LEAD, bass: BATTLE_BASS, drums: BATTLE_DRUMS, hat: 1, leadVol: 0.045, leadLen: 0.8 },
   dance: { bpm: 160, lead: LEAD, bass: BASS, hat: 2 },
@@ -95,6 +105,8 @@ const SONGS = {
   musicbox: { bpm: 84, lead: BOX_LEAD, bass: BOX_BASS, arp: BOX_ARP, bell: true },
   lab: { bpm: 128, lead: LAB_LEAD, bass: LAB_BASS, arp: LAB_ARP, drums: LAB_DRUMS, hat: 2, leadLen: 0.6, leadVol: 0.045, bubbles: true },
   caravan: { bpm: 132, lead: CARAVAN_LEAD, bass: CARAVAN_BASS, arp: CARAVAN_ARP, drums: CARAVAN_DRUMS, hat: 1, leadType: 'triangle', leadVol: 0.075, leadLen: 0.8 },
+  playdate: { bpm: 126, lead: PLAY_LEAD, bass: PLAY_BASS, arp: PLAY_ARP, hat: 4, leadType: 'triangle', leadVol: 0.07, leadLen: 0.7 },
+  party: { bpm: 152, lead: PARTY_LEAD, bass: PARTY_BASS, drums: PARTY_DRUMS, hat: 2, leadVol: 0.045, leadLen: 0.7 },
   celebi: { bpm: 100, lead: CELEBI_LEAD, bass: CELEBI_BASS, arp: CELEBI_ARP, bell: true },
   casino: { bpm: 116, lead: CASINO_LEAD, bass: CASINO_BASS, comp: CASINO_COMP, hat: 2, swing: 0.33, leadType: 'triangle', leadVol: 0.07 },
 };
@@ -269,7 +281,7 @@ export function cardSound(kind, delay = 0) {
 
 // a page's own background tune (the nursery): starts now if the visitor has tapped already, else on their first tap;
 // stops once the page's music button is gone (they left). Safe to call again when the page redraws.
-let pageSong = ''; let pageBtnId = ''; let pageRain = '';
+let tempSong = null; let pageSong = ''; let pageBtnId = ''; let pageRain = '';
 export function pageMusic(main, name, btnId, { rain = '' } = {}) {
   const btn = document.getElementById(btnId);
   if (btn) { btn.textContent = muted() ? '🔇 Music off' : '🔊 Music on'; btn.onclick = () => { const m = !muted(); setMuted(m); btn.textContent = m ? '🔇 Music off' : '🔊 Music on'; go(); }; }
@@ -278,7 +290,7 @@ export function pageMusic(main, name, btnId, { rain = '' } = {}) {
   if (pageSong === name) return;
   main.addEventListener('pointerdown', go, { once: true });
   if (navigator.userActivation?.hasBeenActive) go();
-  const leave = () => setTimeout(() => { if (document.getElementById(pageBtnId)) return; window.removeEventListener('hashchange', leave); if (pageSong) { if (song === SONGS[pageSong] || song === SONGS.celebi) stopMusic(); pageSong = ''; } }, 300);
+  const leave = () => setTimeout(() => { if (document.getElementById(pageBtnId)) return; window.removeEventListener('hashchange', leave); if (pageSong) { if (song === SONGS[pageSong] || song === SONGS.celebi || song === tempSong) stopMusic(); pageSong = ''; } }, 300);
   window.addEventListener('hashchange', leave);
 }
 // a visitor's tune in place of the page tune for a while (Celebi in the nursery); visitMusic() puts the page tune back
@@ -287,4 +299,9 @@ export function visitMusic(name = '') { if (!loop || !pageSong) return; startMus
 export function mailChime() {
   try { ensureAudio(); } catch { return; } if (!ctx || muted()) return; const t = ctx.currentTime + 0.05;
   [[84, 0], [88, 0.12], [91, 0.24], [96, 0.36]].forEach(([n, d]) => voice(N(n), t + d, 1.2, { type: 'sine', vol: 0.09, pan: d - 0.2, send: 0.5 }));
+}
+// a short tune in place of the page tune (the nursery boombox party), then the page tune comes back; silent when music is off
+export function tempMusic(name, ms = 30000) {
+  if (muted()) return; try { ensureAudio(); } catch { return; } startMusic(name); tempSong = SONGS[name];
+  setTimeout(() => { if (song !== tempSong) return; tempSong = null; if (pageSong && document.getElementById(pageBtnId)) startMusic(pageSong); else stopMusic(); }, ms);
 }
