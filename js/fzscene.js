@@ -6,9 +6,9 @@
 // Layouts: a camp with a map (MAPS below) is a grid of squares cut from that map (guild in the middle, 2x2); any other
 // camp is a row of cube rooms you swipe through.
 // Sprites are the PMD Explorers-style walk animations from SpriteCollab (by Pokédex number, looked up in the Index).
-import { loadIndex } from './effects.js?v=6af0a9b2';
-import { esc } from './util.js?v=6af0a9b2';
-import { currentWeather, wxFxHTML } from './weather.js?v=6af0a9b2';
+import { loadIndex } from './effects.js?v=6af0aa35';
+import { esc } from './util.js?v=6af0aa35';
+import { currentWeather, wxFxHTML } from './weather.js?v=6af0aa35';
 
 const RAW = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/';
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
@@ -115,11 +115,16 @@ export async function mountFzScene(box, cubes, mapId = '', solo = '') {
     rooms = [{ key: cubes[0].key, name: '', img: solo, x: 0, y: 0, w: size, h: size, floor: cubes[0].floor, mons: await withMons(cubes[0]) }];
     if (!box.isConnected) return;
   } else if (map) { // a grid of map squares; the cell size fits the screen (min 96px, up to 270px so it fills a computer screen too)
-    const cell = Math.max(96, Math.min(270, Math.floor(((box.clientWidth || 380) - 4) / 4))); S = cell < 120 ? 1.5 : 2;
+    // her ask 11-08 (TV): the map stretches to fill its whole box (squares become rectangles so no green strip is left under it)
+    const tvBox = box.classList.contains('tv-fz') ? box : box.closest('.tv-fz');
+    const cell = tvBox ? Math.max(96, Math.floor(((box.clientWidth || 380) - 4) / 4)) : Math.max(96, Math.min(270, Math.floor(((box.clientWidth || 380) - 4) / 4)));
+    const rowsN = Math.max(...map.map(([, , r, , span = 1]) => r + (Array.isArray(span) ? span[1] : span)));
+    const cellH = tvBox && tvBox.clientHeight > 100 ? Math.min(cell * 1.6, Math.max(cell * 0.7, Math.floor((tvBox.clientHeight - 14) / rowsN))) : cell;
+    S = Math.min(cell, cellH) < 120 ? 1.5 : 2;
     rooms = [];
     for (const [key, img, r, c, span = 1, label] of map) {
       const cube = cubes.find((x) => x.key === key); const [sw, sh] = Array.isArray(span) ? span : [span, span];
-      rooms.push({ key, name: label || cube?.name || '', img, locked: !!cube?.locked, x: Math.round(c * cell), y: Math.round(r * cell), w: Math.round(sw * cell), h: Math.round(sh * cell), mons: cube ? await withMons(cube) : [] });
+      rooms.push({ key, name: label || cube?.name || '', img, locked: !!cube?.locked, x: Math.round(c * cell), y: Math.round(r * cellH), w: Math.round(sw * cell), h: Math.round(sh * cellH), mons: cube ? await withMons(cube) : [] });
       if (!box.isConnected) return;
     }
     W = 4 * cell; H = Math.max(...rooms.map((x) => x.y + x.h));
