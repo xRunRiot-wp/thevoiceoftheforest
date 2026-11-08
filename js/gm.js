@@ -1,25 +1,25 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6af0e855';
-import * as sheet from './sheetdata.js?v=6af0e855';
-import { ledger } from './vault.js?v=6af0e855';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6af0e855';
-import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6af0e855';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6af0e855';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES, RANK_NAMES } from './content.js?v=6af0e855';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts, BADGE_FOR_RANK, beginnerCatchUp } from './play.js?v=6af0e855';
-import { giftNote } from './mailbox.js?v=6af0e855';
-import { guildResidents, palKey, rankOf } from './gym.js?v=6af0e855';
-import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6af0e855';
-import { merged, editContent } from './content-store.js?v=6af0e855';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6af0e855';
-import { CONFIG } from './config.js?v=6af0e855';
-import { gmGimmighoulHTML } from './gimmighoul.js?v=6af0e855';
-import { locations, spots, personalityTypes } from './friendzone.js?v=6af0e855';
-import { nurseryRecruits, nurseryJoined } from './nursery.js?v=6af0e855';
-import { lootMenuHTML, bindLootMenu } from './lootmenu.js?v=6af0e855';
-import { openEnemyBuilder, addToBattle, enemyBoardHTML, bindEnemyBoard } from './enemybuilder.js?v=6af0e855';
-import { rankFor, guildName } from './guild.js?v=6af0e855';
-import { gmPinsHTML, bindGmPins } from './charlock.js?v=6af0e855';
+import * as store from './store.js?v=6af1032f';
+import * as sheet from './sheetdata.js?v=6af1032f';
+import { ledger } from './vault.js?v=6af1032f';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6af1032f';
+import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6af1032f';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6af1032f';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES, RANK_NAMES } from './content.js?v=6af1032f';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts, BADGE_FOR_RANK, beginnerCatchUp } from './play.js?v=6af1032f';
+import { giftNote } from './mailbox.js?v=6af1032f';
+import { guildResidents, palKey, rankOf } from './gym.js?v=6af1032f';
+import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6af1032f';
+import { merged, editContent } from './content-store.js?v=6af1032f';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6af1032f';
+import { CONFIG } from './config.js?v=6af1032f';
+import { gmGimmighoulHTML } from './gimmighoul.js?v=6af1032f';
+import { locations, spots, personalityTypes } from './friendzone.js?v=6af1032f';
+import { nurseryRecruits, nurseryJoined } from './nursery.js?v=6af1032f';
+import { lootMenuHTML, bindLootMenu } from './lootmenu.js?v=6af1032f';
+import { openEnemyBuilder, addToBattle, enemyBoardHTML, bindEnemyBoard } from './enemybuilder.js?v=6af1032f';
+import { rankFor, guildName } from './guild.js?v=6af1032f';
+import { gmPinsHTML, bindGmPins } from './charlock.js?v=6af1032f';
 
 const PORTRAIT_LIST = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -165,8 +165,8 @@ export async function renderGM(main) {
       <label class="f">Name or title<input id="sttitle" placeholder="e.g. Chapter 2 recap, Sir Oakley, Mossy Hollow"></label>
     </div>
     <label class="f">What changed<textarea id="sttext" rows="5" placeholder="Write the update here…"></textarea></label>
-    <label class="check"><input type="checkbox" id="stpub" checked> Also show it on the website under the current chapter as <b>Critical information</b></label>
-    <div class="row" style="margin-top:8px"><button class="btn" id="stadd">Add update</button><button class="btn alt" id="stcopy">📋 Copy for ChatGPT</button></div>
+    <label class="check"><input type="checkbox" id="stpub"> Also show it on the website under the current chapter as <b>Critical information</b></label>
+    <div class="row" style="margin-top:8px"><button class="btn" id="stadd">Add update</button><button class="btn alt" id="stcopy">📋 Copy for ChatGPT</button><button class="btn alt" id="stclear">🧹 Clear all updates</button></div>
     <div id="stlist">${storyList(G.story)}</div>
   </section>
 
@@ -551,6 +551,12 @@ Guildmaster Beautifly</textarea></label>
     store.gmSet('story', [...(store.gmData().story || []), { id, kind, title, text, ts: Date.now(), ...(pub ? { pub: true, ch } : {}) }]);
     s('#sttext').value = ''; s('#sttitle').value = ''; stRedraw(); toast('Story update saved');
   };
+  // her ask 11-08: once the updates are in her ChatGPT, one tap clears the list (anything already shown on the website stays there)
+  s('#stclear').onclick = () => {
+    const n = (store.gmData().story || []).length; if (!n) { toast('The list is already empty'); return; }
+    if (!confirm(`Clear all ${n} update${n === 1 ? '' : 's'}? Only do this once they're in your ChatGPT. Critical information already on the website stays there.`)) return;
+    store.gmSet('story', []); stRedraw(); toast('Cleared');
+  };
   s('#stcopy').onclick = async () => {
     const list = store.gmData().story || []; if (!list.length) { toast('No updates yet'); return; }
     const out = ['Here are the latest updates to my Pokémon Mystery Dungeon campaign, "Voice of the Forest". Please add them to everything you know about the story:', ''];
@@ -594,7 +600,7 @@ Guildmaster Beautifly</textarea></label>
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6af0e855');
+    const { openTable } = await import('./app.js?v=6af1032f');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));
