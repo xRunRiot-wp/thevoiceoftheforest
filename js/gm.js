@@ -1,25 +1,25 @@
 // GM screen: run the session. Locked behind a GM passcode; GM-only data is encrypted with it.
-import * as store from './store.js?v=6af0aa35';
-import * as sheet from './sheetdata.js?v=6af0aa35';
-import { ledger } from './vault.js?v=6af0aa35';
-import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6af0aa35';
-import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6af0aa35';
-import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6af0aa35';
-import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES, RANK_NAMES } from './content.js?v=6af0aa35';
-import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts, BADGE_FOR_RANK, beginnerCatchUp } from './play.js?v=6af0aa35';
-import { giftNote } from './mailbox.js?v=6af0aa35';
-import { guildResidents, palKey, rankOf } from './gym.js?v=6af0aa35';
-import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6af0aa35';
-import { merged, editContent } from './content-store.js?v=6af0aa35';
-import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6af0aa35';
-import { CONFIG } from './config.js?v=6af0aa35';
-import { gmGimmighoulHTML } from './gimmighoul.js?v=6af0aa35';
-import { locations, spots, personalityTypes } from './friendzone.js?v=6af0aa35';
-import { nurseryRecruits, nurseryJoined } from './nursery.js?v=6af0aa35';
-import { lootMenuHTML, bindLootMenu } from './lootmenu.js?v=6af0aa35';
-import { openEnemyBuilder, addToBattle, enemyBoardHTML, bindEnemyBoard } from './enemybuilder.js?v=6af0aa35';
-import { rankFor, guildName } from './guild.js?v=6af0aa35';
-import { gmPinsHTML, bindGmPins } from './charlock.js?v=6af0aa35';
+import * as store from './store.js?v=6af0e855';
+import * as sheet from './sheetdata.js?v=6af0e855';
+import { ledger } from './vault.js?v=6af0e855';
+import { $, $$, esc, num, uid, clamp, die, roll, sum, pool, toast, download, timeAgo } from './util.js?v=6af0e855';
+import { WEATHERS, currentWeather, setWeather, startEvent, clearWeather } from './weather.js?v=6af0e855';
+import { portrait, bar, modal, closeModal, maxHp, diceFaces } from './ui.js?v=6af0e855';
+import { LOOT, DUNGEON_EVENTS, DUNGEON_TYPES, MISSION_GP, STATUSES, RANK_NAMES } from './content.js?v=6af0e855';
+import { combatOrder, orderList, partyStrip, diceLog, logRoll, viewCharacter, addItem, statVal, clearBoosts, BADGE_FOR_RANK, beginnerCatchUp } from './play.js?v=6af0e855';
+import { giftNote } from './mailbox.js?v=6af0e855';
+import { guildResidents, palKey, rankOf } from './gym.js?v=6af0e855';
+import { missionCard, askWhoDid, MISSION_SCHEMA, shop, SHOP_SCHEMA } from './guild.js?v=6af0e855';
+import { merged, editContent } from './content-store.js?v=6af0e855';
+import { loadIndex, ixLink, INDEX_SCHEMA } from './effects.js?v=6af0e855';
+import { CONFIG } from './config.js?v=6af0e855';
+import { gmGimmighoulHTML } from './gimmighoul.js?v=6af0e855';
+import { locations, spots, personalityTypes } from './friendzone.js?v=6af0e855';
+import { nurseryRecruits, nurseryJoined } from './nursery.js?v=6af0e855';
+import { lootMenuHTML, bindLootMenu } from './lootmenu.js?v=6af0e855';
+import { openEnemyBuilder, addToBattle, enemyBoardHTML, bindEnemyBoard } from './enemybuilder.js?v=6af0e855';
+import { rankFor, guildName } from './guild.js?v=6af0e855';
+import { gmPinsHTML, bindGmPins } from './charlock.js?v=6af0e855';
 
 const PORTRAIT_LIST = ['abra', 'swablu', 'aegislash', 'beedrill', 'castform', 'chandelure', 'cottonee', 'diglett', 'golett', 'hariyama', 'jangmoo', 'ludicolo', 'maushold', 'ralts', 'scolipede', 'tinkatink', 'beautifly', 'chatot', 'cleffa', 'ekans', 'gengar', 'groudon', 'kecleon', 'koffing', 'magnemite', 'medicham', 'mudkip', 'pikachu', 'riolu', 'skuntank', 'slakoth', 'sudowoodo', 'teddiursa', 'wigglytuff', 'wingull', 'zubat'];
 const ENEMY_SCHEMA = ['name', 'species', 'rank', 'hp', 'def', 'sdef', 'Strength', 'Dexterity', 'Special', 'Insight', 'Alert', 'Brawl', 'Channel', 'Evasion', 'Clash', 'will'];
@@ -157,6 +157,19 @@ export async function renderGM(main) {
     <button class="btn block" id="endsess" style="margin-top:8px">Finish session ${sess.n || 1}</button>
   </section>
 
+  <section id="gm-Story" class="card">
+    <h2>Story updates</h2>
+    <p class="small muted">Keep the campaign story up to date: the overall story, new characters, PCs, NPCs and locations. Only you can see these (scrambled with your passcode). <b>Copy for ChatGPT</b> turns them into one message to paste into your chat.</p>
+    <div class="grid g2">
+      <label class="f">What kind of update<select id="stkind">${STORY_KINDS.map(([k, n]) => `<option value="${k}">${n}</option>`).join('')}</select></label>
+      <label class="f">Name or title<input id="sttitle" placeholder="e.g. Chapter 2 recap, Sir Oakley, Mossy Hollow"></label>
+    </div>
+    <label class="f">What changed<textarea id="sttext" rows="5" placeholder="Write the update here…"></textarea></label>
+    <label class="check"><input type="checkbox" id="stpub" checked> Also show it on the website under the current chapter as <b>Critical information</b></label>
+    <div class="row" style="margin-top:8px"><button class="btn" id="stadd">Add update</button><button class="btn alt" id="stcopy">📋 Copy for ChatGPT</button></div>
+    <div id="stlist">${storyList(G.story)}</div>
+  </section>
+
   <section id="gm-Notes" class="card"><h2>GM notes</h2><p class="small muted">Only you can read these (scrambled with your passcode).</p><textarea id="notes" rows="8">${esc(G.notes || '')}</textarea><button class="btn sm" id="savenotes" style="margin-top:8px">Save notes</button></section>
 
   <section id="gm-Index" class="card gm-search">
@@ -207,7 +220,9 @@ export async function renderGM(main) {
 
 // Her layout: every GM section is a compact square tile (like the folded Battle / Actions tabs on Play).
 // Tap a tile to open that section full width; tap its title bar to fold it back. Open ones are remembered per device.
-const GM_ICONS = { Traps: '⚠️', Battle: '⚔️', Recruit: '🤝', Party: '👥', Dungeon: '🏔️', Weather: '🌦️', Loot: '💰', Missions: '📋', Reveal: '👁️', Endsession: '🌙', Notes: '📝', Index: '📚', Editcontent: '✏️', Table: '⚙️', Dicelog: '🎲' };
+const STORY_KINDS = [['overall', 'Overall story'], ['newchar', 'New character'], ['pc', 'PC (player character)'], ['npc', 'NPC'], ['location', 'Location']];
+const storyList = (list) => (list && list.length ? [...list].reverse().map((x) => `<div class="row nowrap" style="padding:6px 0;border-bottom:1px dashed var(--cream3);align-items:flex-start"><div class="grow"><b>${esc((STORY_KINDS.find(([k]) => k === x.kind) || [, 'Update'])[1])}${x.title ? ': ' + esc(x.title) : ''}</b>${x.pub ? ` <span class="pill">🌐 on the website · Chapter ${esc(x.ch)}</span>` : ''}<div class="small">${esc(x.text).replace(/\n/g, '<br>')}</div></div><button class="btn alt sm" data-stdel="${esc(x.id)}" aria-label="Delete this update">✕</button></div>`).join('') : '<p class="small muted">No updates yet.</p>');
+const GM_ICONS = { Story: '📖', Traps: '⚠️', Battle: '⚔️', Recruit: '🤝', Party: '👥', Dungeon: '🏔️', Weather: '🌦️', Loot: '💰', Missions: '📋', Reveal: '👁️', Endsession: '🌙', Notes: '📝', Index: '📚', Editcontent: '✏️', Table: '⚙️', Dicelog: '🎲' };
 const gmOpen = () => { try { return new Set(JSON.parse(localStorage.getItem('dc.gmopen') || '[]')); } catch { return new Set(); } };
 function tileGM(main) {
   // her ask 10-27: the Index is an always-open search bar at the top, not a folding tile
@@ -525,6 +540,25 @@ Guildmaster Beautifly</textarea></label>
   };
 
   // ---- notes, guild, shop, moves
+  // her ask 11-08: GM story updates (overall, new character, PC, NPC, location) + one message to paste into her ChatGPT
+  const stRedraw = () => { s('#stlist').innerHTML = storyList(store.gmData().story); bindStoryDel(); };
+  const bindStoryDel = () => $$('[data-stdel]', main).forEach((b) => b.onclick = () => { if (!confirm('Delete this update?')) return; const old = (store.gmData().story || []).find((x) => x.id === b.dataset.stdel); if (old?.pub) store.set(`chapterInfo/${old.ch}/${old.id}`, null); store.gmSet('story', (store.gmData().story || []).filter((x) => x.id !== b.dataset.stdel)); stRedraw(); });
+  bindStoryDel();
+  s('#stadd').onclick = () => {
+    const text = s('#sttext').value.trim(); if (!text) { toast('Write what changed first'); return; }
+    const id = 's' + Date.now().toString(36); const kind = s('#stkind').value; const title = s('#sttitle').value.trim(); const pub = s('#stpub').checked; const ch = store.get('guild')?.chapter ?? 0;
+    if (pub) store.set(`chapterInfo/${ch}/${id}`, { kindName: (STORY_KINDS.find(([k]) => k === kind) || [, 'Update'])[1], title, text, ts: Date.now() });
+    store.gmSet('story', [...(store.gmData().story || []), { id, kind, title, text, ts: Date.now(), ...(pub ? { pub: true, ch } : {}) }]);
+    s('#sttext').value = ''; s('#sttitle').value = ''; stRedraw(); toast('Story update saved');
+  };
+  s('#stcopy').onclick = async () => {
+    const list = store.gmData().story || []; if (!list.length) { toast('No updates yet'); return; }
+    const out = ['Here are the latest updates to my Pokémon Mystery Dungeon campaign, "Voice of the Forest". Please add them to everything you know about the story:', ''];
+    for (const [k, n] of STORY_KINDS) { const items = list.filter((x) => x.kind === k); if (!items.length) continue; out.push(`## ${n}`); items.forEach((x) => out.push(`- ${x.title ? x.title + ': ' : ''}${x.text.replace(/\n+/g, ' ')}`)); out.push(''); }
+    const txt = out.join('\n');
+    try { await navigator.clipboard.writeText(txt); toast('Copied! Paste it into ChatGPT'); }
+    catch { const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'position:fixed;left:0;top:0;opacity:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('Copied! Paste it into ChatGPT'); } catch { prompt('Copy this:', txt); } ta.remove(); }
+  };
   s('#savenotes').onclick = () => { store.gmSet('notes', s('#notes').value); toast('Notes saved'); };
   s('#saveguild').onclick = () => { store.update('guild', (x) => ({ ...x, name: s('#gname').value.trim(), team: s('#gteam').value.trim(), gp: num(s('#ggp').value), coffers: num(s('#gpoke').value), chapter: s('#gch').value === '' ? null : num(s('#gch').value), cap: num(s('#gcap').value) }));
     store.update('vanguard', (x) => ({ ...x, gp: num(s('#vgp').value), cap: num(s('#vcap').value), chapter: s('#vch').value === '' ? null : num(s('#vch').value) })); toast('Guilds saved'); };
@@ -560,7 +594,7 @@ Guildmaster Beautifly</textarea></label>
     const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; const nc = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => abc[b % abc.length]).join('');
     if (!confirm(`Move this table to the new code ${nc}? Players will need the new code (or the new player link). The GM passcode stays the same.`)) return;
     const saved = store.exportJSON(); const pass = (() => { try { return localStorage.getItem('dc.gmpass.' + store.tableCode()); } catch { return null; } })();
-    const { openTable } = await import('./app.js?v=6af0aa35');
+    const { openTable } = await import('./app.js?v=6af0e855');
     try { if (pass) localStorage.setItem('dc.gmpass.' + nc, pass); } catch { /* ignore */ }
     await openTable(nc); store.importJSON(saved);
     toast('Table moved to ' + nc + (pass ? '' : ' — unlock the GM screen again'));

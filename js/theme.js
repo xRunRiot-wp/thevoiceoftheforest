@@ -1,15 +1,15 @@
 // Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
 // and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
-import { CURSORS, REWARD_CURSORS, cursorKind, cursorChoices, setCursorKind, refreshCursor } from './digcursor.js?v=6af0aa35';
-import * as store from './store.js?v=6af0aa35';
-import { $, $$, esc, toast } from './util.js?v=6af0aa35';
-import { giftNote } from './mailbox.js?v=6af0aa35';
-import { unlockChar } from './charlock.js?v=6af0aa35';
-import { modal, closeModal, portrait } from './ui.js?v=6af0aa35';
-import { skinPicker } from './dice3d.js?v=6af0aa35';
-import { appSection, wireAppSection } from './install.js?v=6af0aa35';
-import { openTour } from './tour.js?v=6af0aa35';
-import { setLeafFall } from './leaffall.js?v=6af0aa35';
+import { CURSORS, REWARD_CURSORS, cursorKind, cursorChoices, setCursorKind, refreshCursor } from './digcursor.js?v=6af0e855';
+import * as store from './store.js?v=6af0e855';
+import { $, $$, esc, toast } from './util.js?v=6af0e855';
+import { giftNote } from './mailbox.js?v=6af0e855';
+import { unlockChar } from './charlock.js?v=6af0e855';
+import { modal, closeModal, portrait } from './ui.js?v=6af0e855';
+import { skinPicker } from './dice3d.js?v=6af0e855';
+import { appSection, wireAppSection } from './install.js?v=6af0e855';
+import { openTour } from './tour.js?v=6af0e855';
+import { setLeafFall } from './leaffall.js?v=6af0e855';
 
 export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
   Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',
@@ -101,8 +101,8 @@ export function openSettings() {
     <h3 style="margin-top:14px">🎲 Dice skin</h3><p class="small muted">How your 3D dice look when you roll. You start with Classic, Poké Ball and your type’s set; the GM hands out more as rewards.</p><button class="btn alt" id="setdice">Change dice skin</button>
     <h3 style="margin-top:14px">📄 Character sheet only</h3>
     <label class="check"><input type="checkbox" id="setsheetonly" ${sheetOnly() ? 'checked' : ''}> Just show my stats, moves and items. Hides the roll buttons, actions and extras, for players who roll at the table or on Roll20. (This device only.)</label>
-    <h3 style="margin-top:14px">📺 TV display mode</h3>
-    <label class="check"><input type="checkbox" id="settv" ${tvMode() ? 'checked' : ''}> For showing the game on a TV at the table: big buttons around the Friend Zone, with the guild and mission overview always at the side. Opens this way every time. (This device only.)</label>
+    <h3 style="margin-top:14px">📱 Tablet mode</h3>
+    <label class="check"><input type="checkbox" id="settv" ${tvMode() ? 'checked' : ''}> Big tiles around the Friend Zone map, with the guild and mission overview underneath (or at the side on a big screen). Made for a tablet, a phone or a TV at the table. Opens this way every time. (This device only.)</label>
     <h3 style="margin-top:14px">🖱️ Cursor</h3><p class="small muted">Who follows your mouse around the site. (This device only; phones don't show it.)</p>
     <div class="themes">${cursorChoices().map((k) => [k, CURSORS[k]]).map(([k, n]) => `<button class="th ${k === cursorKind() ? 'sel' : ''}" data-cur="${k}"><span>${esc(n)}</span></button>`).join('')}</div>
     <h3 style="margin-top:14px">🎨 Theme</h3>

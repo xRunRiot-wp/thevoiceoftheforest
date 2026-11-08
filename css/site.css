@@ -2667,3 +2667,23 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 /* her ask 11-08: name plates sit right at the baby's feet; rocks ring the hot spring */
 .np-pet .np-tag { top: auto; }
 .np-spring b { position: absolute; width: calc(46px * var(--s, 1)); height: calc(30px * var(--s, 1)); border-radius: 48% 52% 40% 45% / 62% 60% 40% 38%; background: radial-gradient(ellipse at 35% 28%, #c9c2b6 0%, #9a9285 55%, #6f685d 100%); box-shadow: inset -3px -4px 0 rgba(0, 0, 0, .22), 0 3px 0 rgba(0, 0, 0, .25); z-index: 2; }
+
+/* her ask 11-08: Tablet mode works well on phones: map first, big two-column tiles, comfortable tap targets, no sideways scroll */
+@media (max-width: 700px) {
+  body[data-tv] { overflow-x: hidden; }
+  .tv-home { display: flex; flex-direction: column; gap: 10px; }
+  .tv-mid { order: -1; display: flex; flex-direction: column; gap: 10px; }
+  .tv-mid > * { margin: 0; }
+  .tv-col { order: 1; grid-auto-rows: minmax(92px, auto); margin: 0; }
+  .tv-fz { min-height: 0; overflow: hidden; }
+  .tv-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tv-tile { min-height: 92px; }
+  .tv-tile .tv-ic { font-size: 34px; }
+  .tv-tile .tv-lb { font-size: 16px; }
+  .tv-tile.tvbar { min-height: 56px; }
+  #tvside { padding: 0; }
+  .np-btns .btn { flex: 1 1 45%; min-height: 44px; }
+  .tv-nparty .nursery-room { max-width: 100%; }
+}
+
+.chapter-info { border: 3px solid #d9822b; background: #fff4dc; margin: 10px 0; }
