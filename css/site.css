@@ -2704,3 +2704,6 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .gt-card.beaten { border-color: #e0b84a !important; background: linear-gradient(#fffbe9, #fff3c8) !important; }
 .gt-card .fr-acts { flex: 1 1 100%; display: flex; } .gt-card .fr-acts .btn { width: 100%; }
 .gt-card .grow { flex: 1 1 140px; } .gt-new { white-space: nowrap; }
+/* her report 11-08: in a narrow Friends window the name got squeezed to one letter per line; the name keeps a readable width and the buttons drop to their own row */
+.fr-list .grow { flex: 1 1 140px; min-width: 140px; }
+.fr-list:not(.bt-grid) .fr-acts { flex: 1 1 auto; justify-content: flex-start; }
