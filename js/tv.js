@@ -1,19 +1,19 @@
 // her ask 11-07: TV display mode for in-person sessions. A home screen of big flat tiles (Echo Show / Windows 8 feel)
 // around the Friend Zone, and an overview panel that stays at the side on every page. Turned on in Settings, per device.
 // This screen faces the whole table, so nothing here may show hidden missions or other GM-only data.
-import * as store from './store.js?v=6aefabe8';
-import { $, esc, num } from './util.js?v=6aefabe8';
-import { tvMode, openSettings } from './theme.js?v=6aefabe8';
-import { renderFriendZone, locations } from './friendzone.js?v=6aefabe8';
-import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6aefabe8';
-import { renderMessHall } from './play.js?v=6aefabe8';
-import { renderNurseryParty } from './nursery.js?v=6aefabe8';
-import { chatterLatestHTML } from './chatter.js?v=6aefabe8';
-import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6aefabe8';
-import { sitePages } from './sitepages.js?v=6aefabe8';
-import { openBase, hasBase } from './mybase.js?v=6aefabe8';
-import { topPatron } from './vault.js?v=6aefabe8';
-import { portrait, modal } from './ui.js?v=6aefabe8';
+import * as store from './store.js?v=6af09330';
+import { $, esc, num } from './util.js?v=6af09330';
+import { tvMode, openSettings } from './theme.js?v=6af09330';
+import { renderFriendZone, locations } from './friendzone.js?v=6af09330';
+import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af09330';
+import { renderMessHall } from './play.js?v=6af09330';
+import { renderNurseryParty } from './nursery.js?v=6af09330';
+import { chatterLatestHTML } from './chatter.js?v=6af09330';
+import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af09330';
+import { sitePages } from './sitepages.js?v=6af09330';
+import { openBase, hasBase } from './mybase.js?v=6af09330';
+import { topPatron } from './vault.js?v=6af09330';
+import { portrait, modal } from './ui.js?v=6af09330';
 
 // her ask 11-07: the Bases tile (in place of GM): every character's base as a door to knock on, like igloos on a map
 function renderBases(main) {
@@ -26,7 +26,7 @@ function renderBases(main) {
 // the once-each check boxes (tick who has used it), the same ones as on the Play page
 const teamFx = () => Object.entries(store.get('teamfx') || {}).filter(([, x]) => x && x.name).sort((a, b) => (a[1].t || 0) - (b[1].t || 0));
 const buffsHTML = () => { const fx = teamFx();
-  return fx.length ? `<div class="tv-buffs">${fx.map(([id, x]) => `<button type="button" class="tv-buff" data-buff="${esc(id)}">🌟 ${esc(x.name)}</button>`).join('')}</div>` : ''; };
+  return fx.length ? `<div class="tv-buffs">${fx.map(([id, x]) => `<button type="button" class="tv-buff" data-buff="${esc(id)}" aria-label="${esc(x.name)}">🌟 ${esc(x.name)}</button>`).join('')}</div>` : ''; };
 const buffBody = (id) => { const f = store.get('teamfx/' + id); if (!f) return '';
   const used = f.used || {}; const p = Object.values(store.get('party') || {}).filter((c) => c && !c.guest);
   return `<div class="tv-buff-name">🌟 ${esc(f.name)}${f.exhaust ? ' <span class="pill">once each</span>' : ''}</div>${f.text ? `<p class="small">${esc(f.text)}</p>` : '<p class="small muted">No description.</p>'}

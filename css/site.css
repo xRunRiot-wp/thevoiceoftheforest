@@ -2532,6 +2532,9 @@ body[data-tvhome] main { padding: var(--tvgap); }
 .tv-ic { font-size: clamp(30px, 3.6vw, 76px); line-height: 1; }
 .tv-tile.tvbar .tv-ic { font-size: clamp(24px, 2.4vw, 48px); }
 .tv-fz { min-height: 0; overflow: auto; border-radius: 6px; background: #6faf58; }
+/* her ask 11-08 'get rid of the scroll bar': the map never scrolls sideways and no scroll bars show on the TV */
+.tv-fz { overflow-x: hidden; scrollbar-width: none; } .tv-fz::-webkit-scrollbar, .tv-fz *::-webkit-scrollbar { display: none; } .tv-fz * { scrollbar-width: none; }
+.tv-fz .fz-scene { overflow-x: hidden; }
 .tv-fz > :not(.fz-scene) { display: none; }
 .tv-fz .fz-scene { margin: 0; border-radius: 0; }
 #tvside .home { flex: none; min-height: 56px; }
@@ -2620,8 +2623,9 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .tv-guild .tv-minis { position: absolute; left: 8px; right: 8px; bottom: 8px; width: auto; }
 .tv-guild .tv-gmain { margin-bottom: 30%; }
 .np-bea { position: absolute; left: 50%; top: 8px; translate: -50% 0; z-index: 4; cursor: pointer; }
-.tv-buffs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-.tv-buff { padding: 2px 8px; border-radius: 99px; background: rgba(242, 180, 55, .25); border: 1px solid rgba(242, 180, 55, .6); font: inherit; font-size: 13px; color: inherit; cursor: var(--cur-link, pointer); }
+/* her ask 11-08 'maximize this space': two buffs per row, small pills, long names cut with … (full name on hover/tap) */
+.tv-buffs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-top: 6px; }
+.tv-buff { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: left; padding: 2px 6px; border-radius: 99px; background: rgba(242, 180, 55, .25); border: 1px solid rgba(242, 180, 55, .6); font: inherit; font-size: 12px; line-height: 1.5; color: inherit; cursor: var(--cur-link, pointer); }
 .tv-buff:hover, .tv-buff:focus-visible { background: rgba(242, 180, 55, .5); }
 .tv-buff-pop { position: fixed; z-index: 60; width: min(300px, calc(100vw - 16px)); padding: 10px 12px; border-radius: 8px; background: var(--cream); color: var(--ink, #3a2a1a); box-shadow: 0 6px 22px rgba(0, 0, 0, .35); border: 2px solid rgba(242, 180, 55, .9); }
 .tv-buff-pop p { margin: 4px 0; } .tv-buff-name { font-weight: 700; }
