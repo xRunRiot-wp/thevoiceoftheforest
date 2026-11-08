@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6af1032f';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6af1032f';
-import { portrait, maxHp } from './ui.js?v=6af1032f';
-import { allMoves, me, statVal } from './play.js?v=6af1032f';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6af1032f';
-import { TYPE_ICONS } from './theme.js?v=6af1032f';
+import * as store from './store.js?v=6af10b3f';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6af10b3f';
+import { portrait, maxHp } from './ui.js?v=6af10b3f';
+import { allMoves, me, statVal } from './play.js?v=6af10b3f';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6af10b3f';
+import { TYPE_ICONS } from './theme.js?v=6af10b3f';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -27,8 +27,19 @@ export const GUILD = {
     hi: 'Sentry duty can wait! Let’s see what you’ve got!', win: 'Hehe, I popped up at just the right time!', lose: 'Ow ow ow… back into my hole I go!' },
   ralts: { nickname: 'Ralts', pokemon: 'Ralts', type1: 'Psychic', type2: 'Fairy', tier: 'Rookie', baseHp: 3, ...S(1, 2, 1, 2, 2, { Cute: 2, Perform: 2 }), moves: ['Confusion', 'Disarming Voice', 'Growl'],
     hi: 'A battle is just a dance with more spinning. Ready?', win: 'And… pose! Practice makes perfect!', lose: 'You moved so gracefully! Will you dance with me later?' },
+  // her ask 11-08: the newest guild members (recruited at the camps) join Guild Training
+  togepi: { nickname: 'Togepi', pokemon: 'Togepi', art: 'assets/portraits/emo/togepi/Normal.png', type1: 'Fairy', tier: 'Rookie', baseHp: 3, ...S(1, 1, 1, 2, 2, { Cute: 3 }), moves: ['Pound', 'Charm', 'Growl'],
+    hi: 'Tweet! Training is just a game with extra hugs, right?', win: 'Yay yay yay! I won! Can we do it again?', lose: 'Aww… that’s okay! Good game!' },
+  pichu: { nickname: 'Pichu', pokemon: 'Pichu', art: 'assets/portraits/emo/pichu/Normal.png', type1: 'Electric', tier: 'Rookie', baseHp: 3, ...S(1, 3, 1, 2, 1, { Cute: 2 }), moves: ['Thunder Shock', 'Charm', 'Tail Whip'],
+    hi: 'Ooh, a spar! My ears are tingling already!', win: 'Pika-WOW! Did you see that spark?', lose: 'Zzzap… I mean ow! Rematch soon?' },
+  happiny: { nickname: 'Happiny', pokemon: 'Happiny', art: 'assets/portraits/emo/happiny/Normal.png', type1: 'Normal', tier: 'Rookie', baseHp: 4, ...S(1, 1, 2, 1, 2, { Cute: 3 }), moves: ['Pound', 'Charm', 'Sweet Kiss'],
+    hi: 'I carry my egg everywhere, so please go easy on us!', win: 'We did it! Hugs all round!', lose: 'Oh my, you’re strong! Is it snack time yet?' },
   maushold: { nickname: 'Maushold', pokemon: 'Maushold', type1: 'Normal', tier: 'Bronze', baseHp: 4, ...S(2, 3, 1, 1, 1), moves: ['Double Hit', 'Bite', 'Tackle'],
     hi: 'The whole family wants a turn! Squeak squeak!', win: 'Family teamwork wins again!', lose: 'Squeak… the little ones need a nap now.' },
+  sandile: { nickname: 'Sandile', pokemon: 'Sandile', art: 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/portrait/0551/Normal.png', type1: 'Ground', type2: 'Dark', tier: 'Bronze', baseHp: 4, ...S(2, 2, 2, 1, 1, { Intimidate: 2, Tough: 2 }), moves: ['Bite', 'Leer', 'Sand Attack', 'Scratch'],
+    hi: 'Sentinels don’t blink. Let’s see if you do.', win: 'Hmph. Not bad for a first try. Come back.', lose: 'Hah… okay, you earned that one.' },
+  swablu: { nickname: 'Swablu', pokemon: 'Swablu', type1: 'Normal', type2: 'Flying', tier: 'Bronze', baseHp: 4, ...S(1, 3, 1, 2, 2, { Alert: 2 }), moves: ['Peck', 'Growl', 'Astonish'],
+    hi: 'Lookout post is quiet today. A spar will wake me up!', win: 'Fluffy but fierce! That’s me!', lose: 'Whoa! You came out of nowhere! Nice one!' },
   mudkip: { nickname: 'Kippy', pokemon: 'Mudkip', type1: 'Water', tier: 'Silver', baseHp: 4, ...S(2, 2, 2, 2, 2, { Tough: 2, Intimidate: 1 }), moves: ['Water Gun', 'Mud Shot', 'Tackle'],
     hi: 'Diamond Rank or not, I never skip training. Come on!', win: 'Good effort! Keep at it and you’ll catch up to us.', lose: 'Whoa! Mimi’s going to hear about this one!' },
   pikachu: { nickname: 'Mimi', pokemon: 'Pikachu', type1: 'Electric', tier: 'Silver', baseHp: 4, ...S(2, 3, 1, 2, 2), moves: ['Thunder Shock', 'Quick Attack', 'Spark'],
@@ -159,7 +170,7 @@ async function resolve(bid) {
   // Metronome spins Gemini's Metronome wheel (the Games page one, so the GM's edits count) and plays out the slice
   const metronome = async (id, foe) => {
     let slices = [];
-    try { slices = (await import('./games.js?v=6af1032f')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6af10b3f')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);
@@ -305,7 +316,12 @@ export function renderBattle(main, g, bid) {
       <ul class="sentry-roster fr-list bt-grid">${others.map((x) => `<li>${face(x.id)}<span class="grow"><b>${esc(x.nickname)}</b>${friends.has(x.id) ? ' <span class="pill">Friend</span>' : ''}<br><span class="small muted">${esc(x.pokemon || '')} · ${maxHp(x)} HP</span></span><span class="fr-acts"><button class="btn sm" data-ch="${esc(x.id)}">⚔️ Challenge</button></span></li>`).join('') || '<li class="muted">Nobody else at the table yet.</li>'}</ul>
       <h2 class="games-h" id="bt-train">🏋️ Guild Training</h2><p class="small muted">Spar with the guild’s members. No prizes, just bragging rights: every guild member you beat goes on the Training Board.</p>
       <ul class="sentry-roster fr-list bt-grid">${Object.entries(GUILD).map(([k, n]) => { const r = mine(k); const ch = champs(k);
-        return `<li>${face(`npc:${k}`)}<span class="grow"><b>${esc(n.nickname)}</b> <span class="pill">${TIER_ICON[n.tier]} ${esc(n.tier)}</span>${r.w ? ' <span class="pill">🏅 Beaten</span>' : ''}<br><span class="small muted">${esc(n.pokemon)} · ${maxHp(n)} HP${r.w || r.l ? ` · you: ${num(r.w)} win${num(r.w) === 1 ? '' : 's'}, ${num(r.l)} loss${num(r.l) === 1 ? '' : 'es'}` : ''}${ch.length ? ` · beaten by ${esc(ch.slice(0, 4).join(', '))}${ch.length > 4 ? '…' : ''}` : ''}</span></span><span class="fr-acts"><button class="btn sm" data-ch="npc:${k}">🏋️ Train</button></span></li>`; }).join('')}</ul>
+        // her ask 11-08: wins and losses as a scoreboard (trophy and heart chips, a win bar, who else has beaten them) instead of a line of text
+        const w = num(r.w); const l = num(r.l); const pct = w + l ? Math.round((w / (w + l)) * 100) : 0;
+        return `<li class="gt-card${w ? ' beaten' : ''}">${face(`npc:${k}`)}<span class="grow"><b class="gt-name">${esc(n.nickname)}</b><span class="gt-tags"><span class="pill">${TIER_ICON[n.tier]} ${esc(n.tier)}</span>${w ? '<span class="pill gt-beaten">🏅 Beaten</span>' : ''}</span>
+          <span class="small muted gt-sub">${esc(n.pokemon)} · ${maxHp(n)} HP</span>
+          ${w || l ? `<span class="gt-rec"><span class="gt-w">🏆 ${w} win${w === 1 ? '' : 's'}</span><span class="gt-l">💔 ${l} loss${l === 1 ? '' : 'es'}</span></span><span class="gt-bar" title="${pct}% wins"><i style="width:${pct}%"></i></span>` : '<span class="gt-new">🆕 Not fought yet</span>'}
+          ${ch.length ? `<span class="small gt-by">👑 Beaten by ${esc(ch.slice(0, 4).join(', '))}${ch.length > 4 ? '…' : ''}</span>` : ''}</span><span class="fr-acts"><button class="btn sm" data-ch="npc:${k}">🏋️ Train</button></span></li>`; }).join('')}</ul>
       <div class="card bt-board"><h3>🏆 Training Board</h3>${board.length ? `<ol>${board.map(([pid, n, w]) => `<li><b>${esc(party()[pid].nickname)}</b>: beat ${n} of ${Object.keys(GUILD).length} guild members <span class="small muted">(${w} win${w === 1 ? '' : 's'})</span>${n === Object.keys(GUILD).length ? ' 👑' : ''}</li>`).join('')}</ol>` : '<p class="small muted">Nobody has beaten a guild member yet. Be the first!</p>'}</div>`}`;
     $$('[data-ch]', main).forEach((b) => b.onclick = () => challenge(b.dataset.ch));
     $$('[data-jump]', main).forEach((b) => b.onclick = () => document.getElementById(b.dataset.jump)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
