@@ -7,15 +7,15 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6af0a616';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6af0a616';
-import { me, logRoll } from './play.js?v=6af0a616';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6af0a616';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6af0a616';
-import { markWinner } from './sparkle.js?v=6af0a616';
-import { pageMusic, visitMusic, muted, tempMusic } from './chiptune.js?v=6af0a616';
-import { modal, closeModal } from './ui.js?v=6af0a616';
-import { MIMIC } from './mimicdata.js?v=6af0a616';
+import * as store from './store.js?v=6af0a9b2';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6af0a9b2';
+import { me, logRoll } from './play.js?v=6af0a9b2';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6af0a9b2';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6af0a9b2';
+import { markWinner } from './sparkle.js?v=6af0a9b2';
+import { pageMusic, visitMusic, muted, tempMusic } from './chiptune.js?v=6af0a9b2';
+import { modal, closeModal } from './ui.js?v=6af0a9b2';
+import { MIMIC } from './mimicdata.js?v=6af0a9b2';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -527,7 +527,7 @@ function startGuest(root, gb, label) {
   const S = SIZE[gb.stage] || 3; const pw = Math.round(B.cw * S); const ph = Math.round(B.ch * S);
   spr.style.cssText = `width:${pw}px;height:${ph}px;background-image:url(assets/nursery/${gb.sp}.png);background-size:${pw * 10}px ${ph * 7}px`;
   pet.style.width = pw + 'px'; pet.style.bottom = Math.round(64 - ph / 2) + 'px';
-  $('.pet-tag', pet).textContent = label; spr.innerHTML = accHTML(gb, pw, ph);
+  $('.pet-tag', pet).textContent = label; $('.pet-tag', pet).style.top = `calc(${Math.round(((BODY[b.sp] || [0.3, 0.57])[1]) * 100)}% - 2px)`; spr.innerHTML = accHTML(gb, pw, ph);
   const alive = () => roomEl.isConnected;
   // her ask 10-29: the name tag is always in front (over the other baby, the nest, flowers, rain and the night tint),
   // so it lives on the room itself and follows the visitor around
@@ -703,7 +703,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6af0a616').catch(() => null);
+  const fz = import('./fzscene.js?v=6af0a9b2').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2, 'right', false, !!c.shiny)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
@@ -921,7 +921,7 @@ export function renderNurseryParty(main) {
         $$('.egg', main).forEach((e) => { e.classList.remove('wiggle'); void e.offsetWidth; e.classList.add('wiggle'); });
         await Promise.all(pets.map((p) => p.npAct?.('party'))); $('.np-boom', roomEl)?.remove();
       } else {
-        cap('♨️ Off to the nearest hot spring!'); roomEl.insertAdjacentHTML('beforeend', '<div class="np-spring"><i></i><i></i><i></i><i></i></div>');
+        cap('♨️ Off to the nearest hot spring!'); roomEl.insertAdjacentHTML('beforeend', '<div class="np-spring"><i></i><i></i><i></i><i></i><b style="left:-3%;bottom:30%;--s:1.1"></b><b style="left:6%;bottom:-18%;--s:.8"></b><b style="left:22%;bottom:-30%;--s:1"></b><b style="left:42%;bottom:-36%;--s:.9"></b><b style="left:62%;bottom:-32%;--s:1.1"></b><b style="left:80%;bottom:-22%;--s:.8"></b><b style="right:-3%;bottom:28%;--s:1"></b><b style="left:10%;bottom:70%;--s:.85"></b><b style="left:34%;bottom:88%;--s:.9"></b><b style="left:58%;bottom:90%;--s:1"></b><b style="right:8%;bottom:72%;--s:.85"></b></div>');
         await wait(900); await Promise.all(pets.map((p) => p.npAct?.('spring'))); $('.np-spring', roomEl)?.classList.add('fade'); await wait(900); $('.np-spring', roomEl)?.remove();
       }
       cap('All done! Everyone looks happy. 💕');

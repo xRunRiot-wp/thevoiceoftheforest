@@ -2663,3 +2663,7 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .np-spring i:nth-child(1) { left: 20%; } .np-spring i:nth-child(2) { left: 40%; animation-delay: .6s; } .np-spring i:nth-child(3) { left: 60%; animation-delay: 1.2s; } .np-spring i:nth-child(4) { left: 78%; animation-delay: 1.8s; }
 @keyframes np-steam { from { translate: 0 0; opacity: .8; } to { translate: 6px -70px; opacity: 0; } }
 @keyframes np-spring-in { from { opacity: 0; scale: .6; } to { opacity: 1; scale: 1; } }
+
+/* her ask 11-08: name plates sit right at the baby's feet; rocks ring the hot spring */
+.np-pet .np-tag { top: auto; }
+.np-spring b { position: absolute; width: calc(46px * var(--s, 1)); height: calc(30px * var(--s, 1)); border-radius: 48% 52% 40% 45% / 62% 60% 40% 38%; background: radial-gradient(ellipse at 35% 28%, #c9c2b6 0%, #9a9285 55%, #6f685d 100%); box-shadow: inset -3px -4px 0 rgba(0, 0, 0, .22), 0 3px 0 rgba(0, 0, 0, .25); z-index: 2; }
