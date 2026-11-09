@@ -3,12 +3,12 @@
 // Haggling: Slash never tolerates it (try 1 "fair", try 2 "absolutely not", try 3 = he and his troupe of 3 stand armed).
 // Beat him in that fight: his caravan never returns and the team gets everything on his table.
 // Lose: his prices go up 150% for good (no more sales) and he attacks at the very next haggle.
-import * as store from './store.js?v=6af1c6a0';
-import { $, $$, esc, num, uid, toast } from './util.js?v=6af1c6a0';
-import { modal, closeModal } from './ui.js?v=6af1c6a0';
-import { ixLink } from './effects.js?v=6af1c6a0';
-import { guildSay, gmTodo } from './chatter.js?v=6af1c6a0';
-import { buyDialog, logSale, sellDialog } from './shopkit.js?v=6af1c6a0';
+import * as store from './store.js?v=6af1c774';
+import { $, $$, esc, num, uid, toast } from './util.js?v=6af1c774';
+import { modal, closeModal } from './ui.js?v=6af1c774';
+import { ixLink } from './effects.js?v=6af1c774';
+import { guildSay, gmTodo } from './chatter.js?v=6af1c774';
+import { buyDialog, logSale, sellDialog } from './shopkit.js?v=6af1c774';
 
 export const BROTHERS = {
   Slash: { tell: 'Does not tolerate haggling.', lines: ['No. The price I listed is fair.', 'Absolutely not.', '*stands armed and guarded with his troupe of 3*'] },
@@ -58,6 +58,7 @@ function restockIfDue() {
   if (!m.stockKey) { store.set('merchant/stockKey', stockKey()); return; }   // first look after this update: keep today's table as it is
   if (m.stockKey !== stockKey()) store.update('merchant', (x) => ({ ...(x || {}), slots: rollTable(stockKey()), stockKey: stockKey() }));
 }
+const freshTable = () => { store.update('merchant', (x) => ({ ...(x || {}), slots: rollTable(stockKey() + '|fresh' + Date.now()), stockKey: stockKey() })); toast('Fresh table set up'); };
 
 // her picture (10-29): the six slots sit on the six mats of the table, the price on each mat's name plate.
 // [left, top, width, height] in % of the picture: the mat above its plate, then the plate.
@@ -89,7 +90,7 @@ export function merchantHTML() {
       <div class="row" style="justify-content:center;margin-top:8px"><button class="btn" id="msell">💰 Sell items to ${esc(name)}</button></div>`
       : `<p class="muted">No merchant has set up a table today.</p>`}
     ${gm ? `<details class="small gm-merch" style="margin-top:10px"><summary><b>GM: merchant controls</b></summary>
-      <div class="row" style="margin-top:6px">${ORDER.map((n) => `<button class="btn ${n === name && here ? '' : 'alt'} sm" data-mbro="${n}" ${bro(n).gone ? 'disabled title="His caravan never returns"' : ''}>${bro(n).gone ? '🪦 ' : ''}${n}</button>`).join('')}<button class="btn alt sm" id="mnext">Rotate ➜</button><button class="btn alt sm" id="maway">${here ? 'Pack up the table' : 'Set up the table'}</button></div>
+      <div class="row" style="margin-top:6px">${ORDER.map((n) => `<button class="btn ${n === name && here ? '' : 'alt'} sm" data-mbro="${n}" ${bro(n).gone ? 'disabled title="His caravan never returns"' : ''}>${bro(n).gone ? '🪦 ' : ''}${n}</button>`).join('')}<button class="btn alt sm" id="mnext">Rotate ➜</button><button class="btn alt sm" id="mfresh">🔄 Fresh table</button><button class="btn alt sm" id="maway">${here ? 'Pack up the table' : 'Set up the table'}</button></div>
       <div class="row" style="margin-top:6px"><button class="btn alt sm" id="mplace">📍 Where: ${esc(place)}</button><button class="btn alt sm" id="medit">Edit table items</button><button class="btn alt sm" id="mtell">Edit ${esc(name)}</button></div>
       ${here ? `<p style="margin:8px 0 4px"><b>Haggle fight with ${esc(name)}:</b></p><div class="row"><button class="btn sm" id="mwin">🏆 Players won</button><button class="btn bad sm" id="mlose">💀 Players lost</button></div>` : ''}
       <p class="muted" style="margin:6px 0 0">Won: his caravan never returns and the team gets everything on his table. Lost: his prices go up 150% for good (no sales) and he attacks at the next haggle.</p></details>` : ''}
@@ -109,6 +110,7 @@ export function bindMerchant(main) {
   $$('[data-mbro]', main).forEach((b) => b.onclick = () => setBrother(b.dataset.mbro));
   const q = (id) => $(id, main);
   if (q('#mnext')) q('#mnext').onclick = () => { const live = ORDER.filter((n) => !bro(n).gone); const i = live.indexOf(who()); if (live.length) setBrother(live[(i + 1) % live.length]); };
+  if (q('#mfresh')) q('#mfresh').onclick = freshTable;
   if (q('#maway')) q('#maway').onclick = () => store.set('merchant/away', !M().away);
   if (q('#mplace')) q('#mplace').onclick = () => { const p = prompt('Where is the table set up?', M().place || 'Woodland Base'); if (p && p.trim()) store.set('merchant/place', p.trim()); };
   if (q('#medit')) q('#medit').onclick = editTable;
