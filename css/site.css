@@ -2782,3 +2782,9 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .bagcap.full { border-color: #e07b24; background: #fff0e0; color: #4a2508; } .bagcap.full i { background: #e07b24; }
 .bagcap.over { border-color: #d9534f; background: #ffe9e6; color: #5a1a14; animation: bagwobble .6s 2; } .bagcap.over i { background: #d9534f; }
 @keyframes bagwobble { 25% { transform: rotate(-1deg); } 75% { transform: rotate(1deg); } }
+/* her report 11-08 (phone screenshot): Guild/Vault titles sat on top of the bank rows; on phones and small screens everything stacks in order */
+@media (max-width: 900px) {
+  .tv-guild { justify-content: flex-start; }
+  .tv-guild .tv-patron, .tv-guild .tv-minis { position: static; width: 100%; }
+  .tv-guild .tv-gmain { margin-bottom: 0; }
+}

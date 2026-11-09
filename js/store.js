@@ -2,8 +2,8 @@
 // Saved on this device; when a Firebase Realtime Database URL is set in config.js the same
 // tree is shared live with everyone at the table (REST + server-sent events, no SDK).
 // GM-only data is encrypted with the GM passcode before it is stored anywhere.
-import { CONFIG } from './config.js?v=6af15078';
-import { uid } from './util.js?v=6af15078';
+import { CONFIG } from './config.js?v=6af1516b';
+import { uid } from './util.js?v=6af1516b';
 
 const LS = 'dc.table.';
 const listeners = new Set();
@@ -15,7 +15,13 @@ let gm = null;          // decrypted GM data
 export const status = { mode: 'local', connected: false, error: '' };
 
 export const tableCode = () => code;
-export const get = (path) => path.split('/').filter(Boolean).reduce((o, k) => (o == null ? undefined : o[k]), tree);
+const getRaw = (path) => path.split('/').filter(Boolean).reduce((o, k) => (o == null ? undefined : o[k]), tree);
+// the whole party never includes nameless leftovers (see ghostWrite below), so no page shows a blank character
+export const get = (path) => {
+  const v = getRaw(path);
+  if (path.replace(/^\/+|\/+$/g, '') !== 'party' || !v || typeof v !== 'object') return v;
+  return Object.fromEntries(Object.entries(v).filter(([k, c]) => k !== 'undefined' && c && c.nickname));
+};
 export const subscribe = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
 const emit = () => listeners.forEach((fn) => { try { fn(); } catch (e) { console.error(e); } });
 
@@ -66,7 +72,17 @@ function flushRetries() {
   for (const job of [...retry.values()]) attempt(job);
 }
 
+// her report 11-08: nameless "ghost" characters showed as blank cards (bases, Mess Hall). Causes: a late write into a deleted
+// character (party/<id>/field recreated a stub) and writes to party/undefined. Character fields can only be written while that
+// character exists; a whole character is only saved with a name.
+function ghostWrite(path, value) {
+  const m = /^party\/([^/]+)(\/.+)?$/.exec(path.split('/').filter(Boolean).join('/')); if (!m) return false;
+  if (m[1] === 'undefined' || m[1] === 'null') return true;
+  if (m[2]) return !get('party/' + m[1]);
+  return value != null && typeof value === 'object' && !value.nickname;
+}
 export function set(path, value) {
+  if (ghostWrite(path, value)) { console.warn('skipped write to a missing character:', path); return; }
   tree = setIn(tree, path.split('/').filter(Boolean), value);
   tree.updated = Date.now();
   persist(); emit(); bc?.postMessage({ code, path, value });
