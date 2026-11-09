@@ -2739,7 +2739,8 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .guildbox.rk-6 { background-color: #a9e3f3; background-image: url('../assets/ui/emblem_pattern.png'), radial-gradient(circle at 20% 20%, rgba(255,255,255,.75) 0 6%, transparent 7%), radial-gradient(circle at 80% 70%, rgba(255,255,255,.6) 0 5%, transparent 6%), linear-gradient(135deg, rgba(140,210,255,.4), rgba(200,160,255,.3)); background-size: 600px auto, auto, auto, auto; box-shadow: 0 0 0 2px #4fb3d9 inset, 0 0 16px rgba(80,190,240,.5); }
 .guildbox.rk-7 { background-color: #7f9bd6; background-image: url('../assets/ui/emblem_pattern.png'), radial-gradient(circle at 50% 0%, rgba(255,255,255,.55), transparent 60%), linear-gradient(160deg, rgba(40,70,160,.45), rgba(120,200,255,.3)); background-size: 600px auto, auto, auto; box-shadow: 0 0 0 2px #2d4fa8 inset, 0 0 20px rgba(90,150,255,.6); }
 
-/* Mess Hall Rush (her ask 11-08) */
+/* Shelter Patch-Up (her ask 11-08, was Mess Hall Rush) */
+.cafe-hut { font-size: 40px; line-height: 1; } .cafe-seat.shelter { transition: transform .25s; }
 .cafe-mini { font-size: 34px; letter-spacing: 4px; }
 .cafe-bar { display: flex; gap: 14px; font-weight: 700; margin: 8px 0; }
 .cafe-seats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -2749,6 +2750,6 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .cafe-want { position: absolute; top: -10px; right: -6px; font-size: 22px; background: #fff; border: 2px solid #3a2c1a; border-radius: 12px; padding: 0 5px; }
 .cafe-pat { width: 90%; height: 6px; border-radius: 4px; background: #ddd; overflow: hidden; display: block; } .cafe-pat b { display: block; height: 100%; }
 .cafe-msg { min-height: 1.4em; margin: 8px 0 2px; font-weight: 700; }
-.cafe-counter { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 6px; }
+.cafe-counter { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
 .cafe-food { display: grid; place-items: center; font-size: 28px; padding: 8px 2px; border: 3px solid var(--brown2, #7a5a35); border-radius: 12px; background: #fff3d6; cursor: var(--cur-link, pointer); }
 .cafe-food small { font-size: 11px; } .cafe-food.on { background: #b7ecb0; }

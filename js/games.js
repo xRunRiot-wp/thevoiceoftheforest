@@ -1,28 +1,28 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6af135ce';
-import * as store from './store.js?v=6af135ce';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af135ce';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6af135ce';
-import { modal, portrait } from './ui.js?v=6af135ce';
-import * as sheet from './sheetdata.js?v=6af135ce';
-import { shop } from './guild.js?v=6af135ce';
-import { merged, editContent } from './content-store.js?v=6af135ce';
-import { logRoll, me, addTeamFx } from './play.js?v=6af135ce';
-import { luckyReaction, gmTodo } from './chatter.js?v=6af135ce';
-import { ranks } from './rulebook.js?v=6af135ce';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6af135ce';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6af135ce';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6af135ce';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6af135ce';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6af135ce';
-import { isCafe, renderCafe, cafeDue, cafeMini } from './caferush.js?v=6af135ce';
-import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6af135ce';
-import { isTruck, renderTruck, truckMini } from './truck.js?v=6af135ce';
-import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6af135ce';
-import { isBattle, renderBattle, battleMini } from './battle.js?v=6af135ce';
-import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6af135ce';
-import { watchGamePage, stopGamePage } from './watch.js?v=6af135ce';
+import { markWinner } from './sparkle.js?v=6af13807';
+import * as store from './store.js?v=6af13807';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af13807';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6af13807';
+import { modal, portrait } from './ui.js?v=6af13807';
+import * as sheet from './sheetdata.js?v=6af13807';
+import { shop } from './guild.js?v=6af13807';
+import { merged, editContent } from './content-store.js?v=6af13807';
+import { logRoll, me, addTeamFx } from './play.js?v=6af13807';
+import { luckyReaction, gmTodo } from './chatter.js?v=6af13807';
+import { ranks } from './rulebook.js?v=6af13807';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6af13807';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6af13807';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6af13807';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6af13807';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6af13807';
+import { isCafe, renderCafe, cafeDue, cafeMini } from './caferush.js?v=6af13807';
+import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6af13807';
+import { isTruck, renderTruck, truckMini } from './truck.js?v=6af13807';
+import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6af13807';
+import { isBattle, renderBattle, battleMini } from './battle.js?v=6af13807';
+import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6af13807';
+import { watchGamePage, stopGamePage } from './watch.js?v=6af13807';
 
 export const GAMES = [
   {
@@ -66,8 +66,8 @@ export const GAMES = [
     cost: '', slices: [],
   },
   {
-    id: 'mess-hall-rush', kind: 'cafe', name: 'Mess Hall Rush', host: 'Spinda',
-    intro: 'A guild chore like a busy cafe. Hungry guild members sit down and ask for something. Grab it from the counter, then tap them to bring it before their patience runs out. 45 seconds. A great shift earns Poké.',
+    id: 'mess-hall-rush', kind: 'cafe', name: 'Shelter Patch-Up', host: 'Spinda',
+    intro: 'A guild chore run by Spinda. The low-quality shelters keep wobbling and each one calls for vines, sturdy branches or leaves. Grab the right one from the supply pile and rush it over before the shelter falls down. Other guild members sometimes drop in to help. 45 seconds. A great shift earns Poké.',
     cost: '', slices: [],
   },
   {
@@ -247,7 +247,7 @@ export function renderGames(main, [arg, sub]) {
         <div class="gc-text"><h3>${esc(g.name)}</h3>
           <p class="gc-host">${esc(g.host ? (g.only ? '' : 'Run by ') + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}${g.only ? ` · <b>${esc(g.only)} only</b>` : ''}${g.special && g.twists.length ? ` · <b>✨ ${esc(g.special)} twists</b>` : ''}</p>
           <p class="gc-intro">${esc((g.intro || '').split('. ')[0].replace(/\.$/, ''))}.</p>
-          <span class="gc-play">${isBattle(g) ? 'Pick a fight →' : isBallLab(g) ? 'Start sorting →' : isSentry(g) ? 'Take your shift →' : isDance(g) ? 'Dance with Ralts →' : isKitchen(g) ? 'Start cooking →' : isCafe(g) ? 'Start serving →' : isNursery(g) ? 'Visit your buddy →' : isMailRun(g) ? 'Fly the mail →' : isTruck(g) ? 'Start unloading →' : isCards21(g) ? 'Take a seat →' : isFortune(g) ? 'Draw a card →' : 'Spin the wheel →'}</span></div></a>`;
+          <span class="gc-play">${isBattle(g) ? 'Pick a fight →' : isBallLab(g) ? 'Start sorting →' : isSentry(g) ? 'Take your shift →' : isDance(g) ? 'Dance with Ralts →' : isKitchen(g) ? 'Start cooking →' : isCafe(g) ? 'Start patching →' : isNursery(g) ? 'Visit your buddy →' : isMailRun(g) ? 'Fly the mail →' : isTruck(g) ? 'Start unloading →' : isCards21(g) ? 'Take a seat →' : isFortune(g) ? 'Draw a card →' : 'Spin the wheel →'}</span></div></a>`;
     const chores = list.filter((g) => sectionOf(g) === 'Chores'); const skill = list.filter((g) => sectionOf(g) === 'Skill Games'); const gambling = list.filter((g) => sectionOf(g) === 'Gambling Games'); const battles = list.filter((g) => sectionOf(g) === 'Battles');
     main.innerHTML = `<div class="hero"><img class="hdr" src="assets/banners/items_orbs.jpg" alt=""></div>
       <div class="row" style="justify-content:space-between;margin-top:12px"><h1 style="margin:0">Games</h1>${gm ? '<button class="btn alt sm" id="add">+ Game</button>' : ''}</div>

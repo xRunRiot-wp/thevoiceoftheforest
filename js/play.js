@@ -1,28 +1,28 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6af135ce';
-import * as sheet from './sheetdata.js?v=6af135ce';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6af135ce';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af135ce';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6af135ce';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af135ce';
-import { unlockChar } from './charlock.js?v=6af135ce';
-import { CONFIG } from './config.js?v=6af135ce';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af135ce';
-import { merged, editContent } from './content-store.js?v=6af135ce';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af135ce';
-import { guildName, missionParts } from './guild.js?v=6af135ce';
-import { homeHTML } from './sitepages.js?v=6af135ce';
-import { burstSet } from './burst.js?v=6af135ce';
-import { giftNote } from './mailbox.js?v=6af135ce';
-import { levelUpHTML, openLevelUp } from './levelup.js?v=6af135ce';
-import { pinsOf, showMap } from './hotbar.js?v=6af135ce';
-import { chatterLatestHTML } from './chatter.js?v=6af135ce';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af135ce';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af135ce';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6af135ce';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af135ce';
-import { find } from './effects.js?v=6af135ce';
-import * as dice3d from './dice3d.js?v=6af135ce';
+import * as store from './store.js?v=6af13807';
+import * as sheet from './sheetdata.js?v=6af13807';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6af13807';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af13807';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6af13807';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af13807';
+import { unlockChar } from './charlock.js?v=6af13807';
+import { CONFIG } from './config.js?v=6af13807';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af13807';
+import { merged, editContent } from './content-store.js?v=6af13807';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af13807';
+import { guildName, missionParts } from './guild.js?v=6af13807';
+import { homeHTML } from './sitepages.js?v=6af13807';
+import { burstSet } from './burst.js?v=6af13807';
+import { giftNote } from './mailbox.js?v=6af13807';
+import { levelUpHTML, openLevelUp } from './levelup.js?v=6af13807';
+import { pinsOf, showMap } from './hotbar.js?v=6af13807';
+import { chatterLatestHTML } from './chatter.js?v=6af13807';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af13807';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af13807';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6af13807';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af13807';
+import { find } from './effects.js?v=6af13807';
+import * as dice3d from './dice3d.js?v=6af13807';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -213,12 +213,22 @@ export function renderPlay(main) {
 }
 
 // ---- WHOLE TEAM effects banner: effects on everyone; exhaustable ones get a tick box per character
-export function addTeamFx(name, text, exhaust = true) {
-  store.set('teamfx/' + store.tid(), { name, text, exhaust, used: {}, t: Date.now() });
+// ends (ms time, optional): the effect wears off then by itself (stews end at midnight, her ask 11-08)
+export function addTeamFx(name, text, exhaust = true, ends = null) {
+  store.set('teamfx/' + store.tid(), { name, text, exhaust, used: {}, t: Date.now(), ...(ends ? { ends } : {}) });
 }
+// live team effects; ones past their end are cleared from the table as soon as anyone looks
+export function liveTeamFx() {
+  const now = Date.now();
+  // stews cooked before the timer existed still end at midnight of the day they were made
+  const all = Object.entries(store.get('teamfx') || {}).filter(([, x]) => x && x.name).map(([id, x]) => [id, !x.ends && / cooked by /.test(x.text || '') && x.t ? { ...x, ends: dayEndsAt(x.t) } : x]);
+  all.filter(([, x]) => x.ends && x.ends <= now).forEach(([id]) => store.set('teamfx/' + id, null));
+  return all.filter(([, x]) => !x.ends || x.ends > now).sort((a, b) => (a[1].t || 0) - (b[1].t || 0));
+}
+export const fxLeftHTML = (f) => (f.ends ? ` <span class="pill tfx-left" data-fxend="${f.ends}">⏳ ${leftText(f.ends)}</span>` : '');
 const tfxOpen = () => { try { return JSON.parse(localStorage.getItem('dc.tfxopen') || '[]'); } catch { return []; } };
 function teamFxHTML() {
-  const fx = Object.entries(store.get('teamfx') || {}).sort((a, b) => (a[1].t || 0) - (b[1].t || 0));
+  const fx = liveTeamFx();
   const gm = store.gmUnlocked();
   if (!fx.length && !gm) return '';
   const p = Object.values(party()).filter((x) => !x.guest);
@@ -226,7 +236,7 @@ function teamFxHTML() {
     ${fx.length ? fx.map(([id, f]) => { const used = f.used || {}; const all = f.exhaust && p.length && p.every((x) => used[x.id]);
       // her ask 10-29: each effect folds up under its name (open ones remembered on this device)
       const mine = me(); const usedMine = f.exhaust && mine && used[mine.id];
-      return `<details class="tfx ${all ? 'spent' : ''}" data-tfxopen="${id}" ${tfxOpen().includes(id) ? 'open' : ''}><summary><b>${esc(f.name)}</b>${f.exhaust ? ' <span class="pill">once each</span>' : ''}${usedMine ? ' <span class="pill">✓ used</span>' : ''}</summary>
+      return `<details class="tfx ${all ? 'spent' : ''}" data-tfxopen="${id}" ${tfxOpen().includes(id) ? 'open' : ''}><summary><b>${esc(f.name)}</b>${f.exhaust ? ' <span class="pill">once each</span>' : ''}${fxLeftHTML(f)}${usedMine ? ' <span class="pill">✓ used</span>' : ''}</summary>
       <div class="row nowrap" style="justify-content:space-between;align-items:flex-start;margin-top:4px"><div class="grow">${f.text ? `<div class="small">${esc(f.text)}</div>` : ''}</div>${gm ? `<button class="btn alt sm" data-tfxdel="${id}">Remove</button>` : ''}</div>
       ${f.exhaust ? `<div class="tfx-used">${p.map((x) => `<label><input type="checkbox" data-tfx="${id}" data-who="${x.id}" ${used[x.id] ? 'checked' : ''}> ${esc(x.nickname)}</label>`).join('')}</div>${all ? '<div class="small muted">Everyone has used it.</div>' : ''}` : ''}</details>`; }).join('') : '<p class="small muted">No team effects right now. Add one with + Effect.</p>'}</div>`;
 }
@@ -599,7 +609,7 @@ function bindCharCard(main, c) {
   $('#stedit', main).onclick = () => pickStatus(c);
   $('#editme', main).onclick = () => editCharacter(c.id);
   // her ask 11-01: a shortcut to your own base (it opens over the page, like tapping its square on the Woodland Base map)
-  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af135ce').then((m) => m.openBase(c.id, { from: gb }));
+  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af13807').then((m) => m.openBase(c.id, { from: gb }));
   $('#editme2', main).onclick = () => editCharacter(c.id);
   $('#qroll', main).onclick = () => quickRoll(c);
   $$('[data-act]', main).forEach((b) => b.onclick = () => actionRoll(c, actions().find((a) => a.id === b.dataset.act)));

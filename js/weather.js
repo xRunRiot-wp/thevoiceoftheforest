@@ -2,9 +2,9 @@
 // A roll of 100 is a disaster for the whole day: a huge fissure or a tsunami. Players never see who causes them (GM screen only).
 // Every device works out the same weather from the table code and the time, so nothing has to be saved;
 // the GM can still force a weather. Rules are PokéRole 2.0's weather (p.55-57).
-import * as store from './store.js?v=6af135ce';
-import { esc } from './util.js?v=6af135ce';
-import { modal } from './ui.js?v=6af135ce';
+import * as store from './store.js?v=6af13807';
+import { esc } from './util.js?v=6af13807';
+import { modal } from './ui.js?v=6af13807';
 
 export const WEATHERS = {
   clear: { name: 'Clear skies', icon: '☀️', w: 30, text: 'No weather effects.' },
@@ -44,6 +44,13 @@ function clock(t) {
     .formatToParts(new Date(t)).map((x) => [x.type, x.value]));
   return { day: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour), min: Number(p.minute) };
 }
+
+// When the site's day ends (midnight New York time): stew team effects wear off then (her ask 11-08)
+export function dayEndsAt(t = Date.now()) { const { hour, min } = clock(t); return t - (t % 60e3) + (24 * 60 - (hour * 60 + min)) * 60e3; }
+// "5h 12m left" style countdown text for a timestamp
+export function leftText(end, t = Date.now()) { const m = Math.max(0, Math.ceil((end - t) / 60e3)); return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m left` : `${m}m left`; }
+// keeps every [data-fxend] countdown on the page ticking; gone effects vanish on the next redraw
+setInterval(() => document.querySelectorAll('[data-fxend]').forEach((el) => { el.textContent = '⏳ ' + leftText(+el.dataset.fxend); }), 20e3);
 
 // The day's 1d100 sky roll (same on every device)
 export function dailyRoll(t = Date.now()) {

@@ -1,19 +1,19 @@
 // her ask 11-07: TV display mode for in-person sessions. A home screen of big flat tiles (Echo Show / Windows 8 feel)
 // around the Friend Zone, and an overview panel that stays at the side on every page. Turned on in Settings, per device.
 // This screen faces the whole table, so nothing here may show hidden missions or other GM-only data.
-import * as store from './store.js?v=6af135ce';
-import { $, esc, num } from './util.js?v=6af135ce';
-import { tvMode, openSettings } from './theme.js?v=6af135ce';
-import { renderFriendZone, locations } from './friendzone.js?v=6af135ce';
-import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af135ce';
-import { renderMessHall } from './play.js?v=6af135ce';
-import { renderNurseryParty } from './nursery.js?v=6af135ce';
-import { chatterLatestHTML } from './chatter.js?v=6af135ce';
-import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af135ce';
-import { sitePages } from './sitepages.js?v=6af135ce';
-import { openBase, hasBase } from './mybase.js?v=6af135ce';
-import { topPatron } from './vault.js?v=6af135ce';
-import { portrait, modal } from './ui.js?v=6af135ce';
+import * as store from './store.js?v=6af13807';
+import { $, esc, num } from './util.js?v=6af13807';
+import { tvMode, openSettings } from './theme.js?v=6af13807';
+import { renderFriendZone, locations } from './friendzone.js?v=6af13807';
+import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af13807';
+import { renderMessHall, liveTeamFx, fxLeftHTML } from './play.js?v=6af13807';
+import { renderNurseryParty } from './nursery.js?v=6af13807';
+import { chatterLatestHTML } from './chatter.js?v=6af13807';
+import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af13807';
+import { sitePages } from './sitepages.js?v=6af13807';
+import { openBase, hasBase } from './mybase.js?v=6af13807';
+import { topPatron } from './vault.js?v=6af13807';
+import { portrait, modal } from './ui.js?v=6af13807';
 
 // her ask 11-07: the Bases tile (in place of GM): every character's base as a door to knock on, like igloos on a map
 function renderBases(main) {
@@ -24,12 +24,12 @@ function renderBases(main) {
 }
 // her ask 11-07: the WHOLE TEAM effects show as buffs under the clock; hovering or tapping one shows its description and
 // the once-each check boxes (tick who has used it), the same ones as on the Play page
-const teamFx = () => Object.entries(store.get('teamfx') || {}).filter(([, x]) => x && x.name).sort((a, b) => (a[1].t || 0) - (b[1].t || 0));
+const teamFx = () => liveTeamFx();
 const buffsHTML = () => { const fx = teamFx();
-  return fx.length ? `<div class="tv-buffs">${fx.map(([id, x]) => `<button type="button" class="tv-buff" data-buff="${esc(id)}" aria-label="${esc(x.name)}">🌟 ${esc(x.name)}</button>`).join('')}</div>` : ''; };
+  return fx.length ? `<div class="tv-buffs">${fx.map(([id, x]) => `<button type="button" class="tv-buff" data-buff="${esc(id)}" aria-label="${esc(x.name)}">🌟 ${esc(x.name)}${fxLeftHTML(x)}</button>`).join('')}</div>` : ''; };
 const buffBody = (id) => { const f = store.get('teamfx/' + id); if (!f) return '';
   const used = f.used || {}; const p = Object.values(store.get('party') || {}).filter((c) => c && !c.guest);
-  return `<div class="tv-buff-name">🌟 ${esc(f.name)}${f.exhaust ? ' <span class="pill">once each</span>' : ''}</div>${f.text ? `<p class="small">${esc(f.text)}</p>` : '<p class="small muted">No description.</p>'}
+  return `<div class="tv-buff-name">🌟 ${esc(f.name)}${f.exhaust ? ' <span class="pill">once each</span>' : ''}${fxLeftHTML(f)}</div>${f.text ? `<p class="small">${esc(f.text)}</p>` : '<p class="small muted">No description.</p>'}
     ${f.exhaust ? `<div class="tfx-used">${p.map((c) => `<label><input type="checkbox" data-tvfx="${esc(id)}" data-who="${esc(c.id)}" ${used[c.id] ? 'checked' : ''}> ${esc(c.nickname)}</label>`).join('')}</div>` : ''}`; };
 const bindBuffBoxes = (el) => el.querySelectorAll('[data-tvfx]').forEach((b) => b.onchange = () => store.set(`teamfx/${b.dataset.tvfx}/used/${b.dataset.who}`, b.checked || null));
 let buffPop = null; let buffHide = 0;

@@ -3,17 +3,17 @@
 // stirs it, and Spinda comes to taste. Good stew = dinner on time. Bad = Spinda spits it out and dinner is late.
 // REALLY REALLY good = it's served at dinner and the whole team gets a WHOLE TEAM effect from the recipe.
 // One stew a day for the guild. Recipes are GM-editable (content/recipes).
-import * as store from './store.js?v=6af135ce';
-import { $, $$, esc, toast, num, uid, slug } from './util.js?v=6af135ce';
-import { me, logRoll, addTeamFx } from './play.js?v=6af135ce';
-import { dailyRoll, hash } from './weather.js?v=6af135ce';
-import { gameSay, gmTodo } from './chatter.js?v=6af135ce';
-import { markWinner } from './sparkle.js?v=6af135ce';
-import { merged, editContent, saveContent, deleteContent } from './content-store.js?v=6af135ce';
-import { modal, closeModal } from './ui.js?v=6af135ce';
-import { ledger } from './vault.js?v=6af135ce';
-import { faceHTML, faceSrc } from './sentry.js?v=6af135ce';
-import { pageMusic } from './chiptune.js?v=6af135ce';
+import * as store from './store.js?v=6af13807';
+import { $, $$, esc, toast, num, uid, slug } from './util.js?v=6af13807';
+import { me, logRoll, addTeamFx } from './play.js?v=6af13807';
+import { dailyRoll, hash, dayEndsAt } from './weather.js?v=6af13807';
+import { gameSay, gmTodo } from './chatter.js?v=6af13807';
+import { markWinner } from './sparkle.js?v=6af13807';
+import { merged, editContent, saveContent, deleteContent } from './content-store.js?v=6af13807';
+import { modal, closeModal } from './ui.js?v=6af13807';
+import { ledger } from './vault.js?v=6af13807';
+import { faceHTML, faceSrc } from './sentry.js?v=6af13807';
+import { pageMusic } from './chiptune.js?v=6af13807';
 
 export const isKitchen = (g) => g.kind === 'kitchen' || g.id === 'spinda-kitchen';
 
@@ -252,12 +252,12 @@ function taste(c, box, recipe, pot, hits, onDone, fixed = null) {
       : mood === 'good' ? 'Mm! Tasty! Dinner will be right on time tonight.' : 'PTOOEY!! Blegh! That’s… not my recipe. Dinner is going to be late…';
     const said = $('.kitchen .sentry-digg', box); said.outerHTML = spinda(mood, line);
     box.querySelector('.kitchen').insertAdjacentHTML('beforeend', `<div class="sentry-end">${faceHTML(c, mood === 'bad' ? 'sloppy' : mood === 'great' ? 'great' : 'good', 'big')}<div class="big">${esc(tier)}</div><p>Taste score: ${sc} / 100</p>
-      ${mood === 'great' ? `<p class="pill">🌟 WHOLE TEAM effect: ${esc(recipe.buff || 'Homemade Stew')}</p><p class="small">${esc(recipe.buffText || 'Once each: heal 1 HP at any time.')}</p>` : ''}
+      ${mood === 'great' ? `<p class="pill">🌟 WHOLE TEAM effect: ${esc(recipe.buff || 'Homemade Stew')}</p><p class="small">${esc(recipe.buffText || 'Once each: heal 1 HP at any time.')} Lasts until midnight.</p>` : ''}
       <p class="small muted">${mood === 'bad' ? 'Dinner is late tonight.' : 'Served at dinner tonight.'} Next stew tomorrow.</p></div>`);
     const what = fixed != null ? 'Spinda’s own berries (helped stir and mind the heat)' : pot.map((p) => p.name).join(', ') || 'nothing';
     logRoll(c.nickname, `Spinda’s Kitchen — ${recipe.name}`, null, `${sc}/100 · ${tier} · used ${what}`, 'note');
     if (mood === 'great') {
-      addTeamFx(recipe.buff || 'Homemade Stew', `${recipe.buffText || 'Once each: heal 1 HP at any time.'} (Spinda’s ${recipe.name}, cooked by ${c.nickname})`.trim(), true);
+      addTeamFx(recipe.buff || 'Homemade Stew', `${recipe.buffText || 'Once each: heal 1 HP at any time.'} (Spinda’s ${recipe.name}, cooked by ${c.nickname}) Lasts until midnight.`.trim(), true, dayEndsAt());
       markWinner(c.id);
       store.pushLimited('log', { t: Date.now(), text: `${c.nickname}’s ${recipe.name} was REALLY REALLY good! The whole team gets ${recipe.buff || 'a stew buff'}.` });
       gameSay('Spinda', 'say', `${c.nickname}’s ${recipe.name} is the best stew I’ve tasted all season! Everyone, eat up!`, 'stew', c.nickname);
