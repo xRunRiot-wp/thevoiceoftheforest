@@ -1,16 +1,16 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6af15b1a';
-import { $, $$, esc, toast } from './util.js?v=6af15b1a';
-import { modal, closeModal } from './ui.js?v=6af15b1a';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6af15b1a';
-import { merged, editContent } from './content-store.js?v=6af15b1a';
-import { CHAPTERS } from './content.js?v=6af15b1a';
-import { giftNote } from './mailbox.js?v=6af15b1a';
-import { guildSay } from './chatter.js?v=6af15b1a';
-import { myId } from './app.js?v=6af15b1a';
-import { hasBase, openBase } from './mybase.js?v=6af15b1a';
-import { shackButtons } from './miltank.js?v=6af15b1a';
+import * as store from './store.js?v=6af15cd7';
+import { $, $$, esc, toast } from './util.js?v=6af15cd7';
+import { modal, closeModal } from './ui.js?v=6af15cd7';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6af15cd7';
+import { merged, editContent } from './content-store.js?v=6af15cd7';
+import { CHAPTERS } from './content.js?v=6af15cd7';
+import { giftNote } from './mailbox.js?v=6af15cd7';
+import { guildSay } from './chatter.js?v=6af15cd7';
+import { myId } from './app.js?v=6af15cd7';
+import { hasBase, openBase } from './mybase.js?v=6af15cd7';
+import { shackButtons } from './miltank.js?v=6af15cd7';
 
 export const LOCATIONS = [
   {

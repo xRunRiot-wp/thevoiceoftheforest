@@ -4,18 +4,21 @@
 // help it. The tent improving as they fix it": a camp scene. Machoke walks to a supply pile to pick up vines, sturdy branches or
 // leaves, then walks to the tent that calls for it and works on it. Each wobbly tent needs two fixes: torn -> patched -> sturdy.
 // A tent left too long collapses. Tap targets act on press (one listener on the scene; her 11-08 "it isn't taking the first time").
-import * as store from './store.js?v=6af15b1a';
-import { $, esc, toast, num } from './util.js?v=6af15b1a';
-import { me, logRoll } from './play.js?v=6af15b1a';
-import { dailyRoll } from './weather.js?v=6af15b1a';
-import { gameSay } from './chatter.js?v=6af15b1a';
-import { markWinner } from './sparkle.js?v=6af15b1a';
-import { faceSrc } from './sentry.js?v=6af15b1a';
-import { pageMusic } from './chiptune.js?v=6af15b1a';
+import * as store from './store.js?v=6af15cd7';
+import { $, esc, toast, num } from './util.js?v=6af15cd7';
+import { me, logRoll } from './play.js?v=6af15cd7';
+import { dailyRoll } from './weather.js?v=6af15cd7';
+import { gameSay } from './chatter.js?v=6af15cd7';
+import { markWinner } from './sparkle.js?v=6af15cd7';
+import { faceSrc } from './sentry.js?v=6af15cd7';
+import { pageMusic } from './chiptune.js?v=6af15cd7';
 
 export const isCafe = (g) => g.kind === 'cafe' || g.id === 'mess-hall-rush';
 // her site check 11-09: 🛖 and 🪵 are newer emoji that show as empty boxes on Windows 10 and older phones, so ⛺ and 🌲 are used
-const FOODS = [['🌿', 'Vines'], ['🌲', 'Sturdy branches'], ['🍃', 'Leaves']];
+const FOODS = [['🌿', 'Vines', 'vines'], ['🌲', 'Sturdy branches', 'branches'], ['🍃', 'Leaves', 'leaves']];
+// her 11-09 "make the material piles match more to the art style": pixel-art piles (assets/shelter/pile_*.png), also used for what
+// Machoke carries and what each tent asks for
+const pileImg = (f, cls = '') => `<img class="${cls}" src="assets/shelter/pile_${f[2]}.png" alt="${esc(f[1])}" draggable="false">`;
 const GUESTS = ['diglett', 'ralts', 'swablu', 'magnemite', 'golett', 'tinkatink', 'jangmoo', 'cleffa', 'sudowoodo'];
 // a random guild NPC drops in once or twice a shift and finishes the tent closest to falling (her ask 11-08)
 const HELP_LINES = ['I’ll hold this one up!', 'Need a hand? Got it!', 'Coming through with vines!', 'Leave this shelter to me!'];
@@ -24,7 +27,8 @@ const SECONDS = 60; const TENTS = 4; const PATIENCE = 16000;
 // Machoke's PMD walk sheet (SpriteCollab 0067): 4 frames of 32x48, rows: down 0, right 2, up 4, left 6
 const MACH = { url: 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite/0067/Walk-Anim.png', w: 32, h: 48, n: 4, ms: 600, S: 2 };
 const ROW = { down: 0, right: 2, up: 4, left: 6 };
-const TENT_X = [14, 38, 62, 86]; const TENT_Y = 40; const PILE_X = [22, 50, 78]; const PILE_Y = 86;
+const TENT_PIC = { 0: 'torn', 1: 'patched', 2: 'sturdy', '-1': 'collapsed' };   // assets/shelter/tent_*.png (80x68 pixel art)
+const TENT_X = [14, 38, 62, 86]; const TENT_Y = 40; const PILE_X = [20, 50, 80]; const PILE_Y = 80;
 // fixed: [lowest, name, Poké, line]
 const GRADES = [[9, 'Rock-solid shelters!', 300, 'Not a single wobble left! Everyone sleeps safe and dry tonight!'], [6, 'Good shift', 100, 'Nice and quick! Those shelters will hold.'],
   [3, 'Shift done', 0, 'Shift done. The camp thanks you.'], [0, 'Rough shift', 0, 'A few shelters came down… we’ll rebuild tomorrow.']];
@@ -63,8 +67,8 @@ function play(main, c) {
 
   box.innerHTML = `<div class="cafe-bar"><b id="shtime">⏱ ${SECONDS}s</b><span id="shfixed">✅ 0 fixed</span><span id="shlost">💥 0 fell</span></div>
     <div class="sh-scene" id="shscene">
-      ${tents.map((_, i) => `<button type="button" class="sh-tent" data-tent="${i}" style="left:${TENT_X[i]}%;top:${TENT_Y}%" aria-label="Tent ${i + 1}"><span class="sh-need"></span><span class="sh-cloth"><i></i></span><span class="sh-pole"></span><span class="sh-spark">✨</span><i class="sh-pat"><b></b></i></button>`).join('')}
-      ${FOODS.map((f, i) => `<button type="button" class="sh-pile" data-pile="${i}" style="left:${PILE_X[i]}%;top:${PILE_Y}%" aria-label="${esc(f[1])} pile"><span class="sh-heap">${f[0].repeat(3)}</span><small>${esc(f[1])}</small></button>`).join('')}
+      ${tents.map((_, i) => `<button type="button" class="sh-tent" data-tent="${i}" style="left:${TENT_X[i]}%;top:${TENT_Y}%" aria-label="Tent ${i + 1}"><span class="sh-need"></span><img class="sh-img" src="assets/shelter/tent_torn.png" alt="" draggable="false"><span class="sh-spark">✨</span><i class="sh-pat"><b></b></i></button>`).join('')}
+      ${FOODS.map((f, i) => `<button type="button" class="sh-pile" data-pile="${i}" style="left:${PILE_X[i]}%;top:${PILE_Y}%" aria-label="${esc(f[1])} pile">${pileImg(f, 'sh-pimg')}<small>${esc(f[1])}</small></button>`).join('')}
       <div class="sh-mach" id="shmach" style="left:${pos.x}%;top:${pos.y}%"><span class="sh-held" id="shheld"></span><div class="sh-spr" style="width:${MACH.w * MACH.S}px;height:${MACH.h * MACH.S}px;background-image:url(${MACH.url});background-size:${MACH.w * MACH.n * MACH.S}px ${MACH.h * 8 * MACH.S}px;--fw:${MACH.w * MACH.S}px;--n:${MACH.n};--ms:${MACH.ms}ms"></div></div>
       <div class="sh-helper" id="shhelper" hidden></div>
     </div>
@@ -75,11 +79,13 @@ function play(main, c) {
   face('down');
   const paint = () => {
     $('#shtime', box).textContent = `⏱ ${Math.ceil(left)}s`; $('#shfixed', box).textContent = `✅ ${fixed} fixed`; $('#shlost', box).textContent = `💥 ${lost} fell`;
-    $('#shmsg', box).textContent = msg; $('#shheld', box).textContent = held ? held[0] : '';
+    $('#shmsg', box).textContent = msg; const hEl = $('#shheld', box); const hKey = held ? held[2] : ''; if (hEl.dataset.k !== hKey) { hEl.dataset.k = hKey; hEl.innerHTML = held ? pileImg(held) : ''; }
     tents.forEach((t, i) => {
       const el = scene.querySelector(`[data-tent="${i}"]`); const p = t.stage >= 0 && t.stage < 2 ? t.pat / PATIENCE : 1;
+      if (el.dataset.stage !== String(t.stage)) el.querySelector('.sh-img').src = `assets/shelter/tent_${TENT_PIC[t.stage]}.png`;   // her 11-09: detailed pixel tents per stage
       el.dataset.stage = String(t.stage); el.classList.toggle('urgent', t.stage >= 0 && t.stage < 2 && p < 0.35); el.classList.toggle('working', working === i);
-      el.querySelector('.sh-need').textContent = t.stage >= 0 && t.stage < 2 && t.need ? t.need[0] : '';
+      const nEl = el.querySelector('.sh-need'); const nKey = t.stage >= 0 && t.stage < 2 && t.need ? t.need[2] : '';
+      if (nEl.dataset.k !== nKey) { nEl.dataset.k = nKey; nEl.innerHTML = nKey ? pileImg(t.need) : ''; }
       const bar = el.querySelector('.sh-pat b'); bar.style.width = `${Math.max(0, p * 100)}%`; bar.style.background = p > 0.5 ? '#6cc36a' : p > 0.25 ? '#e5b83a' : '#d9534f';
     });
   };
