@@ -2753,3 +2753,32 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .cafe-counter { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
 .cafe-food { display: grid; place-items: center; font-size: 28px; padding: 8px 2px; border: 3px solid var(--brown2, #7a5a35); border-radius: 12px; background: #fff3d6; cursor: var(--cur-link, pointer); }
 .cafe-food small { font-size: 11px; } .cafe-food.on { background: #b7ecb0; }
+/* her ask 11-08: Critical information side by side (cards in a row; phones swipe sideways) */
+.chapter-info .ci-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.chapter-info .ci-card { background: #fffaf0; border: 2px solid #e8b46a; border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.chapter-info .ci-card h4 { margin: 6px 0 4px; }
+.chapter-info .ci-card p { margin: 0; font-size: 14px; line-height: 1.4; }
+.chapter-info .ci-card .pill { font-size: 11px; }
+@media (max-width: 620px) {
+  .chapter-info .ci-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+  .chapter-info .ci-card { flex: 0 0 78%; scroll-snap-align: start; }
+}
+.ask-def { background: #eef6ff; border: 2px solid #8fb8e8; border-radius: 8px; padding: 6px 10px; font-size: 14px; color: #1d3550; }
+.ask-def.need { background: #ffe9e6; border-color: #d9534f; animation: askpulse .5s 2; }
+@keyframes askpulse { 50% { transform: scale(1.02); } }
+/* NPC character sheets (her ask 11-08) */
+.npc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.npc-pick { display: flex; align-items: center; gap: 8px; text-align: left; background: #fffaf0; border: 2px solid #c9b48a; border-radius: 10px; padding: 6px; cursor: pointer; font: inherit; color: #2b2116; }
+.npc-pick span { display: flex; flex-direction: column; min-width: 0; }
+.npc-pick small { opacity: .75; }
+.npc-moves { display: flex; flex-wrap: wrap; gap: 6px; }
+/* rank limits on Poké + bag (her ask 11-08) */
+.limit-warn { background: #ffe9e6; border: 2px solid #d9534f; border-radius: 10px; padding: 8px 10px; margin-top: 8px; font-size: 14px; color: #5a1a14; text-align: left; }
+.limit-warn .btn { display: block; margin-top: 6px; }
+.bagcap { border: 2px solid #8cbf7a; background: #f1faec; border-radius: 10px; padding: 6px 10px; margin: 6px 0 8px; font-size: 14px; color: #23361b; }
+.bagcap-bar { height: 10px; border-radius: 6px; background: #0001; overflow: hidden; margin-top: 4px; }
+.bagcap-bar i { display: block; height: 100%; background: #6cc36a; transition: width .3s; }
+.bagcap.warn { border-color: #e5b83a; background: #fff8e1; color: #4a3a08; } .bagcap.warn i { background: #e5b83a; }
+.bagcap.full { border-color: #e07b24; background: #fff0e0; color: #4a2508; } .bagcap.full i { background: #e07b24; }
+.bagcap.over { border-color: #d9534f; background: #ffe9e6; color: #5a1a14; animation: bagwobble .6s 2; } .bagcap.over i { background: #d9534f; }
+@keyframes bagwobble { 25% { transform: rotate(-1deg); } 75% { transform: rotate(1deg); } }

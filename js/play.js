@@ -1,28 +1,29 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6af13f14';
-import * as sheet from './sheetdata.js?v=6af13f14';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6af13f14';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af13f14';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6af13f14';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af13f14';
-import { unlockChar } from './charlock.js?v=6af13f14';
-import { CONFIG } from './config.js?v=6af13f14';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af13f14';
-import { merged, editContent } from './content-store.js?v=6af13f14';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af13f14';
-import { guildName, missionParts } from './guild.js?v=6af13f14';
-import { homeHTML } from './sitepages.js?v=6af13f14';
-import { burstSet } from './burst.js?v=6af13f14';
-import { giftNote } from './mailbox.js?v=6af13f14';
-import { levelUpHTML, openLevelUp } from './levelup.js?v=6af13f14';
-import { pinsOf, showMap } from './hotbar.js?v=6af13f14';
-import { chatterLatestHTML } from './chatter.js?v=6af13f14';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af13f14';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af13f14';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6af13f14';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af13f14';
-import { find } from './effects.js?v=6af13f14';
-import * as dice3d from './dice3d.js?v=6af13f14';
+import * as store from './store.js?v=6af15078';
+import * as sheet from './sheetdata.js?v=6af15078';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6af15078';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af15078';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6af15078';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af15078';
+import { unlockChar } from './charlock.js?v=6af15078';
+import { CONFIG } from './config.js?v=6af15078';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af15078';
+import { merged, editContent } from './content-store.js?v=6af15078';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af15078';
+import { guildName, missionParts } from './guild.js?v=6af15078';
+import { homeHTML } from './sitepages.js?v=6af15078';
+import { burstSet } from './burst.js?v=6af15078';
+import { giftNote } from './mailbox.js?v=6af15078';
+import { levelUpHTML, openLevelUp } from './levelup.js?v=6af15078';
+import { pinsOf, showMap } from './hotbar.js?v=6af15078';
+import { chatterLatestHTML } from './chatter.js?v=6af15078';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af15078';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af15078';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6af15078';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af15078';
+import { find } from './effects.js?v=6af15078';
+import * as dice3d from './dice3d.js?v=6af15078';
+import { GUILD, syncRecruits } from './battle.js?v=6af15078';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -199,6 +200,8 @@ export function renderPlay(main) {
 
   ${combat.active ? `<div class="section-title"><h3>Turn order</h3><span class="pill">Round ${combat.round || 1}</span></div>${orderList(order, combat.turn || 0, false)}` : ''}
 
+  <div class="row" style="margin:8px 0 2px"><button class="btn alt sm" id="npcsheets">📋 NPC character sheets</button></div>
+
   <div class="section-title"><h3>Party</h3></div>
   ${partyStrip(c?.id)}
 
@@ -209,6 +212,7 @@ export function renderPlay(main) {
   if (c) bindCharCard(main, c);
   bindTeamFx(main);
   $('#freeroll', main).onclick = () => freeRoll(c);
+  $('#npcsheets', main).onclick = () => npcList();
   $$('[data-viewchar]', main).forEach((b) => b.onclick = () => viewCharacter(b.dataset.viewchar));
 }
 
@@ -348,9 +352,30 @@ function clashPick(c) {
 
 // ---------------------------------------------------------------- Poké bank (each character's own money)
 const POKE_ASK = { add: 'How much Poké does {n} get?', spend: 'How much Poké does {n} spend?', give: 'How much Poké does {n} give to the guild coffers?', take: 'How much Poké does {n} take from the guild coffers?' };
-export function pokeMove(c, kind) {
-  const amt = Math.floor(num(prompt(POKE_ASK[kind].replace('{n}', c.nickname), '')));
+// her ask 11-08: "bag and gold restrictions for the ranks on each player": Poké pouch + bag size by rank (Guild Ranks handout;
+// ranks that list nothing keep the rank below's). Over the limit -> told to deposit in their guild's vault. Guests/NPC helpers: none.
+const RANK_LIMITS = { Starter: [999, 5], Beginner: [9999, 5], Amateur: [9999, 5], Ace: [50000, 15], Pro: [50000, 15], Master: [99999, 15], Champion: [99999, 15] };
+export const limitsFor = (c) => { const [poke, bag] = RANK_LIMITS[c?.rank] || RANK_LIMITS.Beginner; return { poke, bag }; };
+const bagCount = (c) => Object.values(store.get('bag') || {}).filter((b) => b && b.owner === c.id && !b.key && !isBadge(b.name) && b.name !== 'World Map').reduce((s, b) => s + Math.max(1, num(b.qty)), 0);
+function pouchLimitHTML(c) {
+  if (c.guest) return '';
+  const { poke } = limitsFor(c); const have = num(c.poke); const over = have - poke;
+  return over > 0 ? `<div class="limit-warn">⚠️ <b>Your pouch is overflowing!</b> A ${esc(c.rank || 'Basic')}-rank pouch holds ${poke.toLocaleString()} Poké. Deposit the extra ${over.toLocaleString()} in the ${esc(guildName(c.guild))} vault for safe keeping.<button class="btn sm" data-pokeextra="${over}">Deposit ${over.toLocaleString()} Poké</button></div>`
+    : `<p class="small muted" style="margin:6px 0 0">Pouch: ${have.toLocaleString()} / ${poke.toLocaleString()} Poké (${esc(c.rank || 'Basic')} rank)</p>`;
+}
+function bagLimitHTML(c) {
+  if (c.guest) return '';
+  const { bag } = limitsFor(c); const n = bagCount(c); const pct = Math.min(100, Math.round((n / bag) * 100));
+  const lvl = n > bag ? 'over' : n === bag ? 'full' : n >= bag * 0.8 ? 'warn' : 'ok';
+  const word = { ok: 'Room to spare', warn: 'Getting heavy', full: 'Full', over: 'Too heavy!' }[lvl];
+  return `<div class="bagcap ${lvl}"><div class="row nowrap" style="justify-content:space-between"><b>🎒 ${word}</b><span>${n} / ${bag} items</span></div><div class="bagcap-bar"><i style="width:${pct}%"></i></div>
+    ${lvl === 'over' ? `<p class="small" style="margin:4px 0 0">Your bag can only hold ${bag}. Tap <b>Store</b> on ${n - bag} item${n - bag === 1 ? '' : 's'} to keep them safe in the ${esc(guildName(c.guild))} vault.</p>` : lvl === 'full' ? '<p class="small" style="margin:4px 0 0">No room for anything new. Store something in your guild vault first.</p>' : ''}</div>`;
+}
+
+export function pokeMove(c, kind, preset) {
+  const amt = Math.floor(num(preset ?? prompt(POKE_ASK[kind].replace('{n}', c.nickname), '')));
   if (amt <= 0) return;
+  if ((kind === 'add' || kind === 'take') && !c.guest && num((party()[c.id] || {}).poke) + amt > limitsFor(c).poke) toast(`That's more than a ${c.rank || 'Basic'}-rank pouch holds (${limitsFor(c).poke.toLocaleString()}). Deposit the extra in your guild's vault!`);
   const mine = num((party()[c.id] || {}).poke); const gp = 'guild'; const coffers = num((store.get(gp) || {}).coffers);
   if ((kind === 'spend' || kind === 'give') && amt > mine) return toast(`${c.nickname} only has ${mine} Poké`);
   if (kind === 'take' && amt > coffers) return toast(`The guild only has ${coffers} Poké`);
@@ -450,10 +475,12 @@ function charCard(c) {
         <p class="small muted" style="margin:0 0 6px">${esc(guildName(c.guild))} · shared coffers: ${num((store.get('guild') || {}).coffers).toLocaleString()}</p>
         ${lowAlertHTML()}<div class="pokebank"><div class="pix pokeamt">${num(c.poke).toLocaleString()} <span>Poké</span></div>
           <div class="row"><button class="btn sm" data-poke="add">+ Add</button><button class="btn alt sm" data-poke="spend">− Spend</button><button class="btn alt sm" data-poke="give">Give to guild</button><button class="btn alt sm" data-poke="take">Take from guild</button></div></div>
+        ${pouchLimitHTML(c)}
         <p class="small muted" style="margin:8px 0 0">${(() => { const k = capInfo(c.guild); return `${esc(k.name)} can still take ${k.left.toLocaleString()} of ${k.cap.toLocaleString()} Poké this session.`; })()}</p>
       </div>
       <div class="pouch-bag">
         <div class="section-title bag-title"><h3 class="bag-h"><img class="bag-pic" src="assets/ui/backpack.png" alt="">Bag</h3><span class="row bag-tools" style="gap:6px">${bagEditBtn(c)}<button class="btn alt sm" id="additem">+ Item</button></span></div>
+        ${bagLimitHTML(c)}
         ${bagList(c)}
       </div>
     </div>
@@ -609,7 +636,7 @@ function bindCharCard(main, c) {
   $('#stedit', main).onclick = () => pickStatus(c);
   $('#editme', main).onclick = () => editCharacter(c.id);
   // her ask 11-01: a shortcut to your own base (it opens over the page, like tapping its square on the Woodland Base map)
-  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af13f14').then((m) => m.openBase(c.id, { from: gb }));
+  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af15078').then((m) => m.openBase(c.id, { from: gb }));
   $('#editme2', main).onclick = () => editCharacter(c.id);
   $('#qroll', main).onclick = () => quickRoll(c);
   $$('[data-act]', main).forEach((b) => b.onclick = () => actionRoll(c, actions().find((a) => a.id === b.dataset.act)));
@@ -638,6 +665,7 @@ function bindCharCard(main, c) {
   if ($('#clearboosts', main)) $('#clearboosts', main).onclick = () => clearBoosts(c);
   $('#additem', main).onclick = () => addItem(c.id);
   $$('[data-poke]', main).forEach((b) => b.onclick = () => pokeMove(c, b.dataset.poke));
+  $$('[data-pokeextra]', main).forEach((b) => b.onclick = () => pokeMove(c, 'give', num(b.dataset.pokeextra)));
   $$('[data-use]', main).forEach((b) => b.onclick = () => useItem(b.dataset.use, c));
   $$('[data-stash]', main).forEach((b) => b.onclick = () => stash(b.dataset.stash, c));
   $$('[data-setguild]', main).forEach((b) => b.onclick = () => {
@@ -757,6 +785,9 @@ function moveRoll(c, m) {
   const chance = num((m.effect.match(/Roll\s+(\d+)\s+Chance Dice/i) || [])[1]);
   const stab = m.type && [c.type1, c.type2].includes(m.type);
   const dmgStat = m.cat === 'Special' ? 'Special' : 'Strength';
+  // her ask 11-08: attacking moves ask the foe's Defense (Physical) or Sp. Defense (Special) and take that many dice off
+  const defName = m.cat === 'Special' ? 'Sp. Defense (Insight)' : 'Defense (Vitality)';
+  const defStat = m.cat === 'Special' ? 'Insight' : 'Vitality';
   const targets = combatOrder().filter((x) => x.ref !== c.id && (x.kind !== 'enemy' || x.revealed));
   let lastAcc = null;
 
@@ -780,12 +811,13 @@ function moveRoll(c, m) {
       <h3>2. Damage</h3>
       <div class="grid g2">
         <label class="f">Target${targets.length ? `<select id="tgt"><option value="">— pick —</option>${targets.map((t) => `<option value="${t.id}" data-def="${t.kind === 'enemy' ? '' : ''}">${esc(t.name)}</option>`).join('')}</select>` : '<input disabled value="No battle running">'}</label>
-        <label class="f">Foe's ${m.cat === 'Special' ? 'Sp. Defense (Insight)' : 'Defense (Vitality)'}<input id="def" type="number" inputmode="numeric" value="1"></label>
+        <label class="f">Foe's ${defName}<input id="def" type="number" inputmode="numeric" min="0" placeholder="ask them" value=""></label>
         <label class="f">Type match-up<select id="eff"><option value="0">Normal</option><option value="1">Super effective (+1)</option><option value="2">Super effective, both types (+2)</option><option value="-1">Not very effective (−1)</option><option value="-2">Not very effective, both (−2)</option><option value="immune">Immune (0)</option></select></label>
         <label class="check"><input type="checkbox" id="stab" ${stab ? 'checked' : ''}> Same type as you (+1 die)</label>
         <label class="check"><input type="checkbox" id="crit"> Critical hit (+2 dice)</label>
       </div>
-      <p class="small muted">${dmgStat} ${statVal(c, dmgStat)} + Power ${m.power} − foe's defense</p>
+      <p class="ask-def" id="askdef">🛡️ <b>Ask your foe:</b> “What’s your ${defName}?” ${m.cat === 'Special' ? 'Special' : 'Physical'} move, so that many dice come off your damage.</p>
+      <p class="small muted">${dmgStat} ${statVal(c, dmgStat)} + Power ${m.power} − foe's ${defName}</p>
       <button class="btn block" id="rdmg">Roll damage</button>
       <div class="result" id="dmgres"></div>
     </div>` : ''}
@@ -805,8 +837,13 @@ function moveRoll(c, m) {
     $('#accres', sheetEl).innerHTML = `${diceFaces(r.dice)}<div class="big">${text}</div>${r.onesPen ? `<div class="small muted">two 1s cost ${r.onesPen} success</div>` : ''}<div class="small muted">Foe may Evade (Dex + Evasion) or Clash — they need more successes than you.</div>`;
     logRoll(c.nickname, `${m.name} — accuracy (needs ${need})`, r.dice, text);
   };
+  // a teammate as the target: their sheet is open to everyone, so fill it in (enemies stay hidden: the player asks)
+  if ($('#tgt', sheetEl)) $('#tgt', sheetEl).onchange = () => { const t = targets.find((x) => x.id === $('#tgt', sheetEl).value); const pcT = t?.ref && party()[t.ref]; if (pcT) { $('#def', sheetEl).value = statVal(pcT, defStat); $('#askdef', sheetEl).classList.remove('need'); } };
   if ($('#rdmg', sheetEl)) $('#rdmg', sheetEl).onclick = () => {
-    const def = num($('#def', sheetEl).value);
+    const defEl = $('#def', sheetEl);
+    if (defEl.value.trim() === '') { $('#askdef', sheetEl).classList.add('need'); defEl.focus(); toast(`Ask your foe for their ${defName} first`); return; }
+    $('#askdef', sheetEl).classList.remove('need');
+    const def = Math.max(0, num(defEl.value));
     const effV = $('#eff', sheetEl).value;
     let dice = statVal(c, dmgStat) + m.power - def + ($('#stab', sheetEl).checked ? 1 : 0) + ($('#crit', sheetEl).checked ? 2 : 0) + primalDice(c);
     dice = Math.max(1, dice);
@@ -815,7 +852,7 @@ function moveRoll(c, m) {
     const text = `${dmg} damage`;
     const tgtId = $('#tgt', sheetEl)?.value;
     $('#dmgres', sheetEl).innerHTML = `${diceFaces(r.dice)}<div class="big">${text}</div>${tgtId ? `<button class="btn good" id="apply">Take ${dmg} HP from ${esc(targets.find((t) => t.id === tgtId)?.name || '')}</button>` : ''}`;
-    logRoll(c.nickname, `${m.name} — damage (${dice} dice)`, r.dice, text);
+    logRoll(c.nickname, `${m.name} — damage (${dice} dice, foe ${m.cat === 'Special' ? 'Sp. Def' : 'Def'} ${def})`, r.dice, text);
     if (tgtId) $('#apply', sheetEl).onclick = () => { applyDamage(tgtId, dmg); toast('Done'); closeModal(); };
   };
   if ($('#rch', sheetEl)) $('#rch', sheetEl).onclick = () => {
@@ -990,6 +1027,37 @@ export function editCharacter(id, onCreated) {
     if (isNew) onCreated?.(nid);
   };
   if ($('#del', sheetEl)) $('#del', sheetEl).onclick = () => { if (confirm(`Remove ${c.nickname} from this table?`)) { store.set('party/' + id, null); closeModal(); } };
+}
+
+// ---------------------------------------------------------------- NPC sheets
+// her ask 11-08: "pull up the NPC character sheets under character and roll from them": the guild NPCs' sheets (the same stats
+// Friendly Battle uses, incl. new camp recruits) open from the Play page; tap an action or a move to roll for that NPC.
+const npcChar = (k) => { const g = GUILD[k]; return { ...g, id: 'npc:' + k, npc: true, hp: maxHp(g), status: [], boosts: {} }; };
+const npcFace = (g, size) => portrait(g.art ? { art: g.art, nickname: g.nickname } : { pokemon: g.pokemon }, size);
+export function npcList() {
+  try { syncRecruits(); } catch { /* recruits not loaded yet */ }
+  const keys = Object.keys(GUILD).sort((a, b) => String(GUILD[a].nickname).localeCompare(GUILD[b].nickname));
+  const el = modal(`<h2>📋 NPC character sheets</h2><p class="small muted">Tap an NPC to open their sheet and roll for them.</p>
+    <div class="npc-grid">${keys.map((k) => { const g = GUILD[k]; return `<button class="npc-pick" data-npc="${esc(k)}">${npcFace(g, 'sm')}<span><b>${esc(g.nickname)}</b><small>${esc(g.pokemon)}${g.tier ? ' · ' + esc(g.tier) : ''}</small></span></button>`; }).join('')}</div>`);
+  $$('[data-npc]', el).forEach((b) => b.onclick = () => npcSheet(b.dataset.npc));
+}
+function npcSheet(k) {
+  const c = npcChar(k);
+  const el = modal(`<button class="btn alt sm" id="npcback">← All NPCs</button>
+    <div class="char-head" style="margin-top:8px">${npcFace(c)}<div class="grow"><div class="char-name">${esc(c.nickname)}</div><div class="char-sub">${c.pokemon ? ixLink(c.pokemon) : ''}${c.tier ? ' · ' + esc(c.tier) : ''}</div>
+      <div class="chips" style="margin-top:4px">${typeChip(c.type1)}${typeChip(c.type2)}</div></div></div>
+    <p class="small"><b>HP</b> ${maxHp(c)} · <b>Defense</b> ${statVal(c, 'Vitality')} · <b>Sp. Defense</b> ${statVal(c, 'Insight')}</p>
+    ${statGrids(c)}
+    <h4>⚔️ Moves <small class="muted">tap to roll</small></h4>
+    <div class="npc-moves">${(c.moves || []).map((m, i) => `<button class="btn alt sm" data-nmove="${i}">${esc(m)}</button>`).join('') || '<span class="muted small">No moves listed</span>'}</div>
+    <h4>🎲 Actions <small class="muted">tap to roll</small></h4>
+    <div class="npc-moves">${actions().map((a) => `<button class="btn alt sm" data-nact="${esc(a.id)}">${esc(a.name)}</button>`).join('')}<button class="btn alt sm" data-nact="evade">Evade</button></div>`);
+  $('#npcback', el).onclick = () => npcList();
+  $$('[data-nact]', el).forEach((b) => b.onclick = () => actionRoll(c, b.dataset.nact === 'evade' ? REACT.evade : actions().find((a) => a.id === b.dataset.nact)));
+  allMoves().then((list) => {
+    const base = sheet.moveIndex(list);
+    $$('[data-nmove]', el).forEach((b) => b.onclick = () => { const n = c.moves[+b.dataset.nmove]; moveRoll(c, base.get(n.toLowerCase()) || { name: n, type: '', cat: 'Status', acc: [], power: null, effect: '' }); });
+  });
 }
 
 export { RULES, CONFIG };

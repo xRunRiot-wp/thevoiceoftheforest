@@ -1,12 +1,12 @@
 // Rulebook: quick lookup from inside the game. Index of every effect/interaction, rules, story, cast, guild, items, handouts, links, credits.
-import * as store from './store.js?v=6af13f14';
-import * as sheet from './sheetdata.js?v=6af13f14';
-import { $, $$, esc } from './util.js?v=6af13f14';
-import { portrait } from './ui.js?v=6af13f14';
-import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6af13f14';
-import { natureShort, loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6af13f14';
-import { merged, editContent } from './content-store.js?v=6af13f14';
-import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6af13f14';
+import * as store from './store.js?v=6af15078';
+import * as sheet from './sheetdata.js?v=6af15078';
+import { $, $$, esc } from './util.js?v=6af15078';
+import { portrait } from './ui.js?v=6af15078';
+import { STATUSES, STATUS_IX, NATURES, TYPES, LOOT, SPECIAL_ROLLS, QUICK_TASKS, QUICK_SOCIAL, DUNGEON_EVENTS, RULES, CHAPTERS, CAST, RANKS, GUILDS, WORLD, ITEM_PAGES, ITEM_KINDS, GARMENTS, ITEM_ART, RARITY_ART, HANDOUTS, QUICK_LINKS, INTRO, FAILURE_RULES, MISSION_TYPES, MISSION_GP, DISCLAIMER } from './content.js?v=6af15078';
+import { natureShort, loadIndex, linkify, INDEX_SCHEMA } from './effects.js?v=6af15078';
+import { merged, editContent } from './content-store.js?v=6af15078';
+import { pageHTML, navHTML, navTilesHTML } from './sitepages.js?v=6af15078';
 
 const gm = () => store.gmUnlocked();
 const editBtn = (attr) => (gm() ? `<button class="btn alt sm" ${attr}>Edit</button>` : '');
@@ -142,7 +142,7 @@ export async function renderRules(main, [sub, arg]) {
     // her ask 11-08: the GM's story updates marked "show on the website" appear as Critical information on that chapter's page
     const chNum = (() => { const k = arg || 'home'; const m = k.match(/_chapter-(\d+)-/); return m ? m[1] : k === 'story-guild-rank-progression' ? String(store.get('guild')?.chapter ?? '') : ''; })();
     const info = chNum ? Object.values(store.get('chapterInfo/' + chNum) || {}).filter(Boolean).sort((a, b) => (a.ts || 0) - (b.ts || 0)) : [];
-    const infoBox = info.length ? `<div class="card chapter-info"><h3 style="margin-top:0">⚠️ Critical information · Chapter ${esc(chNum)}</h3>${info.map((x) => `<p><b>${esc(x.kindName || 'Update')}${x.title ? ': ' + esc(x.title) : ''}</b><br>${esc(x.text).replace(/\n/g, '<br>')}</p>`).join('')}</div>` : '';
+    const infoBox = info.length ? `<div class="card chapter-info"><h3 style="margin-top:0">⚠️ Critical information · Chapter ${esc(chNum)}</h3><div class="ci-grid">${info.map((x) => `<div class="ci-card"><span class="pill">${esc(x.kindName || 'Update')}</span>${x.title ? `<h4>${esc(x.title)}</h4>` : ''}<p>${esc(x.text).replace(/\n/g, '<br>')}</p></div>`).join('')}</div></div>` : '';   // her ask 11-08: side by side, not a vertical list
     main.innerHTML = `${back}${infoBox}${pageHTML(arg || 'home', L)}`;
   }
 
@@ -234,7 +234,7 @@ export async function renderRules(main, [sub, arg]) {
   }
 
   async function coverage() {
-    const { shop } = await import('./guild.js?v=6af13f14');
+    const { shop } = await import('./guild.js?v=6af15078');
     const [sm, sa, st, g] = await Promise.all([sheet.moves(), sheet.abilities(), sheet.treasure(), sheet.guild().catch(() => ({ chars: [] }))]);
     const party = Object.values(store.get('party') || {});
     const lootNames = [];
