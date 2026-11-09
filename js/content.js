@@ -458,5 +458,9 @@ export const WORLD = {
     // her update 10-29 (public part only; his GM profile stays off the public site)
     { name: 'Rayson the Wingull', text: 'Age 8, he/him. Timid, gentle and loyal. Rayson is a quiet, childlike boy who frightens easily and hates being alone. He carries a great deal of regret about running away when someone needed him. Although fear often controls his choices, he desperately wants to become braver and prove that he can keep an important promise. Rescued from Twilight Falls.' },
     { name: 'Aegislash', text: 'Runs a travelling wagon shop with six item slots.' },
+    // her compendium update 11-08 (WEB-012/017, she approved "all"): public parts only
+    { name: 'Slash of the Block Brothers', text: 'The runt of the Block Brothers. His brothers expect him to work in the family shop, but he has no wish to join the family business. He helped Gemini, Golett and Magnemite rebuild the storm-damaged shelters (Golett paid him 100 Poké for it), and he, Golett and Magnemite have worked out a trio move: Golett swings Slash while Magnemite adds a magnetic burst for extra power.' },
+    { name: 'Teddy', text: 'A guild member who has gained and lost his guild rank again and again, and watched teammates quit or move on. His guild record lists one success, several half-finished jobs and a lot of failures. Gemini, Golett and Magnemite cheered him up anyway. He now works alongside the newer recruits Pichu and Bonsly to get his confidence back.' },
+    { name: 'Pichu', text: 'Once a mischievous orphan around Woodland Base who dreamed of being an adventurer. He looked up to Gemini, who taught him survival skills, and now Rocky is his hero. Rocky and Slakoth recruited him after the Missing Blue Scarf mission. He treated the Lantern-Path Delivery as his big chance to prove himself to Beatrice, and he now trains proudly so he is ready once he is old enough to adventure.' },
   ],
 };
