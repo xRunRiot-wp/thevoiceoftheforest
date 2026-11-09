@@ -3,13 +3,13 @@
 // -> stats, skills, HP, Will and moves are rolled for each one -> save them as enemy sheets (and drop them into the battle).
 // Board: every enemy in the current battle gets its own card with HP and Will +/- and quick rolls for its moves and actions.
 // Rolls follow PokéRole's rank steps roughly; the GM can change anything afterwards in the sheet editor.
-import * as store from './store.js?v=6af10e0f';
-import { $, $$, esc, num, uid, clamp, pool, toast } from './util.js?v=6af10e0f';
-import { modal, closeModal, portrait, diceFaces } from './ui.js?v=6af10e0f';
-import { loadIndex, find } from './effects.js?v=6af10e0f';
-import { RANK_NAMES } from './content.js?v=6af10e0f';
-import { HABITATS } from './habitats.js?v=6af10e0f';
-import { logRoll } from './play.js?v=6af10e0f';
+import * as store from './store.js?v=6af10fb7';
+import { $, $$, esc, num, uid, clamp, pool, toast } from './util.js?v=6af10fb7';
+import { modal, closeModal, portrait, diceFaces } from './ui.js?v=6af10fb7';
+import { loadIndex, find } from './effects.js?v=6af10fb7';
+import { RANK_NAMES } from './content.js?v=6af10fb7';
+import { HABITATS } from './habitats.js?v=6af10fb7';
+import { logRoll } from './play.js?v=6af10fb7';
 
 const ATTRS = ['Strength', 'Dexterity', 'Vitality', 'Special', 'Insight'];
 const SKILLS = ['Alert', 'Brawl', 'Channel', 'Evasion', 'Clash'];

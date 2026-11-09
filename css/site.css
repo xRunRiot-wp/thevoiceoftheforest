@@ -2720,3 +2720,11 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .bd-dice { display: flex; flex-wrap: wrap; gap: 3px; margin: 4px 0; }
 .bd { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; font-weight: 700; font-size: 13px; border: 2px solid #3a2c1a; background: #fff; }
 .bd.hit { background: #b7ecb0; } .bd.miss { background: #f1e3e3; color: #8a6a6a; } .bd.one { background: #f6b3b3; }
+/* fix 11-08 (her screenshot): the battle scene was squeezed to a thin column next to the dice panel; the scene keeps its full width and the panel wraps below when there is no room */
+.bt-wrap { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
+.bt-main { flex: 1 1 520px; min-width: min(100%, 520px); }
+.bt-dice { flex: 1 1 280px; max-width: 340px; }
+@media (min-width: 900px) { .bt-wrap { grid-template-columns: none; } }
+/* the page column is narrow, so on a wide screen the dice panel floats at the right edge of the window; on smaller screens it sits under the battle */
+@media (min-width: 1100px) { .bt-wrap { display: block; } .bt-main { min-width: 0; } .bt-dice { position: fixed; right: 16px; top: 160px; width: 300px; max-width: none; max-height: calc(100vh - 190px); overflow-y: auto; z-index: 20; box-shadow: 0 6px 18px rgba(0,0,0,.25); } }
+@media (min-width: 1100px) { .bt-wrap:has(.bt-dice[open]) .bt-main { transform: translateX(min(0px, calc(50vw - 663px))); } }
