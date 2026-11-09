@@ -3,12 +3,12 @@
 // Haggling: Slash never tolerates it (try 1 "fair", try 2 "absolutely not", try 3 = he and his troupe of 3 stand armed).
 // Beat him in that fight: his caravan never returns and the team gets everything on his table.
 // Lose: his prices go up 150% for good (no more sales) and he attacks at the very next haggle.
-import * as store from './store.js?v=6af1c5c1';
-import { $, $$, esc, num, uid, toast } from './util.js?v=6af1c5c1';
-import { modal, closeModal } from './ui.js?v=6af1c5c1';
-import { ixLink } from './effects.js?v=6af1c5c1';
-import { guildSay, gmTodo } from './chatter.js?v=6af1c5c1';
-import { buyDialog, logSale, sellDialog } from './shopkit.js?v=6af1c5c1';
+import * as store from './store.js?v=6af1c6a0';
+import { $, $$, esc, num, uid, toast } from './util.js?v=6af1c6a0';
+import { modal, closeModal } from './ui.js?v=6af1c6a0';
+import { ixLink } from './effects.js?v=6af1c6a0';
+import { guildSay, gmTodo } from './chatter.js?v=6af1c6a0';
+import { buyDialog, logSale, sellDialog } from './shopkit.js?v=6af1c6a0';
 
 export const BROTHERS = {
   Slash: { tell: 'Does not tolerate haggling.', lines: ['No. The price I listed is fair.', 'Absolutely not.', '*stands armed and guarded with his troupe of 3*'] },
@@ -30,7 +30,34 @@ const slots = () => { const s = M().slots; return Array.isArray(s) && s.length ?
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
 // what the merchant pays (her ask 10-29): 60% of his own price for things on his table, 40 Poké for anything else
 const merchantBuys = (name) => { const s = slots().find((x) => x.name.toLowerCase() === name.toLowerCase()); return s ? Math.max(1, Math.floor(num(s.price) / qtyOf(s) * 0.6)) : 40; };
-const priceOf = (s) => { const b = bro(); return b.angry ? Math.ceil(num(s.price) * 1.5) : s.sale ? num(s.sale) : num(s.price); };
+// her ask 11-09 "Have sharps prices be better based on his bond level": the brother at the table takes 5% off per bond heart
+// (bonds/<name> from the NPC bond list, 0..5 hearts, so up to 25% off; Slash starts at 1). Not while he's angry from a fight.
+const bondHearts = (n = who()) => { const v = store.get('bonds/' + n.toLowerCase()); return Math.max(0, Math.min(5, v == null ? (n === 'Slash' ? 1 : 0) : num(v))); };
+const bondOff = () => (bro().angry ? 0 : bondHearts() * 5);
+const listPrice = (s) => { const b = bro(); return b.angry ? Math.ceil(num(s.price) * 1.5) : s.sale ? num(s.sale) : num(s.price); };
+const priceOf = (s) => Math.max(1, Math.round(listPrice(s) * (100 - bondOff()) / 100));
+
+// her ask 11-09 "change the shop everyday or for every block brother switch": a fresh table of six each day and each time a
+// different brother sets up. Picked from this pool with a seed of day + brother, so every screen rolls the same table.
+// GM edits stay until the next day or switch.
+const POOL = [['Oran Berry', 30], ['Cheri Berry', 50], ['Pecha Berry', 70], ['Rawst Berry', 50], ['Chesto Berry', 50], ['Aspear Berry', 50], ['Persim Berry', 50], ['Leppa Berry', 60],
+  ['Apple', 20], ['Big Apple', 50], ['Escape Orb', 150], ['All-Hit Orb', 150], ['Luminous Orb', 300], ['Health Orb', 300], ['Blast Seed', 30], ['Sleep Seed', 50],
+  ['Stun Seed', 50], ['Quick Seed', 60], ['Warp Seed', 60], ['Totter Seed', 40], ['Encourage Seed', 100], ['Heal Seed', 200], ['Gravelerock', 40, 10], ['Stick', 30, 10]];
+const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+const stockKey = () => today() + '|' + who();
+function rollTable(key) {
+  let h = 2166136261; for (const ch of key) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); }
+  const rnd = () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+  const pool = POOL.slice(); const out = [];
+  while (out.length < 6) { const [name, price, qty] = pool.splice(Math.floor(rnd() * pool.length), 1)[0];
+    const sale = rnd() < 0.2 ? Math.max(1, Math.round(price * 0.8 / 5) * 5) : ''; out.push({ name, price, qty: qty || 1, sale, saleTag: false, sold: false }); }
+  return out;
+}
+function restockIfDue() {
+  const m = M(); if (m.away || bro().gone) return;
+  if (!m.stockKey) { store.set('merchant/stockKey', stockKey()); return; }   // first look after this update: keep today's table as it is
+  if (m.stockKey !== stockKey()) store.update('merchant', (x) => ({ ...(x || {}), slots: rollTable(stockKey()), stockKey: stockKey() }));
+}
 
 // her picture (10-29): the six slots sit on the six mats of the table, the price on each mat's name plate.
 // [left, top, width, height] in % of the picture: the mat above its plate, then the plate.
@@ -42,10 +69,11 @@ function matsHTML(b) {
   return slots().slice(0, 6).map((s, i) => { const [l, t, w, h, pl, pt, pw, ph] = MATS[i];
     return `<button class="mc-mat ${s.sold ? 'sold' : ''}" style="${box(l, t, w, h)}" data-mslot="${i}" ${s.sold ? 'disabled' : ''} aria-label="${esc(label(s))}">
       ${(s.sale || s.saleTag) && !b.angry && !s.sold ? '<span class="mc-sale">SALE</span>' : ''}${itemPic(s.name)}<span class="mc-mname">${qtyOf(s) > 1 ? `${qtyOf(s)}× ` : ''}${esc(s.name)}</span></button>
-      <span class="mc-plate" style="${box(pl, pt, pw, ph)}">${s.sold ? 'SOLD' : `${s.sale && !b.angry ? `<s>${num(s.price)}</s> ` : ''}${priceOf(s)} Poké`}</span>`; }).join('');
+      <span class="mc-plate" style="${box(pl, pt, pw, ph)}">${s.sold ? 'SOLD' : `${(s.sale && !b.angry) || bondOff() ? `<s>${num(s.price)}</s> ` : ''}${priceOf(s)} Poké`}</span>`; }).join('');
 }
 
 export function merchantHTML() {
+  restockIfDue();
   const m = M(); const b = bro(); const name = who(); const gm = store.gmUnlocked();
   const here = m.away ? null : name;
   const place = m.place || 'Woodland Base';
@@ -55,6 +83,8 @@ export function merchantHTML() {
     ${here ? `<div class="mc-head"><div><b class="pix">⚔️ ${esc(name)}</b> <span class="small">has set up a table at <b>${esc(place)}</b></span></div>
       ${b.angry ? '<span class="pill bad">Prices +150% · no sales</span>' : ''}</div>
       ${b.tell ? `<p class="small mc-tell">🛡️ ${esc(b.tell)}</p>` : ''}
+      ${b.angry ? '' : `<p class="small mc-bond">${'❤️'.repeat(bondHearts())}${'🤍'.repeat(5 - bondHearts())} Bond with ${esc(name)}: ${bondOff() ? `<b>${bondOff()}% off</b> everything` : 'no discount yet (5% off per heart)'}</p>`}
+      <p class="small muted">New table every day and whenever a different brother sets up.</p>
       <p class="small muted mc-hint">Tap an item on the table to buy it or haggle.</p>
       <div class="row" style="justify-content:center;margin-top:8px"><button class="btn" id="msell">💰 Sell items to ${esc(name)}</button></div>`
       : `<p class="muted">No merchant has set up a table today.</p>`}
@@ -69,7 +99,7 @@ export function merchantHTML() {
 export function bindMerchant(main) {
   $$('[data-mslot]', main).forEach((b) => b.onclick = () => {
     const i = +b.dataset.mslot; const s = slots()[i]; if (!s || s.sold) return;
-    const el = modal(`<h2>${itemPic(s.name)} ${qtyOf(s) > 1 ? `${qtyOf(s)}× ` : ''}${ixLink(s.name)}</h2><p><b class="pix">${priceOf(s)} Poké</b>${s.sale && !bro().angry ? ` <s class="muted">${num(s.price)}</s> <span class="mc-sale inline">SALE</span>` : ''}</p>
+    const el = modal(`<h2>${itemPic(s.name)} ${qtyOf(s) > 1 ? `${qtyOf(s)}× ` : ''}${ixLink(s.name)}</h2><p><b class="pix">${priceOf(s)} Poké</b>${(s.sale && !bro().angry) || bondOff() ? ` <s class="muted">${num(s.price)}</s>` : ''}${s.sale && !bro().angry ? ' <span class="mc-sale inline">SALE</span>' : ''}${bondOff() ? ` <span class="small">❤️ ${bondOff()}% bond discount</span>` : ''}</p>
       <div class="row"><button class="btn" data-go="buy">Buy</button><button class="btn alt" data-go="hag">Haggle</button></div>`);
     $$('[data-go]', el).forEach((x) => x.onclick = () => { closeModal(); (x.dataset.go === 'buy' ? buy : haggle)(i); });
   });
@@ -89,7 +119,7 @@ export function bindMerchant(main) {
 
 function setBrother(n) {
   if (bro(n).gone) return;
-  store.update('merchant', (m) => ({ ...(m || {}), brother: n, away: false, haggles: null }));
+  store.update('merchant', (m) => ({ ...(m || {}), brother: n, away: false, haggles: null, ...(m?.brother === n ? {} : { slots: rollTable(today() + '|' + n), stockKey: today() + '|' + n }) }));
   guildSay(n, 'do', `rolls the caravan into ${M().place || 'Woodland Base'} and sets up a little table, shield polished, prices posted.`);
 }
 
