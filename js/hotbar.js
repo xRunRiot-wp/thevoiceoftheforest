@@ -1,14 +1,14 @@
 // Character hotbar in the top banner: money, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6af15cd7';
-import { $, esc, num, toast } from './util.js?v=6af15cd7';
-import { modal } from './ui.js?v=6af15cd7';
-import { mailWaiting, openMyMailbox } from './mailbox.js?v=6af15cd7';
-import { sentryDue } from './sentry.js?v=6af15cd7';
-import { kitchenDue } from './kitchen.js?v=6af15cd7';
-import { nurseryDue } from './nursery.js?v=6af15cd7';
-import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6af15cd7';
-import { openFriends, friendsOf, isOnline } from './friends.js?v=6af15cd7';
+import * as store from './store.js?v=6af1c3a2';
+import { $, esc, num, toast } from './util.js?v=6af1c3a2';
+import { modal } from './ui.js?v=6af1c3a2';
+import { mailWaiting, openMyMailbox } from './mailbox.js?v=6af1c3a2';
+import { sentryDue } from './sentry.js?v=6af1c3a2';
+import { kitchenDue } from './kitchen.js?v=6af1c3a2';
+import { nurseryDue } from './nursery.js?v=6af1c3a2';
+import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6af1c3a2';
+import { openFriends, friendsOf, isOnline } from './friends.js?v=6af1c3a2';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -114,6 +114,19 @@ async function openItemPop(anchor, id, name) {
   document.addEventListener('pointerdown', outsidePinMenu, true); document.addEventListener('keydown', escPinMenu);
 }
 
+// her ask 11-09 "Include chores and friends in tablet mode on side panel": the hotbar is hidden in tablet mode, so the side
+// panel gets the same two buttons (same counts, same popups)
+export function sideActionsHTML() {
+  const c = (store.get('party') || {})[meId()]; if (!c) return '';
+  const due = choresFor(c).filter((x) => x.due).length; const on = friendsOf(c).filter(isOnline).length;
+  return `<div class="tv-sideacts"><button type="button" class="tv-sact ${due ? 'due' : 'done'}" id="tvchores">📋 Chores ${due ? `<b class="hb-count">${due}</b>` : '✓'}</button>
+    <button type="button" class="tv-sact" id="tvfriends">👥 Friends${on ? ` <b class="hb-count on">${on}</b>` : ''}</button></div>`;
+}
+export function bindSideActions(root, closeSide) {
+  const ch = root.querySelector('#tvchores'); if (ch) ch.onclick = (e) => { e.stopPropagation(); toggleChores(ch, meId(), closeSide); };
+  const fr = root.querySelector('#tvfriends'); if (fr) fr.onclick = () => openFriends();
+}
+
 // Today's chores (her ask 10-27): a quick list of the daily jobs, what still needs doing, one tap to go there.
 const gymDay = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
 function choresFor(c) {
@@ -124,7 +137,7 @@ function choresFor(c) {
     ['🏋️', 'Today’s drills at the Training Gym', c.gym?.day !== gymDay() || num(c.gym?.n || 1) < 2, '#/gym'],   // two a day (her ask 10-31)
   ].map(([icon, label, due, href]) => ({ icon, label, due: !!due, href }));
 }
-function toggleChores(anchor, id) {
+function toggleChores(anchor, id, onGo) {
   if (document.getElementById('pinmenu')?.dataset.chores) { closePinMenu(); return; }
   closePinMenu();
   const c = (store.get('party') || {})[id]; if (!c) return;
@@ -134,7 +147,7 @@ function toggleChores(anchor, id) {
   const list = choresFor(c); const left = list.filter((x) => x.due).length;
   m.innerHTML = `<div class="pm-head">📋 Today’s chores <span class="muted">${left ? `${left} to do` : 'all done!'}</span></div>`
     + list.map((x, i) => `<button class="pm-item ch-item ${x.due ? 'due' : 'ok'}" data-ci="${i}"><span class="pm-tick">${x.due ? '○' : '✓'}</span><span>${x.icon}</span><span class="grow">${esc(x.label)}</span>${x.due ? '<span class="muted">Go ›</span>' : ''}</button>`).join('');
-  m.querySelectorAll('[data-ci]').forEach((b) => b.onclick = () => { const x = list[+b.dataset.ci]; closePinMenu(); if (!x.href) openMyMailbox(); else location.hash = x.href; });
+  m.querySelectorAll('[data-ci]').forEach((b) => b.onclick = () => { const x = list[+b.dataset.ci]; closePinMenu(); onGo?.(); if (!x.href) openMyMailbox(); else location.hash = x.href; });
   document.addEventListener('pointerdown', outsidePinMenu, true); document.addEventListener('keydown', escPinMenu);
 }
 
@@ -142,7 +155,7 @@ function toggleChores(anchor, id) {
 // sideways-scrolling hotbar can't clip it.
 const isBadge = (name) => / (Rank|Guild) Badge$/.test(name || '');
 function closePinMenu() { document.getElementById('pinmenu')?.remove(); document.removeEventListener('pointerdown', outsidePinMenu, true); document.removeEventListener('keydown', escPinMenu); }
-function outsidePinMenu(e) { const m = document.getElementById('pinmenu'); if (m && !m.contains(e.target) && e.target.id !== 'hbpinadd' && !e.target.closest?.('[data-pinitem], #hbchores')) closePinMenu(); }
+function outsidePinMenu(e) { const m = document.getElementById('pinmenu'); if (m && !m.contains(e.target) && e.target.id !== 'hbpinadd' && !e.target.closest?.('[data-pinitem], #hbchores, #tvchores')) closePinMenu(); }
 function escPinMenu(e) { if (e.key === 'Escape') closePinMenu(); }
 function togglePinMenu(anchor, id) {
   if (document.getElementById('pinmenu')) { closePinMenu(); return; }

@@ -1,19 +1,20 @@
 // her ask 11-07: TV display mode for in-person sessions. A home screen of big flat tiles (Echo Show / Windows 8 feel)
 // around the Friend Zone, and an overview panel that stays at the side on every page. Turned on in Settings, per device.
 // This screen faces the whole table, so nothing here may show hidden missions or other GM-only data.
-import * as store from './store.js?v=6af15cd7';
-import { $, esc, num } from './util.js?v=6af15cd7';
-import { tvMode, openSettings } from './theme.js?v=6af15cd7';
-import { renderFriendZone, locations } from './friendzone.js?v=6af15cd7';
-import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af15cd7';
-import { renderMessHall, renderRoster, rosterAllowed, liveTeamFx, fxLeftHTML } from './play.js?v=6af15cd7';
-import { renderNurseryParty } from './nursery.js?v=6af15cd7';
-import { chatterLatestHTML } from './chatter.js?v=6af15cd7';
-import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af15cd7';
-import { sitePages } from './sitepages.js?v=6af15cd7';
-import { openBase, hasBase } from './mybase.js?v=6af15cd7';
-import { topPatron } from './vault.js?v=6af15cd7';
-import { portrait, modal } from './ui.js?v=6af15cd7';
+import * as store from './store.js?v=6af1c3a2';
+import { $, esc, num } from './util.js?v=6af1c3a2';
+import { tvMode, openSettings } from './theme.js?v=6af1c3a2';
+import { renderFriendZone, locations } from './friendzone.js?v=6af1c3a2';
+import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af1c3a2';
+import { renderMessHall, renderRoster, rosterAllowed, liveTeamFx, fxLeftHTML } from './play.js?v=6af1c3a2';
+import { renderNurseryParty } from './nursery.js?v=6af1c3a2';
+import { chatterLatestHTML } from './chatter.js?v=6af1c3a2';
+import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af1c3a2';
+import { sitePages } from './sitepages.js?v=6af1c3a2';
+import { openBase, hasBase } from './mybase.js?v=6af1c3a2';
+import { topPatron } from './vault.js?v=6af1c3a2';
+import { portrait, modal } from './ui.js?v=6af1c3a2';
+import { sideActionsHTML, bindSideActions } from './hotbar.js?v=6af1c3a2';
 
 // her ask 11-07: the Bases tile (in place of GM): every character's base as a door to knock on, like igloos on a map
 function renderBases(main) {
@@ -112,6 +113,7 @@ function sideHTML() {
   const row = (m, tag) => `<a class="trk tv-trk" href="#/guild">${m.art ? `<img src="${esc(m.art)}" alt="" loading="lazy">` : '<span class="trk-noart"></span>'}<span class="grow"><b>${esc(m.title || '')}</b><span class="small">${esc(m.rank || '')} Rank · ${tag}</span></span></a>`;
   return `<div class="tv-card now"><div class="tv-clock" id="tvclock">${clock()}</div><div class="tv-sub" id="tvdate">${day()}</div><div class="tv-sub">Session ${esc(store.get('session/n') ?? '—')} · ${live ? '🟢 live' : '⚪ not live'}</div>${buffsHTML()}</div>
     <a class="tv-tile tvbar home" style="background:var(--tv1)" href="#/tv"><span class="tv-ic">🏠</span><span class="tv-lb">Home</span></a>
+    ${sideActionsHTML()}
     <button type="button" class="wxcard fortune tv-wx" id="tvwx">${wxFxHTML(cw.key)}<div class="ft-top">✦ What’s the Weather? ✦</div>
       <div class="ft-orb" aria-hidden="true">${wxIconHTML(cw.key)}</div><div class="ft-name">${esc(w.name || '')}</div>
       <div class="ft-say">Today’s sky roll: ${esc(cw.daily?.roll ?? '—')}</div></button>
@@ -132,6 +134,10 @@ export function updateTvSide(page) {
   if (!tvMode()) { side?.remove(); document.getElementById('tvsidetab')?.remove(); document.getElementById('tvsidescrim')?.remove(); document.body.removeAttribute('data-sideopen'); return; }
   if (!side) { side = document.createElement('aside'); side.id = 'tvside'; document.body.append(side); }
   side.innerHTML = sideHTML(); bindBuffs(side);
+  // her ask 11-09 "when we hit the home button automatically close the panel" (also after picking a chore to go do)
+  const closeSide = () => { document.body.removeAttribute('data-sideopen'); const t = document.getElementById('tvsidetab'); if (t) t.textContent = '◀'; };
+  bindSideActions(side, closeSide);
+  const home = side.querySelector('.home'); if (home) home.addEventListener('click', closeSide);
   // her ask 11-08 "make the side bar on mobile collapsible left to right instead of the bottom": on phones the sidebar is a
   // drawer that slides in from the left; a pull tab on the left edge opens/closes it, tapping outside closes it.
   let tab = document.getElementById('tvsidetab');

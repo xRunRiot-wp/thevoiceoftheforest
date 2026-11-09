@@ -2892,3 +2892,7 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .sh-scene { background: none; isolation: isolate; }
 .sh-scene::before { content: ''; position: absolute; inset: -8px; z-index: 0; background: url('../assets/friendzone/woodland_fernshade.jpg') center / cover; filter: blur(3px) saturate(.75) brightness(.72); }
 .sh-tent, .sh-pile { z-index: 2; } .sh-mach { z-index: 4; } .sh-helper { z-index: 5; }
+/* her ask 11-09: Chores + Friends buttons in the tablet side panel */
+.tv-sideacts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: none; }
+.tv-sact { font: inherit; font-size: 15px; min-height: 48px; padding: 6px 8px; border-radius: 12px; border: 1px solid rgba(255, 243, 214, .35); background: var(--tv5, var(--brown2)); color: var(--cream); cursor: var(--cur-link, pointer); }
+.tv-sact.due { background: var(--tv1, var(--orange)); }
