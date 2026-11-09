@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6af10fb7';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6af10fb7';
-import { portrait, maxHp } from './ui.js?v=6af10fb7';
-import { allMoves, me, statVal } from './play.js?v=6af10fb7';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6af10fb7';
-import { TYPE_ICONS } from './theme.js?v=6af10fb7';
+import * as store from './store.js?v=6af11336';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6af11336';
+import { portrait, maxHp } from './ui.js?v=6af11336';
+import { allMoves, me, statVal } from './play.js?v=6af11336';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6af11336';
+import { TYPE_ICONS } from './theme.js?v=6af11336';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -123,7 +123,7 @@ const alias = (n) => ({ metranome: 'metronome' }[String(n).toLowerCase()] || Str
 const moveOf = (ix, name) => (name === 'Struggle' ? STRUGGLE : ix.get(alias(name)) || { name, type: 'Normal', cat: 'Status', acc: [], power: null, effect: '' });
 const isMetronome = (m) => /^metronome$/i.test(m.name);
 // a stat in battle: "Tough/cute" = the better one; battle-only drops (Growl, Leer...) count too
-const STAT_ALIAS = { defense: 'Vitality', 'special defense': 'Insight', 'sp. defense': 'Insight', attack: 'Strength', 'special attack': 'Special' };
+const STAT_ALIAS = { def: 'Vitality', defence: 'Vitality', 'special defence': 'Insight', defense: 'Vitality', 'special defense': 'Insight', 'sp. defense': 'Insight', attack: 'Strength', 'special attack': 'Special' };
 const bstat = (B, id, name) => Math.max(...String(name).split('/').map((n) => { const k = STAT_ALIAS[n.trim().toLowerCase()] || n.trim(); return statVal(pc(id), k) + num(B.mods?.[id]?.[k.toLowerCase()]); }));
 
 // ---------------------------------------------------------------- the dice panel (her ask 11-08)
@@ -134,7 +134,7 @@ function dicePanel(B, upto = 999) {
   const L = (B.dice || []).filter((x) => num(x.at) <= upto);
   const body = !(B.dice || []).length ? '<p class="small muted">Pick a move. The dice for each round show up here.</p>' : `
     <p class="small muted">Round ${esc(num(B.evRound) || 1)}. Dice showing <b>4, 5 or 6</b> count as <b>successes</b>. A <b>1</b> can cancel a success (every two 1s). Pain from low HP takes successes away.</p>
-    ${L.filter((x) => x.k === 'init').length ? `<h4>🏃 Turn order</h4><p class="small muted">Roll 1d6 + Dexterity + Alert. The higher total goes first.</p>${L.filter((x) => x.k === 'init').map((x) => `<div class="bd-row"><b>${esc(nm(x.id))}</b> ${dieChip(x.d6)} + Dex ${num(x.dex)} + Alert ${num(x.alert)} = <b>${num(x.d6) + num(x.dex) + num(x.alert)}</b>${x.first ? ' <span class="pill">goes first</span>' : ''}</div>`).join('')}` : ''}
+    ${L.filter((x) => x.k === 'init').length ? `<h4>🏃 Turn order</h4><p class="small muted">Roll 1d6 + Dexterity + Alert. The higher total goes first.</p>${L.filter((x) => x.k === 'init').map((x) => `<div class="bd-row"><b>${esc(nm(x.id))}</b> ${dieChip(x.d6)} + Dex ${num(x.dex)} + Alert ${num(x.alert)} = <b>${num(x.d6) + num(x.dex) + num(x.alert)}</b>${num(x.prio) ? ` <span class="pill">priority ${x.prio > 0 ? '+' : ''}${x.prio}</span>` : ''}${x.first ? ' <span class="pill">goes first</span>' : ''}</div>`).join('')}` : ''}
     ${L.filter((x) => x.k === 'acc' || x.k === 'dmg').map((x) => x.k === 'acc'
       ? `<div class="bd-row"><b>🎯 ${esc(nm(x.id))}: ${esc(x.m)} accuracy</b><div class="bd-dice">${x.auto ? '<span class="small muted">never misses</span>' : `${x.dice.map(dieChip).join('')}`}</div><span class="small">${x.auto ? '' : `${num(x.n)} dice · `}${x.ok ? '✅ hit' : '❌ missed (needs at least 1 success)'}${num(x.extra) ? ` · +${num(x.extra)} bonus` : ''}${num(x.pain) ? ` · pain −${num(x.pain)}` : ''}</span></div>`
       : `<div class="bd-row"><b>💥 ${esc(nm(x.id))}: ${esc(x.m)} damage</b><div class="bd-dice">${x.dice.map(dieChip).join('')}</div><span class="small">${num(x.n)} dice · ${num(x.succ)} success${num(x.succ) === 1 ? '' : 'es'}${x.eff > 0 ? ` +${x.eff} super effective` : x.eff < 0 ? ` ${x.eff} not very effective` : ''}${x.crit ? ' · critical!' : ''} = <b>${num(x.dmg)} damage</b></span></div>`).join('') || ''}`;
@@ -154,9 +154,10 @@ async function resolve(bid) {
   const say = (text, fx = '', who = '') => ev.push({ text, fx, who, hp: { ...hp } });
   const dlog = [];   // her ask 11-08: every die that decided this round, shown in the collapsible dice panel
   const d6s = Object.fromEntries([B.a, B.b].map((id) => [id, die(6)]));
-  const init = Object.fromEntries([B.a, B.b].map((id) => [id, d6s[id] + bstat(B, id, 'Dexterity') + bstat(B, id, 'Alert') + Math.random() / 10]));
+  const prio = (id) => num((moveOf(ix, B.picks[id]).effect.match(/Priority\s*([+\-−]?\s*\d+)/i) || [])[1]?.replace(/[−\s]/g, (c) => (c === '−' ? '-' : '')));
+  const init = Object.fromEntries([B.a, B.b].map((id) => [id, prio(id) * 100 + d6s[id] + bstat(B, id, 'Dexterity') + bstat(B, id, 'Alert') + Math.random() / 10]));
   const order = [B.a, B.b].sort((x, y) => init[y] - init[x]);
-  for (const id of order) dlog.push({ at: 0, k: 'init', id, d6: d6s[id], dex: bstat(B, id, 'Dexterity'), alert: bstat(B, id, 'Alert'), first: id === order[0] });
+  for (const id of order) dlog.push({ at: 0, k: 'init', id, d6: d6s[id], dex: bstat(B, id, 'Dexterity'), alert: bstat(B, id, 'Alert'), first: id === order[0], prio: prio(id) });
   const flinched = {};
   const randomMove = (min = 1) => { const l = [...ix.values()].filter((m) => m.power != null && num(m.power) >= min && m.cat !== 'Status' && !isMetronome(m)); return l[Math.floor(Math.random() * l.length)] || STRUGGLE; };
 
@@ -169,15 +170,16 @@ async function resolve(bid) {
     acc.succ += extra;
     if (m.acc.length) dlog.push({ at: ev.length, k: 'acc', id, m: m.name, n: acc.dice ? accDice : 0, dice: acc.dice || [], pain: num(acc.pain), extra, ok: acc.succ >= 1, auto: !acc.dice });
     if (acc.succ < 1) return say(`${nm(id)}’s attack missed!`, 'miss');
-    if (m.power == null) return statusMove(B, m, id, foe, cond, say);
+    if (m.power == null && (m.cat === 'Status' || /terrain|weather/i.test(m.effect))) return statusMove(B, m, id, foe, cond, say, id, { hp, max: B.max });
     const f = pc(foe);
     const eff = typeEff(m.type, [f.type1, f.type2]);
     if (eff.immune) return say(`It doesn’t affect ${nm(foe)}…`);
     const crit = acc.succ >= 4;
     const stab = m.type && [pc(id).type1, pc(id).type2].includes(m.type);
     const flail = /missing HP/i.test(m.effect) ? Math.min(5, B.max[id] - hp[id]) : 0;
-    const dice = Math.max(1, bstat(B, id, m.cat === 'Special' ? 'Special' : 'Strength') + (power ?? num(m.power)) - bstat(B, foe, m.cat === 'Special' ? 'Insight' : 'Vitality') + (stab ? 1 : 0) + (crit ? 2 : 0) + flail);
-    const dp = pool(dice, { pain }); const dmg = Math.max(1, dp.succ + eff.n);  // a hit always does at least 1
+    const dice = Math.max(1, bstat(B, id, m.cat === 'Special' ? 'Special' : 'Strength') + (power ?? (m.power == null ? 3 : num(m.power))) - bstat(B, foe, m.cat === 'Special' ? 'Insight' : 'Vitality') + (stab ? 1 : 0) + (crit ? 2 : 0) + flail);
+    const dp = pool(dice, { pain }); let dmg = Math.max(1, dp.succ + eff.n);  // a hit always does at least 1
+    if (cond[foe]?.shield && foe !== id) { const sh = cond[foe].shield; dmg = Math.max(0, dmg - sh); if (!dmg) { dlog.push({ at: ev.length, k: 'dmg', id, m: m.name, n: dice, dice: dp.dice, succ: dp.succ, eff: eff.n, crit, dmg: 0 }); return say(`${nm(foe)} protected itself!`, 'up', foe); } }
     dlog.push({ at: ev.length, k: 'dmg', id, m: m.name, n: dice, dice: dp.dice, succ: dp.succ, eff: eff.n, crit, dmg });
     hp[foe] = Math.max(0, hp[foe] - dmg);
     say(foe === id ? `${nm(id)} hit itself for ${dmg} damage!` : `${nm(foe)} took ${dmg} damage!`, 'hit', foe);
@@ -192,9 +194,14 @@ async function resolve(bid) {
   };
 
   // Metronome spins Gemini's Metronome wheel (the Games page one, so the GM's edits count) and plays out the slice
+  const isGemini = (id) => /gemini|cleffa/i.test(`${pc(id).nickname || ''} ${pc(id).pokemon || ''}`);
   const metronome = async (id, foe) => {
+    // her ask 11-08: Gemini's Metronome wheel can be switched on or off in battle (off = a plain random Metronome move)
+    if (!(isGemini(id) && B.wheel?.[id] !== false)) {
+      const m2 = randomMove(); say(`${nm(id)}’s finger wag turned into ${m2.name}!`, 'use', id); return attack(m2, id, foe);
+    }
     let slices = [];
-    try { slices = (await import('./games.js?v=6af10fb7')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6af11336')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);
@@ -230,6 +237,7 @@ async function resolve(bid) {
     for (const x of [foe, id]) if (hp[x] <= 0 && !ev.some((e) => e.fx === 'faint' && e.who === x)) say(`${nm(x)} fainted!`, 'faint', x);
     if (hp[foe] <= 0 || hp[id] <= 0) break;
   }
+  for (const id of [B.a, B.b]) { const c = cond[id] ||= {}; delete c.shield; if (c.regen && hp[id] > 0) { c.regen--; if (hp[id] < B.max[id]) { hp[id] += 1; say(`${nm(id)} recovered a little HP.`, 'heal', id); } } }
   // Yawn: drowsy at the end of the round, asleep for the next one
   for (const id of [B.a, B.b]) { const c = cond[id] ||= {}; if (c.yawn && hp[id] > 0) { c.yawn = 0; c.sleep = 2; say(`${nm(id)} fell asleep!`); } else if (c.yawnSet) { c.yawnSet = 0; c.yawn = 1; } }
   const out = [B.a, B.b].filter((id) => hp[id] <= 0);
@@ -251,11 +259,11 @@ async function resolve(bid) {
   store.set(P(bid), { ...B, hp, cond, picks: {}, ev, dice: dlog, evRound: B.round, round: B.round + 1, phase: winner !== null ? 'done' : 'fight', winner: winner || '', lastAct: Date.now() });
 }
 
-function statusMove(B, m, id, foe, cond, say) {
+function statusMove(B, m, id, foe, cond, say, user = id, hpBox = null) {
   const e = m.effect || '';
   // stat changes, in either wording: "Reduce the foe's Strength by 2" / "Increase the User's Defense" (index) or
   // "Strength -2" / "Foe's Defense -1" / "User's Strength +1 / User's Defense +1" (moves sheet)
-  const ST = String.raw`(Strength|Special Defense|Sp\. ?Def(?:ense)?|Special|Dexterity|Defense|Vitality|Insight|Accuracy)`;
+  const ST = String.raw`(Strength|Special Defen[sc]e|Sp\. ?Def(?:en[sc]e)?|Special|Dexterity|Defen[sc]e|Def|Vitality|Insight|Accuracy)`;
   const changes = [];
   for (const mm of e.matchAll(new RegExp(String.raw`(User'?’?s |Foe'?’?s )?${ST}\s*([+\-−])\s*(\d)`, 'gi'))) changes.push([/user/i.test(mm[1] || '') || (!mm[1] && mm[3] === '+') ? id : foe, mm[2], (mm[3] === '+' ? 1 : -1) * num(mm[4])]);
   if (!changes.length) {
@@ -265,7 +273,7 @@ function statusMove(B, m, id, foe, cond, say) {
   }
   if (changes.length) {
     for (const [who, stat, by] of changes) {
-      const k = (STAT_ALIAS[stat.toLowerCase().replace(/^sp\.? ?def(ense)?$/, 'special defense')] || stat).toLowerCase();
+      const k = (STAT_ALIAS[stat.toLowerCase().replace(/^sp\.? ?def(en[sc]e)?$/, 'special defense')] || stat).toLowerCase();
       B.mods[who] ||= {}; B.mods[who][k] = num(B.mods[who][k]) + by;
       const label = { strength: 'Strength', special: 'Special', dexterity: 'Dexterity', vitality: 'Defense', insight: 'Special Defense', accuracy: 'accuracy' }[k] || k;
       say(`${nm(who)}’s ${label} ${by < 0 ? 'fell' : 'rose'}${Math.abs(by) > 1 ? ' sharply' : ''}!`, by < 0 ? 'down' : 'up', who);
@@ -278,7 +286,16 @@ function statusMove(B, m, id, foe, cond, say) {
     if (!B.last[foe]) return say('But it failed!');
     cond[foe] = { ...(cond[foe] || {}), encore: B.last[foe], encoreN: 2 }; return say(`${nm(foe)} must keep using ${B.last[foe]}!`);
   }
-  say('But nothing happened in a practice battle!');
+  // healing: "Basic Heal (+3 HP)", "heal 1 HP at the end of each Round"
+  const heal = e.match(/Heal\s*\(\+\s*(\d+)\s*HP\)/i);
+  if (heal && hpBox) { const n = Math.min(num(heal[1]), hpBox.max[id] - hpBox.hp[id]); hpBox.hp[id] += n; return say(n ? `${nm(id)} recovered ${n} HP!` : `${nm(id)} is already at full HP!`, 'heal', id); }
+  if (/heal\s+1\s*HP\s+at the end of each Round/i.test(e)) { cond[id] = { ...(cond[id] || {}), regen: 4 }; return say(`${nm(id)} is surrounded by a soothing veil!`, 'heal', id); }
+  // shields: Protect, Detect, Mat Block...: damaging moves lose 3 damage this round
+  if (/shield|protect|reduce\s+\d+\s+dam/i.test(e) || /^(protect|detect|endure|king.s shield|spiky shield|baneful bunker)$/i.test(m.name)) { cond[id] = { ...(cond[id] || {}), shield: num((e.match(/Reduce\s+(\d+)\s+dam/i) || [])[1]) || 3 }; return say(`${nm(id)} braced itself!`, 'up', id); }
+  if (/in love/i.test(e)) { cond[foe] = { ...(cond[foe] || {}), love: 2 }; return say(`${nm(foe)} fell in love!`); }
+  if (/weather|terrain|rain dance|sunny day|hail|sandstorm/i.test(e + ' ' + m.name)) return say(`The battlefield changed… (${m.name} has no extra effect in a practice battle)`, 'up', id);
+  // anything else: it still gets used, with its own announcement instead of a dead end
+  say(`${nm(id)} used ${m.name}! Its special effect isn’t played out in practice battles.`, 'up', id);
 }
 
 // a guild member's move: mostly attacks, the best type match-up more often, now and then a status move
@@ -387,12 +404,14 @@ function renderFight(main, bid) {
     const list = cd.encore && cd.encoreN ? [cd.encore] : [...(c.moves || []), 'Struggle'];
     return `<div class="bt-moves">${list.map((n) => { const m = moveOf(ix, n); const t = m.type || 'Normal';
       return `<button class="bt-mv ty-${esc(t)}" data-mv="${esc(n)}"><b>${esc(m.name)}</b><small><span class="bt-ty">${TYPE_ICONS[t] || ''} ${esc(m.type || 'Typeless')}</span> ${m.power == null ? 'Status' : 'Power ' + (isMetronome(m) ? '🎡' : m.power)}</small></button>`; }).join('')}</div>
+      ${list.some((n) => isMetronome(moveOf(ix, n))) && /gemini|cleffa/i.test(`${c.nickname || ''} ${c.pokemon || ''}`) ? `<button class="bt-cmd back" data-wheel>🎡 Gemini’s wheel: ${B.wheel?.[myId] === false ? 'OFF (plain Metronome)' : 'ON'}</button>` : ''}
       <button class="bt-cmd back" data-back>◀ Back</button>`;
   };
 
   const wire = (B, myId) => {
     const f = $('[data-fight]', box); if (f) f.onclick = () => { ensureAudio(); menu = 'moves'; draw(); };
     const bk = $('[data-back]', box); if (bk) bk.onclick = () => { menu = 'main'; draw(); };
+    const wh = $('[data-wheel]', box); if (wh) wh.onclick = () => store.set(`${P(bid)}/wheel/${myId}`, B.wheel?.[myId] === false);
     $$('[data-mv]', box).forEach((b) => b.onclick = async () => {
       ensureAudio(); $$('[data-mv]', box).forEach((x) => { x.disabled = true; }); menu = 'main';
       const cd = B.cond?.[myId];

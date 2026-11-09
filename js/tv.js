@@ -1,19 +1,19 @@
 // her ask 11-07: TV display mode for in-person sessions. A home screen of big flat tiles (Echo Show / Windows 8 feel)
 // around the Friend Zone, and an overview panel that stays at the side on every page. Turned on in Settings, per device.
 // This screen faces the whole table, so nothing here may show hidden missions or other GM-only data.
-import * as store from './store.js?v=6af10fb7';
-import { $, esc, num } from './util.js?v=6af10fb7';
-import { tvMode, openSettings } from './theme.js?v=6af10fb7';
-import { renderFriendZone, locations } from './friendzone.js?v=6af10fb7';
-import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af10fb7';
-import { renderMessHall } from './play.js?v=6af10fb7';
-import { renderNurseryParty } from './nursery.js?v=6af10fb7';
-import { chatterLatestHTML } from './chatter.js?v=6af10fb7';
-import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af10fb7';
-import { sitePages } from './sitepages.js?v=6af10fb7';
-import { openBase, hasBase } from './mybase.js?v=6af10fb7';
-import { topPatron } from './vault.js?v=6af10fb7';
-import { portrait, modal } from './ui.js?v=6af10fb7';
+import * as store from './store.js?v=6af11336';
+import { $, esc, num } from './util.js?v=6af11336';
+import { tvMode, openSettings } from './theme.js?v=6af11336';
+import { renderFriendZone, locations } from './friendzone.js?v=6af11336';
+import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af11336';
+import { renderMessHall } from './play.js?v=6af11336';
+import { renderNurseryParty } from './nursery.js?v=6af11336';
+import { chatterLatestHTML } from './chatter.js?v=6af11336';
+import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af11336';
+import { sitePages } from './sitepages.js?v=6af11336';
+import { openBase, hasBase } from './mybase.js?v=6af11336';
+import { topPatron } from './vault.js?v=6af11336';
+import { portrait, modal } from './ui.js?v=6af11336';
 
 // her ask 11-07: the Bases tile (in place of GM): every character's base as a door to knock on, like igloos on a map
 function renderBases(main) {
