@@ -1,19 +1,19 @@
 // her ask 11-07: TV display mode for in-person sessions. A home screen of big flat tiles (Echo Show / Windows 8 feel)
 // around the Friend Zone, and an overview panel that stays at the side on every page. Turned on in Settings, per device.
 // This screen faces the whole table, so nothing here may show hidden missions or other GM-only data.
-import * as store from './store.js?v=6af1516b';
-import { $, esc, num } from './util.js?v=6af1516b';
-import { tvMode, openSettings } from './theme.js?v=6af1516b';
-import { renderFriendZone, locations } from './friendzone.js?v=6af1516b';
-import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af1516b';
-import { renderMessHall, liveTeamFx, fxLeftHTML } from './play.js?v=6af1516b';
-import { renderNurseryParty } from './nursery.js?v=6af1516b';
-import { chatterLatestHTML } from './chatter.js?v=6af1516b';
-import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af1516b';
-import { sitePages } from './sitepages.js?v=6af1516b';
-import { openBase, hasBase } from './mybase.js?v=6af1516b';
-import { topPatron } from './vault.js?v=6af1516b';
-import { portrait, modal } from './ui.js?v=6af1516b';
+import * as store from './store.js?v=6af151e3';
+import { $, esc, num } from './util.js?v=6af151e3';
+import { tvMode, openSettings } from './theme.js?v=6af151e3';
+import { renderFriendZone, locations } from './friendzone.js?v=6af151e3';
+import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af151e3';
+import { renderMessHall, liveTeamFx, fxLeftHTML } from './play.js?v=6af151e3';
+import { renderNurseryParty } from './nursery.js?v=6af151e3';
+import { chatterLatestHTML } from './chatter.js?v=6af151e3';
+import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af151e3';
+import { sitePages } from './sitepages.js?v=6af151e3';
+import { openBase, hasBase } from './mybase.js?v=6af151e3';
+import { topPatron } from './vault.js?v=6af151e3';
+import { portrait, modal } from './ui.js?v=6af151e3';
 
 // her ask 11-07: the Bases tile (in place of GM): every character's base as a door to knock on, like igloos on a map
 function renderBases(main) {
@@ -128,9 +128,20 @@ const day = () => new Date().toLocaleDateString([], { weekday: 'long', month: 'l
 export function updateTvSide(page) {
   document.body.toggleAttribute('data-tvhome', tvMode() && page === 'tv' && tvHome());
   let side = document.getElementById('tvside');
-  if (!tvMode()) { side?.remove(); return; }
+  if (!tvMode()) { side?.remove(); document.getElementById('tvsidetab')?.remove(); document.getElementById('tvsidescrim')?.remove(); document.body.removeAttribute('data-sideopen'); return; }
   if (!side) { side = document.createElement('aside'); side.id = 'tvside'; document.body.append(side); }
   side.innerHTML = sideHTML(); bindBuffs(side);
+  // her ask 11-08 "make the side bar on mobile collapsible left to right instead of the bottom": on phones the sidebar is a
+  // drawer that slides in from the left; a pull tab on the left edge opens/closes it, tapping outside closes it.
+  let tab = document.getElementById('tvsidetab');
+  if (!tab) {
+    tab = document.createElement('button'); tab.id = 'tvsidetab'; tab.type = 'button'; tab.setAttribute('aria-label', 'Open or close the sidebar');
+    const scrim = document.createElement('div'); scrim.id = 'tvsidescrim';
+    const setOpen = (o) => { document.body.toggleAttribute('data-sideopen', o); tab.textContent = o ? '◀' : '▶'; };
+    tab.onclick = () => setOpen(!document.body.hasAttribute('data-sideopen'));
+    scrim.onclick = () => setOpen(false);
+    document.body.append(scrim, tab); setOpen(false);
+  }
   const wx = document.getElementById('tvwx'); if (wx) wx.onclick = showWeather;
   // the chapter went up while this screen was showing: redraw so the newly opened trail shows
   const main = $('#main');
