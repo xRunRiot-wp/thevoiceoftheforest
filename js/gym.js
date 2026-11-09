@@ -1,14 +1,14 @@
 // Training Gym (#/gym): two drills per day per character (her ask 10-31; was one). Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6af13318';
-import { $, $$, esc, num, pool } from './util.js?v=6af13318';
-import { modal, closeModal, diceFaces } from './ui.js?v=6af13318';
-import { statVal, logRoll } from './play.js?v=6af13318';
-import { myId } from './app.js?v=6af13318';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6af13318';
-import { locations, spots, crewNames } from './friendzone.js?v=6af13318';
-import { RESIDENTS } from './chatter.js?v=6af13318';
+import * as store from './store.js?v=6af13453';
+import { $, $$, esc, num, pool } from './util.js?v=6af13453';
+import { modal, closeModal, diceFaces } from './ui.js?v=6af13453';
+import { statVal, logRoll } from './play.js?v=6af13453';
+import { myId } from './app.js?v=6af13453';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6af13453';
+import { locations, spots, crewNames } from './friendzone.js?v=6af13453';
+import { RESIDENTS, gmTodo } from './chatter.js?v=6af13453';
 
 const BAR = 5;
 // Training partners (her ask 10-29): a player may bring up to 3 Pokémon who live at the guild (Woodland Base in the
@@ -222,9 +222,26 @@ export function renderGym(main) {
         <button class="btn block" data-train="${d.id}" ${done && !gm ? 'disabled' : ''}>${done ? (gm ? 'Train again (GM)' : 'Rested') : 'Train'}</button></div>`;
     }).join('')}</div>
     ${palsHTML(c)}
-    <p class="small muted">Training Points are spent with the GM's OK to raise stats.</p>
+    <div class="card gym-spend"><h3 style="margin:0 0 4px">🏋️ Spend Training Points</h3><p class="small muted" style="margin:0 0 8px">You have <b>${num(c.tp)} TP</b>. Spend <b>5 TP</b> to retrain an attribute or adjust a learned move (the GM is told). Spend <b>25 TP</b> to raise Logic, Instinct, Humanity or Will by 1.</p>
+      <div class="row"><button class="btn" data-spend="5" ${num(c.tp) < 5 ? 'disabled' : ''}>Use 5 TP</button><button class="btn alt" data-spend="25" ${num(c.tp) < 25 ? 'disabled' : ''}>Use 25 TP</button></div></div>
     <div class="gym-bottom">${gymChatHTML(wx)}${gymWxHTML(c, wx)}</div>`;
   $$('[data-train]', main).forEach((b) => b.onclick = () => train(c.id, b.dataset.train));
+  // her ask 11-08: spend 5 TP (retrain) or 25 TP (+1 to a core stat) right on the training screen
+  $$('[data-spend]', main).forEach((b) => b.onclick = () => {
+    const cost = num(b.dataset.spend); const big = cost === 25;
+    const opts = big ? [['logic', 'Logic'], ['instinct', 'Instinct'], ['humanity', 'Humanity'], ['will', 'Will']] : [['attr', 'Retrain an attribute'], ['move', 'Adjust a learned move']];
+    const el = modal(`<h2>Use ${cost} TP</h2><p class="small muted">${big ? 'Raise one stat by 1.' : 'What would you like to change? Your GM will be told.'}</p>
+      <div class="col">${opts.map(([k, n]) => `<button class="btn alt" data-pk="${k}">${esc(n)}${big ? ` (now ${num(c[k])})` : ''}</button>`).join('')}</div><button class="btn alt" id="spno" style="margin-top:8px">Cancel</button>`);
+    $('#spno', el).onclick = closeModal;
+    $$('[data-pk]', el).forEach((o) => o.onclick = () => {
+      const k = o.dataset.pk; const name = opts.find((x) => x[0] === k)[1];
+      let ok = false;
+      store.update('party/' + c.id, (x) => { if (!x || num(x.tp) < cost) return x; x.tp = num(x.tp) - cost; if (big) x[k] = num(x[k]) + 1; ok = true; return x; });
+      closeModal();
+      if (ok) gmTodo(big ? `${c.nickname} spent 25 TP: ${name} is now ${num(c[k]) + 1}. (Already applied.)` : `${c.nickname} spent 5 TP to ${name.toLowerCase()}. Please help them make the change.`, 'training');
+      renderGym(main);
+    });
+  });
   $$('[data-pal]', main).forEach((b) => b.onclick = () => togglePal(c, b.dataset.pal));
   $('#gwxinfo', main).onclick = showWeather;
   const gc = $('#gcoach', main);
