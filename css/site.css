@@ -2788,14 +2788,20 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
   .tv-guild .tv-patron, .tv-guild .tv-minis { position: static; width: 100%; }
   .tv-guild .tv-gmain { margin-bottom: 0; }
 }
-/* her ask 11-08: on phones the sidebar is a drawer from the left (pull tab on the left edge) instead of sitting at the bottom */
+/* her asks 11-08: on phones the sidebar is a drawer (not at the bottom), then "Move the side bar to the right side": it slides in
+   from the right, pull tab on the right edge */
 #tvsidetab, #tvsidescrim { display: none; }
 @media (max-width: 1000px) {
-  body[data-tv] #tvside { position: fixed; top: 0; bottom: 0; left: 0; right: auto; width: min(86vw, 340px); padding: 10px; z-index: 40; overflow-y: auto;
-    background: var(--brown, #4a3020); box-shadow: 4px 0 18px rgba(0, 0, 0, .35); transform: translateX(-102%); transition: transform .25s ease; }
+  body[data-tv] #tvside { position: fixed; top: 0; bottom: 0; right: 0; left: auto; width: min(86vw, 340px); padding: 10px; z-index: 40; overflow-y: auto;
+    background: var(--brown, #4a3020); box-shadow: -4px 0 18px rgba(0, 0, 0, .35); transform: translateX(102%); transition: transform .25s ease; }
   body[data-tv][data-sideopen] #tvside { transform: none; }
-  body[data-tv] #tvsidetab { display: block; position: fixed; left: 0; top: 50%; translate: 0 -50%; z-index: 41; width: 26px; height: 64px; padding: 0; border: 0;
-    border-radius: 0 12px 12px 0; background: var(--orange, #d9822b); color: #fff; font-size: 14px; box-shadow: 2px 2px 8px rgba(0, 0, 0, .3); cursor: pointer; transition: left .25s ease; }
-  body[data-tv][data-sideopen] #tvsidetab { left: min(86vw, 340px); }
+  body[data-tv] #tvsidetab { display: block; position: fixed; right: 0; top: 50%; translate: 0 -50%; z-index: 41; width: 26px; height: 64px; padding: 0; border: 0;
+    border-radius: 12px 0 0 12px; background: var(--orange, #d9822b); color: #fff; font-size: 14px; box-shadow: -2px 2px 8px rgba(0, 0, 0, .3); cursor: pointer; transition: right .25s ease; }
+  body[data-tv][data-sideopen] #tvsidetab { right: min(86vw, 340px); }
   body[data-tv][data-sideopen] #tvsidescrim { display: block; position: fixed; inset: 0; z-index: 39; background: rgba(0, 0, 0, .35); }
 }
+/* NPC bonds (her ask 11-08) */
+.bond-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+.bond-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #fffaf0; border: 2px solid #c9b48a; border-radius: 10px; padding: 6px 8px; color: #2b2116; }
+.npc-bond { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.bond-ready { background: #fff1b8; border: 1px solid #e5b83a; color: #5a4300; }

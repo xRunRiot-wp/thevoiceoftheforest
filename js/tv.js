@@ -1,19 +1,19 @@
 // her ask 11-07: TV display mode for in-person sessions. A home screen of big flat tiles (Echo Show / Windows 8 feel)
 // around the Friend Zone, and an overview panel that stays at the side on every page. Turned on in Settings, per device.
 // This screen faces the whole table, so nothing here may show hidden missions or other GM-only data.
-import * as store from './store.js?v=6af151e3';
-import { $, esc, num } from './util.js?v=6af151e3';
-import { tvMode, openSettings } from './theme.js?v=6af151e3';
-import { renderFriendZone, locations } from './friendzone.js?v=6af151e3';
-import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af151e3';
-import { renderMessHall, liveTeamFx, fxLeftHTML } from './play.js?v=6af151e3';
-import { renderNurseryParty } from './nursery.js?v=6af151e3';
-import { chatterLatestHTML } from './chatter.js?v=6af151e3';
-import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af151e3';
-import { sitePages } from './sitepages.js?v=6af151e3';
-import { openBase, hasBase } from './mybase.js?v=6af151e3';
-import { topPatron } from './vault.js?v=6af151e3';
-import { portrait, modal } from './ui.js?v=6af151e3';
+import * as store from './store.js?v=6af153e6';
+import { $, esc, num } from './util.js?v=6af153e6';
+import { tvMode, openSettings } from './theme.js?v=6af153e6';
+import { renderFriendZone, locations } from './friendzone.js?v=6af153e6';
+import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af153e6';
+import { renderMessHall, renderRoster, rosterAllowed, liveTeamFx, fxLeftHTML } from './play.js?v=6af153e6';
+import { renderNurseryParty } from './nursery.js?v=6af153e6';
+import { chatterLatestHTML } from './chatter.js?v=6af153e6';
+import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af153e6';
+import { sitePages } from './sitepages.js?v=6af153e6';
+import { openBase, hasBase } from './mybase.js?v=6af153e6';
+import { topPatron } from './vault.js?v=6af153e6';
+import { portrait, modal } from './ui.js?v=6af153e6';
 
 // her ask 11-07: the Bases tile (in place of GM): every character's base as a door to knock on, like igloos on a map
 function renderBases(main) {
@@ -76,7 +76,8 @@ const chapterLink = (n) => { const p = sitePages().find((x) => x.key.includes(`_
 // TV-only pages (her ask 11-07): everyone at once instead of one player's view
 export const tvHome = () => /^#?\/?(tv\/?)?$/.test(location.hash);
 export function renderTV(main, rest = []) {
-  if (rest[0] === 'hall') { document.body.toggleAttribute('data-tvhome', false); renderMessHall(main); return; }
+  // her ask 11-08: Nimbi or the GM get every PC + NPC sheet here; everyone else the Mess Hall
+  if (rest[0] === 'hall') { document.body.toggleAttribute('data-tvhome', false); if (rosterAllowed() && rest[1] !== 'seats') renderRoster(main); else renderMessHall(main); return; }
   if (rest[0] === 'nursery') { document.body.toggleAttribute('data-tvhome', false); renderNurseryParty(main); return; }
   if (rest[0] === 'bases') { document.body.toggleAttribute('data-tvhome', false); renderBases(main); return; }
   shownChapter = store.get('guild')?.chapter ?? null;
@@ -137,7 +138,7 @@ export function updateTvSide(page) {
   if (!tab) {
     tab = document.createElement('button'); tab.id = 'tvsidetab'; tab.type = 'button'; tab.setAttribute('aria-label', 'Open or close the sidebar');
     const scrim = document.createElement('div'); scrim.id = 'tvsidescrim';
-    const setOpen = (o) => { document.body.toggleAttribute('data-sideopen', o); tab.textContent = o ? '◀' : '▶'; };
+    const setOpen = (o) => { document.body.toggleAttribute('data-sideopen', o); tab.textContent = o ? '▶' : '◀'; };   // drawer is on the right now (her ask 11-08)
     tab.onclick = () => setOpen(!document.body.hasAttribute('data-sideopen'));
     scrim.onclick = () => setOpen(false);
     document.body.append(scrim, tab); setOpen(false);

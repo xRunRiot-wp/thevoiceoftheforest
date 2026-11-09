@@ -1,29 +1,29 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6af151e3';
-import * as sheet from './sheetdata.js?v=6af151e3';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6af151e3';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af151e3';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6af151e3';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af151e3';
-import { unlockChar } from './charlock.js?v=6af151e3';
-import { CONFIG } from './config.js?v=6af151e3';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af151e3';
-import { merged, editContent } from './content-store.js?v=6af151e3';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af151e3';
-import { guildName, missionParts } from './guild.js?v=6af151e3';
-import { homeHTML } from './sitepages.js?v=6af151e3';
-import { burstSet } from './burst.js?v=6af151e3';
-import { giftNote } from './mailbox.js?v=6af151e3';
-import { levelUpHTML, openLevelUp } from './levelup.js?v=6af151e3';
-import { pinsOf, showMap } from './hotbar.js?v=6af151e3';
-import { chatterLatestHTML } from './chatter.js?v=6af151e3';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af151e3';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af151e3';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6af151e3';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af151e3';
-import { find } from './effects.js?v=6af151e3';
-import * as dice3d from './dice3d.js?v=6af151e3';
-import { GUILD, syncRecruits } from './battle.js?v=6af151e3';
+import * as store from './store.js?v=6af153e6';
+import * as sheet from './sheetdata.js?v=6af153e6';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast, slug } from './util.js?v=6af153e6';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af153e6';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES, WORLD } from './content.js?v=6af153e6';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af153e6';
+import { unlockChar } from './charlock.js?v=6af153e6';
+import { CONFIG } from './config.js?v=6af153e6';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af153e6';
+import { merged, editContent } from './content-store.js?v=6af153e6';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af153e6';
+import { guildName, missionParts } from './guild.js?v=6af153e6';
+import { homeHTML } from './sitepages.js?v=6af153e6';
+import { burstSet } from './burst.js?v=6af153e6';
+import { giftNote } from './mailbox.js?v=6af153e6';
+import { levelUpHTML, openLevelUp } from './levelup.js?v=6af153e6';
+import { pinsOf, showMap } from './hotbar.js?v=6af153e6';
+import { chatterLatestHTML } from './chatter.js?v=6af153e6';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af153e6';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af153e6';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6af153e6';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af153e6';
+import { find } from './effects.js?v=6af153e6';
+import * as dice3d from './dice3d.js?v=6af153e6';
+import { GUILD, syncRecruits } from './battle.js?v=6af153e6';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -636,7 +636,7 @@ function bindCharCard(main, c) {
   $('#stedit', main).onclick = () => pickStatus(c);
   $('#editme', main).onclick = () => editCharacter(c.id);
   // her ask 11-01: a shortcut to your own base (it opens over the page, like tapping its square on the Woodland Base map)
-  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af151e3').then((m) => m.openBase(c.id, { from: gb }));
+  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af153e6').then((m) => m.openBase(c.id, { from: gb }));
   $('#editme2', main).onclick = () => editCharacter(c.id);
   $('#qroll', main).onclick = () => quickRoll(c);
   $$('[data-act]', main).forEach((b) => b.onclick = () => actionRoll(c, actions().find((a) => a.id === b.dataset.act)));
@@ -1041,23 +1041,65 @@ export function npcList() {
     <div class="npc-grid">${keys.map((k) => { const g = GUILD[k]; return `<button class="npc-pick" data-npc="${esc(k)}">${npcFace(g, 'sm')}<span><b>${esc(g.nickname)}</b><small>${esc(g.pokemon)}${g.tier ? ' · ' + esc(g.tier) : ''}</small></span></button>`; }).join('')}</div>`);
   $$('[data-npc]', el).forEach((b) => b.onclick = () => npcSheet(b.dataset.npc));
 }
-function npcSheet(k) {
-  const c = npcChar(k);
-  const el = modal(`<button class="btn alt sm" id="npcback">← All NPCs</button>
-    <div class="char-head" style="margin-top:8px">${npcFace(c)}<div class="grow"><div class="char-name">${esc(c.nickname)}</div><div class="char-sub">${c.pokemon ? ixLink(c.pokemon) : ''}${c.tier ? ' · ' + esc(c.tier) : ''}</div>
+function npcSheet(k) { rollSheet(npcChar(k), npcFace(GUILD[k]), '← All NPCs', npcList); }
+// one rollable sheet for a PC or an NPC (her ask 11-08: tablet Characters page, tap a sheet, roll its moves or actions)
+function rollSheet(c, face, backLabel, onBack) {
+  const el = modal(`<button class="btn alt sm" id="npcback">${esc(backLabel)}</button>
+    <div class="char-head" style="margin-top:8px">${face}<div class="grow"><div class="char-name">${esc(c.nickname)}</div><div class="char-sub">${c.pokemon ? ixLink(c.pokemon) : ''}${c.tier || c.rank ? ' · ' + esc(c.tier || c.rank) : ''}</div>
       <div class="chips" style="margin-top:4px">${typeChip(c.type1)}${typeChip(c.type2)}</div></div></div>
-    <p class="small"><b>HP</b> ${maxHp(c)} · <b>Defense</b> ${statVal(c, 'Vitality')} · <b>Sp. Defense</b> ${statVal(c, 'Insight')}</p>
+    <p class="small"><b>HP</b> ${c.npc ? maxHp(c) : `${c.hp ?? maxHp(c)}/${maxHp(c)}`} · <b>Defense</b> ${statVal(c, 'Vitality')} · <b>Sp. Defense</b> ${statVal(c, 'Insight')}${(c.status || []).length ? ` · <span style="color:var(--bad)">${esc(c.status.join(', '))}</span>` : ''}</p>
+    ${c.npc && !c.rec && bondableNpcs().some((n) => n.key === slug(shortName(c.nickname))) ? `<p class="small"><b>❤️ Bond</b> ${bondHTML(slug(shortName(c.nickname)))}</p>` : ''}
     ${statGrids(c)}
     <h4>⚔️ Moves <small class="muted">tap to roll</small></h4>
     <div class="npc-moves">${(c.moves || []).map((m, i) => `<button class="btn alt sm" data-nmove="${i}">${esc(m)}</button>`).join('') || '<span class="muted small">No moves listed</span>'}</div>
     <h4>🎲 Actions <small class="muted">tap to roll</small></h4>
     <div class="npc-moves">${actions().map((a) => `<button class="btn alt sm" data-nact="${esc(a.id)}">${esc(a.name)}</button>`).join('')}<button class="btn alt sm" data-nact="evade">Evade</button></div>`);
-  $('#npcback', el).onclick = () => npcList();
+  $('#npcback', el).onclick = () => onBack();
   $$('[data-nact]', el).forEach((b) => b.onclick = () => actionRoll(c, b.dataset.nact === 'evade' ? REACT.evade : actions().find((a) => a.id === b.dataset.nact)));
   allMoves().then((list) => {
     const base = sheet.moveIndex(list);
     $$('[data-nmove]', el).forEach((b) => b.onclick = () => { const n = c.moves[+b.dataset.nmove]; moveRoll(c, base.get(n.toLowerCase()) || { name: n, type: '', cat: 'Status', acc: [], power: null, effect: '' }); });
   });
+}
+
+// ---- NPC bonds (her ask 11-08): "Every NPC needs a bond bar (like the nursery) and once they get to 5 (full) they will be
+// eligible to recruit. This is intended for NPCs that are not on a team at the guild. Set Slash to 1."
+// bonds/<slug> = 0..5. Bondable = guild NPCs + Rulebook NPCs, minus anyone already recruited onto a team. GM sets the hearts.
+const BOND_START = { slash: 1 };
+const shortName = (n) => String(n || '').replace(/^Guildmaster\s+/i, '').split(/\s+(?:the|of)\s+/i)[0].trim();
+export function bondableNpcs() {
+  try { syncRecruits(); } catch { /* recruits not loaded yet */ }
+  const out = new Map(); const onTeam = new Set();
+  for (const g of Object.values(GUILD)) { const k = slug(shortName(g.nickname)); if (g.rec) onTeam.add(k); else if (!out.has(k)) out.set(k, { key: k, name: g.nickname, face: npcFace(g, 'sm') }); }
+  for (const n of WORLD.npcs || []) { const k = slug(shortName(n.name)); if (!out.has(k) && !onTeam.has(k)) out.set(k, { key: k, name: n.name, face: portrait({ nickname: n.name }, 'sm') }); }
+  for (const k of onTeam) out.delete(k);
+  return [...out.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+export const bondOf = (k) => { const v = store.get('bonds/' + k); return Math.max(0, Math.min(5, v == null ? num(BOND_START[k]) : num(v))); };
+export const bondHTML = (k) => { const b = bondOf(k); return `<span class="npc-bond" title="Bond ${b}/5"><span class="n-hearts">${'❤️'.repeat(b)}${'🤍'.repeat(5 - b)}</span>${b >= 5 ? '<span class="pill bond-ready">✨ Can be recruited</span>' : ''}</span>`; };
+function bindBonds(root, redraw) {
+  $$('[data-bond]', root).forEach((b) => b.onclick = (e) => { e.stopPropagation(); const [k, d] = b.dataset.bond.split('|'); store.set('bonds/' + k, Math.max(0, Math.min(5, bondOf(k) + num(d)))); redraw(); });
+}
+const bondRow = (n) => `<div class="bond-row">${n.face}<b class="grow">${esc(n.name)}</b>${bondHTML(n.key)}${store.gmUnlocked() ? `<button class="btn alt sm" data-bond="${esc(n.key)}|-1" aria-label="Less bond">−</button><button class="btn alt sm" data-bond="${esc(n.key)}|1" aria-label="More bond">+</button>` : ''}</div>`;
+
+// her ask 11-08: tablet mode Characters = every PC and NPC, split in two, each sheet rollable. "This should only be available to
+// Nimbi or GM": everyone else still gets the Mess Hall (pick who you're playing).
+export const rosterAllowed = () => store.gmUnlocked() || /^nimbi$/i.test(String(me()?.nickname || '').trim());
+export function renderRoster(main) {
+  try { syncRecruits(); } catch { /* recruits not loaded yet */ }
+  const pcs = Object.values(party()).filter((c) => !c.guest).sort((a, b) => String(a.nickname).localeCompare(String(b.nickname)));
+  const keys = Object.keys(GUILD).sort((a, b) => String(GUILD[a].nickname).localeCompare(String(GUILD[b].nickname)));
+  const card = (attr, face, name, sub) => `<button class="npc-pick" ${attr}>${face}<span><b>${esc(name)}</b><small>${esc(sub)}</small></span></button>`;
+  main.innerHTML = `<div class="tv-page roster"><div class="row" style="justify-content:space-between;align-items:center"><h1 style="margin:0">🎭 Characters</h1><a class="btn alt sm" href="#/tv/hall/seats">🍽️ Mess Hall (pick who's playing)</a></div>
+    <p class="small muted">Tap anyone to open their sheet, then tap a move or action to roll for them.</p>
+    <h2>🧑‍🤝‍🧑 Player characters</h2><div class="npc-grid">${pcs.map((c) => card(`data-rpc="${esc(c.id)}"`, portrait(c, 'sm'), c.nickname, `${c.pokemon || ''}${c.rank ? ' · ' + c.rank : ''}`)).join('') || '<p class="muted">No characters yet.</p>'}</div>
+    <h2>🏕️ NPCs</h2><div class="npc-grid">${keys.map((k) => card(`data-rnpc="${esc(k)}"`, npcFace(GUILD[k], 'sm'), GUILD[k].nickname, `${GUILD[k].pokemon}${GUILD[k].tier ? ' · ' + GUILD[k].tier : ''}`)).join('')}</div>
+    <h2>❤️ NPC bonds</h2><p class="small muted">NPCs who aren't on a guild team. Full bond (5 hearts) = they can be recruited.${store.gmUnlocked() ? ' Tap − / + to change.' : ''}</p>
+    <div class="bond-list" id="bondlist">${bondableNpcs().map(bondRow).join('')}</div></div>`;
+  const redrawBonds = () => { const l = $('#bondlist', main); if (l) { l.innerHTML = bondableNpcs().map(bondRow).join(''); bindBonds(l, redrawBonds); } };
+  bindBonds(main, redrawBonds);
+  $$('[data-rpc]', main).forEach((b) => b.onclick = () => { const c = party()[b.dataset.rpc]; if (c) rollSheet(c, portrait(c), '← Back', closeModal); });
+  $$('[data-rnpc]', main).forEach((b) => b.onclick = () => rollSheet(npcChar(b.dataset.rnpc), npcFace(GUILD[b.dataset.rnpc]), '← Back', closeModal));
 }
 
 export { RULES, CONFIG };

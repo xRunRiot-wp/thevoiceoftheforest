@@ -1,14 +1,14 @@
 // Shelter Patch-Up (her ask 11-08, first built as a cafe 'Mess Hall Rush'; she corrected: "it's to help with keeping the shelters
 // upright (the low-quality ones). Vines, sturdy branches and leaves"). Wobbly shelters each call for one material: grab it from
 // the supply pile and tap the shelter before it falls. 45 seconds, one shift per character per day.
-import * as store from './store.js?v=6af151e3';
-import { $, $$, esc, toast, num } from './util.js?v=6af151e3';
-import { me, logRoll } from './play.js?v=6af151e3';
-import { dailyRoll } from './weather.js?v=6af151e3';
-import { gameSay } from './chatter.js?v=6af151e3';
-import { markWinner } from './sparkle.js?v=6af151e3';
-import { faceSrc } from './sentry.js?v=6af151e3';
-import { pageMusic } from './chiptune.js?v=6af151e3';
+import * as store from './store.js?v=6af153e6';
+import { $, $$, esc, toast, num } from './util.js?v=6af153e6';
+import { me, logRoll } from './play.js?v=6af153e6';
+import { dailyRoll } from './weather.js?v=6af153e6';
+import { gameSay } from './chatter.js?v=6af153e6';
+import { markWinner } from './sparkle.js?v=6af153e6';
+import { faceSrc } from './sentry.js?v=6af153e6';
+import { pageMusic } from './chiptune.js?v=6af153e6';
 
 export const isCafe = (g) => g.kind === 'cafe' || g.id === 'mess-hall-rush';
 const FOODS = [['🌿', 'Vines'], ['🪵', 'Sturdy branches'], ['🍃', 'Leaves']];
