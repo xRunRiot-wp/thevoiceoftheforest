@@ -1,28 +1,28 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6af13453';
-import * as sheet from './sheetdata.js?v=6af13453';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6af13453';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af13453';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6af13453';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af13453';
-import { unlockChar } from './charlock.js?v=6af13453';
-import { CONFIG } from './config.js?v=6af13453';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af13453';
-import { merged, editContent } from './content-store.js?v=6af13453';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af13453';
-import { guildName, missionParts } from './guild.js?v=6af13453';
-import { homeHTML } from './sitepages.js?v=6af13453';
-import { burstSet } from './burst.js?v=6af13453';
-import { giftNote } from './mailbox.js?v=6af13453';
-import { levelUpHTML, openLevelUp } from './levelup.js?v=6af13453';
-import { pinsOf, showMap } from './hotbar.js?v=6af13453';
-import { chatterLatestHTML } from './chatter.js?v=6af13453';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af13453';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af13453';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6af13453';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af13453';
-import { find } from './effects.js?v=6af13453';
-import * as dice3d from './dice3d.js?v=6af13453';
+import * as store from './store.js?v=6af135ce';
+import * as sheet from './sheetdata.js?v=6af135ce';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast } from './util.js?v=6af135ce';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af135ce';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES } from './content.js?v=6af135ce';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af135ce';
+import { unlockChar } from './charlock.js?v=6af135ce';
+import { CONFIG } from './config.js?v=6af135ce';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af135ce';
+import { merged, editContent } from './content-store.js?v=6af135ce';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af135ce';
+import { guildName, missionParts } from './guild.js?v=6af135ce';
+import { homeHTML } from './sitepages.js?v=6af135ce';
+import { burstSet } from './burst.js?v=6af135ce';
+import { giftNote } from './mailbox.js?v=6af135ce';
+import { levelUpHTML, openLevelUp } from './levelup.js?v=6af135ce';
+import { pinsOf, showMap } from './hotbar.js?v=6af135ce';
+import { chatterLatestHTML } from './chatter.js?v=6af135ce';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af135ce';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af135ce';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML } from './weather.js?v=6af135ce';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af135ce';
+import { find } from './effects.js?v=6af135ce';
+import * as dice3d from './dice3d.js?v=6af135ce';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -599,7 +599,7 @@ function bindCharCard(main, c) {
   $('#stedit', main).onclick = () => pickStatus(c);
   $('#editme', main).onclick = () => editCharacter(c.id);
   // her ask 11-01: a shortcut to your own base (it opens over the page, like tapping its square on the Woodland Base map)
-  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af13453').then((m) => m.openBase(c.id, { from: gb }));
+  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af135ce').then((m) => m.openBase(c.id, { from: gb }));
   $('#editme2', main).onclick = () => editCharacter(c.id);
   $('#qroll', main).onclick = () => quickRoll(c);
   $$('[data-act]', main).forEach((b) => b.onclick = () => actionRoll(c, actions().find((a) => a.id === b.dataset.act)));

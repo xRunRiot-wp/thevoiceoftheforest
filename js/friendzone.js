@@ -1,16 +1,16 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6af13453';
-import { $, $$, esc, toast } from './util.js?v=6af13453';
-import { modal, closeModal } from './ui.js?v=6af13453';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6af13453';
-import { merged, editContent } from './content-store.js?v=6af13453';
-import { CHAPTERS } from './content.js?v=6af13453';
-import { giftNote } from './mailbox.js?v=6af13453';
-import { guildSay } from './chatter.js?v=6af13453';
-import { myId } from './app.js?v=6af13453';
-import { hasBase, openBase } from './mybase.js?v=6af13453';
-import { shackButtons } from './miltank.js?v=6af13453';
+import * as store from './store.js?v=6af135ce';
+import { $, $$, esc, toast } from './util.js?v=6af135ce';
+import { modal, closeModal } from './ui.js?v=6af135ce';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6af135ce';
+import { merged, editContent } from './content-store.js?v=6af135ce';
+import { CHAPTERS } from './content.js?v=6af135ce';
+import { giftNote } from './mailbox.js?v=6af135ce';
+import { guildSay } from './chatter.js?v=6af135ce';
+import { myId } from './app.js?v=6af135ce';
+import { hasBase, openBase } from './mybase.js?v=6af135ce';
+import { shackButtons } from './miltank.js?v=6af135ce';
 
 export const LOCATIONS = [
   {
@@ -255,6 +255,7 @@ export function renderFriendZone(main, [arg]) {
         const holder = $('.fz-spots', main); if (holder) holder.classList.add('fz-hidden');
         box.addEventListener('fzspot', (e) => {
           const key = e.detail; const sq = $(`.fzs-cube[data-key="${key}"]`, box);
+          if (key === 'cafe') { location.hash = '#/games/mess-hall-rush'; return; }
           if (key === 'my-base') { openBase(myId(), { from: sq }); return; }
           const img = ZOOM_PICS[key] || (MAPS[loc.id].find((x) => x[0] === key) || [])[1]; const cube = cubes.find((x) => x.key === key);
           const card = $(`.fz-spot[data-spotkey="${key}"]`, main) || (key === 'staff' ? $('.fz-staff', main)?.cloneNode(true) : key === 'camp' ? $('.fz-head', main)?.cloneNode(true) : PATHS[loc.id]?.[key] ? pathCard(key) : PLACES[key] ? placeCard(key) : null);
