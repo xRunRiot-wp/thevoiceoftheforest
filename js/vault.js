@@ -1,14 +1,14 @@
 // Storage & Poké for each guild (Woodland Base, Vanguard Guild). Fills itself from what players do on the site:
 // Poké given to / taken from the shared coffers, shop buys, end-of-session rewards, items stored or taken out.
-import * as store from './store.js?v=6af11336';
-import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6af11336';
-import { GUILDS2, guildName, shopShortcuts } from './guild.js?v=6af11336';
-import { addItem, me } from './play.js?v=6af11336';
-import { ixLink } from './effects.js?v=6af11336';
-import { gmTodo, guildSay } from './chatter.js?v=6af11336';
-import { DECOR } from './basedecor.js?v=6af11336';
-import { palette } from './theme.js?v=6af11336';
-import { modal, closeModal } from './ui.js?v=6af11336';
+import * as store from './store.js?v=6af11382';
+import { $, $$, esc, num, uid, toast, timeAgo } from './util.js?v=6af11382';
+import { GUILDS2, guildName, shopShortcuts } from './guild.js?v=6af11382';
+import { addItem, me, pokeMove } from './play.js?v=6af11382';
+import { ixLink } from './effects.js?v=6af11382';
+import { gmTodo, guildSay } from './chatter.js?v=6af11382';
+import { DECOR } from './basedecor.js?v=6af11382';
+import { palette } from './theme.js?v=6af11382';
+import { modal, closeModal } from './ui.js?v=6af11382';
 
 // Each guild's own colours on this page, so players can tell at a glance whose storage they're looking at.
 const GUILD_TINT = { woodland: '#4f8a2e', vanguard: '#2f5fb8' };
@@ -95,7 +95,9 @@ export function renderVault(main, rest = []) {
       <div class="section-title"><h2>Poké</h2></div>
       <div class="card pokebank"><div class="small muted">Shared guild coffers (both guilds)</div><div class="pix pokeamt">${num(g.coffers).toLocaleString()} <span>Poké</span></div>
         <div class="grid g2 small"><div><b class="pix">+${pin.toLocaleString()}</b><br>${esc(guildName(tab))} put in</div><div><b class="pix">−${pout.toLocaleString()}</b><br>${esc(guildName(tab))} took out</div></div>
-        ${(() => { const c = capInfo(tab); return `<div class="capbar"><div class="small">Withdrawn this session: <b>${c.used.toLocaleString()} / ${c.cap.toLocaleString()}</b> Poké</div>${'<div class="bar"><i style="width:' + Math.min(100, (c.used / c.cap) * 100) + '%"></i></div>'}</div>`; })()}</div>
+        ${(() => { const c = capInfo(tab); return `<div class="capbar"><div class="small">Withdrawn this session: <b>${c.used.toLocaleString()} / ${c.cap.toLocaleString()}</b> Poké</div>${'<div class="bar"><i style="width:' + Math.min(100, (c.used / c.cap) * 100) + '%"></i></div>'}</div>`; })()}
+        <div class="row" style="justify-content:center;margin-top:10px;gap:8px"><button class="btn" id="vdep">💰 Deposit</button><button class="btn alt" id="vwd">🏧 Withdraw</button></div>
+        <p class="small muted" style="margin:4px 0 0;text-align:center">${me() ? `${esc(me().nickname)} has ${num(me().poke).toLocaleString()} Poké` : 'Pick your character (Play tab) to deposit or withdraw.'}</p></div>
       <div class="section-title"><h3>${esc(guildName(tab))} activity</h3></div>
       <div class="card" style="padding:6px 12px">${lines.length ? `<ul class="log" style="max-height:420px">${lines.slice(0, 120).map((l) => `<li class="row nowrap"><span class="grow small">${esc(l.text)} <span class="muted">· ${timeAgo(l.t)}</span></span>${l.amt != null ? `<b class="pix ${l.amt < 0 ? 'neg' : 'pos'}">${l.amt > 0 ? '+' : ''}${l.amt}</b>` : ''}</li>`).join('')}</ul>` : '<p class="muted small">Nothing yet. Giving or taking Poké, shop buys, session rewards and storing items show up here by themselves.</p>'}</div>
     </div>
@@ -106,6 +108,9 @@ export function renderVault(main, rest = []) {
     </div>
   </div></div>`;
 
+  // her ask 11-08: Deposit and Withdraw right on the Poké card (the same as Give to guild / Take from guild on the character card)
+  const money = (kind) => { const who = me(); if (!who) return toast('Pick your character first (Play tab)'); pokeMove(who, kind); setTimeout(() => renderVault(main, rest), 150); };
+  $('#vdep', main).onclick = () => money('give'); $('#vwd', main).onclick = () => money('take');
   $$('[data-vtab]', main).forEach((b) => b.onclick = () => { tab = b.dataset.vtab; renderVault(main); });
   $('#addstore', main).onclick = () => addItem('team', 'storage', tab);
   const sm = $('#stmoney', main);
