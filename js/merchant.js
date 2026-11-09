@@ -3,12 +3,12 @@
 // Haggling: Slash never tolerates it (try 1 "fair", try 2 "absolutely not", try 3 = he and his troupe of 3 stand armed).
 // Beat him in that fight: his caravan never returns and the team gets everything on his table.
 // Lose: his prices go up 150% for good (no more sales) and he attacks at the very next haggle.
-import * as store from './store.js?v=6af1c774';
-import { $, $$, esc, num, uid, toast } from './util.js?v=6af1c774';
-import { modal, closeModal } from './ui.js?v=6af1c774';
-import { ixLink } from './effects.js?v=6af1c774';
-import { guildSay, gmTodo } from './chatter.js?v=6af1c774';
-import { buyDialog, logSale, sellDialog } from './shopkit.js?v=6af1c774';
+import * as store from './store.js?v=6af1c7f6';
+import { $, $$, esc, num, uid, toast } from './util.js?v=6af1c7f6';
+import { modal, closeModal } from './ui.js?v=6af1c7f6';
+import { ixLink } from './effects.js?v=6af1c7f6';
+import { guildSay, gmTodo } from './chatter.js?v=6af1c7f6';
+import { buyDialog, logSale, sellDialog } from './shopkit.js?v=6af1c7f6';
 
 export const BROTHERS = {
   Slash: { tell: 'Does not tolerate haggling.', lines: ['No. The price I listed is fair.', 'Absolutely not.', '*stands armed and guarded with his troupe of 3*'] },
@@ -32,7 +32,7 @@ const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCod
 const merchantBuys = (name) => { const s = slots().find((x) => x.name.toLowerCase() === name.toLowerCase()); return s ? Math.max(1, Math.floor(num(s.price) / qtyOf(s) * 0.6)) : 40; };
 // her ask 11-09 "Have sharps prices be better based on his bond level": the brother at the table takes 5% off per bond heart
 // (bonds/<name> from the NPC bond list, 0..5 hearts, so up to 25% off; Slash starts at 1). Not while he's angry from a fight.
-const bondHearts = (n = who()) => { const v = store.get('bonds/' + n.toLowerCase()); return Math.max(0, Math.min(5, v == null ? (n === 'Slash' ? 1 : 0) : num(v))); };
+const bondHearts = (n = who()) => { const v = store.get('bonds/' + n.toLowerCase()); return Math.max(0, Math.min(5, v == null ? (n === 'Slash' || n === 'Sharp' ? 1 : 0) : num(v))); };
 const bondOff = () => (bro().angry ? 0 : bondHearts() * 5);
 const listPrice = (s) => { const b = bro(); return b.angry ? Math.ceil(num(s.price) * 1.5) : s.sale ? num(s.sale) : num(s.price); };
 const priceOf = (s) => Math.max(1, Math.round(listPrice(s) * (100 - bondOff()) / 100));
