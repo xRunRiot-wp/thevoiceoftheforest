@@ -1,16 +1,16 @@
 // Training Gym (#/gym): two drills per day per character (her ask 10-31; was one). Drills roll Attribute + Skill; the character's nature
-// loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
+// loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (3; was 5 until 11-09) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6af1c49b';
-import { $, $$, esc, num, pool } from './util.js?v=6af1c49b';
-import { modal, closeModal, diceFaces } from './ui.js?v=6af1c49b';
-import { statVal, logRoll } from './play.js?v=6af1c49b';
-import { myId } from './app.js?v=6af1c49b';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6af1c49b';
-import { locations, spots, crewNames } from './friendzone.js?v=6af1c49b';
-import { RESIDENTS, gmTodo } from './chatter.js?v=6af1c49b';
+import * as store from './store.js?v=6af1c5c1';
+import { $, $$, esc, num, pool } from './util.js?v=6af1c5c1';
+import { modal, closeModal, diceFaces } from './ui.js?v=6af1c5c1';
+import { statVal, logRoll } from './play.js?v=6af1c5c1';
+import { myId } from './app.js?v=6af1c5c1';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6af1c5c1';
+import { locations, spots, crewNames } from './friendzone.js?v=6af1c5c1';
+import { RESIDENTS, gmTodo } from './chatter.js?v=6af1c5c1';
 
-const BAR = 5;
+const BAR = 3;   // her ask 11-09 (she and her brother: training too slow): was 5
 // Training partners (her ask 10-29): a player may bring up to 3 Pokémon who live at the guild (Woodland Base in the
 // Friend Zone: its spots' residents, the crew walking its squares, and recruits) to every drill. Each partner trains alongside and keeps its own
 // Training Points: gym/npc/<key> = { name, prog, tp }. party/<id>/gymPals = the names picked.
@@ -218,7 +218,7 @@ export function renderGym(main) {
       return `<div class="gym-card ${tag} ${d.indoor ? 'indoor' : ''}"><div class="gym-top"><span class="gym-ic">${d.icon}</span><div class="grow"><b>${esc(d.name)}${d.indoor ? ' <span class="gym-in">🏠 indoors</span>' : ''}</b><small>${esc(drillAttr(c, d))} + ${esc(d.skill)} · ${dice} ${dice === 1 ? 'die' : 'dice'}</small></div>
         ${tag ? `<span class="gym-tag">${tag === 'loved' ? '💖 Loves it' : '💢 Hates it'}</span>` : ''}</div>
         <p class="small">${esc(d.text)}${tag === 'loved' ? ' <b>+1 die, +1 progress.</b>' : tag === 'hated' ? ' <b>−1 die, costs 1 Will.</b>' : ''}</p>
-        <div class="gym-bar" title="${prog}/${BAR}">${Array.from({ length: BAR }, (_, i) => `<i class="${i < prog ? 'on' : ''}"></i>`).join('')}<span>${prog}/${BAR}</span></div>
+        <div class="gym-bar" title="${prog}/${BAR}">${Array.from({ length: BAR }, (_, i) => `<i class="${i < prog ? 'on' : ''}"></i>`).join('')}<span>${Math.min(prog, BAR)}/${BAR}</span></div>
         <button class="btn block" data-train="${d.id}" ${done && !gm ? 'disabled' : ''}>${done ? (gm ? 'Train again (GM)' : 'Rested') : 'Train'}</button></div>`;
     }).join('')}</div>
     ${palsHTML(c)}
