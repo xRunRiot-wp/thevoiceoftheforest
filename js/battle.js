@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6af13119';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6af13119';
-import { portrait, maxHp } from './ui.js?v=6af13119';
-import { allMoves, me, statVal } from './play.js?v=6af13119';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6af13119';
-import { TYPE_ICONS } from './theme.js?v=6af13119';
+import * as store from './store.js?v=6af13318';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6af13318';
+import { portrait, maxHp } from './ui.js?v=6af13318';
+import { allMoves, me, statVal } from './play.js?v=6af13318';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6af13318';
+import { TYPE_ICONS } from './theme.js?v=6af13318';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -85,10 +85,12 @@ const nm = (id) => pc(id).nickname || 'Someone';
 const SPRITES = { golett: [26, 31, 27, 31, 5, 1433], tinkatink: [18, 19, 20, 18, 4, 1400], jangmoo: [21, 22, 20, 24, 4, 1333], sudowoodo: [19, 26, 19, 25, 1, 133], swablu: [27, 25, 23, 24, 9, 900],
   magnemite: [15, 18, 16, 17, 4, 800], slakoth: [30, 23, 30, 23, 2, 1133], cleffa: [18, 19, 17, 19, 2, 900], cottonee: [18, 15, 20, 15, 4, 800], diglett: [22, 16, 22, 16, 2, 533],
   ralts: [15, 21, 16, 22, 2, 1083], maushold: [29, 25, 29, 27, 12, 1600], machamp: [30, 31, 30, 30, 10, 1133], scolipede: [42, 40, 43, 44, 4, 1267], mudkip: [19, 23, 16, 24, 7, 917],
-  pikachu: [28, 30, 29, 28, 6, 883], beautifly: [27, 31, 30, 37, 4, 667], beedrill: [29, 29, 27, 25, 4, 267], wingull: [25, 23, 24, 22, 4, 600] };
+  pikachu: [28, 30, 29, 28, 6, 883], beautifly: [27, 31, 30, 37, 4, 667], beedrill: [29, 29, 27, 25, 4, 267], wingull: [25, 23, 24, 22, 4, 600],
+  // her ask 11-08: the newest guild members get battle sprites too, not a framed portrait
+  togepi: [15, 20, 16, 20, 4, 933], pichu: [18, 26, 17, 27, 4, 800], happiny: [20, 24, 23, 22, 5, 1233], sandile: [21, 17, 22, 21, 4, 2000] };
 // her report 10-29 (Golett and Machamp's frames looked wrong): each frame now shows for its own length from the sprite's
 // timing data (1 tick = 1/60 s), instead of every frame for the same time. One @keyframes per species, built once.
-const DUR = { golett: [56, 2, 6, 2, 20], tinkatink: [30, 12, 30, 12], jangmoo: [40, 12, 16, 12], sudowoodo: [8], swablu: [4, 4, 4, 4, 6, 8, 8, 8, 8], magnemite: [10, 14, 10, 14], slakoth: [60, 8], cleffa: [36, 18], cottonee: [10, 14, 10, 14], diglett: [16, 16], ralts: [40, 25], maushold: [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8], machamp: [40, 2, 2, 2, 2, 2, 2, 2, 2, 12], scolipede: [40, 8, 20, 8], mudkip: [38, 2, 2, 5, 3, 3, 2], pikachu: [40, 2, 3, 3, 3, 2], beautifly: [10, 10, 10, 10], beedrill: [4, 4, 4, 4], wingull: [8, 10, 8, 10] };
+const DUR = { togepi: [30, 8, 10, 8], pichu: [32, 4, 6, 6], happiny: [30, 14, 8, 14, 8], sandile: [60, 15, 30, 15], golett: [56, 2, 6, 2, 20], tinkatink: [30, 12, 30, 12], jangmoo: [40, 12, 16, 12], sudowoodo: [8], swablu: [4, 4, 4, 4, 6, 8, 8, 8, 8], magnemite: [10, 14, 10, 14], slakoth: [60, 8], cleffa: [36, 18], cottonee: [10, 14, 10, 14], diglett: [16, 16], ralts: [40, 25], maushold: [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8], machamp: [40, 2, 2, 2, 2, 2, 2, 2, 2, 12], scolipede: [40, 8, 20, 8], mudkip: [38, 2, 2, 5, 3, 3, 2], pikachu: [40, 2, 3, 3, 3, 2], beautifly: [10, 10, 10, 10], beedrill: [4, 4, 4, 4], wingull: [8, 10, 8, 10] };
 const animMade = new Set();
 function spriteAnim(k) {
   const d = DUR[k]; if (!d) return '';
@@ -212,7 +214,7 @@ async function resolve(bid) {
       const m2 = randomMove(); say(`${nm(id)}’s finger wag turned into ${m2.name}!`, 'use', id); return attack(m2, id, foe);
     }
     let slices = [];
-    try { slices = (await import('./games.js?v=6af13119')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6af13318')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);
