@@ -1,29 +1,29 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6af15495';
-import * as sheet from './sheetdata.js?v=6af15495';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast, slug } from './util.js?v=6af15495';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af15495';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES, WORLD } from './content.js?v=6af15495';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af15495';
-import { unlockChar } from './charlock.js?v=6af15495';
-import { CONFIG } from './config.js?v=6af15495';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af15495';
-import { merged, editContent } from './content-store.js?v=6af15495';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af15495';
-import { guildName, missionParts } from './guild.js?v=6af15495';
-import { homeHTML } from './sitepages.js?v=6af15495';
-import { burstSet } from './burst.js?v=6af15495';
-import { giftNote } from './mailbox.js?v=6af15495';
-import { levelUpHTML, openLevelUp } from './levelup.js?v=6af15495';
-import { pinsOf, showMap } from './hotbar.js?v=6af15495';
-import { chatterLatestHTML } from './chatter.js?v=6af15495';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af15495';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af15495';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6af15495';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af15495';
-import { find } from './effects.js?v=6af15495';
-import * as dice3d from './dice3d.js?v=6af15495';
-import { GUILD, syncRecruits } from './battle.js?v=6af15495';
+import * as store from './store.js?v=6af15576';
+import * as sheet from './sheetdata.js?v=6af15576';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast, slug } from './util.js?v=6af15576';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af15576';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES, WORLD } from './content.js?v=6af15576';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af15576';
+import { unlockChar } from './charlock.js?v=6af15576';
+import { CONFIG } from './config.js?v=6af15576';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af15576';
+import { merged, editContent } from './content-store.js?v=6af15576';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af15576';
+import { guildName, missionParts } from './guild.js?v=6af15576';
+import { homeHTML } from './sitepages.js?v=6af15576';
+import { burstSet } from './burst.js?v=6af15576';
+import { giftNote } from './mailbox.js?v=6af15576';
+import { levelUpHTML, openLevelUp } from './levelup.js?v=6af15576';
+import { pinsOf, showMap } from './hotbar.js?v=6af15576';
+import { chatterLatestHTML } from './chatter.js?v=6af15576';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af15576';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af15576';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6af15576';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af15576';
+import { find } from './effects.js?v=6af15576';
+import * as dice3d from './dice3d.js?v=6af15576';
+import { GUILD, syncRecruits } from './battle.js?v=6af15576';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -636,7 +636,7 @@ function bindCharCard(main, c) {
   $('#stedit', main).onclick = () => pickStatus(c);
   $('#editme', main).onclick = () => editCharacter(c.id);
   // her ask 11-01: a shortcut to your own base (it opens over the page, like tapping its square on the Woodland Base map)
-  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af15495').then((m) => m.openBase(c.id, { from: gb }));
+  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af15576').then((m) => m.openBase(c.id, { from: gb }));
   $('#editme2', main).onclick = () => editCharacter(c.id);
   $('#qroll', main).onclick = () => quickRoll(c);
   $$('[data-act]', main).forEach((b) => b.onclick = () => actionRoll(c, actions().find((a) => a.id === b.dataset.act)));
@@ -1066,12 +1066,16 @@ function rollSheet(c, face, backLabel, onBack) {
 // eligible to recruit. This is intended for NPCs that are not on a team at the guild. Set Slash to 1."
 // bonds/<slug> = 0..5. Bondable = guild NPCs + Rulebook NPCs, minus anyone already recruited onto a team. GM sets the hearts.
 const BOND_START = { slash: 1 };
+// her 11-09: "Current organized teams. Beatrice, Bramble and Beautifly. Pikachu and Squirtle. Mimi and Kippy. Teddy, pichu
+// (nonscarf) and Bonsly". Members of these teams get no bond bar (not recruitable). The scarf Pichu is Rocky and Slakoth's recruit.
+export const NPC_TEAMS = [['Beatrice', 'Bramble', 'Beautifly'], ['Pikachu', 'Squirtle'], ['Mimi', 'Kippy'], ['Teddy', 'Pichu (no scarf)', 'Bonsly']];
 const shortName = (n) => String(n || '').replace(/^Guildmaster\s+/i, '').split(/\s+(?:the|of)\s+/i)[0].trim();
 export function bondableNpcs() {
   try { syncRecruits(); } catch { /* recruits not loaded yet */ }
   const out = new Map(); const onTeam = new Set();
   for (const g of Object.values(GUILD)) { const k = slug(shortName(g.nickname)); if (g.rec) onTeam.add(k); else if (!out.has(k)) out.set(k, { key: k, name: g.nickname, face: npcFace(g, 'sm') }); }
   for (const n of WORLD.npcs || []) { const k = slug(shortName(n.name)); if (!out.has(k) && !onTeam.has(k)) out.set(k, { key: k, name: n.name, face: portrait({ nickname: n.name, pokemon: n.pokemon }, 'sm') }); }
+  for (const t of NPC_TEAMS) for (const n of t) onTeam.add(slug(shortName(n.replace(/\s*\(.*\)/, ''))));
   for (const k of onTeam) out.delete(k);
   return [...out.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -1094,6 +1098,7 @@ export function renderRoster(main) {
     <p class="small muted">Tap anyone to open their sheet, then tap a move or action to roll for them.</p>
     <h2>🧑‍🤝‍🧑 Player characters</h2><div class="npc-grid">${pcs.map((c) => card(`data-rpc="${esc(c.id)}"`, portrait(c, 'sm'), c.nickname, `${c.pokemon || ''}${c.rank ? ' · ' + c.rank : ''}`)).join('') || '<p class="muted">No characters yet.</p>'}</div>
     <h2>🏕️ NPCs</h2><div class="npc-grid">${keys.map((k) => card(`data-rnpc="${esc(k)}"`, npcFace(GUILD[k], 'sm'), GUILD[k].nickname, `${GUILD[k].pokemon}${GUILD[k].tier ? ' · ' + GUILD[k].tier : ''}`)).join('')}</div>
+    <h2>🛡️ Guild NPC teams</h2><div class="bond-list">${NPC_TEAMS.map((t, i) => `<div class="bond-row"><b>Team ${i + 1}</b><span class="grow">${esc(t.join(' · '))}</span></div>`).join('')}</div>
     <h2>❤️ NPC bonds</h2><p class="small muted">NPCs who aren't on a guild team. Full bond (5 hearts) = they can be recruited.${store.gmUnlocked() ? ' Tap − / + to change.' : ''}</p>
     <div class="bond-list" id="bondlist">${bondableNpcs().map(bondRow).join('')}</div></div>`;
   const redrawBonds = () => { const l = $('#bondlist', main); if (l) { l.innerHTML = bondableNpcs().map(bondRow).join(''); bindBonds(l, redrawBonds); } };
