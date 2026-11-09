@@ -1,27 +1,27 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6af11382';
-import * as store from './store.js?v=6af11382';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af11382';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6af11382';
-import { modal, portrait } from './ui.js?v=6af11382';
-import * as sheet from './sheetdata.js?v=6af11382';
-import { shop } from './guild.js?v=6af11382';
-import { merged, editContent } from './content-store.js?v=6af11382';
-import { logRoll, me, addTeamFx } from './play.js?v=6af11382';
-import { luckyReaction, gmTodo } from './chatter.js?v=6af11382';
-import { ranks } from './rulebook.js?v=6af11382';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6af11382';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6af11382';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6af11382';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6af11382';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6af11382';
-import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6af11382';
-import { isTruck, renderTruck, truckMini } from './truck.js?v=6af11382';
-import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6af11382';
-import { isBattle, renderBattle, battleMini } from './battle.js?v=6af11382';
-import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6af11382';
-import { watchGamePage, stopGamePage } from './watch.js?v=6af11382';
+import { markWinner } from './sparkle.js?v=6af11406';
+import * as store from './store.js?v=6af11406';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af11406';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6af11406';
+import { modal, portrait } from './ui.js?v=6af11406';
+import * as sheet from './sheetdata.js?v=6af11406';
+import { shop } from './guild.js?v=6af11406';
+import { merged, editContent } from './content-store.js?v=6af11406';
+import { logRoll, me, addTeamFx } from './play.js?v=6af11406';
+import { luckyReaction, gmTodo } from './chatter.js?v=6af11406';
+import { ranks } from './rulebook.js?v=6af11406';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6af11406';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6af11406';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6af11406';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6af11406';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6af11406';
+import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6af11406';
+import { isTruck, renderTruck, truckMini } from './truck.js?v=6af11406';
+import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6af11406';
+import { isBattle, renderBattle, battleMini } from './battle.js?v=6af11406';
+import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6af11406';
+import { watchGamePage, stopGamePage } from './watch.js?v=6af11406';
 
 export const GAMES = [
   {
@@ -220,11 +220,15 @@ function drawWheel(cv, g, rot) {
   x.beginPath(); x.moveTo(S - 1, S / 2 - ph); x.lineTo(S - ph * 2.6, S / 2); x.lineTo(S - 1, S / 2 + ph); x.closePath(); x.fillStyle = '#ffcf4a'; x.fill(); x.strokeStyle = '#5a3a10'; x.lineWidth = 2; x.stroke();
 }
 
-function pick(g) {
-  const total = g.slices.reduce((s, [, w]) => s + w, 0);
-  let r = Math.random() * total;
-  for (let i = 0; i < g.slices.length; i++) { r -= g.slices[i][1]; if (r <= 0) return i; }
-  return g.slices.length - 1;
+// her ask 11-08: nobody can win a lunch with the Guild Leader while they still have an unfinished one; skip lets the wheel leave those slices out
+const isLunchSlice = (sl) => /lunch with the guild leader/i.test(String(sl[2] || ''));
+const activeLunch = (id) => Object.values(store.get('lunches') || {}).some((x) => x && x.who === id && !x.done);
+function pick(g, skip = () => false) {
+  const w = (sl) => (skip(sl) ? 0 : sl[1]);
+  const total = g.slices.reduce((s, sl) => s + w(sl), 0);
+  let r = Math.random() * total; let last = 0;
+  for (let i = 0; i < g.slices.length; i++) { if (!w(g.slices[i])) continue; last = i; r -= w(g.slices[i]); if (r <= 0) return i; }
+  return last;
 }
 
 export function renderGames(main, [arg, sub]) {
@@ -305,7 +309,7 @@ export function renderGames(main, [arg, sub]) {
   const drawLunches = () => {
     const L = Object.entries(store.get('lunches') || {}).filter(([, x]) => !x.done && x.game === g.id);
     const P = store.get('party') || {};
-    $('#lunches', main).innerHTML = L.length ? `<div class="card lunches"><h3>🍽️ Lunch with the Guild Leader</h3>${L.map(([id, x]) => `<div class="row nowrap"><span class="grow"><b>${esc(P[x.who]?.nickname || 'Someone')}</b>: ${esc(LUNCH[x.when] || x.when)}<span class="small muted"> · won in session ${x.session}</span></span>${gm ? `<button class="btn alt sm" data-lunchdone="${id}">Done</button>` : ''}</div>`).join('')}</div>` : '';
+    $('#lunches', main).innerHTML = L.length ? `<div class="card lunches"><h3>🍽️ Lunch with the Guild Leader</h3><p class="small muted">Everyone can hold one lunch at a time. They can win another only after the GM marks this one Done.</p>${L.map(([id, x]) => `<div class="row nowrap"><span class="grow"><b>${esc(P[x.who]?.nickname || 'Someone')}</b>: ${esc(LUNCH[x.when] || x.when)}<span class="small muted"> · won in session ${x.session}</span></span>${gm ? `<button class="btn alt sm" data-lunchdone="${id}">Done</button>` : ''}</div>`).join('')}</div>` : '';
     $$('[data-lunchdone]', main).forEach((b) => b.onclick = () => { store.set(`lunches/${b.dataset.lunchdone}/done`, true); drawLunches(); });
   };
   const drawSpinBtn = () => {
@@ -351,7 +355,7 @@ export function renderGames(main, [arg, sub]) {
     if (items && tw && isSpecial()) { if (/extra item/i.test(tw[2])) items += 1; if (/twice/i.test(tw[2])) items *= 2; }
     let pickers = '';
     for (let k = 0; k < items; k++) pickers += `<div class="claim pick" data-pick="${k}"><label class="f">Choose free item ${items > 1 ? k + 1 : ''}<select><option value="">Loading…</option></select></label><button class="btn sm">Put in bag</button></div>`;
-    const lunch = /lunch with the guild leader/i.test(p) ? `<div class="claim lunch"><b>🍽️ When is lunch with the Guild Leader?</b><div class="row">${Object.entries(LUNCH).map(([k, v]) => `<button class="btn alt sm" data-lunch="${k}">${esc(v)}</button>`).join('')}</div></div>` : '';
+    const lunch = /lunch with the guild leader/i.test(p) && !activeLunch(c.id) ? `<div class="claim lunch"><b>🍽️ When is lunch with the Guild Leader?</b><div class="row">${Object.entries(LUNCH).map(([k, v]) => `<button class="btn alt sm" data-lunch="${k}">${esc(v)}</button>`).join('')}</div></div>` : '';
     if (poke || items || lunch || /spin again/i.test(p)) { markWinner(c.id); parts.push(`<p class="claim ok">✨ Winner! ${esc(c.nickname)}’s cursor sparkles for the next day.</p>`); }
     box.innerHTML = capNote + parts.join('') + pickers + lunch + (free ? `<p class="claim ok">🎟️ ${esc(c.nickname)} has <b>${free}</b> free spin${free > 1 ? 's' : ''} — tap the button above.</p>` : '');
     drawSpinBtn(); drawSpinners();
@@ -393,7 +397,7 @@ export function renderGames(main, [arg, sub]) {
       givePoke(c.id, -paid); store.set(nextCostPath(), null);
     }
     spinning = true; drawSpinBtn(); drawSpinners();
-    const i = pick(g);
+    const i = pick(g, activeLunch(c.id) ? isLunchSlice : () => false);
     const total = g.slices.reduce((s, [, w]) => s + w, 0);
     const before = g.slices.slice(0, i).reduce((s, [, w]) => s + w, 0);
     const mid = ((before + g.slices[i][1] * (0.15 + Math.random() * 0.7)) / total) * Math.PI * 2;
