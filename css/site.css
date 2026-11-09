@@ -2805,3 +2805,16 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .bond-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #fffaf0; border: 2px solid #c9b48a; border-radius: 10px; padding: 6px 8px; color: #2b2116; }
 .npc-bond { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .bond-ready { background: #fff1b8; border: 1px solid #e5b83a; color: #5a4300; }
+/* her site check 11-09 ("Yes please" to all four): tiny text bumped to a readable size on phones, caution tape no longer covers chore text */
+@container (max-width: 520px) { .mc-plate { font-size: 11px; } .mc-mat .mc-sale { font-size: 10px; } }
+.fzs-tag { font-size: 11px; }
+.fzs-cube.pic .fzs-cube-nm, .tv-fz .fzs-cube.pic .fzs-cube-nm, .tv-fz .fzs-cube.pic .fzs-cube-nm.nm-long { font-size: max(11px, 1em); }
+.tv-fz .fzs-cube.pic .fzs-cube-nm, .tv-fz .fzs-cube.pic .fzs-cube-nm.nm-long { font-size: 11px; }
+.due-ribbon { top: 8px; transform: rotate(-2deg); }
+.gamecard.due:has(.due-ribbon) { padding-top: 54px; }
+.cafe-mini { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; place-items: center; font-size: 36px; letter-spacing: 0; line-height: 1; flex: none; width: 104px; }
+.gamecard .cafe-mini { width: 132px; height: 132px; min-width: 132px; border-radius: 50%; background: radial-gradient(circle, #6a8f4e, #3c5a2c); border: 4px solid #e8c77a; font-size: 40px; grid-template-columns: repeat(2, 1fr); gap: 0; padding: 14px; box-sizing: border-box; }
+/* her ask 11-09: Shelter Patch-Up card picture = the round scene style of the other games (undoes the emoji badge above) */
+.gamecard .kitchen-mini.cafe-mini { background-image: url('../assets/cards/shelter.png'); display: flex; width: 132px; height: 132px; min-width: 0; padding: 0; border: 0; font-size: inherit; gap: 0; }
+@media (max-width: 420px) { .gamecard .kitchen-mini.cafe-mini { width: 104px; height: 104px; } }
+.gamecard .kitchen-mini.cafe-mini { background-size: 150%; background-position: 50% 45%; animation: none; }

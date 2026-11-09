@@ -1,10 +1,10 @@
 // Hidden Gimmighoul: each day one hides somewhere on one page of the site (same spot for the whole table).
 // Clicking it gives the player's character 1d100 Poké, once per character per day; then it's gone for them.
-import * as store from './store.js?v=6af157bc';
-import { esc, toast, num, die } from './util.js?v=6af157bc';
-import { markWinner } from './sparkle.js?v=6af157bc';
-import { logRoll } from './play.js?v=6af157bc';
-import { gameSay } from './chatter.js?v=6af157bc';
+import * as store from './store.js?v=6af1596b';
+import { esc, toast, num, die } from './util.js?v=6af1596b';
+import { markWinner } from './sparkle.js?v=6af1596b';
+import { logRoll } from './play.js?v=6af1596b';
+import { gameSay } from './chatter.js?v=6af1596b';
 
 const PAGES = [['join', 'Home'], ['play', 'Play'], ['guild', 'Guild'], ['vault', 'Vault'], ['games', 'Games'], ['rules', 'Rulebook']];
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };

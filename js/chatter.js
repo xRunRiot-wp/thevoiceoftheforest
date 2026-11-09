@@ -1,8 +1,8 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6af157bc';
-import { $, $$, esc, toast } from './util.js?v=6af157bc';
-import { formFace } from './ui.js?v=6af157bc';
+import * as store from './store.js?v=6af1596b';
+import { $, $$, esc, toast } from './util.js?v=6af1596b';
+import { formFace } from './ui.js?v=6af1596b';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style

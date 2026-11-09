@@ -1,28 +1,28 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6af157bc';
-import * as store from './store.js?v=6af157bc';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af157bc';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6af157bc';
-import { modal, portrait } from './ui.js?v=6af157bc';
-import * as sheet from './sheetdata.js?v=6af157bc';
-import { shop } from './guild.js?v=6af157bc';
-import { merged, editContent } from './content-store.js?v=6af157bc';
-import { logRoll, me, addTeamFx } from './play.js?v=6af157bc';
-import { luckyReaction, gmTodo } from './chatter.js?v=6af157bc';
-import { ranks } from './rulebook.js?v=6af157bc';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6af157bc';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6af157bc';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6af157bc';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6af157bc';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6af157bc';
-import { isCafe, renderCafe, cafeDue, cafeMini } from './caferush.js?v=6af157bc';
-import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6af157bc';
-import { isTruck, renderTruck, truckMini } from './truck.js?v=6af157bc';
-import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6af157bc';
-import { isBattle, renderBattle, battleMini } from './battle.js?v=6af157bc';
-import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6af157bc';
-import { watchGamePage, stopGamePage } from './watch.js?v=6af157bc';
+import { markWinner } from './sparkle.js?v=6af1596b';
+import * as store from './store.js?v=6af1596b';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af1596b';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6af1596b';
+import { modal, portrait } from './ui.js?v=6af1596b';
+import * as sheet from './sheetdata.js?v=6af1596b';
+import { shop } from './guild.js?v=6af1596b';
+import { merged, editContent } from './content-store.js?v=6af1596b';
+import { logRoll, me, addTeamFx } from './play.js?v=6af1596b';
+import { luckyReaction, gmTodo } from './chatter.js?v=6af1596b';
+import { ranks } from './rulebook.js?v=6af1596b';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6af1596b';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6af1596b';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6af1596b';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6af1596b';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6af1596b';
+import { isCafe, renderCafe, cafeDue, cafeMini } from './caferush.js?v=6af1596b';
+import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6af1596b';
+import { isTruck, renderTruck, truckMini } from './truck.js?v=6af1596b';
+import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6af1596b';
+import { isBattle, renderBattle, battleMini } from './battle.js?v=6af1596b';
+import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6af1596b';
+import { watchGamePage, stopGamePage } from './watch.js?v=6af1596b';
 
 export const GAMES = [
   {
@@ -242,7 +242,7 @@ export function renderGames(main, [arg, sub]) {
   const list = games();
   if (!arg) {
     // her ask 10-27: Chores (daily guild jobs) and Gambling Games in their own sections; the GM picks a game's section in Edit
-    const card = (g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''} ${(isSentry(g) && sentryDue()) || (isDance(g) && danceDue()) || (isKitchen(g) && kitchenDue()) || (isNursery(g) && nurseryDue()) || (isCafe(g) && cafeDue()) ? 'due' : ''}" href="#/games/${esc(g.id)}">${isCards21(g) && c21Live() ? '<span class="live-badge">🔴 Hand in play · tap to watch</span>' : ''}${isSentry(g) && sentryDue() ? '<span class="due-ribbon">⚠️ Today’s shift not done yet!</span>' : isDance(g) && danceDue() ? '<span class="due-ribbon dance">⚠️ Today’s practice not done yet!</span>' : isKitchen(g) && kitchenDue() ? '<span class="due-ribbon stew">⚠️ Today’s stew not made yet!</span>' : isNursery(g) && nurseryDue() ? '<span class="due-ribbon nursery">⚠️ Your buddy needs care today!</span>' : ''}
+    const card = (g) => `<a class="gamecard ${g.theme === 'stars' ? 'stars' : ''} ${(isSentry(g) && sentryDue()) || (isDance(g) && danceDue()) || (isKitchen(g) && kitchenDue()) || (isNursery(g) && nurseryDue()) || (isCafe(g) && cafeDue()) ? 'due' : ''}" href="#/games/${esc(g.id)}">${isCards21(g) && c21Live() ? '<span class="live-badge">🔴 Hand in play · tap to watch</span>' : ''}${isSentry(g) && sentryDue() ? '<span class="due-ribbon">⚠️ Today’s shift not done yet!</span>' : isDance(g) && danceDue() ? '<span class="due-ribbon dance">⚠️ Today’s practice not done yet!</span>' : isKitchen(g) && kitchenDue() ? '<span class="due-ribbon stew">⚠️ Today’s stew not made yet!</span>' : isCafe(g) && cafeDue() ? '<span class="due-ribbon">⚠️ Today’s shift not done yet!</span>' : isNursery(g) && nurseryDue() ? '<span class="due-ribbon nursery">⚠️ Your buddy needs care today!</span>' : ''}
         ${isBattle(g) ? battleMini() : isBallLab(g) ? ballLabMini() : isSentry(g) ? sentryMini() : isDance(g) ? danceMini() : isKitchen(g) ? kitchenMini() : isCafe(g) ? cafeMini() : isTruck(g) ? truckMini() : isCards21(g) ? cards21Mini() : isMailRun(g) ? mailRunMini() : isNursery(g) ? '<div class="nursery-mini"><img class="egg" src="assets/nursery/egg.png" alt=""></div>' : isFortune(g) ? fortuneMini() : `<canvas class="mini-wheel" data-g="${esc(g.id)}" width="320" height="320"></canvas>`}
         <div class="gc-text"><h3>${esc(g.name)}</h3>
           <p class="gc-host">${esc(g.host ? (g.only ? '' : 'Run by ') + g.host : '')}${g.cost ? ' · ' + esc(g.cost) : ''}${g.only ? ` · <b>${esc(g.only)} only</b>` : ''}${g.special && g.twists.length ? ` · <b>✨ ${esc(g.special)} twists</b>` : ''}</p>

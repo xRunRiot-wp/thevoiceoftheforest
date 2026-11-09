@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6af157bc';
-import { esc } from './util.js?v=6af157bc';
-import { LINKS, CAST } from './content.js?v=6af157bc';
+import { GS_TEXT } from './gstext.js?v=6af1596b';
+import { esc } from './util.js?v=6af1596b';
+import { LINKS, CAST } from './content.js?v=6af1596b';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
@@ -109,7 +109,8 @@ function messHallHTML() {
   for (const [k, t] of b) {
     if (k === 'h') { cur = { name: t, blocks: [], art: '' }; people.push(cur); } else if (cur && k === 'img') cur.art = t; else if (cur) cur.blocks.push([k, t]);
   }
-  const info = (n) => CAST.find((c) => c.name === n) || {};
+  // a shared seat ("Mimi & Kippy") gets both species (her site check 11-09: it was the only card with no species line)
+  const info = (n) => CAST.find((c) => c.name === n) || (n.includes(' & ') ? { species: n.split(' & ').map((x) => CAST.find((c) => c.name === x.trim())?.species).filter(Boolean).join(' & ') } : {});
   const placed = new Set(HALL.flatMap(([, ns]) => ns));
   const tables = HALL.map(([t, ns]) => [t, ns.map((n) => people.find((p) => p.name === n)).filter(Boolean)]);
   const extra = people.filter((p) => !placed.has(p.name));

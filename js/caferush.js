@@ -1,17 +1,19 @@
 // Shelter Patch-Up (her ask 11-08, first built as a cafe 'Mess Hall Rush'; she corrected: "it's to help with keeping the shelters
 // upright (the low-quality ones). Vines, sturdy branches and leaves"). Wobbly shelters each call for one material: grab it from
 // the supply pile and tap the shelter before it falls. 45 seconds, one shift per character per day.
-import * as store from './store.js?v=6af157bc';
-import { $, $$, esc, toast, num } from './util.js?v=6af157bc';
-import { me, logRoll } from './play.js?v=6af157bc';
-import { dailyRoll } from './weather.js?v=6af157bc';
-import { gameSay } from './chatter.js?v=6af157bc';
-import { markWinner } from './sparkle.js?v=6af157bc';
-import { faceSrc } from './sentry.js?v=6af157bc';
-import { pageMusic } from './chiptune.js?v=6af157bc';
+import * as store from './store.js?v=6af1596b';
+import { $, $$, esc, toast, num } from './util.js?v=6af1596b';
+import { me, logRoll } from './play.js?v=6af1596b';
+import { dailyRoll } from './weather.js?v=6af1596b';
+import { gameSay } from './chatter.js?v=6af1596b';
+import { markWinner } from './sparkle.js?v=6af1596b';
+import { faceSrc } from './sentry.js?v=6af1596b';
+import { pageMusic } from './chiptune.js?v=6af1596b';
+import { kitchenMini } from './kitchen.js?v=6af1596b';
 
 export const isCafe = (g) => g.kind === 'cafe' || g.id === 'mess-hall-rush';
-const FOODS = [['🌿', 'Vines'], ['🪵', 'Sturdy branches'], ['🍃', 'Leaves']];
+// her site check 11-09: 🛖 and 🪵 are newer emoji that show as empty boxes on Windows 10 and older phones, so ⛺ and 🌲 are used
+const FOODS = [['🌿', 'Vines'], ['🌲', 'Sturdy branches'], ['🍃', 'Leaves']];
 const GUESTS = ['diglett', 'ralts', 'swablu', 'magnemite', 'golett', 'tinkatink', 'jangmoo', 'cleffa', 'sudowoodo'];
 // Spinda runs the mess hall (her ask 11-08: "Spinda in charge but any NPC could help randomly"): a random guild NPC drops in
 // once or twice a shift and serves the table that has waited longest.
@@ -24,14 +26,16 @@ const GRADES = [[12, 'Rock-solid shelters!', 300, 'Not a single wobble left! Eve
 const today = () => dailyRoll().day;
 const rec = (id) => store.get('cafe/' + id) || {};
 export const cafeDue = () => { const c = me(); return !!c && rec(c.id).day !== today(); };
-export const cafeMini = () => '<div class="cafe-mini">🛖🌿🪵🍃</div>';
+// her ask 11-09 "Match the Shelter to the other circular styles of the games section": the same round scene card as the other
+// chores (its own Woodland Base shelter-camp scenery, assets/cards/shelter.png) with Spinda, who runs it, walking in front
+export const cafeMini = () => kitchenMini().replace('kitchen-mini', 'kitchen-mini cafe-mini');
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
 export function renderCafe(main, g, gm, onEdit) {
   const c = me(); const done = c && rec(c.id).day === today();
   const party = Object.values(store.get('party') || {}).filter((x) => !x.guest);
   main.innerHTML = `<a class="btn alt sm" href="#/games">← Games</a>${gm ? ' <button class="btn alt sm" id="gedit">✏️ Edit</button>' : ''}
-    <div class="card cafe"><h2>🛖 ${esc(g.name)}</h2><p>${esc(g.intro)}</p>
+    <div class="card cafe"><h2>⛺ ${esc(g.name)}</h2><p>${esc(g.intro)}</p>
       <div class="sentry-digg"><img class="sface dig" src="${faceSrc('spinda', 'wait', { wait: ['Normal'] })}" alt="Spinda"><div class="bubble"><b>Spinda:</b> “The shelters are wobbling again! Grab vines, branches or leaves and get them over there before anything falls!”</div></div>
       ${!c ? '<p class="muted">Pick your character on the Play tab first.</p>' : `${done ? `<p class="win tight">Today’s best: <b>${esc(rec(c.id).grade || '')}</b> (${num(rec(c.id).best ?? rec(c.id).served)} shelters fixed${num(rec(c.id).plays) > 1 ? `, ${num(rec(c.id).plays)} shifts` : ''}). You can work another shift any time!</p>` : ''}<button class="btn" id="cfgo">${done ? 'Work another shift' : 'Start the shift'}</button> <button class="btn alt" id="cfmusic">🎵 Music</button>`}
       <div id="cfplay"></div>
@@ -49,7 +53,7 @@ function play(main, c) {
   let helper = null; const visits = [8 + Math.random() * 12, 24 + Math.random() * 12].slice(0, 1 + (Math.random() < 0.6 ? 1 : 0)); let helped = 0;
   const draw = () => {
     box.innerHTML = `<div class="cafe-bar"><b>⏱ ${Math.ceil(left)}s</b><span>✅ ${served} fixed</span><span>💥 ${lost} fell</span></div>
-      <div class="cafe-seats">${seats.map((s, i) => s ? `<button class="cafe-seat shelter" data-seat="${i}" style="transform:rotate(${(s.pat / PATIENCE < 0.25 ? 9 : s.pat / PATIENCE < 0.5 ? 5 : 2) * (i % 2 ? 1 : -1)}deg)"><span class="cafe-hut">🛖</span><span class="cafe-want">${s.food[0]}</span><i class="cafe-pat"><b style="width:${Math.max(0, s.pat / PATIENCE * 100)}%;background:${s.pat / PATIENCE > 0.5 ? '#6cc36a' : s.pat / PATIENCE > 0.25 ? '#e5b83a' : '#d9534f'}"></b></i></button>` : '<div class="cafe-seat empty">✅</div>').join('')}</div>
+      <div class="cafe-seats">${seats.map((s, i) => s ? `<button class="cafe-seat shelter" data-seat="${i}" style="transform:rotate(${(s.pat / PATIENCE < 0.25 ? 9 : s.pat / PATIENCE < 0.5 ? 5 : 2) * (i % 2 ? 1 : -1)}deg)"><span class="cafe-hut">⛺</span><span class="cafe-want">${s.food[0]}</span><i class="cafe-pat"><b style="width:${Math.max(0, s.pat / PATIENCE * 100)}%;background:${s.pat / PATIENCE > 0.5 ? '#6cc36a' : s.pat / PATIENCE > 0.25 ? '#e5b83a' : '#d9534f'}"></b></i></button>` : '<div class="cafe-seat empty">✅</div>').join('')}</div>
       ${helper ? `<div class="sentry-digg"><img class="sface dig" src="${faceSrc(helper.sp, 'wait', { wait: ['Normal'] })}" alt=""><div class="bubble"><b>${esc(cap(helper.sp))}</b> is helping: “${esc(helper.line)}”</div></div>` : ''}
       <p class="cafe-msg">${esc(msg)}</p><p class="small">Carrying: <b>${held ? held[0] + ' ' + held[1] : 'nothing'}</b></p>
       <div class="cafe-counter">${FOODS.map((f, i) => `<button class="cafe-food ${held === f ? 'on' : ''}" data-food="${i}">${f[0]}<small>${f[1]}</small></button>`).join('')}</div>`;
