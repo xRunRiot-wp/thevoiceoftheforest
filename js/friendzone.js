@@ -1,16 +1,16 @@
 // Friend Zone: where recruited Pokémon live, one area per location. The GM edits each location;
 // recruits added at the table are kept per spot and shared live.
-import * as store from './store.js?v=6af11406';
-import { $, $$, esc, toast } from './util.js?v=6af11406';
-import { modal, closeModal } from './ui.js?v=6af11406';
-import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6af11406';
-import { merged, editContent } from './content-store.js?v=6af11406';
-import { CHAPTERS } from './content.js?v=6af11406';
-import { giftNote } from './mailbox.js?v=6af11406';
-import { guildSay } from './chatter.js?v=6af11406';
-import { myId } from './app.js?v=6af11406';
-import { hasBase, openBase } from './mybase.js?v=6af11406';
-import { shackButtons } from './miltank.js?v=6af11406';
+import * as store from './store.js?v=6af13119';
+import { $, $$, esc, toast } from './util.js?v=6af13119';
+import { modal, closeModal } from './ui.js?v=6af13119';
+import { mountFzScene, MAPS, ZOOM_PICS } from './fzscene.js?v=6af13119';
+import { merged, editContent } from './content-store.js?v=6af13119';
+import { CHAPTERS } from './content.js?v=6af13119';
+import { giftNote } from './mailbox.js?v=6af13119';
+import { guildSay } from './chatter.js?v=6af13119';
+import { myId } from './app.js?v=6af13119';
+import { hasBase, openBase } from './mybase.js?v=6af13119';
+import { shackButtons } from './miltank.js?v=6af13119';
 
 export const LOCATIONS = [
   {
@@ -244,8 +244,8 @@ export function renderFriendZone(main, [arg]) {
         if (!to.locked) to.mons.push(mon || { name: m.name });
       }
       const byOf = (n) => store.get('fzby/' + moveKey(n)) || RECRUITED_BY[moveKey(n)] || RECRUITED_BY[moveKey(String(n).split(/\s+/).pop())] || '';
-      const recBy = new Map(Object.values(recruits).flatMap((x) => Object.values(x || {})).filter((r) => r?.by).map((r) => [moveKey(r.name), r.by]));
-      cubes.forEach((c) => c.mons.forEach((x) => { const by = recBy.get(moveKey(x.label || x.name)) || byOf(x.label || x.name) || byOf(x.name); if (by) x.by = by; }));
+      const recBy = new Map(Object.values(recruits).flatMap((x) => Object.values(x || {})).filter((r) => r?.by).map((r) => [moveKey(r.name) + (r.walk ? '#dressed' : ''), r.by]));   // her ask 11-08: the scarf Pichu and the plain Pichu are different recruits
+      cubes.forEach((c) => c.mons.forEach((x) => { const by = recBy.get(moveKey(x.label || x.name) + (x.walk ? '#dressed' : '')) || byOf(x.label || x.name) || byOf(x.name); if (by) x.by = by; }));
       fzAreas = cubes.filter((c) => !c.locked).map((c) => ({ key: c.key, name: areaName(loc, c), mons: c.mons.map((x) => x.label || x.name) }));
       mountFzScene(box, mapped ? cubes : cubes.filter((x) => x.mons.length), mapped ? loc.id : '');
       // on a map camp the spot boxes live inside their squares. Tap a square (her ask 10-29): it zooms in to a big view
