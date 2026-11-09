@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6af10c27';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6af10c27';
-import { portrait, maxHp } from './ui.js?v=6af10c27';
-import { allMoves, me, statVal } from './play.js?v=6af10c27';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6af10c27';
-import { TYPE_ICONS } from './theme.js?v=6af10c27';
+import * as store from './store.js?v=6af10e0f';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6af10e0f';
+import { portrait, maxHp } from './ui.js?v=6af10e0f';
+import { allMoves, me, statVal } from './play.js?v=6af10e0f';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6af10e0f';
+import { TYPE_ICONS } from './theme.js?v=6af10e0f';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -126,6 +126,25 @@ const isMetronome = (m) => /^metronome$/i.test(m.name);
 const STAT_ALIAS = { defense: 'Vitality', 'special defense': 'Insight', 'sp. defense': 'Insight', attack: 'Strength', 'special attack': 'Special' };
 const bstat = (B, id, name) => Math.max(...String(name).split('/').map((n) => { const k = STAT_ALIAS[n.trim().toLowerCase()] || n.trim(); return statVal(pc(id), k) + num(B.mods?.[id]?.[k.toLowerCase()]); }));
 
+// ---------------------------------------------------------------- the dice panel (her ask 11-08)
+// A collapsible panel on the right of the battle: turn order, accuracy dice and damage dice of the latest round, explained.
+let diceOpen = true; try { diceOpen = localStorage.getItem('dc.btdice') !== 'off'; } catch { /* fine */ }
+const dieChip = (d) => `<span class="bd ${d >= 4 ? 'hit' : d === 1 ? 'one' : 'miss'}">${d}</span>`;
+function dicePanel(B, upto = 999) {
+  const L = (B.dice || []).filter((x) => num(x.at) <= upto);
+  const body = !(B.dice || []).length ? '<p class="small muted">Pick a move. The dice for each round show up here.</p>' : `
+    <p class="small muted">Round ${esc(num(B.evRound) || 1)}. Dice showing <b>4, 5 or 6</b> count as <b>successes</b>. A <b>1</b> can cancel a success (every two 1s). Pain from low HP takes successes away.</p>
+    ${L.filter((x) => x.k === 'init').length ? `<h4>🏃 Turn order</h4><p class="small muted">Roll 1d6 + Dexterity + Alert. The higher total goes first.</p>${L.filter((x) => x.k === 'init').map((x) => `<div class="bd-row"><b>${esc(nm(x.id))}</b> ${dieChip(x.d6)} + Dex ${num(x.dex)} + Alert ${num(x.alert)} = <b>${num(x.d6) + num(x.dex) + num(x.alert)}</b>${x.first ? ' <span class="pill">goes first</span>' : ''}</div>`).join('')}` : ''}
+    ${L.filter((x) => x.k === 'acc' || x.k === 'dmg').map((x) => x.k === 'acc'
+      ? `<div class="bd-row"><b>🎯 ${esc(nm(x.id))}: ${esc(x.m)} accuracy</b><div class="bd-dice">${x.auto ? '<span class="small muted">never misses</span>' : `${x.dice.map(dieChip).join('')}`}</div><span class="small">${x.auto ? '' : `${num(x.n)} dice · `}${x.ok ? '✅ hit' : '❌ missed (needs at least 1 success)'}${num(x.extra) ? ` · +${num(x.extra)} bonus` : ''}${num(x.pain) ? ` · pain −${num(x.pain)}` : ''}</span></div>`
+      : `<div class="bd-row"><b>💥 ${esc(nm(x.id))}: ${esc(x.m)} damage</b><div class="bd-dice">${x.dice.map(dieChip).join('')}</div><span class="small">${num(x.n)} dice · ${num(x.succ)} success${num(x.succ) === 1 ? '' : 'es'}${x.eff > 0 ? ` +${x.eff} super effective` : x.eff < 0 ? ` ${x.eff} not very effective` : ''}${x.crit ? ' · critical!' : ''} = <b>${num(x.dmg)} damage</b></span></div>`).join('') || ''}`;
+  return `<details class="bt-dice" ${diceOpen ? 'open' : ''}><summary>🎲 Dice rolls</summary>${body}</details>`;
+}
+const putScene = (box, html, B, upto) => {
+  box.innerHTML = `<div class="bt-wrap"><div class="bt-main">${html}</div>${dicePanel(B, upto)}</div>`;
+  const d = box.querySelector('.bt-dice'); if (d) d.ontoggle = () => { diceOpen = d.open; try { localStorage.setItem('dc.btdice', d.open ? 'on' : 'off'); } catch { /* fine */ } };
+};
+
 // ---------------------------------------------------------------- one round
 async function resolve(bid) {
   const B = structuredClone(store.get(P(bid)) || {});
@@ -133,8 +152,11 @@ async function resolve(bid) {
   const ix = await moveIndex();
   const hp = { ...B.hp }; const ev = []; const cond = B.cond || {}; B.mods ||= {}; B.last ||= {};
   const say = (text, fx = '', who = '') => ev.push({ text, fx, who, hp: { ...hp } });
-  const init = Object.fromEntries([B.a, B.b].map((id) => [id, die(6) + bstat(B, id, 'Dexterity') + bstat(B, id, 'Alert') + Math.random() / 10]));
+  const dlog = [];   // her ask 11-08: every die that decided this round, shown in the collapsible dice panel
+  const d6s = Object.fromEntries([B.a, B.b].map((id) => [id, die(6)]));
+  const init = Object.fromEntries([B.a, B.b].map((id) => [id, d6s[id] + bstat(B, id, 'Dexterity') + bstat(B, id, 'Alert') + Math.random() / 10]));
   const order = [B.a, B.b].sort((x, y) => init[y] - init[x]);
+  for (const id of order) dlog.push({ at: 0, k: 'init', id, d6: d6s[id], dex: bstat(B, id, 'Dexterity'), alert: bstat(B, id, 'Alert'), first: id === order[0] });
   const flinched = {};
   const randomMove = (min = 1) => { const l = [...ix.values()].filter((m) => m.power != null && num(m.power) >= min && m.cat !== 'Status' && !isMetronome(m)); return l[Math.floor(Math.random() * l.length)] || STRUGGLE; };
 
@@ -145,6 +167,7 @@ async function resolve(bid) {
     const accDice = Math.max(1, m.acc.reduce((s, a) => s + bstat(B, id, a), 0) + num(B.mods[id]?.accuracy));
     const acc = m.acc.length && !/Never Fail/i.test(m.effect) ? pool(accDice, { pain: pain + accMod }) : { succ: 1 };
     acc.succ += extra;
+    if (m.acc.length) dlog.push({ at: ev.length, k: 'acc', id, m: m.name, n: acc.dice ? accDice : 0, dice: acc.dice || [], pain: num(acc.pain), extra, ok: acc.succ >= 1, auto: !acc.dice });
     if (acc.succ < 1) return say(`${nm(id)}’s attack missed!`, 'miss');
     if (m.power == null) return statusMove(B, m, id, foe, cond, say);
     const f = pc(foe);
@@ -154,7 +177,8 @@ async function resolve(bid) {
     const stab = m.type && [pc(id).type1, pc(id).type2].includes(m.type);
     const flail = /missing HP/i.test(m.effect) ? Math.min(5, B.max[id] - hp[id]) : 0;
     const dice = Math.max(1, bstat(B, id, m.cat === 'Special' ? 'Special' : 'Strength') + (power ?? num(m.power)) - bstat(B, foe, m.cat === 'Special' ? 'Insight' : 'Vitality') + (stab ? 1 : 0) + (crit ? 2 : 0) + flail);
-    const dmg = Math.max(1, pool(dice, { pain }).succ + eff.n);  // a hit always does at least 1
+    const dp = pool(dice, { pain }); const dmg = Math.max(1, dp.succ + eff.n);  // a hit always does at least 1
+    dlog.push({ at: ev.length, k: 'dmg', id, m: m.name, n: dice, dice: dp.dice, succ: dp.succ, eff: eff.n, crit, dmg });
     hp[foe] = Math.max(0, hp[foe] - dmg);
     say(foe === id ? `${nm(id)} hit itself for ${dmg} damage!` : `${nm(foe)} took ${dmg} damage!`, 'hit', foe);
     if (crit) say('A critical hit!');
@@ -170,7 +194,7 @@ async function resolve(bid) {
   // Metronome spins Gemini's Metronome wheel (the Games page one, so the GM's edits count) and plays out the slice
   const metronome = async (id, foe) => {
     let slices = [];
-    try { slices = (await import('./games.js?v=6af10c27')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6af10e0f')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);
@@ -224,7 +248,7 @@ async function resolve(bid) {
   }
   // only if nobody else worked out this round first
   if ((store.get(P(bid))?.round) !== B.round) return;
-  store.set(P(bid), { ...B, hp, cond, picks: {}, ev, evRound: B.round, round: B.round + 1, phase: winner !== null ? 'done' : 'fight', winner: winner || '', lastAct: Date.now() });
+  store.set(P(bid), { ...B, hp, cond, picks: {}, ev, dice: dlog, evRound: B.round, round: B.round + 1, phase: winner !== null ? 'done' : 'fight', winner: winner || '', lastAct: Date.now() });
 }
 
 function statusMove(B, m, id, foe, cond, say) {
@@ -397,11 +421,12 @@ function renderFight(main, bid) {
   // play the last round's messages one by one (HP bars move with them)
   const playEvents = async (B, myId) => {
     playing = true;
+    let evi = 0;
     for (const e of B.ev) {
       if (!box.isConnected) return;
       const fx = {}; if (e.fx === 'hit' || e.fx === 'faint') fx[e.who] = e.fx; if (e.fx === 'use') fx[e.who] = 'lunge'; if (e.fx === 'heal' || e.fx === 'up') fx[e.who] = 'glow'; if (e.fx === 'down') fx[e.who] = 'shrink';
       if (e.fx === 'miss') missSound();
-      box.innerHTML = scene(B, myId, { ...e.hp }, esc(e.text), fx);
+      putScene(box, scene(B, myId, { ...e.hp }, esc(e.text), fx), B, evi++);
       await new Promise((r) => setTimeout(r, e.fx === 'use' ? 1000 : 1500));
     }
     markSeen(B.evRound);
@@ -426,7 +451,7 @@ function renderFight(main, bid) {
     if (B.phase === 'off') { box.innerHTML = `<div class="card"><p>${esc(myId === B.a ? `${nm(B.b)} said not now.` : 'This challenge was called off.')}</p><a class="btn" href="#/games/${GAME_ID}">Back to Battles</a></div>`; return; }
     const text = B.phase === 'done' ? `<b>${B.winner ? esc(nm(B.winner)) + ' won the battle!' : 'It’s a draw!'}</b>`
       : !mine ? `👀 Watching ${esc(nm(B.a))} vs ${esc(nm(B.b))}` : B.picks?.[myId] ? `${esc(nm(myId))} is ready!` : `What will <b>${esc(nm(myId))}</b> do?`;
-    box.innerHTML = scene(B, myId, B.hp, text, B.phase === 'done' ? Object.fromEntries([B.a, B.b].filter((id) => num(B.hp[id]) <= 0).map((id) => [id, 'gone'])) : {});
+    putScene(box, scene(B, myId, B.hp, text, B.phase === 'done' ? Object.fromEntries([B.a, B.b].filter((id) => num(B.hp[id]) <= 0).map((id) => [id, 'gone'])) : {}), B);
     const mn = $('#btmenu', box);
     if (B.phase === 'done') mn.innerHTML = `<a class="bt-cmd run" href="#/games/${GAME_ID}">⚔️ Battles</a>${mine ? '<button class="bt-cmd fight" id="btagain">REMATCH</button>' : ''}`;
     else if (mine) mn.innerHTML = await menuHTML(B, myId);

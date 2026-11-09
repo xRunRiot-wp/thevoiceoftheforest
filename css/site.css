@@ -2707,3 +2707,16 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 /* her report 11-08: in a narrow Friends window the name got squeezed to one letter per line; the name keeps a readable width and the buttons drop to their own row */
 .fr-list .grow { flex: 1 1 140px; min-width: 140px; }
 .fr-list:not(.bt-grid) .fr-acts { flex: 1 1 auto; justify-content: flex-start; }
+
+/* her ask 11-08: collapsible dice panel on the right of the battle (below it on a phone) */
+.bt-wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-items: start; }
+@media (min-width: 900px) { .bt-wrap { grid-template-columns: minmax(0, 1fr) 300px; } .bt-dice { position: sticky; top: 8px; } }
+.bt-dice { border: 3px solid var(--brown2, #7a5a35); border-radius: 12px; background: var(--paper, #fffaf0); padding: 8px 10px; }
+.bt-dice > summary { cursor: var(--cur-link, pointer); font-weight: 700; list-style: none; }
+.bt-dice > summary::-webkit-details-marker { display: none; }
+.bt-dice > summary::before { content: '▸ '; } .bt-dice[open] > summary::before { content: '▾ '; }
+.bt-dice h4 { margin: 10px 0 2px; }
+.bd-row { padding: 6px 0; border-top: 1px dashed var(--cream3, #e5d8bd); font-size: 13px; }
+.bd-dice { display: flex; flex-wrap: wrap; gap: 3px; margin: 4px 0; }
+.bd { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; font-weight: 700; font-size: 13px; border: 2px solid #3a2c1a; background: #fff; }
+.bd.hit { background: #b7ecb0; } .bd.miss { background: #f1e3e3; color: #8a6a6a; } .bd.one { background: #f6b3b3; }
