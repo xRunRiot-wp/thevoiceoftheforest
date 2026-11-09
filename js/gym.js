@@ -1,14 +1,14 @@
 // Training Gym (#/gym): two drills per day per character (her ask 10-31; was one). Drills roll Attribute + Skill; the character's nature
 // loves one drill (+1 die, +1 progress) and hates one (−1 die, costs 1 Will). A full bar (5) pays 1 Training Point;
 // the GM decides when Training Points become stat raises.
-import * as store from './store.js?v=6af1596b';
-import { $, $$, esc, num, pool } from './util.js?v=6af1596b';
-import { modal, closeModal, diceFaces } from './ui.js?v=6af1596b';
-import { statVal, logRoll } from './play.js?v=6af1596b';
-import { myId } from './app.js?v=6af1596b';
-import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6af1596b';
-import { locations, spots, crewNames } from './friendzone.js?v=6af1596b';
-import { RESIDENTS, gmTodo } from './chatter.js?v=6af1596b';
+import * as store from './store.js?v=6af15b1a';
+import { $, $$, esc, num, pool } from './util.js?v=6af15b1a';
+import { modal, closeModal, diceFaces } from './ui.js?v=6af15b1a';
+import { statVal, logRoll } from './play.js?v=6af15b1a';
+import { myId } from './app.js?v=6af15b1a';
+import { currentWeather, WEATHERS, showWeather, wxFxHTML, wxIconHTML } from './weather.js?v=6af15b1a';
+import { locations, spots, crewNames } from './friendzone.js?v=6af15b1a';
+import { RESIDENTS, gmTodo } from './chatter.js?v=6af15b1a';
 
 const BAR = 5;
 // Training partners (her ask 10-29): a player may bring up to 3 Pokémon who live at the guild (Woodland Base in the

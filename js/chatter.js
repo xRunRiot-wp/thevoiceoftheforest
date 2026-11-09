@@ -1,8 +1,8 @@
 // "Around the Guild": a live feed of what the guild's residents are doing and saying, in character,
 // plus a pinned checklist of things that need the GM (Guildmaster). Shared through the table store.
-import * as store from './store.js?v=6af1596b';
-import { $, $$, esc, toast } from './util.js?v=6af1596b';
-import { formFace } from './ui.js?v=6af1596b';
+import * as store from './store.js?v=6af15b1a';
+import { $, $$, esc, toast } from './util.js?v=6af15b1a';
+import { formFace } from './ui.js?v=6af15b1a';
 
 // Who can speak, with a face. Player characters at the table never get lines put in their mouths.
 // faces: original Explorers of Sky / Rescue Team portraits; species those games don't have use PMDCollab fan portraits drawn in the same style
@@ -35,6 +35,7 @@ export const RESIDENTS = {
   Pelipper: { icon: '📬', img: 'assets/portraits/pelipper.png' },
   Noctowl: { icon: '🦉', img: 'assets/portraits/noctowl.png' },
   Spinda: { icon: '🍲', img: 'assets/portraits/spinda.png' },
+  Machoke: { icon: '⛺', img: 'assets/portraits/machoke.png' },   // runs Shelter Patch-Up (her ask 11-09)
   Beatrice: { icon: '🐝', img: 'assets/portraits/beedrill.png' },
   Machamp: { icon: '💪', img: 'assets/truck/machamp_face.png' },
   'Rayson the Wingull': { icon: '✉️', img: 'assets/portraits/wingull.png' },

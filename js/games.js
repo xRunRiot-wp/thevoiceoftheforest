@@ -1,28 +1,28 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6af1596b';
-import * as store from './store.js?v=6af1596b';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af1596b';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6af1596b';
-import { modal, portrait } from './ui.js?v=6af1596b';
-import * as sheet from './sheetdata.js?v=6af1596b';
-import { shop } from './guild.js?v=6af1596b';
-import { merged, editContent } from './content-store.js?v=6af1596b';
-import { logRoll, me, addTeamFx } from './play.js?v=6af1596b';
-import { luckyReaction, gmTodo } from './chatter.js?v=6af1596b';
-import { ranks } from './rulebook.js?v=6af1596b';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6af1596b';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6af1596b';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6af1596b';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6af1596b';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6af1596b';
-import { isCafe, renderCafe, cafeDue, cafeMini } from './caferush.js?v=6af1596b';
-import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6af1596b';
-import { isTruck, renderTruck, truckMini } from './truck.js?v=6af1596b';
-import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6af1596b';
-import { isBattle, renderBattle, battleMini } from './battle.js?v=6af1596b';
-import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6af1596b';
-import { watchGamePage, stopGamePage } from './watch.js?v=6af1596b';
+import { markWinner } from './sparkle.js?v=6af15b1a';
+import * as store from './store.js?v=6af15b1a';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af15b1a';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6af15b1a';
+import { modal, portrait } from './ui.js?v=6af15b1a';
+import * as sheet from './sheetdata.js?v=6af15b1a';
+import { shop } from './guild.js?v=6af15b1a';
+import { merged, editContent } from './content-store.js?v=6af15b1a';
+import { logRoll, me, addTeamFx } from './play.js?v=6af15b1a';
+import { luckyReaction, gmTodo } from './chatter.js?v=6af15b1a';
+import { ranks } from './rulebook.js?v=6af15b1a';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6af15b1a';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6af15b1a';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6af15b1a';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6af15b1a';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6af15b1a';
+import { isCafe, renderCafe, cafeDue, cafeMini } from './caferush.js?v=6af15b1a';
+import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6af15b1a';
+import { isTruck, renderTruck, truckMini } from './truck.js?v=6af15b1a';
+import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6af15b1a';
+import { isBattle, renderBattle, battleMini } from './battle.js?v=6af15b1a';
+import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6af15b1a';
+import { watchGamePage, stopGamePage } from './watch.js?v=6af15b1a';
 
 export const GAMES = [
   {
@@ -66,8 +66,8 @@ export const GAMES = [
     cost: '', slices: [],
   },
   {
-    id: 'mess-hall-rush', kind: 'cafe', name: 'Shelter Patch-Up', host: 'Spinda',
-    intro: 'A guild chore run by Spinda. The low-quality shelters keep wobbling and each one calls for vines, sturdy branches or leaves. Grab the right one from the supply pile and rush it over before the shelter falls down. Other guild members sometimes drop in to help. 45 seconds. A great shift earns Poké.',
+    id: 'mess-hall-rush', kind: 'cafe', name: 'Shelter Patch-Up', host: 'Machoke',   // her ask 11-09: Machoke instead of Spinda
+    intro: 'A guild chore run by Machoke. The low-quality tents keep wobbling. Tap a pile and Machoke walks over for vines, sturdy branches or leaves, then tap the tent that calls for it and he fixes it up: torn, then patched, then sturdy. Don’t let a tent collapse! Other guild members sometimes drop in to help. 60 seconds. A great shift earns Poké.',
     cost: '', slices: [],
   },
   {

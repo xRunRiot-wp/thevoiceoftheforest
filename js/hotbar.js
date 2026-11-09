@@ -1,14 +1,14 @@
 // Character hotbar in the top banner: money, training points, held item,
 // garment, a quick World Map, and the three bag items the player pinned.
-import * as store from './store.js?v=6af1596b';
-import { $, esc, num, toast } from './util.js?v=6af1596b';
-import { modal } from './ui.js?v=6af1596b';
-import { mailWaiting, openMyMailbox } from './mailbox.js?v=6af1596b';
-import { sentryDue } from './sentry.js?v=6af1596b';
-import { kitchenDue } from './kitchen.js?v=6af1596b';
-import { nurseryDue } from './nursery.js?v=6af1596b';
-import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6af1596b';
-import { openFriends, friendsOf, isOnline } from './friends.js?v=6af1596b';
+import * as store from './store.js?v=6af15b1a';
+import { $, esc, num, toast } from './util.js?v=6af15b1a';
+import { modal } from './ui.js?v=6af15b1a';
+import { mailWaiting, openMyMailbox } from './mailbox.js?v=6af15b1a';
+import { sentryDue } from './sentry.js?v=6af15b1a';
+import { kitchenDue } from './kitchen.js?v=6af15b1a';
+import { nurseryDue } from './nursery.js?v=6af15b1a';
+import { itemInfo, useBagItem, itemPopHTML } from './itemuse.js?v=6af15b1a';
+import { openFriends, friendsOf, isOnline } from './friends.js?v=6af15b1a';
 
 export const MAP_IMG = 'assets/maps/world_map.jpg';
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };

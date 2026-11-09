@@ -2818,3 +2818,53 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .gamecard .kitchen-mini.cafe-mini { background-image: url('../assets/cards/shelter.png'); display: flex; width: 132px; height: 132px; min-width: 0; padding: 0; border: 0; font-size: inherit; gap: 0; }
 @media (max-width: 420px) { .gamecard .kitchen-mini.cafe-mini { width: 104px; height: 104px; } }
 .gamecard .kitchen-mini.cafe-mini { background-size: 150%; background-position: 50% 45%; animation: none; }
+/* Shelter Patch-Up v3 (her ask 11-09): camp scene, Machoke walks to piles and tents, tents go torn -> patched -> sturdy */
+.sh-scene { position: relative; height: 360px; margin: 10px 0; border-radius: 14px; overflow: hidden; border: 3px solid #6b4a2a; touch-action: manipulation; user-select: none;
+  background: linear-gradient(rgba(20, 30, 10, .25), rgba(20, 30, 10, .35)), url('../assets/friendzone/woodland_fernshade.jpg') center / cover; }
+.sh-tent, .sh-pile { position: absolute; translate: -50% -50%; border: 0; background: none; padding: 0; cursor: pointer; font: inherit; color: inherit; }
+.sh-tent { width: 82px; height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; z-index: 2; }
+.sh-cloth { position: relative; display: block; width: 76px; height: 58px; clip-path: polygon(50% 0, 100% 100%, 0 100%); transition: background .3s, transform .3s, filter .3s; }
+.sh-cloth i { position: absolute; inset: 0; }
+.sh-pole { position: absolute; top: 22px; left: 50%; width: 4px; height: 12px; background: #5a3a1c; translate: -50% 0; }
+.sh-pat { display: block; width: 60px; height: 6px; margin-top: 3px; border-radius: 4px; background: rgba(0, 0, 0, .45); overflow: hidden; } .sh-pat b { display: block; height: 100%; transition: width .25s; }
+.sh-need { position: absolute; top: -6px; right: -2px; font-size: 22px; background: #fffaf0; border: 2px solid #3a2c1a; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; z-index: 3; }
+.sh-need:empty { display: none; }
+.sh-spark { position: absolute; top: 0; left: 50%; translate: -50% 0; font-size: 22px; opacity: 0; pointer-events: none; }
+/* torn: grey-brown, ragged holes, leaning and wobbling */
+.sh-tent[data-stage="0"] .sh-cloth { background: #8d7a5d; transform: rotate(-9deg) translateY(4px); animation: sh-wobble 1.1s ease-in-out infinite; filter: saturate(.6); }
+.sh-tent[data-stage="0"] .sh-cloth i { background: radial-gradient(circle at 35% 62%, #2a1d10 0 7px, transparent 8px), radial-gradient(circle at 64% 78%, #2a1d10 0 6px, transparent 7px), radial-gradient(circle at 52% 40%, #2a1d10 0 4px, transparent 5px); }
+/* patched: warmer cloth with sewn-on squares, small sway */
+.sh-tent[data-stage="1"] .sh-cloth { background: #b88a4e; transform: rotate(-3deg); animation: sh-wobble 2.2s ease-in-out infinite; }
+.sh-tent[data-stage="1"] .sh-cloth i { background: linear-gradient(#6f9a45, #6f9a45) 30% 66% / 16px 14px no-repeat, linear-gradient(#8a5a2e, #8a5a2e) 64% 80% / 14px 12px no-repeat, repeating-linear-gradient(90deg, transparent 0 9px, rgba(0, 0, 0, .12) 9px 10px); }
+/* sturdy: bright striped canvas, upright, flag on top */
+.sh-tent[data-stage="2"] .sh-cloth { background: repeating-linear-gradient(90deg, #e07b24 0 12px, #f2c14e 12px 24px); transform: none; animation: none; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .4)); }
+.sh-tent[data-stage="2"] .sh-pole { top: -8px; height: 16px; }
+.sh-tent[data-stage="2"] .sh-pole::after { content: ''; position: absolute; left: 4px; top: 0; width: 14px; height: 9px; background: #d8412f; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.sh-tent[data-stage="2"] .sh-spark { animation: sh-spark 1.2s ease-out 1; }
+.sh-tent[data-stage="2"] .sh-pat { visibility: hidden; }
+/* collapsed: flattened heap */
+.sh-tent[data-stage="-1"] .sh-cloth { background: #6d5c45; transform: scaleY(.25) translateY(70px); filter: grayscale(.6); }
+.sh-tent[data-stage="-1"] .sh-pole, .sh-tent[data-stage="-1"] .sh-pat { visibility: hidden; }
+.sh-tent.urgent .sh-cloth { animation-duration: .45s; } .sh-tent.urgent .sh-need { animation: sh-pulse .6s infinite; }
+.sh-tent.working .sh-cloth { animation: sh-hammer .15s 3; }
+.sh-tent.working::after { content: '🔨'; position: absolute; top: 18px; left: -6px; font-size: 22px; animation: sh-hammer .15s 3; }
+@keyframes sh-wobble { 50% { rotate: 5deg; } }
+@keyframes sh-pulse { 50% { transform: scale(1.18); } }
+@keyframes sh-hammer { 50% { transform: translateY(-4px) rotate(-6deg); } }
+@keyframes sh-spark { 0% { opacity: 1; transform: translateY(0) scale(.6); } 100% { opacity: 0; transform: translateY(-24px) scale(1.4); } }
+.sh-pile { display: flex; flex-direction: column; align-items: center; background: rgba(255, 250, 240, .88); border: 2px solid #3a2c1a; border-radius: 12px; padding: 4px 8px; z-index: 2; }
+.sh-heap { font-size: 22px; letter-spacing: -6px; line-height: 1; } .sh-pile small { font-size: 11px; font-weight: 700; color: #3a2c1a; }
+.sh-pile:active { transform: scale(.94); }
+.sh-mach { position: absolute; translate: -50% -100%; z-index: 4; pointer-events: none; transition-property: left, top; transition-timing-function: linear; display: flex; flex-direction: column; align-items: center; }
+.sh-spr { image-rendering: pixelated; background-repeat: no-repeat; background-position-x: 0; }
+.sh-mach.walking .sh-spr { animation: fzs-walk var(--ms) steps(var(--n)) infinite; }
+.sh-held { font-size: 24px; min-height: 26px; filter: drop-shadow(0 1px 1px #000); }
+.sh-helper { position: absolute; left: 8px; right: 8px; top: 8px; z-index: 5; display: flex; align-items: center; gap: 8px; background: rgba(255, 250, 240, .95); border: 2px solid #3a2c1a; border-radius: 10px; padding: 4px 8px; color: #2b2116; font-size: 14px; }
+.sh-helper .sface { width: 36px; height: 36px; }
+.sh-mini-mach { width: 64px; height: 96px; background-size: 256px 768px; background-position: 0 0; image-rendering: pixelated; }
+.gamecard .kitchen-mini.cafe-mini { align-items: flex-end; }
+@media (max-width: 420px) { .sh-scene { height: 330px; } .sh-tent { width: 70px; } .sh-cloth { width: 62px; height: 48px; } .sh-pole { top: 18px; } }
+.sh-helper[hidden] { display: none; }
+.sh-heap { white-space: nowrap; }
+.sh-tent { width: 96px; height: 104px; } .sh-cloth { width: 90px; height: 68px; } .sh-pole { top: 30px; }
+@media (max-width: 420px) { .sh-tent { width: 80px; height: 92px; } .sh-cloth { width: 74px; height: 56px; } .sh-pole { top: 24px; } }
