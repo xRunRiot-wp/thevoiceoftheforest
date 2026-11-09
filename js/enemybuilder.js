@@ -3,13 +3,13 @@
 // -> stats, skills, HP, Will and moves are rolled for each one -> save them as enemy sheets (and drop them into the battle).
 // Board: every enemy in the current battle gets its own card with HP and Will +/- and quick rolls for its moves and actions.
 // Rolls follow PokéRole's rank steps roughly; the GM can change anything afterwards in the sheet editor.
-import * as store from './store.js?v=6af15576';
-import { $, $$, esc, num, uid, clamp, pool, toast } from './util.js?v=6af15576';
-import { modal, closeModal, portrait, diceFaces } from './ui.js?v=6af15576';
-import { loadIndex, find } from './effects.js?v=6af15576';
-import { RANK_NAMES } from './content.js?v=6af15576';
-import { HABITATS } from './habitats.js?v=6af15576';
-import { logRoll } from './play.js?v=6af15576';
+import * as store from './store.js?v=6af15600';
+import { $, $$, esc, num, uid, clamp, pool, toast } from './util.js?v=6af15600';
+import { modal, closeModal, portrait, diceFaces } from './ui.js?v=6af15600';
+import { loadIndex, find } from './effects.js?v=6af15600';
+import { RANK_NAMES } from './content.js?v=6af15600';
+import { HABITATS } from './habitats.js?v=6af15600';
+import { logRoll } from './play.js?v=6af15600';
 
 const ATTRS = ['Strength', 'Dexterity', 'Vitality', 'Special', 'Insight'];
 const SKILLS = ['Alert', 'Brawl', 'Channel', 'Evasion', 'Clash'];
@@ -63,7 +63,10 @@ export async function openEnemyBuilder() {
       $$('[data-ebre]', box).forEach((b) => b.onclick = () => { const e = B.rolled[+b.dataset.ebre]; B.rolled[+b.dataset.ebre] = rollEnemy(find(ix, e.species), B.rank, ix, e.name); draw(); });
       const save = (fight) => {
         const story = $('#ebstory', box).checked;
-        const ids = B.rolled.map((e) => { const id = uid(); if (story) e.story = true; store.gmUpdate('enemies', (all) => ({ ...(all || {}), [id]: e })); return [id, e]; });
+        const ids = B.rolled.map((e) => { const id = uid(); if (story) e.story = true; store.gmUpdate('enemies', (all) => ({ ...(all || {}), [id]: e }));
+          // her ask 11-09: every enemy made here also becomes an NPC with a bond bar (no team, 0 hearts) on the Characters page
+          const dex = (String(find(ix, e.species)?.aka || '').match(/#(\d+)/) || [])[1];
+          store.set('npcExtra/' + id, { name: e.name, pokemon: e.species, ...(dex ? { art: `https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/portrait/${dex.padStart(4, '0')}/Normal.png` } : {}), t: Date.now() }); return [id, e]; });
         if (fight) ids.forEach(([id, e]) => addToBattle(id, e));
         toast(`${ids.length} enemy sheet${ids.length === 1 ? '' : 's'} saved${fight ? ' and added to the battle (hidden until you reveal them)' : ''}`);
         Object.assign(B, { picks: {}, rolled: [] }); closeModal();

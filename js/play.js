@@ -1,29 +1,29 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6af15576';
-import * as sheet from './sheetdata.js?v=6af15576';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast, slug } from './util.js?v=6af15576';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af15576';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES, WORLD } from './content.js?v=6af15576';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af15576';
-import { unlockChar } from './charlock.js?v=6af15576';
-import { CONFIG } from './config.js?v=6af15576';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af15576';
-import { merged, editContent } from './content-store.js?v=6af15576';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af15576';
-import { guildName, missionParts } from './guild.js?v=6af15576';
-import { homeHTML } from './sitepages.js?v=6af15576';
-import { burstSet } from './burst.js?v=6af15576';
-import { giftNote } from './mailbox.js?v=6af15576';
-import { levelUpHTML, openLevelUp } from './levelup.js?v=6af15576';
-import { pinsOf, showMap } from './hotbar.js?v=6af15576';
-import { chatterLatestHTML } from './chatter.js?v=6af15576';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af15576';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af15576';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6af15576';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af15576';
-import { find } from './effects.js?v=6af15576';
-import * as dice3d from './dice3d.js?v=6af15576';
-import { GUILD, syncRecruits } from './battle.js?v=6af15576';
+import * as store from './store.js?v=6af15600';
+import * as sheet from './sheetdata.js?v=6af15600';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast, slug } from './util.js?v=6af15600';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af15600';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES, WORLD } from './content.js?v=6af15600';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af15600';
+import { unlockChar } from './charlock.js?v=6af15600';
+import { CONFIG } from './config.js?v=6af15600';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af15600';
+import { merged, editContent } from './content-store.js?v=6af15600';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af15600';
+import { guildName, missionParts } from './guild.js?v=6af15600';
+import { homeHTML } from './sitepages.js?v=6af15600';
+import { burstSet } from './burst.js?v=6af15600';
+import { giftNote } from './mailbox.js?v=6af15600';
+import { levelUpHTML, openLevelUp } from './levelup.js?v=6af15600';
+import { pinsOf, showMap } from './hotbar.js?v=6af15600';
+import { chatterLatestHTML } from './chatter.js?v=6af15600';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af15600';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af15600';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6af15600';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af15600';
+import { find } from './effects.js?v=6af15600';
+import * as dice3d from './dice3d.js?v=6af15600';
+import { GUILD, syncRecruits } from './battle.js?v=6af15600';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -636,7 +636,7 @@ function bindCharCard(main, c) {
   $('#stedit', main).onclick = () => pickStatus(c);
   $('#editme', main).onclick = () => editCharacter(c.id);
   // her ask 11-01: a shortcut to your own base (it opens over the page, like tapping its square on the Woodland Base map)
-  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af15576').then((m) => m.openBase(c.id, { from: gb }));
+  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af15600').then((m) => m.openBase(c.id, { from: gb }));
   $('#editme2', main).onclick = () => editCharacter(c.id);
   $('#qroll', main).onclick = () => quickRoll(c);
   $$('[data-act]', main).forEach((b) => b.onclick = () => actionRoll(c, actions().find((a) => a.id === b.dataset.act)));
@@ -1074,6 +1074,8 @@ export function bondableNpcs() {
   try { syncRecruits(); } catch { /* recruits not loaded yet */ }
   const out = new Map(); const onTeam = new Set();
   for (const g of Object.values(GUILD)) { const k = slug(shortName(g.nickname)); if (g.rec) onTeam.add(k); else if (!out.has(k)) out.set(k, { key: k, name: g.nickname, face: npcFace(g, 'sm') }); }
+  // enemies the GM made in the enemy builder (her ask 11-09: "automatically assume no team"); GM ✕ takes one off the list
+  for (const [id, x] of Object.entries(store.get('npcExtra') || {})) { if (!x?.name) continue; const k = slug(x.name); if (!out.has(k)) out.set(k, { key: k, name: x.name, extra: id, face: portrait({ nickname: x.name, pokemon: x.pokemon, ...(x.art ? { art: x.art } : {}) }, 'sm') }); }
   for (const n of WORLD.npcs || []) { const k = slug(shortName(n.name)); if (!out.has(k) && !onTeam.has(k)) out.set(k, { key: k, name: n.name, face: portrait({ nickname: n.name, pokemon: n.pokemon }, 'sm') }); }
   for (const t of NPC_TEAMS) for (const n of t) onTeam.add(slug(shortName(n.replace(/\s*\(.*\)/, ''))));
   for (const k of onTeam) out.delete(k);
@@ -1083,14 +1085,22 @@ export const bondOf = (k) => { const v = store.get('bonds/' + k); return Math.ma
 export const bondHTML = (k) => { const b = bondOf(k); return `<span class="npc-bond" title="Bond ${b}/5"><span class="n-hearts">${'❤️'.repeat(b)}${'🤍'.repeat(5 - b)}</span>${b >= 5 ? '<span class="pill bond-ready">✨ Can be recruited</span>' : ''}</span>`; };
 function bindBonds(root, redraw) {
   $$('[data-bond]', root).forEach((b) => b.onclick = (e) => { e.stopPropagation(); const [k, d] = b.dataset.bond.split('|'); store.set('bonds/' + k, Math.max(0, Math.min(5, bondOf(k) + num(d)))); redraw(); });
+  $$('[data-bonddel]', root).forEach((b) => b.onclick = (e) => { e.stopPropagation(); if (!confirm('Take this NPC off the bond list?')) return; store.set('npcExtra/' + b.dataset.bonddel, null); store.set('npcExtraGone/' + b.dataset.bonddel, true); redraw(); });
 }
-const bondRow = (n) => `<div class="bond-row">${n.face}<b class="grow">${esc(n.name)}</b>${bondHTML(n.key)}${store.gmUnlocked() ? `<button class="btn alt sm" data-bond="${esc(n.key)}|-1" aria-label="Less bond">−</button><button class="btn alt sm" data-bond="${esc(n.key)}|1" aria-label="More bond">+</button>` : ''}</div>`;
+// enemies saved before this existed (GM's private list): the GM's device adds them once, no team, 0 hearts
+function backfillEnemyNpcs() {
+  if (!store.gmUnlocked()) return;
+  const have = store.get('npcExtra') || {};
+  for (const [id, e] of Object.entries(store.gmData()?.enemies || {})) if (e?.name && !have[id] && !store.get('npcExtraGone/' + id)) store.set('npcExtra/' + id, { name: e.name, pokemon: e.species, t: Date.now() });
+}
+const bondRow = (n) => `<div class="bond-row">${n.face}<b class="grow">${esc(n.name)}</b>${bondHTML(n.key)}${store.gmUnlocked() ? `<button class="btn alt sm" data-bond="${esc(n.key)}|-1" aria-label="Less bond">−</button><button class="btn alt sm" data-bond="${esc(n.key)}|1" aria-label="More bond">+</button>${n.extra ? `<button class="btn alt sm" data-bonddel="${esc(n.extra)}" title="Take off the bond list" aria-label="Remove">✕</button>` : ''}` : ''}</div>`;
 
 // her ask 11-08: tablet mode Characters = every PC and NPC, split in two, each sheet rollable. "This should only be available to
 // Nimbi or GM": everyone else still gets the Mess Hall (pick who you're playing).
 export const rosterAllowed = () => store.gmUnlocked() || /^nimbi$/i.test(String(me()?.nickname || '').trim());
 export function renderRoster(main) {
   try { syncRecruits(); } catch { /* recruits not loaded yet */ }
+  backfillEnemyNpcs();
   const pcs = Object.values(party()).filter((c) => !c.guest).sort((a, b) => String(a.nickname).localeCompare(String(b.nickname)));
   const keys = Object.keys(GUILD).sort((a, b) => String(GUILD[a].nickname).localeCompare(String(GUILD[b].nickname)));
   const card = (attr, face, name, sub) => `<button class="npc-pick" ${attr}>${face}<span><b>${esc(name)}</b><small>${esc(sub)}</small></span></button>`;
