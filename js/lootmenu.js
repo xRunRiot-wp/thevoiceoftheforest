@@ -1,10 +1,10 @@
 // her ask 11-07: a fast-food-counter style order screen in the GM's Loot section:
 // type -> rarity -> item -> who gets it, plus a search bar that goes straight to any item.
-import * as store from './store.js?v=6af15600';
-import * as sheet from './sheetdata.js?v=6af15600';
-import { $, $$, esc, num, uid, toast } from './util.js?v=6af15600';
-import { portrait } from './ui.js?v=6af15600';
-import { LOOT, ITEM_PAGES, GARMENTS } from './content.js?v=6af15600';
+import * as store from './store.js?v=6af157bc';
+import * as sheet from './sheetdata.js?v=6af157bc';
+import { $, $$, esc, num, uid, toast } from './util.js?v=6af157bc';
+import { portrait } from './ui.js?v=6af157bc';
+import { LOOT, ITEM_PAGES, GARMENTS } from './content.js?v=6af157bc';
 
 const RARITIES = ['Mundane', 'Common', 'Uncommon', 'Rare', 'Very Rare'];
 const KINDS = [['Berry', '🫐'], ['Seed', '🌱'], ['Orb', '🔮'], ['Scarf', '🧣'], ['Ribbon', '🎀'], ['Band', '🥋'], ['Bow', '🎗️'], ['Food', '🍎'], ['Projectile', '🪨'], ['Held item', '💍'], ['Other', '📦']];
@@ -71,7 +71,7 @@ function step() {
   if (O.item) {
     return `<h4 class="lq-ask">Who's this for?</h4>
       <div class="row lq-qty"><span>How many?</span><button type="button" class="btn alt sm" data-lqqty="-1">−</button><b>${O.qty}</b><button type="button" class="btn alt sm" data-lqqty="1">+</button></div>
-      <div class="lq-grid">${people().map((c) => `<button type="button" class="lq-tile who" data-lqgive="${esc(c.id)}">${portrait(c, 'sm')}<b>${esc(c.nickname)}</b><small>${esc(c.pokemon || '')}</small></button>`).join('')}${tile('data-lqgive="team"', '🎒 Team bag', 'Shared by everyone')}</div>`;
+      <div class="lq-grid">${people().map((c) => `<button type="button" class="lq-tile who" data-lqgive="${esc(c.id)}">${portrait(c, 'sm')}<b>${esc(c.nickname)}</b><small>${esc(c.pokemon || '')}</small></button>`).join('')}${tile('data-lqgive="team"', '🎒 Team bag', 'Shared by everyone')}${tile('data-lqgive="vault:woodland"', '🌳 Woodland Base vault', 'Guild storage')}${tile('data-lqgive="vault:vanguard"', '🛡️ Vanguard vault', 'Guild storage')}</div>`;
   }
   if (!O.kind) {
     const have = new Set(catalog.map((x) => x.kind));
@@ -90,6 +90,17 @@ export const lootMenuHTML = () => `<div class="lq" id="lootmenu"><h3>🍔 Quick 
 
 function give(owner) {
   const { name } = O.item; const qty = O.qty;
+  // her report 11-09: "sent an item from the loot page to the Woodland Base vault ... it didn't work": the menu only had players and
+  // the Team bag (Team bag is not the vault). Now the guild vaults are destinations too, into the same storage the Vault page shows.
+  if (owner.startsWith('vault:')) {
+    const guild = owner.slice(6) === 'vanguard' ? 'vanguard' : 'woodland'; const gname = guild === 'vanguard' ? 'the Vanguard vault' : 'the Woodland Base vault';
+    const st = store.get('storage') || {};
+    const same = Object.entries(st).find(([, x]) => x && String(x.name).toLowerCase() === name.toLowerCase() && (x.guild === 'vanguard' ? 'vanguard' : 'woodland') === guild);
+    if (same) store.set(`storage/${same[0]}/qty`, num(same[1].qty) + qty); else store.set('storage/' + uid(), { name, qty, owner: 'team', guild });
+    const what = `${name}${qty > 1 ? ` ×${qty}` : ''}`;
+    store.pushLimited('log', { t: Date.now(), text: `${what} went into ${gname}.` });
+    toast(`${what} is in ${gname}!`); reset(); return;
+  }
   const same = Object.entries(store.get('bag') || {}).find(([, b]) => b.owner === owner && String(b.name).toLowerCase() === name.toLowerCase());
   if (same) store.set(`bag/${same[0]}/qty`, num(same[1].qty) + qty); else store.set('bag/' + uid(), { name, qty, owner });
   const who = owner === 'team' ? 'the team' : (store.get('party') || {})[owner]?.nickname || 'someone';
