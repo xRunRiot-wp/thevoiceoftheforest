@@ -1,7 +1,7 @@
 // The GM's Google Site, page for page: same menu, same text, her pictures in the same places.
-import { GS_TEXT } from './gstext.js?v=6af1c88a';
-import { esc } from './util.js?v=6af1c88a';
-import { LINKS, CAST } from './content.js?v=6af1c88a';
+import { GS_TEXT } from './gstext.js?v=6af30e46';
+import { esc } from './util.js?v=6af30e46';
+import { LINKS, CAST } from './content.js?v=6af30e46';
 
 // Her site's menu, in her order. [key in GS_TEXT, title, children]
 export const SITE_NAV = [
