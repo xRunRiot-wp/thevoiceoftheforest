@@ -1,15 +1,15 @@
 // Sentry Duty (from Explorers of Time/Sky): stand watch at the Woodland Base gate with Diglett and name each visitor
 // from their footprint. A daily guild chore every character is expected to do, not a gamble: an okay shift is just
 // doing your duty, a great shift pays Poké and can turn up a rare item. One shift per character per day.
-import * as store from './store.js?v=6af30e46';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6af30e46';
-import { me, logRoll } from './play.js?v=6af30e46';
-import { dailyRoll } from './weather.js?v=6af30e46';
-import { gameSay } from './chatter.js?v=6af30e46';
-import { markWinner } from './sparkle.js?v=6af30e46';
-import * as sheet from './sheetdata.js?v=6af30e46';
-import { portraitFile, formArt } from './ui.js?v=6af30e46';
-import { pageMusic } from './chiptune.js?v=6af30e46';
+import * as store from './store.js?v=6af3e233';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6af3e233';
+import { me, logRoll, gameBondGreat } from './play.js?v=6af3e233';
+import { dailyRoll } from './weather.js?v=6af3e233';
+import { gameSay } from './chatter.js?v=6af3e233';
+import { markWinner } from './sparkle.js?v=6af3e233';
+import * as sheet from './sheetdata.js?v=6af3e233';
+import { portraitFile, formArt } from './ui.js?v=6af3e233';
+import { pageMusic } from './chiptune.js?v=6af3e233';
 
 export const isSentry = (g) => g.kind === 'sentry' || g.id === 'sentry-duty';
 
@@ -69,6 +69,7 @@ function finish(c, score, box, onDone) {
     if (poke || item) markWinner(c.id);
     const reward = [poke ? `${poke} Poké` : '', item ? `a rare ${item}` : ''].filter(Boolean).join(' and ');
     logRoll(c.nickname, 'Sentry Duty', null, `${score}/${ROUNDS} footprints · ${name}${reward ? ' · ' + reward : ''}`, 'note');
+    if (score === ROUNDS) gameBondGreat('diglett', 'Diglett', c);
     if (score === ROUNDS) gameSay('Diglett', 'say', `${c.nickname} named every visitor at the gate today! Woodland Base is safer for it.`, 'sentry', c.nickname);
     const mood = gradeOf(score)[5];
     box.innerHTML = `<div class="sentry-end">${faceHTML(c, mood, 'big')}<div class="big">${esc(name)}</div><p>${score} of ${ROUNDS} footprints right.</p>

@@ -7,15 +7,15 @@
 // Run's day sky) above a soft, faded Woodland Base picture; bins at their old size but smoother (basket_hd/chest_hd = Scale4x of
 // the sprites, the chest recoloured to wood and gold).
 // Art: the Woodland Base tent (GM's campaign art) backdrop, Machamp / Voltorb / runner sprites (SpriteCollab), items, basket, chest and logs (PMDCollab RawAsset).
-import * as store from './store.js?v=6af30e46';
-import { $, esc, num, uid } from './util.js?v=6af30e46';
-import { me, logRoll } from './play.js?v=6af30e46';
-import { dailyRoll } from './weather.js?v=6af30e46';
-import { gameSay } from './chatter.js?v=6af30e46';
-import { markWinner } from './sparkle.js?v=6af30e46';
-import { rareItem } from './sentry.js?v=6af30e46';
-import { startBroadcast } from './watch.js?v=6af30e46';
-import { stepSound, missSound, jingle, ensureAudio, pageMusic } from './chiptune.js?v=6af30e46';
+import * as store from './store.js?v=6af3e233';
+import { $, esc, num, uid } from './util.js?v=6af3e233';
+import { me, logRoll, gameBondGreat } from './play.js?v=6af3e233';
+import { dailyRoll } from './weather.js?v=6af3e233';
+import { gameSay } from './chatter.js?v=6af3e233';
+import { markWinner } from './sparkle.js?v=6af3e233';
+import { rareItem } from './sentry.js?v=6af3e233';
+import { startBroadcast } from './watch.js?v=6af3e233';
+import { stepSound, missSound, jingle, ensureAudio, pageMusic } from './chiptune.js?v=6af3e233';
 
 export const isTruck = (g) => g.kind === 'truck' || g.id === 'machamp-wagon';
 
@@ -170,6 +170,7 @@ function finish(c, box, stored, strikes, onDone) {
     if (poke || item) markWinner(c.id);
     const reward = [poke ? `${poke} Poké` : '', item ? `a rare ${item}` : ''].filter(Boolean).join(' and ');
     logRoll(c.nickname, 'Supply Wagon with Machamp', null, `${stored} stored · ${strikes} strike${strikes === 1 ? '' : 's'}${reward ? ' · ' + reward : ''}`, 'note');
+    if (stored >= 40) gameBondGreat('machamp', 'Machamp', c);
     if (stored >= 40) gameSay('Machamp', 'say', `${c.nickname} caught everything I threw today! Strong arms, that one.`, 'truck', c.nickname);
     box.innerHTML = `<div class="sentry-end"><div class="big">${stored >= 40 ? 'Wagon cleared! 💪' : strikes >= 3 ? 'Shift over' : 'Time’s up!'}</div>
       <p>${stored} thing${stored === 1 ? '' : 's'} stored in the base${strikes ? `, ${strikes} strike${strikes === 1 ? '' : 's'}` : ''}.</p>

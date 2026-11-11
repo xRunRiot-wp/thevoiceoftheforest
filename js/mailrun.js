@@ -6,15 +6,15 @@
 // (Rayson loves rain: letters pay extra), strong wind = faster tailwind with gusts, fog = short sight, sandstorm = slower + hazy,
 // hail = heavy wings.
 // Art: Explorers of Sky skies/clouds and Sunshell beach strips (TSR rips), Wingull/Taillow/Starly sprites (SpriteCollab).
-import * as store from './store.js?v=6af30e46';
-import { $, esc, num, uid } from './util.js?v=6af30e46';
-import { me, logRoll } from './play.js?v=6af30e46';
-import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6af30e46';
-import { gameSay } from './chatter.js?v=6af30e46';
-import { markWinner } from './sparkle.js?v=6af30e46';
-import { rareItem } from './sentry.js?v=6af30e46';
-import { startBroadcast } from './watch.js?v=6af30e46';
-import { stepSound, missSound, jingle, ensureAudio, startMusic, stopMusic, muted, setMuted } from './chiptune.js?v=6af30e46';
+import * as store from './store.js?v=6af3e233';
+import { $, esc, num, uid } from './util.js?v=6af3e233';
+import { me, logRoll, gameBondGreat } from './play.js?v=6af3e233';
+import { dailyRoll, currentWeather, WEATHERS } from './weather.js?v=6af3e233';
+import { gameSay } from './chatter.js?v=6af3e233';
+import { markWinner } from './sparkle.js?v=6af3e233';
+import { rareItem } from './sentry.js?v=6af3e233';
+import { startBroadcast } from './watch.js?v=6af3e233';
+import { stepSound, missSound, jingle, ensureAudio, startMusic, stopMusic, muted, setMuted } from './chiptune.js?v=6af3e233';
 
 export const isMailRun = (g) => g.kind === 'mailrun' || g.id === 'rayson-mail-run';
 
@@ -265,6 +265,7 @@ function finish(c, box, made, got, hearts, onDone) {
     if (poke || item) markWinner(c.id, 'mail');
     const reward = [poke ? `${poke} Poké` : '', item ? `a rare ${item}` : ''].filter(Boolean).join(' and ');
     logRoll(c.nickname, 'Rayson’s Mail Run', null, `${made ? 'delivered' : 'turned back'} in ${wx.name.toLowerCase()} · ${got}/${LETTERS} letters · ${hearts} ❤️${reward ? ' · ' + reward : ''}`, 'note');
+    if (perfect) gameBondGreat('rayson', 'Rayson', c);
     if (perfect) gameSay('Rayson the Wingull', 'say', `${c.nickname} helped me bring every single letter home! I wasn’t even scared. Okay, a little.`, 'mailrun', c.nickname);
     box.innerHTML = `<div class="sentry-end"><img class="sface big" src="assets/portraits/wingull.png" alt="Rayson">
       <div class="big">${made ? (perfect ? 'Perfect delivery!' : 'Mail delivered!') : 'Rayson turned back…'}</div>

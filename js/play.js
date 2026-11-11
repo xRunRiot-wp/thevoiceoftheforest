@@ -1,29 +1,29 @@
 // Join a table, then the player's Play screen.
-import * as store from './store.js?v=6af30e46';
-import * as sheet from './sheetdata.js?v=6af30e46';
-import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast, slug } from './util.js?v=6af30e46';
-import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af30e46';
-import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES, WORLD } from './content.js?v=6af30e46';
-import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af30e46';
-import { unlockChar } from './charlock.js?v=6af30e46';
-import { CONFIG } from './config.js?v=6af30e46';
-import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af30e46';
-import { merged, editContent } from './content-store.js?v=6af30e46';
-import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af30e46';
-import { guildName, missionParts } from './guild.js?v=6af30e46';
-import { homeHTML } from './sitepages.js?v=6af30e46';
-import { burstSet } from './burst.js?v=6af30e46';
-import { giftNote } from './mailbox.js?v=6af30e46';
-import { levelUpHTML, openLevelUp } from './levelup.js?v=6af30e46';
-import { pinsOf, showMap } from './hotbar.js?v=6af30e46';
-import { chatterLatestHTML } from './chatter.js?v=6af30e46';
-import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af30e46';
-import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af30e46';
-import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6af30e46';
-import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af30e46';
-import { find } from './effects.js?v=6af30e46';
-import * as dice3d from './dice3d.js?v=6af30e46';
-import { GUILD, syncRecruits } from './battle.js?v=6af30e46';
+import * as store from './store.js?v=6af3e233';
+import * as sheet from './sheetdata.js?v=6af3e233';
+import { $, $$, esc, uid, num, clamp, pool, painFor, roll, die, sum, timeAgo, toast, slug } from './util.js?v=6af3e233';
+import { portrait, typeChip, bar, diceFaces, modal, closeModal, maxHp, formsOf, formName } from './ui.js?v=6af3e233';
+import { STATUS_IX, INTRO, QUICK_LINKS, ACTIONS, QUICK_TASKS, QUICK_SOCIAL, SPECIAL_ROLLS, STATUSES, ATTRS, SKILLS, SOCIAL, TYPES, NATURES, RANK_NAMES, RULES, WORLD } from './content.js?v=6af3e233';
+import { myId, setMe, joined, setJoined, openTable } from './app.js?v=6af3e233';
+import { unlockChar } from './charlock.js?v=6af3e233';
+import { CONFIG } from './config.js?v=6af3e233';
+import { ixLink, wireRolls, linkify, loadIndex } from './effects.js?v=6af3e233';
+import { merged, editContent } from './content-store.js?v=6af3e233';
+import { ledger, stash, canWithdraw, recordWithdrawal, checkCoffers, capInfo, lowAlertHTML, donated, withdrew } from './vault.js?v=6af3e233';
+import { guildName, missionParts } from './guild.js?v=6af3e233';
+import { homeHTML } from './sitepages.js?v=6af3e233';
+import { burstSet } from './burst.js?v=6af3e233';
+import { giftNote } from './mailbox.js?v=6af3e233';
+import { levelUpHTML, openLevelUp } from './levelup.js?v=6af3e233';
+import { pinsOf, showMap } from './hotbar.js?v=6af3e233';
+import { chatterLatestHTML } from './chatter.js?v=6af3e233';
+import { memoryHTML, memoryFeedHTML, bindMemory, zeroHpHTML, bindZeroHp, restDream, addMemory, makeMemory } from './memory.js?v=6af3e233';
+import { locations, spots, spotFull, spotSleepers } from './friendzone.js?v=6af3e233';
+import { currentWeather, weatherFor, showWeather, WEATHERS, wxFxHTML, wxIconHTML, leftText, dayEndsAt } from './weather.js?v=6af3e233';
+import { TYPE_COLORS, TYPE_ICONS, palette, sheetOnly } from './theme.js?v=6af3e233';
+import { find } from './effects.js?v=6af3e233';
+import * as dice3d from './dice3d.js?v=6af3e233';
+import { GUILD, syncRecruits } from './battle.js?v=6af3e233';
 
 export async function allMoves() {
   const [s, ix] = await Promise.all([sheet.moves(), loadIndex()]);
@@ -636,7 +636,7 @@ function bindCharCard(main, c) {
   $('#stedit', main).onclick = () => pickStatus(c);
   $('#editme', main).onclick = () => editCharacter(c.id);
   // her ask 11-01: a shortcut to your own base (it opens over the page, like tapping its square on the Woodland Base map)
-  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af30e46').then((m) => m.openBase(c.id, { from: gb }));
+  const gb = $('#gobase', main); if (gb) gb.onclick = () => import('./mybase.js?v=6af3e233').then((m) => m.openBase(c.id, { from: gb }));
   $('#editme2', main).onclick = () => editCharacter(c.id);
   $('#qroll', main).onclick = () => quickRoll(c);
   $$('[data-act]', main).forEach((b) => b.onclick = () => actionRoll(c, actions().find((a) => a.id === b.dataset.act)));
@@ -1082,6 +1082,22 @@ export function bondableNpcs() {
   return [...out.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 export const bondOf = (k) => { const v = store.get('bonds/' + k); return Math.max(0, Math.min(5, v == null ? num(BOND_START[k]) : num(v))); };
+// her ask 11-10: "When players play ralts, rayson, diglett and machamps game to a certain point (together) it should add a bond
+// heart" / "All players share one. It needs to be difficult but achievable". A perfect run (the same great result that makes the
+// host speak up) counts once per character per day per game, shared by the whole table; every GREAT_FOR_HEART of them = +1 heart.
+const GREAT_FOR_HEART = 5;
+export function gameBondGreat(key, name, c) {
+  try {
+    const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date()); const tag = day + '|' + (c?.id || '?');
+    const p = store.get('bondProg/' + key) || {}; const seen = p.seen || {}; if (seen[tag]) return;
+    const n = num(p.n) + 1; const keep = Object.fromEntries(Object.entries(seen).filter(([k]) => k.startsWith(day + '|')));
+    if (n >= GREAT_FOR_HEART && bondOf(key) < 5) {
+      store.set('bondProg/' + key, { n: 0, seen: { ...keep, [tag]: 1 } }); store.set('bonds/' + key, bondOf(key) + 1);
+      logRoll(c?.nickname || 'The table', name + ' bond', null, `the table's great runs earned a bond heart with ${name} (${bondOf(key)}/5)`, 'note'); toast(`❤️ New bond heart with ${name}!`);
+    } else store.set('bondProg/' + key, { n: bondOf(key) < 5 ? n : 0, seen: { ...keep, [tag]: 1 } });
+  } catch { /* the game result still stands */ }
+}
+export const bondProgress = (key) => num((store.get('bondProg/' + key) || {}).n);
 export const bondHTML = (k) => { const b = bondOf(k); return `<span class="npc-bond" title="Bond ${b}/5"><span class="n-hearts">${'❤️'.repeat(b)}${'🤍'.repeat(5 - b)}</span>${b >= 5 ? '<span class="pill bond-ready">✨ Can be recruited</span>' : ''}</span>`; };
 function bindBonds(root, redraw) {
   $$('[data-bond]', root).forEach((b) => b.onclick = (e) => { e.stopPropagation(); const [k, d] = b.dataset.bond.split('|'); store.set('bonds/' + k, Math.max(0, Math.min(5, bondOf(k) + num(d)))); redraw(); });
