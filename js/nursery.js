@@ -7,15 +7,15 @@
 // window shows how it feels; harsh weather changes its mood and adds a need (umbrella in sun or rain, blanket in hail or
 // wind, the tent in a sandstorm); the room and its day follow the player's own clock (dawn, day, dusk, night).
 // Follow-up: a bigger close-up, and sky over the room (coloured for the time of day, clouds by day, stars at night).
-import * as store from './store.js?v=6af3e233';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6af3e233';
-import { me, logRoll } from './play.js?v=6af3e233';
-import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6af3e233';
-import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6af3e233';
-import { markWinner } from './sparkle.js?v=6af3e233';
-import { pageMusic, visitMusic, muted, tempMusic } from './chiptune.js?v=6af3e233';
-import { modal, closeModal } from './ui.js?v=6af3e233';
-import { MIMIC } from './mimicdata.js?v=6af3e233';
+import * as store from './store.js?v=6af51f29';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6af51f29';
+import { me, logRoll } from './play.js?v=6af51f29';
+import { currentWeather, WEATHERS, wxFxHTML } from './weather.js?v=6af51f29';
+import { gameSay, gmTodo, RESIDENTS } from './chatter.js?v=6af51f29';
+import { markWinner } from './sparkle.js?v=6af51f29';
+import { pageMusic, visitMusic, muted, tempMusic } from './chiptune.js?v=6af51f29';
+import { modal, closeModal } from './ui.js?v=6af51f29';
+import { MIMIC } from './mimicdata.js?v=6af51f29';
 
 export const isNursery = (g) => g.kind === 'nursery' || g.id === 'fernshade-nursery';
 
@@ -514,6 +514,13 @@ function act(c, k) {
   return 'ok';
 }
 
+// her ask 11-11: the Star Carnival (carnival.js): rides count as play time, snacks as a meal, and both raise Bond.
+// Only for a hatched buddy that is still in the nursery. Returns act()'s answer ('ok', 'grew' or why not), or '' with no buddy.
+export function carnivalCare(c, k, bond = 0) {
+  const b = buddyOf(c?.id || ''); if (!b || b.recruited || !b.stage) return '';
+  const r = act(c, k); if (bond) addBond(c.id, bond); return r;
+}
+
 // ---- playdates (her ask 10-29: the babies can visit each other). nursery/<host>/visit = { id: guest owner, t } for 20 minutes:
 // the friend's buddy toddles around your room with yours, they hop and trade hearts, and it counts as play time for both.
 const VISIT_FOR = 20 * 60e3;
@@ -703,7 +710,7 @@ async function walkGo(c, box, stops) {
   const say = (html) => { text.innerHTML = html.startsWith('<img') ? html : `<span>${html}</span>`; };
   const walking = async (ms) => { row('right'); scene.classList.add('moving'); await wait(ms); scene.classList.remove('moving'); row('idle'); };
   // her ask 10-29: your own character walks along behind the baby
-  const fz = import('./fzscene.js?v=6af3e233').catch(() => null);
+  const fz = import('./fzscene.js?v=6af51f29').catch(() => null);
   if (c.pokemon) fz.then((m) => m?.walkSprite(c.pokemon, 2, 'right', false, !!c.shiny)).then((w) => {
     if (!w || !alive()) return;
     scene.insertAdjacentHTML('beforeend', `<div class="walk-char" title="${esc(c.nickname)}">${w.html}</div>`);
@@ -795,7 +802,7 @@ function room(c, box, anim) {
       ${egg ? '' : '<button class="btn alt sm" id="nname">Name</button>'}</div>
     <div class="n-stats">${Object.keys(needs).map((k) => { const v = stat(b, k); return `<div class="n-stat"><span>${lab(k)[0]} ${lab(k)[1]}</span><div class="n-bar ${v < 30 ? 'low' : ''}"><i style="width:${v}%"></i></div><span class="small muted">${k === 'cover' ? (v ? 'safe now' : 'needed now') : `${Math.min(num(day[k]), needs[k])}/${needs[k]} today`}</span></div>`; }).join('')}</div>
     ${egg ? '' : `<div class="n-bond"><span>❤️ Bond</span><span class="n-hearts">${'❤️'.repeat(hearts(b))}${'🤍'.repeat(5 - hearts(b))}</span><span class="small muted">${hearts(b) >= 5 ? 'Best friends!' : 'Pet, walk and care to grow it'}</span></div>
-      <div class="n-fun"><button class="btn" id="nwalk">🦮 Walk</button><button class="btn alt" id="ncall">📣 Call ${esc(nameOf(b))}</button><button class="btn alt" id="ndress">🎀 Dress up</button>${boomOf(b) ? '<button class="btn alt" id="nboom">📻 Play music</button>' : ''}</div>
+      <div class="n-fun"><button class="btn" id="nwalk">🦮 Walk</button><button class="btn alt" id="ncall">📣 Call ${esc(nameOf(b))}</button><button class="btn alt" id="ndress">🎀 Dress up</button><a class="btn alt" href="#/games/star-carnival">🎡 Carnival</a>${boomOf(b) ? '<button class="btn alt" id="nboom">📻 Play music</button>' : ''}</div>
       <p class="small muted" style="text-align:center;margin:2px 0 6px">Tip: hold and rub ${esc(nameOf(b))} to pet it.</p>`}
     ${b.recruited ? '<button class="btn alt block" id="nnew">Take a new egg home 🥚</button>' : b.stage === 3 ? `<p class="small" style="text-align:center;margin:4px 0">${esc(nameOf(b))} is all grown up. What will you do?</p><div class="n-choice"><button class="btn" id="nrecruit">🤝 Ask ${esc(nameOf(b))} to join the team</button><button class="btn alt" id="nwild">🌿 Let ${esc(nameOf(b))} go into the wild</button></div>`
       : `<div class="n-acts">${Object.keys(needs).map((k) => `<button class="btn ${(k === 'cover' ? stat(b, k) : num(day[k]) >= needs[k]) ? 'alt' : ''}" data-nact="${k}">${lab(k)[0]} ${lab(k)[2]}</button>`).join('')}</div>`}

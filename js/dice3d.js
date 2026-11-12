@@ -1,9 +1,9 @@
 // 3D dice: every d6 roll on this device plays as tumbling dice over the screen, then shows the result.
 // Results always come from the site's own roller; the animation just lands each die on its value.
 // Each player picks their own skin. her ask 11-07: it's saved on the character so it matches on every browser; this browser's copy is only the fallback.
-import { $, $$, esc } from './util.js?v=6af3e233';
-import { modal } from './ui.js?v=6af3e233';
-import * as store from './store.js?v=6af3e233';
+import { $, $$, esc } from './util.js?v=6af51f29';
+import { modal } from './ui.js?v=6af51f29';
+import * as store from './store.js?v=6af51f29';
 
 const THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 const KEY = 'dc.dice';
@@ -25,6 +25,10 @@ export const PRESETS = {
   runes: { name: 'Runes', body: '#6d6a66', pip: '#ffb84a', style: 'rune' },
   // her ask 11-06: "fall dice with little leaves that float around inside when rolled (with sparkles like in a liquid)"
   fall: { name: 'Autumn Leaf', body: '#d2701e', pip: '#fff3d6', style: 'fall' },
+  // her ask 11-11: Star Carnival prize dice
+  comet: { name: 'Comet', body: '#1d1840', pip: '#ffd75e', style: 'gem' },
+  cottoncandy: { name: 'Cotton Candy', body: '#f6a6cf', pip: '#3f8fd6', style: 'marble' },
+  carousel: { name: 'Carousel', body: '#d6a93a', pip: '#c8283a', style: 'metal' },
 };
 const STYLES = [['solid', 'Solid'], ['pokeball', 'Poké Ball band'], ['marble', 'Marble'], ['gem', 'Gem (see-through)'], ['metal', 'Metal'], ['wood', 'Wood'], ['timegear', 'Time Gear'], ['rune', 'Carved runes'], ['fall', 'Liquid with leaves']];
 

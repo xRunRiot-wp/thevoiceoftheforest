@@ -3,13 +3,13 @@
 // build with what your rank allows (Beginner: a tent, a campfire, bedrolls, a drying rack and a sad little bed); later
 // ranks will add more, up to a building in someone's likeness. Friends can visit from the Friends list (like visiting an
 // igloo in Club Penguin). base/<charId> = { items: { id: { k, x, y } }, visits: { visitorId: t } }; x and y are % of the scene.
-import * as store from './store.js?v=6af3e233';
-import { $, $$, esc, toast, uid } from './util.js?v=6af3e233';
-import { modal, closeModal } from './ui.js?v=6af3e233';
-import { RANK_NAMES } from './content.js?v=6af3e233';
-import { mountFzScene } from './fzscene.js?v=6af3e233';
-import { DECOR, KINDS } from './basedecor.js?v=6af3e233';
-import { myId } from './app.js?v=6af3e233';
+import * as store from './store.js?v=6af51f29';
+import { $, $$, esc, toast, uid } from './util.js?v=6af51f29';
+import { modal, closeModal } from './ui.js?v=6af51f29';
+import { RANK_NAMES } from './content.js?v=6af51f29';
+import { mountFzScene } from './fzscene.js?v=6af51f29';
+import { DECOR, KINDS } from './basedecor.js?v=6af51f29';
+import { myId } from './app.js?v=6af51f29';
 
 // what can be built: [name, picture, width on screen (px at full size), what it says when tapped]
 const ITEMS = {
@@ -281,7 +281,7 @@ export function openBase(ownerId, { from = null } = {}) {
       const el2 = els[Math.floor(Math.random() * els.length)]; play(el2, items[el2.dataset.bi], free[Math.floor(Math.random() * free.length)], true);
     }, 7000);
     // her ask 11-01: the owner's nursery buddy hangs out at the base like a Puffle (an egg sits bundled in a blanket)
-    import('./nursery.js?v=6af3e233').then((n) => n.buddyLook?.(ownerId)).then((bl) => { if (bl && s.strip.isConnected) addBuddy(bl); }).catch(() => {});
+    import('./nursery.js?v=6af51f29').then((n) => n.buddyLook?.(ownerId)).then((bl) => { if (bl && s.strip.isConnected) addBuddy(bl); }).catch(() => {});
     // building: tap the ground to place; tap a built piece for Move / Put away. Anyone may tap a piece to play with it.
     s.strip.addEventListener('click', (e) => {
       const it = e.target.closest('[data-bi]');

@@ -4,8 +4,8 @@
 // Mouse only; phones and touch screens never see it.
 // Reward cursors (her ask 10-27: Time Gear for Nimbi and Magnemite) only show for characters given them (party/<id>/cursors;
 // theme.js sets window.cursorAllowed).
-export const CURSORS = { diglett: '⛏️ Diglett', pokeball: '🔴 Poké Ball', regular: '🖱️ Regular', timegear: '⚙️ Time Gear' };
-export const REWARD_CURSORS = { timegear: 'Time Gear cursor' };
+export const CURSORS = { diglett: '⛏️ Diglett', pokeball: '🔴 Poké Ball', regular: '🖱️ Regular', timegear: '⚙️ Time Gear', jirachi: '🌟 Jirachi', drifloon: '🎈 Drifloon' };
+export const REWARD_CURSORS = { timegear: 'Time Gear cursor', jirachi: 'Jirachi cursor', drifloon: 'Drifloon cursor' };   // jirachi / drifloon: Star Carnival prizes (11-11)
 const allowed = (k) => !REWARD_CURSORS[k] || !window.cursorAllowed || window.cursorAllowed.has(k);
 export const cursorKind = () => { try { const k = localStorage.getItem('dc.cursor'); return CURSORS[k] && allowed(k) ? k : 'diglett'; } catch { return 'diglett'; } };
 export const cursorChoices = () => Object.keys(CURSORS).filter(allowed);
@@ -34,6 +34,6 @@ export function startDigCursor() {
     el.style.transform = `translate(${e.clientX + 2}px, ${e.clientY + 14}px)`; el.classList.add('show');
   }, { passive: true });
   document.documentElement.addEventListener('mouseleave', () => el.classList.remove('show'));
-  el.addEventListener('animationend', (e) => { if (/^(dig-down|pb-wobble|tg-turn)$/.test(e.animationName)) el.classList.remove('act'); });
+  el.addEventListener('animationend', (e) => { if (/^(dig-down|pb-wobble|tg-turn|jr-twinkle|df-puff)$/.test(e.animationName)) el.classList.remove('act'); });
   setTimeout(act, 8000 + Math.random() * 8000);
 }

@@ -1,15 +1,15 @@
 // Site themes. Everyone has the Woodland Base theme; each character also gets the theme of their own type(s),
 // and the GM can hand out more as rewards (party/<id>/themes). The choice is saved on this device.
-import { CURSORS, REWARD_CURSORS, cursorKind, cursorChoices, setCursorKind, refreshCursor } from './digcursor.js?v=6af3e233';
-import * as store from './store.js?v=6af3e233';
-import { $, $$, esc, toast } from './util.js?v=6af3e233';
-import { giftNote } from './mailbox.js?v=6af3e233';
-import { unlockChar } from './charlock.js?v=6af3e233';
-import { modal, closeModal, portrait } from './ui.js?v=6af3e233';
-import { skinPicker } from './dice3d.js?v=6af3e233';
-import { appSection, wireAppSection } from './install.js?v=6af3e233';
-import { openTour } from './tour.js?v=6af3e233';
-import { setLeafFall } from './leaffall.js?v=6af3e233';
+import { CURSORS, REWARD_CURSORS, cursorKind, cursorChoices, setCursorKind, refreshCursor } from './digcursor.js?v=6af51f29';
+import * as store from './store.js?v=6af51f29';
+import { $, $$, esc, toast } from './util.js?v=6af51f29';
+import { giftNote } from './mailbox.js?v=6af51f29';
+import { unlockChar } from './charlock.js?v=6af51f29';
+import { modal, closeModal, portrait } from './ui.js?v=6af51f29';
+import { skinPicker } from './dice3d.js?v=6af51f29';
+import { appSection, wireAppSection } from './install.js?v=6af51f29';
+import { openTour } from './tour.js?v=6af51f29';
+import { setLeafFall } from './leaffall.js?v=6af51f29';
 
 export const TYPE_COLORS = { Normal: '#9a9a6b', Fire: '#e0692f', Water: '#4f7fe0', Electric: '#d9b30f', Grass: '#5ba83a', Ice: '#6fc4c4', Fighting: '#b3352b',
   Poison: '#924094', Ground: '#c9a24f', Flying: '#8f7fe0', Psychic: '#e8507f', Bug: '#98a420', Rock: '#a8902f', Ghost: '#6a5590', Dragon: '#6a38e8',
@@ -38,6 +38,9 @@ export const THEMES = {
   runes: { name: 'Ancient Runes', icon: '🗿', swatch: ['#2c2a27', '#ece7dd', '#e09a2c'], vars: { ...palette('#6d6a66'), '--orange': '#d98c22', '--orange-d': '#9a5f10', '--orange-l': '#f2bf6b', '--gold': '#ffb84a' } },
   // her ask 11-06: a fall theme gifted to every player: deep maple brown, warm cream paper and a pumpkin-orange glow
   fall: { name: 'Autumn Harvest', icon: '🍂', swatch: ['#4a2210', '#fbeedd', '#d9661c'], vars: { ...palette('#b4531e'), '--orange': '#d9661c', '--orange-d': '#9c4210', '--orange-l': '#f4a052', '--gold': '#f2b437', '--hotbar': '#341607', '--brown': '#4a2210', '--cream': '#fbeedd', '--paper': '#fffaf2' } },
+  // her ask 11-11: Star Carnival prize themes (traded for tickets): midnight purple with marquee red and gold; pastel cotton candy
+  carnival: { name: 'Star Carnival', icon: '🎪', swatch: ['#1d1238', '#f6eedf', '#d63a3a'], vars: { ...palette('#5b3aa8'), '--orange': '#d63a3a', '--orange-d': '#9a2222', '--orange-l': '#f07a6a', '--gold': '#f2c14e', '--hotbar': '#140b28', '--brown': '#1d1238', '--cream': '#f6eedf', '--paper': '#fffaf0' } },
+  cottoncandy: { name: 'Cotton Candy', icon: '🍭', swatch: ['#5a3a6e', '#fdeef6', '#f27bb8'], vars: { ...palette('#d87fb5'), '--orange': '#f27bb8', '--orange-d': '#c04f8c', '--orange-l': '#ffb3da', '--gold': '#8fd3ff', '--hotbar': '#3f2a52', '--brown': '#5a3a6e', '--cream': '#fdeef6', '--paper': '#fffafd' } },
   ...Object.fromEntries(Object.entries(TYPE_COLORS).map(([t, c]) => [`type-${t.toLowerCase()}`, { name: `${t} Type`, icon: TYPE_ICONS[t], swatch: [mix(c, '#000000', 0.62), mix(c, '#ffffff', 0.86), c], vars: palette(c) }])),
 };
 
@@ -55,7 +58,7 @@ export function unlocked(c = me()) {
 // Dice sets: everyone starts with Classic and Poké Ball, plus the set matching their type; the GM gives out the rest
 // (and "custom" = making your own colours) as rewards (party/<id>/dice).
 const TYPE_DICE = { Grass: 'leaf', Bug: 'leaf', Fire: 'ember', Water: 'water', Ice: 'water', Dark: 'night', Ghost: 'night', Steel: 'gold', Ground: 'oak', Rock: 'oak' };
-export const DICE_REWARDS = { greatball: 'Great Ball dice', ultraball: 'Ultra Ball dice', leaf: 'Leaf dice', ember: 'Ember dice', water: 'Water dice', night: 'Night dice', gold: 'Gold dice', oak: 'Oak dice', timegear: 'Time Gear dice', runes: 'Rune dice', fall: 'Autumn Leaf dice', custom: 'Make-your-own dice colours' };
+export const DICE_REWARDS = { greatball: 'Great Ball dice', ultraball: 'Ultra Ball dice', leaf: 'Leaf dice', ember: 'Ember dice', water: 'Water dice', night: 'Night dice', gold: 'Gold dice', oak: 'Oak dice', timegear: 'Time Gear dice', runes: 'Rune dice', fall: 'Autumn Leaf dice', comet: 'Comet dice', cottoncandy: 'Cotton Candy dice', carousel: 'Carousel dice', custom: 'Make-your-own dice colours' };
 export function diceUnlocked(c = me()) {
   const own = c ? [c.type1, c.type2].map((t) => TYPE_DICE[t]).filter(Boolean) : [];
   return new Set(['classic', 'pokeball', ...own, ...(c && Array.isArray(c.dice) ? c.dice : [])]);

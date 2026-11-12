@@ -96,6 +96,18 @@ const PLAY_ARP = PLAY_BARS.flatMap(([, , [a, b]]) => [0, 0, a + 12, 0, 0, 0, b +
 const PARTY_LEAD = [74, 0, 78, 81, 78, 0, 74, 0, 79, 0, 83, 86, 83, 0, 79, 0, 81, 0, 85, 88, 85, 81, 0, 85, 86, 0, 81, 78, 74, 0, 0, 0];
 const PARTY_BASS = [38, 43, 45, 38].flatMap((r) => [r, 0, r + 12, 0, r, 0, r + 12, r]);
 const PARTY_DRUMS = [0, 1, 2, 3].flatMap((b) => (b === 3 ? ['k', 0, 's', 0, 'k', 's', 's', 's'] : ['k', 0, 's', 0, 'k', 0, 's', 0]));
+// Star Carnival (her ask 11-11: the look, music and games of the 102 Dalmatians carnival, Jirachi's Wishmaker festival):
+// an original calliope waltz in A minor with a little spooky edge (chromatic turns), 3/4 at six eighths a bar, oom-pah-pah:
+// a low note on the downbeat, organ chords on beats 2 and 3, and a glockenspiel twinkle at the end of every other bar.
+const CARN_LEAD = [76, 75, 76, 0, 72, 0, 69, 0, 72, 0, 76, 0, 74, 73, 74, 0, 71, 0, 68, 0, 71, 0, 74, 0,
+  76, 0, 74, 0, 71, 0, 68, 0, 0, 0, 64, 0, 69, 0, 72, 0, 76, 0, 81, 0, 0, 0, 0, 0,
+  77, 76, 77, 0, 74, 0, 69, 0, 74, 0, 77, 0, 76, 75, 76, 0, 72, 0, 69, 0, 72, 0, 76, 0,
+  71, 0, 74, 0, 80, 0, 83, 0, 80, 0, 74, 0, 76, 0, 72, 0, 71, 0, 69, 0, 0, 0, 0, 0];
+const CARN_CH = { Am: [45, [60, 64, 69]], E7: [40, [59, 62, 68]], E: [40, [59, 64, 68]], Dm: [38, [62, 65, 69]] };
+const CARN_BARS = ['Am', 'Am', 'E7', 'E7', 'E7', 'E7', 'Am', 'Am', 'Dm', 'Dm', 'Am', 'Am', 'E', 'E7', 'Am', 'Am'].map((c) => CARN_CH[c]);
+const CARN_BASS = CARN_BARS.flatMap(([r]) => [r, 0, 0, 0, 0, 0]);
+const CARN_COMP = CARN_BARS.flatMap(([, ch]) => [0, 0, ch, 0, ch, 0]);
+const CARN_ARP = CARN_BARS.flatMap(([, ch], k) => [0, 0, 0, 0, 0, k % 2 ? ch[2] + 24 : 0]);
 const SONGS = {
   battle: { bpm: 168, lead: BATTLE_LEAD, bass: BATTLE_BASS, drums: BATTLE_DRUMS, hat: 1, leadVol: 0.045, leadLen: 0.8 },
   dance: { bpm: 160, lead: LEAD, bass: BASS, hat: 2 },
@@ -108,6 +120,7 @@ const SONGS = {
   playdate: { bpm: 126, lead: PLAY_LEAD, bass: PLAY_BASS, arp: PLAY_ARP, hat: 4, leadType: 'triangle', leadVol: 0.07, leadLen: 0.7 },
   party: { bpm: 152, lead: PARTY_LEAD, bass: PARTY_BASS, drums: PARTY_DRUMS, hat: 2, leadVol: 0.045, leadLen: 0.7 },
   celebi: { bpm: 100, lead: CELEBI_LEAD, bass: CELEBI_BASS, arp: CELEBI_ARP, bell: true },
+  carnival: { bpm: 150, bar: 6, lead: CARN_LEAD, bass: CARN_BASS, comp: CARN_COMP, arp: CARN_ARP, leadVol: 0.05, leadLen: 0.85 },
   casino: { bpm: 116, lead: CASINO_LEAD, bass: CASINO_BASS, comp: CASINO_COMP, hat: 2, swing: 0.33, leadType: 'triangle', leadVol: 0.07 },
 };
 const STEP_NOTE = { up: 84, right: 79, left: 76, down: 72 };
