@@ -5,15 +5,15 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, wishDay, total }.
-import * as store from './store.js?v=6af51f29';
-import { $, $$, esc, toast, num } from './util.js?v=6af51f29';
-import { me, logRoll } from './play.js?v=6af51f29';
-import { markWinner } from './sparkle.js?v=6af51f29';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af51f29';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af51f29';
-import { DECOR } from './basedecor.js?v=6af51f29';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af51f29';
-import { REWARD_CURSORS } from './digcursor.js?v=6af51f29';
+import * as store from './store.js?v=6af52116';
+import { $, $$, esc, toast, num } from './util.js?v=6af52116';
+import { me, logRoll } from './play.js?v=6af52116';
+import { markWinner } from './sparkle.js?v=6af52116';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af52116';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af52116';
+import { DECOR } from './basedecor.js?v=6af52116';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af52116';
+import { REWARD_CURSORS } from './digcursor.js?v=6af52116';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -49,7 +49,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af51f29').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af52116').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -104,25 +104,52 @@ const GAMES = {
         $('.cv-p', el).textContent = picks; $('.cv-s', el).textContent = sum;
         if (!picks) setTimeout(() => { ducks.forEach((x) => x.classList.add('picked')); setTimeout(() => done(sum, `picked ducks worth ${sum}`), 1400); }, 400); }; });
     } },
-  balloons: { name: 'Pikachu Balloon Pop', who: 'Pikachu', face: 'pikachu', icon: '🎈', blurb: 'Pop the Pikachu balloons as they float up. Leave the Voltorb ones alone!',
-    how: '30 seconds. Yellow Pikachu balloons +1, gold star balloons +3. Voltorb balloons zap you for −3.',
-    tickets: (s) => (s >= 34 ? 20 : s >= 24 ? 12 : s >= 14 ? 7 : s > 0 ? 3 : 0),
+  balloons: { name: 'Pikachu Balloon Pop', who: 'Pikachu', face: 'pikachu', icon: '🎈', blurb: 'Run along the top as Pikachu and pop the balloons with Iron Tail and Thundershock!',
+    how: '30 seconds. Tap where Pikachu should run (or use ← →). ⚡ Thundershock zaps straight down and pops the first balloon under Pikachu. 🌀 Iron Tail swings wide but only reaches balloons near the top. Red 1 · Blue 2 · Green 3 · Purple 5 · Gold 10. Voltorb balloons blow up for −5!',
+    tickets: (s) => (s >= 120 ? 20 : s >= 80 ? 12 : s >= 45 ? 7 : s > 0 ? 3 : 0),
+    // her ask 11-11: Pikachu runs on top and pops rising balloons with Iron Tail or Thundershock; very round, colourful
+    // balloons where each colour is worth something
     play(el, c, done) {
-      const f = hud(el); f.classList.add('cv-sky'); let score = 0; let on = true; const bs = new Set();
-      timer(el, 30, null, () => { on = false; setTimeout(() => done(score, `${score} balloon points`), 700); });
+      const COLORS = [['red', 1, 0.33], ['blue', 2, 0.25], ['green', 3, 0.17], ['purple', 5, 0.12], ['gold', 10, 0.06], ['volt', -5, 0.07]];
+      el.innerHTML = `<div class="cv-hud"><span>⏱️ <b class="cv-t">30</b></span><span>⭐ <b class="cv-s">0</b></span></div>
+        <div class="cv-field cv-sky cv-bp"><div class="cv-bp-rail"></div><div class="cv-pika"><span class="cv-pika-r"></span><span class="cv-pika-l"></span></div><svg class="cv-bolt" viewBox="0 0 20 100" preserveAspectRatio="none"><polyline points="10,0 4,18 14,34 5,52 15,70 6,86 11,100" fill="none" stroke="#fff35a" stroke-width="3"/></svg><span class="cv-tail"></span></div>
+        <div class="row cv-bp-btns"><button class="btn" id="cvzap">⚡ Thundershock</button><button class="btn alt" id="cvtail">🌀 Iron Tail</button></div>
+        <div class="cv-bp-key small muted">${COLORS.filter(([k]) => k !== 'volt').map(([k, v]) => `<span><i class="cv-dot ${k}"></i>${v}</span>`).join('')}<span><i class="cv-dot volt"></i>−5</span></div>`;
+      const f = $('.cv-bp', el); const pika = $('.cv-pika', f); const bolt = $('.cv-bolt', f); const tail = $('.cv-tail', f);
+      Promise.all([fz().then((m) => m?.walkSprite('Pikachu', 2, 'right')), fz().then((m) => m?.walkSprite('Pikachu', 2, 'left'))]).then(([r, l]) => {
+        if (!f.isConnected) return; if (r) $('.cv-pika-r', pika).innerHTML = r.html; if (l) $('.cv-pika-l', pika).innerHTML = l.html; }).catch(() => {});
+      let score = 0; let on = true; let px = 50; let target = 50; let face = 'r'; let zapAt = 0; let tailAt = 0; const bs = new Set();
+      const pick = () => { let r = Math.random(); for (const x of COLORS) { r -= x[2]; if (r <= 0) return x; } return COLORS[0]; };
+      const pop = (b) => { if (b._dead) return; b._dead = true; score = Math.max(0, score + b._v); b.classList.add('pop');
+        b.insertAdjacentHTML('beforeend', `<em>${b._v > 0 ? '+' + b._v : b._v}</em>`);
+        if (b._v < 0) { missSound(); f.classList.add('zap'); setTimeout(() => f.classList.remove('zap'), 300); } else stepSound(b._v >= 5 ? 'up' : 'left');
+        $('.cv-s', el).textContent = score; setTimeout(() => { b.remove(); bs.delete(b); }, 380); };
+      const zap = () => { const t = performance.now(); if (!on || t - zapAt < 550) return; zapAt = t;
+        bolt.style.left = px + '%'; bolt.classList.remove('go'); void bolt.offsetWidth; bolt.classList.add('go');
+        const hit = [...bs].filter((b) => !b._dead && Math.abs(b._x - px) < 7 && b._y < 96).sort((a, b) => b._y - a._y)[0];
+        if (hit) { bolt.style.height = `${Math.max(8, 100 - hit._y - 14)}%`; pop(hit); } else bolt.style.height = '100%'; };
+      const swing = () => { const t = performance.now(); if (!on || t - tailAt < 450) return; tailAt = t;
+        tail.style.left = px + '%'; tail.classList.remove('go'); void tail.offsetWidth; tail.classList.add('go'); pika.classList.remove('spin'); void pika.offsetWidth; pika.classList.add('spin');
+        [...bs].filter((b) => !b._dead && Math.abs(b._x - px) < 14 && b._y > 58 && b._y < 100).forEach(pop); };
+      $('#cvzap', el).onclick = zap; $('#cvtail', el).onclick = swing;
+      f.onpointerdown = (e) => { const r = f.getBoundingClientRect(); target = Math.max(4, Math.min(96, (e.clientX - r.left) / r.width * 100)); };
+      const keys = (e) => { if (!el.isConnected) { removeEventListener('keydown', keys); return; }
+        if (e.key === 'ArrowLeft') target = Math.max(4, px - 12); else if (e.key === 'ArrowRight') target = Math.min(96, px + 12);
+        else if (e.key === ' ' || e.key === 'z') zap(); else if (e.key === 'ArrowUp' || e.key === 'x') swing(); else return; e.preventDefault(); };
+      addEventListener('keydown', keys);
+      timer(el, 30, null, () => { on = false; removeEventListener('keydown', keys); setTimeout(() => done(score, `${score} balloon points`), 700); });
       const spawn = () => { if (!el.isConnected || !on) return;
-        const r = Math.random(); const kind = r < 0.08 ? 'star' : r < 0.25 ? 'volt' : 'pika';
-        const b = document.createElement('button'); b.className = `cv-balloon ${kind}`; b.innerHTML = kind === 'pika' ? `<img src="${P('pikachu')}" alt="">` : kind === 'star' ? '⭐' : '<i></i>';
-        b._x = 5 + Math.random() * 80; b._y = -20; b._v = 16 + Math.random() * 16; b.style.left = b._x + '%'; f.appendChild(b); bs.add(b);
-        b.onpointerdown = (e) => { e.preventDefault(); if (!on || b.classList.contains('pop')) return; const pts = kind === 'star' ? 3 : kind === 'volt' ? -3 : 1;
-          score = Math.max(0, score + pts); b.classList.add('pop'); kind === 'volt' ? (missSound(), f.classList.add('zap'), setTimeout(() => f.classList.remove('zap'), 300)) : stepSound(kind === 'star' ? 'up' : 'left');
-          $('.cv-s', el).textContent = score; setTimeout(() => { b.remove(); bs.delete(b); }, 250); };
-        setTimeout(spawn, 380 + Math.random() * 260); };
+        const [kind, v] = pick(); const b = document.createElement('div'); b.className = `cv-bal ${kind}`; b.innerHTML = kind === 'volt' ? '<i></i>' : `<b>${v}</b>`;
+        b._x = 6 + Math.random() * 88; b._y = -22; b._v = v; b._sp = 13 + Math.random() * 10 + (kind === 'gold' ? 6 : 0); b._w = Math.random() * 6;
+        b.style.left = b._x + '%'; f.appendChild(b); bs.add(b);
+        setTimeout(spawn, 330 + Math.random() * 300); };
       let last = performance.now();
-      const step = (t) => { if (!el.isConnected) return; const dt = (t - last) / 1000; last = t;
-        bs.forEach((b) => { if (b.classList.contains('pop')) return; b._y += b._v * dt; b.style.bottom = b._y + '%'; if (b._y > 110) { b.remove(); bs.delete(b); } });
+      const step = (t) => { if (!el.isConnected) return; const dt = Math.min(0.05, (t - last) / 1000); last = t;
+        const d = target - px; if (Math.abs(d) > 0.5) { const nf = d > 0 ? 'r' : 'l'; if (nf !== face) { face = nf; pika.dataset.face = face; } px += Math.sign(d) * Math.min(Math.abs(d), 75 * dt); pika.classList.add('run'); } else pika.classList.remove('run');
+        pika.style.left = px + '%';
+        bs.forEach((b) => { if (b._dead) return; b._y += b._sp * dt; b.style.bottom = b._y + '%'; b.style.marginLeft = `${Math.sin(t / 600 + b._w) * 6}px`; if (b._y > 112) { b.remove(); bs.delete(b); } });
         requestAnimationFrame(step); };
-      requestAnimationFrame(step); spawn();
+      pika.dataset.face = 'r'; requestAnimationFrame(step); spawn();
     } },
   rings: { name: 'Slowpoke Ring Toss', who: 'Slowpoke', face: 'slowpoke', icon: '⭕', blurb: 'Toss rings onto the Slowpoke. They’re slow… but they do sway.',
     how: '6 rings. The arrow slides back and forth: tap Throw when it’s right over a Slowpoke. 3 tickets a ringer, +5 for all six.',
