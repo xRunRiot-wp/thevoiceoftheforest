@@ -3297,3 +3297,96 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .cv-kfly { position: absolute; z-index: 6; pointer-events: none; font-size: 28px; }
 .cv-kfly .fzs-spr { margin-bottom: 0 !important; }
 .cv-kleft { position: absolute; left: 8px; bottom: 8px; display: flex; gap: 2px; z-index: 6; } .cv-kleft span { transform: scale(.75); transform-origin: 0 100%; display: flex; } .cv-kleft .fzs-spr { margin-bottom: 0 !important; }
+
+/* ---- Walk-around midway (her ask 11-12: "increase the detail off the types of rides and stands in the background. I want it to feel busy and where we can walk around") ---- */
+.cv-scene.mw-scene { height: 320px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.mw-far { position: absolute; left: 0; bottom: 60px; height: 220px; z-index: 0; will-change: transform; pointer-events: none; }
+.mw-farsvg { display: block; }
+.mw-farl { fill: #ffe07a; animation: cv-blink 1.6s steps(1) infinite; } .mw-farl.red { fill: #ff4a4a; animation-duration: 1s; }
+.mw-world { position: absolute; left: 0; top: 0; bottom: 0; z-index: 1; will-change: transform; }
+.mw-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 66px; z-index: 0; cursor: pointer;
+  background: radial-gradient(ellipse 120px 30px at 50% 0, rgba(255, 210, 120, .28), transparent 70%) 0 0 / 260px 66px repeat-x,
+    radial-gradient(circle at 25% 40%, rgba(255, 255, 255, .05) 6px, transparent 7px) 0 0 / 28px 18px, radial-gradient(circle at 75% 80%, rgba(0, 0, 0, .18) 6px, transparent 7px) 0 0 / 28px 18px,
+    linear-gradient(#5a3a26 0, #4a2e1e 8px, #3a2216 40%, #24140c); border-top: 3px solid #7a5232; }
+.mw-litter { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; pointer-events: none; z-index: 1; }
+.mw-litter i { position: absolute; width: 4px; height: 3px; border-radius: 1px; opacity: .8; }
+.mw-strings { position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none; }
+.mw-lamp { position: absolute; bottom: 60px; width: 14px; height: 120px; z-index: 4; pointer-events: none; background: linear-gradient(90deg, #1a1008, #4a3a2a 50%, #1a1008) 50% 0 / 4px 100% no-repeat; }
+.mw-lamp::before { content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 8px; border-radius: 3px; background: #2b1d12; }
+.mw-lamp i { position: absolute; left: -3px; top: -12px; width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(#fffbe0, #ffd77a 60%, #c9883a); box-shadow: 0 0 22px 8px rgba(255, 215, 120, .45); }
+.mw-spot { position: absolute; bottom: 58px; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: inherit; z-index: 3; transition: filter .2s; }
+.mw-spot:hover, .mw-spot:focus-visible, .mw-spot.near { filter: brightness(1.18) drop-shadow(0 0 10px rgba(255, 225, 140, .55)); }
+.mw-tag { position: absolute; left: 50%; bottom: -16px; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 700; color: #ffe7a0; background: rgba(20, 10, 40, .82); border: 1px solid #f2c14e; border-radius: 999px; padding: 1px 8px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 6; }
+.mw-spot.near .mw-tag, .mw-spot:hover .mw-tag { opacity: 1; }
+.mw-bulb { position: absolute; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: #ffe07a; box-shadow: 0 0 6px #ffd24a; animation: tc-blink 1.1s steps(1) infinite; }
+.mw-bulb.sm { width: 4px; height: 4px; margin-left: -2px; }
+/* booth-game stalls */
+.mw-booth { height: 150px; }
+.mw-bpost { position: absolute; bottom: 0; width: 8px; height: 132px; background: linear-gradient(90deg, #8a5a2a, #c9884a, #8a5a2a); z-index: 2; } .mw-bpost.l { left: 4px; } .mw-bpost.r { right: 4px; }
+.mw-back { position: absolute; left: 10px; right: 10px; bottom: 0; height: 120px; background: linear-gradient(#3a1a52, #24124a); box-shadow: inset 0 0 18px rgba(0, 0, 0, .6); z-index: 0; }
+.mw-prz { position: absolute; left: 4px; right: 4px; top: 14px; display: flex; justify-content: space-around; font-size: 15px; }
+.mw-prz i { font-style: normal; animation: cv-float 2.4s ease-in-out infinite; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .5)); }
+.mw-awn { position: absolute; left: -6px; right: -6px; top: 4px; height: 24px; z-index: 3; border-radius: 4px; background: repeating-linear-gradient(90deg, var(--a) 0 16px, var(--b) 16px 32px); box-shadow: 0 3px 0 rgba(0, 0, 0, .35); }
+.mw-awn::after { content: ''; position: absolute; left: 0; right: 0; bottom: -7px; height: 8px; background: radial-gradient(circle at 8px 0, var(--a) 7px, transparent 8px) 0 0 / 32px 8px repeat-x, radial-gradient(circle at 24px 0, var(--b) 7px, transparent 8px) 0 0 / 32px 8px repeat-x; }
+.mw-sign { position: absolute; left: 8px; right: 8px; top: -22px; height: 24px; z-index: 4; display: flex; align-items: center; justify-content: center; font-family: var(--pix); font-weight: 700; font-size: 13px; color: #ffe7a0; text-shadow: 0 1px 0 #000; background: #2b1d12; border: 2px solid #f2c14e; border-radius: 6px; white-space: nowrap; }
+.mw-counter { position: absolute; left: 6px; right: 6px; bottom: 0; height: 40px; z-index: 2; background: linear-gradient(#f6eedf, #e2cfae); border-radius: 3px; box-shadow: 0 3px 6px rgba(0, 0, 0, .5); }
+.mw-ctop { position: absolute; left: -4px; right: -4px; top: -6px; height: 8px; background: linear-gradient(#e8b46a, #a8743a); border-radius: 3px; }
+.mw-host { position: absolute; left: 50%; bottom: 36px; transform: translateX(-50%); z-index: 1; display: flex; align-items: flex-end; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .5)); pointer-events: none; }
+.mw-host.big { bottom: 2px; z-index: 3; }
+.mw-tank { position: absolute; right: 14px; bottom: 34px; width: 46px; height: 40px; z-index: 1; border: 2px solid #9ad8ff; border-top: 0; border-radius: 0 0 6px 6px; overflow: hidden; }
+.mw-water { position: absolute; left: 0; right: 0; bottom: 0; height: 60%; background: linear-gradient(#5fc0ff, #2a7ad6); animation: cv-float 2s ease-in-out infinite; }
+.mw-plank { position: absolute; left: -2px; right: -2px; top: 4px; height: 4px; background: #c9884a; }
+.mw-tub { position: absolute; left: 14px; bottom: 34px; width: 44px; height: 16px; z-index: 3; border-radius: 50%; background: #3a8ad6; border: 2px solid #8a5a2a; display: flex; justify-content: space-around; align-items: center; font-size: 9px; }
+.mw-tub i { font-style: normal; }
+.mw-pins { position: absolute; right: 16px; bottom: 40px; z-index: 3; font-size: 16px; animation: cv-float 1.8s ease-in-out infinite; }
+.mw-bwall { position: absolute; left: 16px; right: 16px; top: 34px; display: flex; flex-wrap: wrap; justify-content: space-around; gap: 3px; z-index: 0; }
+.mw-bwall i { width: 10px; height: 13px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; animation: cv-float 1.6s ease-in-out infinite; }
+/* rides */
+.mw-wheel { width: 250px; height: 290px; bottom: 54px; z-index: 2; } .mw-wheel svg { width: 100%; height: 100%; overflow: visible; }
+.mw-wspin { animation: cv-spin 30s linear infinite; transform-origin: 0 0; } .mw-gond { animation: cv-spin 30s linear infinite reverse; transform-box: fill-box; transform-origin: 50% 0; }
+.mw-bigtop { width: 280px; height: 220px; z-index: 2; } .mw-bigtop svg { width: 100%; height: 100%; overflow: visible; }
+.mw-carousel { width: 200px; height: 180px; z-index: 2; } .mw-carousel svg { width: 100%; height: 100%; overflow: visible; }
+.mw-horse { position: absolute; bottom: 34px; transform: translateX(-50%); animation: mw-bob 1.6s ease-in-out infinite; z-index: 1; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .5)); }
+@keyframes mw-bob { 50% { transform: translate(-50%, -14px); } }
+.mw-teacups { width: 220px; height: 130px; z-index: 3; } .mw-teacups svg { width: 100%; height: 100%; overflow: visible; }
+.mw-cup { animation: mw-cup 1.4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 80%; }
+@keyframes mw-cup { from { transform: rotate(-10deg) translateX(-4px); } to { transform: rotate(10deg) translateX(4px); } }
+.mw-teacups svg { position: relative; z-index: 1; }
+.mw-coaster { width: 360px; height: 210px; bottom: 56px; z-index: 1; } .mw-coaster svg { width: 100%; height: 100%; overflow: visible; }
+.mw-train { position: absolute; left: 0; top: 0; display: flex; gap: 2px; offset-rotate: auto; offset-anchor: 50% 100%; animation: mw-ride 7s cubic-bezier(.45, 0, .55, 1) infinite; }
+@keyframes mw-ride { 0% { offset-distance: 0%; } 12% { offset-distance: 8%; } 100% { offset-distance: 100%; } }
+.mw-car { width: 18px; height: 10px; border-radius: 3px 3px 5px 5px; background: #ffd24a; border: 1px solid #8a5a1a; display: flex; justify-content: center; align-items: flex-end; overflow: visible; }
+.mw-car.lead { background: #e24a4a; }
+.mw-car .fzs-spr { margin-bottom: 4px !important; }
+.mw-fun { width: 220px; height: 220px; z-index: 2; } .mw-fun svg { width: 100%; height: 100%; overflow: visible; }
+.mw-win { animation: mw-flicker 3.2s steps(1) infinite; } @keyframes mw-flicker { 0%, 100% { fill: #b47aff; } 40% { fill: #ff7ad8; } 43% { fill: #4a2a6a; } 46% { fill: #b47aff; } }
+.mw-neon { animation: tc-blink .9s steps(1) infinite; }
+.mw-ghost { position: absolute; left: 50%; top: 76px; width: 64px; height: 64px; transform: translateX(-50%); border-radius: 50%; image-rendering: pixelated; animation: mw-ghost 2.6s ease-in-out infinite; }
+@keyframes mw-ghost { 50% { transform: translate(-50%, -4px) scale(1.05); opacity: .8; } }
+.mw-fsign { position: absolute; left: 50%; top: 30px; transform: translateX(-50%) rotate(-4deg); font-family: var(--pix); font-weight: 700; font-size: 15px; color: #ff7ad8; text-shadow: 0 0 6px #ff4ad0; letter-spacing: 1px; }
+.mw-str { width: 100px; height: 230px; bottom: 54px; } .mw-str svg { width: 100%; height: 100%; overflow: visible; }
+.mw-meter { animation: tc-blink 1.4s steps(1) infinite; }
+.mw-bell { animation: mw-ring 3s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0; } @keyframes mw-ring { 0%, 80%, 100% { transform: rotate(0); } 85% { transform: rotate(14deg); } 90% { transform: rotate(-14deg); } }
+.mw-stand { bottom: 58px; width: 60px; z-index: 3; }
+.mw-stand img { width: 40px; height: 40px; }
+/* entrance */
+.mw-arch { position: absolute; bottom: 58px; width: 220px; height: 200px; z-index: 2; pointer-events: none; }
+.mw-apost { position: absolute; bottom: 0; width: 18px; height: 170px; background: repeating-linear-gradient(-45deg, #d63a3a 0 10px, #f6eedf 10px 20px); border: 2px solid #8a1f1f; border-radius: 4px 4px 0 0; } .mw-apost.l { left: 0; } .mw-apost.r { right: 0; }
+.mw-asign { position: absolute; left: -6px; right: -6px; top: 0; height: 38px; display: flex; align-items: center; justify-content: center; font-family: var(--pix); font-weight: 700; font-size: 17px; color: #ffe7a0; text-shadow: 0 1px 0 #000, 0 0 8px rgba(255, 200, 100, .6); background: linear-gradient(#5a1f8a, #3a1a6a); border: 3px solid #f2c14e; border-radius: 18px 18px 6px 6px; }
+.mw-asign .mw-bulb { margin-left: 3px; }
+/* the crowd, you, the pop-up, the walk buttons */
+.mw-crowd { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.mw-npc { position: absolute; left: 0; display: flex; flex-direction: column; align-items: center; will-change: transform; margin-left: -20px; }
+.mw-npc .fzs-spr { filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .5)) brightness(.95); }
+.mw-ball { position: absolute; top: -34px; right: -6px; width: 14px; height: 17px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; animation: cv-float 1.8s ease-in-out infinite; }
+.mw-ball::after { content: ''; position: absolute; left: 50%; top: 100%; width: 1px; height: 22px; background: rgba(255, 255, 255, .6); }
+.mw-world .cv-walk.mw-me { left: 0; bottom: 10px; z-index: 7; will-change: transform; }
+.mw-prompt { position: absolute; bottom: 92px; transform: translateX(-50%); z-index: 9; white-space: nowrap; font: inherit; font-size: 13px; font-weight: 700; color: #2b1d12; background: #ffd24a; border: 2px solid #8a5a1a; border-radius: 999px; padding: 4px 12px; cursor: pointer; box-shadow: 0 3px 0 #8a5a1a, 0 4px 10px rgba(0, 0, 0, .5); }
+.mw-prompt[hidden] { display: none; }
+.mw-pad { position: absolute; bottom: 10px; z-index: 10; width: 48px; height: 48px; border-radius: 50%; border: 2px solid #f2c14e; background: rgba(20, 10, 40, .72); color: #ffe7a0; font-size: 20px; cursor: pointer; touch-action: none; }
+.mw-pad.l { left: 10px; } .mw-pad.r { right: 10px; }
+.mw-pad:active { background: rgba(90, 40, 140, .9); }
+.mw-hint { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); z-index: 10; font-size: 12px; color: #ffe7a0; background: rgba(20, 10, 40, .78); border-radius: 999px; padding: 3px 12px; white-space: nowrap; transition: opacity .6s; pointer-events: none; }
+.mw-hint.gone { opacity: 0; }
+@media (max-width: 460px) { .cv-scene.mw-scene { height: 300px; } }
+@media (prefers-reduced-motion: reduce) { .mw-scene * { animation-duration: 0s !important; } }

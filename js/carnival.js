@@ -5,15 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af64e2f';
-import { $, $$, esc, toast, num } from './util.js?v=6af64e2f';
-import { me, logRoll } from './play.js?v=6af64e2f';
-import { markWinner } from './sparkle.js?v=6af64e2f';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af64e2f';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af64e2f';
-import { DECOR } from './basedecor.js?v=6af64e2f';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af64e2f';
-import { REWARD_CURSORS } from './digcursor.js?v=6af64e2f';
+import * as store from './store.js?v=6af65085';
+import { $, $$, esc, toast, num } from './util.js?v=6af65085';
+import { me, logRoll } from './play.js?v=6af65085';
+import { markWinner } from './sparkle.js?v=6af65085';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af65085';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af65085';
+import { DECOR } from './basedecor.js?v=6af65085';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af65085';
+import { REWARD_CURSORS } from './digcursor.js?v=6af65085';
+import { midwayHTML, mountMidway } from './midway.js?v=6af65085';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -52,7 +53,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af64e2f').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af65085').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -414,22 +415,13 @@ export function renderCarnival(main, g, gm, onEdit) {
   let tab = 'games'; let prizeTab = 'decor'; let buying = null;
   main.innerHTML = `<div class="row" style="justify-content:space-between;margin-top:12px"><a class="btn alt sm" href="#/games">← Games</a><span class="row" style="gap:6px"><button class="btn alt sm" id="cvmusic"></button>${gm ? '<button class="btn alt sm" id="ed">Edit</button>' : ''}</span></div>
     <h1 style="margin:10px 0 4px">${esc(g.name)}</h1><p>${esc(g.intro || '')}</p>
-    <div class="cv-scene" id="cvscene">
+    <div class="cv-scene mw-scene" id="cvscene">
       <div class="cv-stars"></div><div class="cv-comet"><i></i></div><div class="cv-jirachi" title="Jirachi"></div><span class="cv-shoot"></span>
-      <svg class="cv-wheel" viewBox="-60 -60 120 120" aria-hidden="true"><g class="cv-wheel-spin"><circle r="52" fill="none" stroke="#f2c14e" stroke-width="2.5"/><circle r="10" fill="#f2c14e"/>
-        ${Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6; const x = Math.cos(a) * 52; const y = Math.sin(a) * 52; return `<line x1="0" y1="0" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#f2c14e" stroke-width="1.2"/><circle class="cv-bulb" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.4" style="animation-delay:${(i % 3) * 0.35}s"/><rect x="${(x - 5).toFixed(1)}" y="${(y + 2).toFixed(1)}" width="10" height="8" rx="2" fill="${['#e24a4a', '#4a8fe2', '#f2c14e', '#a45ae2'][i % 4]}"/>`; }).join('')}</g>
-        <path d="M0 0 L-30 64 M0 0 L30 64" stroke="#c99a3a" stroke-width="3"/></svg>
-      <svg class="cv-tent" viewBox="0 0 160 110" aria-hidden="true"><defs><pattern id="cvst" width="20" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#d63a3a"/><rect x="10" width="10" height="10" fill="#f6eedf"/></pattern></defs>
-        <path d="M80 4 L150 60 L150 106 L10 106 L10 60 Z" fill="url(#cvst)"/><path d="M80 4 L150 60 L10 60 Z" fill="url(#cvst)" stroke="#8a1f1f" stroke-width="2"/><path d="M80 4 L80 -8 L96 -3 L80 2" fill="#f2c14e"/>
-        <path d="M60 106 Q80 66 100 106 Z" fill="#ffd77a" class="cv-door"/><path d="M10 60 Q30 72 45 60 Q62 72 80 60 Q98 72 115 60 Q130 72 150 60" fill="none" stroke="#f2c14e" stroke-width="3"/></svg>
-      <svg class="cv-carousel" viewBox="0 0 120 100" aria-hidden="true"><path d="M60 6 L114 34 L6 34 Z" fill="#a45ae2" stroke="#f2c14e" stroke-width="2"/><path d="M6 34 Q20 42 33 34 Q47 42 60 34 Q73 42 87 34 Q100 42 114 34" fill="#f2c14e"/>
-        <g class="cv-poles">${[22, 46, 74, 98].map((x, i) => `<line x1="${x}" y1="38" x2="${x}" y2="84" stroke="#f2c14e" stroke-width="2"/><ellipse class="cv-horse" style="animation-delay:${i * 0.4}s" cx="${x}" cy="66" rx="9" ry="6" fill="#fbe9d0"/>`).join('')}</g><rect x="4" y="84" width="112" height="10" rx="3" fill="#6b2a3a" stroke="#f2c14e" stroke-width="2"/></svg>
       <svg class="cv-lights" viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 4 Q75 34 150 6 Q225 34 300 4" fill="none" stroke="#2b1d12" stroke-width="1"/>
         ${Array.from({ length: 22 }, (_, i) => { const t = (i + 0.5) / 22; const seg = t < 0.5 ? t * 2 : (t - 0.5) * 2; const x = t * 300; const y = 4 + Math.sin(seg * Math.PI) * 26 - (t < 0.5 ? 0 : 1); return `<circle class="cv-bulb ${i % 7 === 3 ? 'flick' : ''}" cx="${x.toFixed(1)}" cy="${(y + 3).toFixed(1)}" r="2.6" style="animation-delay:${(i % 4) * 0.3}s"/>`; }).join('')}</svg>
-      <div class="cv-ground"></div><div class="cv-fog"></div><div class="cv-fog b"></div>
+      ${midwayHTML(pairHTML(c, '', true), SNACKS)}
+      <div class="cv-fog"></div><div class="cv-fog b"></div>
       <div class="cv-tix" id="cvtix"></div>
-      <div class="cv-stands">${Object.entries(SNACKS).map(([k, S]) => `<button class="cv-stand s-${k}" data-stand="${k}" title="${esc(S.name)} · ${S.cost} tickets"><span class="cv-awn"></span><img src="${P(S.face)}" alt="${esc(S.who)}"><span class="cv-stand-treat">${S.icon}</span><small>🎟️${S.cost}</small></button>`).join('')}</div>
-      <div class="cv-walk">${pairHTML(c, '', true)}</div>
     </div>
     <div id="cvtalk">${mime(pickOne(GREET))}</div>
     ${c ? '' : '<p class="small muted">Pick your character on the home page to play and win tickets.</p>'}
@@ -440,13 +432,14 @@ export function renderCarnival(main, g, gm, onEdit) {
   pageMusic(main, 'carnival', 'cvmusic');
   const ed = $('#ed', main); if (ed) ed.onclick = onEdit;
   const scene = $('#cvscene', main); const panel = $('#cvpanel', main); const talk = $('#cvtalk', main);
-  fillPair(scene, c, 'right', 2);
+  // her ask 11-12: a busy midway you walk around; tapping a booth / ride / stand (or its pop-up) opens it
+  const mw = mountMidway(scene, { GAMES, RIDES, SNACKS }, (kind, k) => { if (!c) { say(mime('Pick your character on the home page first, then come play!')); return; } if (kind === 'game') playGame(k); else if (kind === 'ride') ride(k); else snack(k); }, (d) => budRow(scene, d || 'idle'));
+  fillPair(scene, c, 'right', 2).then(() => mw.refaceMe());
   spriteInto($('.cv-jirachi', scene), 'Jirachi', 1.5, 'down', true);
   const hopTimer = setInterval(() => { if (!scene.isConnected) { clearInterval(hopTimer); return; } budRow(scene, 'hop', false); setTimeout(() => budRow(scene, 'idle'), 1300); }, 9000);
   const showTix = () => { const e = $('#cvtix', main); if (e) e.innerHTML = c ? `🎟️ <b>${ticketsOf(c.id)}</b> ticket${ticketsOf(c.id) === 1 ? '' : 's'}` : '🎟️'; };
   showTix();
   const say = (html) => { talk.innerHTML = html; };
-  $$('[data-stand]', scene).forEach((b) => { b.onclick = () => snack(b.dataset.stand); });
   const tabs = () => $$('[data-tab]', main).forEach((b) => { b.className = `btn sm ${b.dataset.tab === tab ? '' : 'alt'}`; b.onclick = () => { tab = b.dataset.tab; buying = null; tabs(); draw(); }; });
   // her ask 11-12 "make these look like ticket counters with the pokemon ready. trying to maximize the empty row space":
   // each game / ride / snack is a little ticket booth (striped awning, its Pokémon moving behind the counter), side by
