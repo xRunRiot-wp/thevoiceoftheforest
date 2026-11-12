@@ -5,15 +5,15 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af52581';
-import { $, $$, esc, toast, num } from './util.js?v=6af52581';
-import { me, logRoll } from './play.js?v=6af52581';
-import { markWinner } from './sparkle.js?v=6af52581';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af52581';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af52581';
-import { DECOR } from './basedecor.js?v=6af52581';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af52581';
-import { REWARD_CURSORS } from './digcursor.js?v=6af52581';
+import * as store from './store.js?v=6af5265c';
+import { $, $$, esc, toast, num } from './util.js?v=6af5265c';
+import { me, logRoll } from './play.js?v=6af5265c';
+import { markWinner } from './sparkle.js?v=6af5265c';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af5265c';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af5265c';
+import { DECOR } from './basedecor.js?v=6af5265c';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af5265c';
+import { REWARD_CURSORS } from './digcursor.js?v=6af5265c';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -49,7 +49,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af52581').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af5265c').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -125,7 +125,7 @@ const GAMES = {
         if (b._v < 0) { missSound(); f.classList.add('zap'); setTimeout(() => f.classList.remove('zap'), 300); } else stepSound(b._v >= 5 ? 'up' : 'left');
         $('.cv-s', el).textContent = score; setTimeout(() => { b.remove(); bs.delete(b); }, 380); };
       const zap = () => { const t = performance.now(); if (!on || t - zapAt < 550) return; zapAt = t;
-        bolt.style.left = px + '%'; bolt.classList.remove('go'); void bolt.offsetWidth; bolt.classList.add('go');
+        bolt.style.left = px + '%'; bolt.animate([{ opacity: 1 }, { opacity: 0.5 }, { opacity: 1 }, { opacity: 0 }], { duration: 260 });   // SVG has no offsetWidth: getBoundingClientRect restarts the flash every time (her report 11-11)
         const hit = [...bs].filter((b) => !b._dead && Math.abs(b._x - px) < 7 && b._y < 96).sort((a, b) => b._y - a._y)[0];
         if (hit) { bolt.style.height = `${Math.max(8, 100 - hit._y - 14)}%`; pop(hit); } else bolt.style.height = '100%'; };
       const swing = () => { const t = performance.now(); if (!on || t - tailAt < 450) return; tailAt = t;
@@ -274,15 +274,28 @@ const EVOS = { pichu: ['Raichu', 'Pikachu'], cleffa: ['Clefable', 'Clefairy'], i
 const BABY_NAME = { mimejr: 'Mime Jr.' };
 const SHINY_HUE = { pichu: -50, cleffa: 160, igglybuff: 150, togepi: 200, tyrogue: 140, smoochum: 180, elekid: 150, magby: 70, azurill: 300, wynaut: 160, budew: 230, chingling: 140, bonsly: 60, mimejr: 160, happiny: 120, munchlax: 140, riolu: 160 };
 const an = (w) => (/^[AEIOU]/i.test(w) ? 'an ' : 'a ') + w;
+// her ask 11-11: the known shapeshifters can also turn up in the mirror, disguised as your buddy
+const SHIFTERS = [['Ditto', (b) => `Ditto! It used Transform to copy ${b}… but kept its goofy little face`], ['Mew', (b) => `Mew! It used Transform to pretend to be ${b}, giggling the whole time`],
+  ['Latias', (b) => `Latias! It bent the light around itself to look just like ${b}`], ['Latios', (b) => `Latios! It bent the light around itself to look just like ${b}`],
+  ['Zorua', (b) => `Zorua! It cast an Illusion to look like ${b}`], ['Zoroark', (b) => `Zoroark! The master of Illusion was pretending to be ${b}`],
+  ['Mimikyu', (b) => `Mimikyu! It was wearing a homemade ${b} costume`], ['Kecleon', (b) => `Kecleon! It changed its colors to blend in as ${b}`]];
 async function mirrorForm(sp) {
   const key = sp.startsWith('m_') ? 'ditto' : sp; const baby = BABY_NAME[key] || key.charAt(0).toUpperCase() + key.slice(1);
   const shiny = { fx: 'fx-shiny', style: `--hue:${SHINY_HUE[key] ?? 150}deg`, name: `a shiny ${baby}`, label: `a shiny ${baby}, sparkling all over` };
   // the evolution's walk sprite: usually the final form, sometimes the middle one; tries the next if one is missing
   const evoSprite = async () => { const m = await fz(); const list = [...(EVOS[key] || [baby])]; if (list.length > 1 && Math.random() < 0.3) list.push(list.shift());
     for (const n of list) { const w = await m?.walkSprite(n, 2, 'down', true).catch(() => null); if (w) return { n, html: w.html }; } return null; };
-  const kinds = ['evolved', 'shiny', 'mega', 'paradox', 'gmax'].sort(() => Math.random() - 0.5);
+  const kinds = ['evolved', 'shiny', 'mega', 'paradox', 'gmax', 'shifter'].sort(() => Math.random() - 0.5);
   for (const k of kinds) {
-    if (k === 'shiny') return shiny;
+    if (k === 'shiny') {   // the real shiny sprite when SpriteCollab has one, else Haunter's colour trick on the nursery sprite
+      const m = await fz(); const w = await m?.walkSprite(key === 'ditto' ? 'Ditto' : baby, 2, 'down', true, true).catch(() => null);
+      if (w && w.html.includes('/0000/0001/')) return { fx: 'fx-shinyreal', html: w.html, name: `a shiny ${baby}`, label: `a shiny ${baby}, sparkling all over` };
+      return shiny;
+    }
+    if (k === 'shifter') {
+      const m = await fz(); for (const [n, say] of [...SHIFTERS].sort(() => Math.random() - 0.5)) { const w = await m?.walkSprite(n, 2, 'down', true).catch(() => null); if (w) return { fx: 'fx-shifter', html: w.html, name: n, label: say(baby) }; }
+      continue;
+    }
     const e = await evoSprite(); if (!e) continue;
     const short = e.n.replace(/^Mr\. /, '');
     if (k === 'evolved') return { fx: 'fx-evolved', html: e.html, name: an(e.n), label: `${an(e.n)}, all grown up` };
@@ -494,7 +507,7 @@ export function renderCarnival(main, g, gm, onEdit) {
     if (form.html) refl.innerHTML = form.html; else copy();
     refl.className = 'cv-refl ' + form.fx; if (form.style) refl.setAttribute('style', form.style);
     jingle(true); budRow(rbox, 'hop', false);
-    say(`Whoa! In the mirror, ${bn} looks like ${form.label}!`); await wait(3400); if (!out.isConnected) return null;
+    say(form.fx === 'fx-shifter' ? `Wait… that’s not ${bn} in the mirror! It’s ${form.label}!` : `Whoa! In the mirror, ${bn} looks like ${form.label}!`); await wait(3400); if (!out.isConnected) return null;
     mirror.classList.add('wob'); say('Haunter cackles and the mirror wobbles back to normal. You made it out! “Come back soon, hehehe!”'); await wait(900); copy(); await wait(1500);
     mirror.classList.remove('wob');
     return out.isConnected ? form.name : null;

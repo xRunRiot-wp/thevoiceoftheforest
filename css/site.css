@@ -3127,3 +3127,7 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .cv-wishstar.can .cv-dream { animation: cv-dcpulse 2.4s ease-in-out infinite; }
 @keyframes cv-dcpulse { 50% { filter: drop-shadow(0 0 18px rgba(255, 236, 160, .7)); } }
 .cv-wishstar.full .cv-dream { filter: drop-shadow(0 0 22px #fff3a0); animation: cv-float 1.6s ease-in-out infinite; }
+
+.cv-refl.fx-shinyreal::after { content: '✨'; position: absolute; top: -18px; right: -14px; font-size: 22px; animation: cv-twinkle .6s ease-in-out infinite alternate; }
+.cv-refl.fx-shifter { animation: cv-shift 1.2s ease-out 1; filter: drop-shadow(0 0 8px #e08aff); }
+@keyframes cv-shift { 0% { filter: brightness(4) blur(3px); transform: scaleX(-1) scaleY(.2); } 60% { transform: scaleX(-1) scaleY(1.15); } 100% { filter: drop-shadow(0 0 8px #e08aff); transform: scaleX(-1); } }
