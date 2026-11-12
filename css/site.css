@@ -3131,3 +3131,37 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .cv-refl.fx-shinyreal::after { content: '✨'; position: absolute; top: -18px; right: -14px; font-size: 22px; animation: cv-twinkle .6s ease-in-out infinite alternate; }
 .cv-refl.fx-shifter { animation: cv-shift 1.2s ease-out 1; filter: drop-shadow(0 0 8px #e08aff); }
 @keyframes cv-shift { 0% { filter: brightness(4) blur(3px); transform: scaleX(-1) scaleY(.2); } 60% { transform: scaleX(-1) scaleY(1.15); } 100% { filter: drop-shadow(0 0 8px #e08aff); transform: scaleX(-1); } }
+
+/* Dunk a Dwebble (her ask 11-11) */
+.cv-dunk { background: linear-gradient(#0b0620 0 55%, #3a2216 55%); }
+.cv-target { position: absolute; left: 25%; top: 41%; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; background: radial-gradient(circle, #d8242c 0 18%, #fff 18% 36%, #d8242c 36% 54%, #fff 54% 72%, #d8242c 72% 100%); border: 4px solid #f2c14e; box-shadow: 0 4px 10px rgba(0, 0, 0, .5); z-index: 1; }
+.cv-target.wob { animation: cv-twob .12s 4 alternate; } @keyframes cv-twob { to { transform: rotate(8deg); } }
+.cv-target.hit { animation: cv-thit .5s ease-out; } @keyframes cv-thit { 30% { transform: rotate(-35deg) scale(.9); } }
+.cv-pole { position: absolute; left: 25%; top: 41%; bottom: 0; width: 8px; margin-left: -4px; background: #8a6a3a; }
+.cv-pole::after { content: ''; position: absolute; top: 18px; left: 4px; width: 115px; height: 5px; background: #8a6a3a; }
+.cv-tank { position: absolute; right: 4%; bottom: 6%; width: 46%; height: 70%; }
+.cv-plank { position: absolute; left: -6%; right: 10%; top: 26%; height: 10px; background: linear-gradient(#c08a4a, #8a5a2a); border-radius: 3px; z-index: 2; transform-origin: right center; transition: transform .2s; }
+.cv-dunk.dunked .cv-plank { transform: rotate(70deg); }
+.cv-dweb { position: absolute; left: 50%; top: 26%; transform: translate(-50%, -100%); z-index: 3; transition: top .35s ease-in; }
+.cv-dunk.dunked .cv-dweb { top: 82%; transition: top .3s ease-in; }
+.cv-water2 { position: absolute; left: 0; right: 0; top: 46%; bottom: 0; background: linear-gradient(rgba(90, 180, 255, .55), rgba(30, 90, 200, .75)); border: 4px solid rgba(220, 240, 255, .8); border-top: 0; border-radius: 0 0 10px 10px; z-index: 4; }
+.cv-water2::before { content: ''; position: absolute; left: 0; right: 0; top: -4px; height: 8px; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .6) 0 10px, transparent 10px 20px); animation: cv-slide 1.5s linear infinite; }
+.cv-splash { position: absolute; left: 50%; top: 40%; width: 0; height: 0; z-index: 5; }
+.cv-dunk.dunked .cv-splash::before, .cv-dunk.dunked .cv-splash::after { content: '💦'; position: absolute; font-size: 34px; animation: cv-splash .7s ease-out forwards; }
+.cv-dunk.dunked .cv-splash::after { transform: scaleX(-1); animation-name: cv-splash2; }
+@keyframes cv-splash { from { left: -10px; top: 0; opacity: 1; } to { left: -60px; top: -60px; opacity: 0; } }
+@keyframes cv-splash2 { from { left: -20px; top: 0; opacity: 1; } to { left: 30px; top: -60px; opacity: 0; } }
+.cv-xh { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border: 3px solid #fff35a; border-radius: 50%; z-index: 6; box-shadow: 0 0 6px #fff35a; pointer-events: none; }
+.cv-xh::before, .cv-xh::after { content: ''; position: absolute; background: #fff35a; } .cv-xh::before { left: 50%; top: -8px; bottom: -8px; width: 2px; margin-left: -1px; } .cv-xh::after { top: 50%; left: -8px; right: -8px; height: 2px; margin-top: -1px; }
+.cv-xh[data-phase="2"] { opacity: .4; }
+.cv-ball { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #e8e2d0 50%, #a89a7a); border: 1px solid #6a5a3a; z-index: 7; }
+.cv-taunt { position: absolute; right: 3%; top: 3%; max-width: 55%; padding: 4px 8px; border-radius: 10px; background: #fff7e0; color: #3a2a1a; font-size: 13px; z-index: 8; opacity: 0; }
+.cv-taunt.show { animation: cv-taunt 2.4s ease-out forwards; } @keyframes cv-taunt { 0% { opacity: 0; transform: translateY(6px); } 10%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+
+/* Pikachu Balloon Pop on phones (her ask 11-11) */
+.cv-bp-pad { display: grid; grid-template-columns: 1fr 1.6fr 1.6fr 1fr; gap: 6px; margin-top: 8px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.cv-bp-pad .btn { min-height: 58px; padding: 6px 4px; font-size: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; touch-action: none; }
+.cv-bp-pad .btn small { font-size: 12px; }
+.cv-bp { touch-action: none; }
+@media (max-width: 520px) { .cv-bp { height: 270px; } }
+.cv-tank::before { content: ''; position: absolute; left: 0; right: 0; top: 20%; bottom: 0; border: 4px solid rgba(220, 240, 255, .55); border-radius: 0 0 10px 10px; z-index: 1; pointer-events: none; }

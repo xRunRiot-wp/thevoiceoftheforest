@@ -5,15 +5,15 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af5265c';
-import { $, $$, esc, toast, num } from './util.js?v=6af5265c';
-import { me, logRoll } from './play.js?v=6af5265c';
-import { markWinner } from './sparkle.js?v=6af5265c';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af5265c';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af5265c';
-import { DECOR } from './basedecor.js?v=6af5265c';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af5265c';
-import { REWARD_CURSORS } from './digcursor.js?v=6af5265c';
+import * as store from './store.js?v=6af5272b';
+import { $, $$, esc, toast, num } from './util.js?v=6af5272b';
+import { me, logRoll } from './play.js?v=6af5272b';
+import { markWinner } from './sparkle.js?v=6af5272b';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af5272b';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af5272b';
+import { DECOR } from './basedecor.js?v=6af5272b';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af5272b';
+import { REWARD_CURSORS } from './digcursor.js?v=6af5272b';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -49,7 +49,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af5265c').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af5272b').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -69,23 +69,49 @@ function timer(el, secs, onTick, onEnd) {
   return () => left;
 }
 const GAMES = {
-  whack: { name: 'Whack-a-Diglett', who: 'Diglett', face: 'diglett', icon: '🔨', blurb: 'Bonk every Diglett that pops up. Don’t bonk the Gengar!',
-    how: '30 seconds. Tap a Diglett to bonk it (+1). Gengar sneaks in too: bonking him costs 3.',
-    tickets: (s) => (s >= 28 ? 20 : s >= 20 ? 12 : s >= 12 ? 7 : s > 0 ? 3 : 0),
+  // her ask 11-11: Whack-a-Diglett became Dunk a Dwebble: Dwebble sits on a plank over a water tank; lock the aim
+  // across, then up and down, and hit the bullseye to drop him in the water
+  dunk: { name: 'Dunk a Dwebble', who: 'Dwebble', face: 'dwebble', icon: '💦', blurb: 'Dweb dweb! Hit the bullseye and drop Dwebble in the tank… if you can!',
+    how: '8 balls. Tap Throw once to stop the aim going side to side, then again to stop it going up and down. The ball flies there. Hit the red bullseye to dunk Dwebble! 2 tickets a dunk, +5 for 6 or more.',
+    tickets: (s) => s * 2 + (s >= 6 ? 5 : 0),
     play(el, c, done) {
-      const f = hud(el); let score = 0; let on = true;
-      f.innerHTML = `<div class="cv-holes">${Array.from({ length: 9 }, () => '<button class="cv-hole"><span class="cv-mole"></span></button>').join('')}</div>`;
-      const holes = $$('.cv-hole', f); const left = timer(el, 30, null, () => { on = false; holes.forEach((h) => h.classList.remove('up', 'bad')); setTimeout(() => done(score, `${score} Diglett bonked`), 500); });
-      const pop = () => {
-        if (!el.isConnected || !on) return; const free = holes.filter((h) => !h.classList.contains('up'));
-        if (free.length) { const h = pickOne(free); const bad = Math.random() < 0.18; h.classList.add('up'); h.classList.toggle('bad', bad);
-          h.firstChild.style.backgroundImage = `url(${P(bad ? 'gengar' : 'diglett')})`; clearTimeout(h._t); h._t = setTimeout(() => h.classList.remove('up', 'bad'), Math.max(500, 1150 - (30 - left()) * 22)); }
-        setTimeout(pop, Math.max(330, 820 - (30 - left()) * 16));
+      el.innerHTML = `<div class="cv-hud"><span>⚾ Balls: <b class="cv-p">8</b></span><span>💦 Dunks: <b class="cv-s">0</b></span></div>
+        <div class="cv-field cv-dunk"><div class="cv-target"><i></i><i></i><i></i></div><div class="cv-pole"></div>
+          <div class="cv-tank"><div class="cv-plank"></div><div class="cv-dweb"></div><div class="cv-water2"></div><div class="cv-splash"></div></div>
+          <div class="cv-xh"></div><div class="cv-taunt"></div></div><button class="btn block" id="cvthrow2">⚾ Throw!</button>`;
+      const f = $('.cv-dunk', el); const xh = $('.cv-xh', f); const tg = $('.cv-target', f); const dweb = $('.cv-dweb', f); const taunt = $('.cv-taunt', f); const btn = $('#cvthrow2', el);
+      spriteInto(dweb, 'Dwebble', 2, 'left', true);
+      const TAUNTS = ['Dweb dweb! Missed me!', 'Is that all you’ve got?', 'Nice try, slowpoke!', 'My shell is staying DRY today!', 'You throw like a Magikarp!'];
+      const WET = ['BLUB BLUB! No fair!', 'SPLASH! Brrr, that’s cold!', 'Glub… you got me…', 'My rock is all wet!'];
+      const tell = (t) => { taunt.textContent = t; taunt.classList.remove('show'); void taunt.offsetWidth; taunt.classList.add('show'); };
+      tell('Dweb dweb! You’ll never dunk me!');
+      let balls = 8; let dunks = 0; let phase = 0; let ax = 50; let ay = 50; let dx = 1; let dy = 1; let busy = false; let last = performance.now();
+      // the aim box covers the target area (left part of the field); speeds pick up as balls run out
+      const step = (t) => { if (!el.isConnected) return; const dt = Math.min(0.05, (t - last) / 1000); last = t;
+        const sp = 85 + (8 - balls) * 10;
+        if (phase === 0) { ax += dx * sp * dt; if (ax > 100) { ax = 100; dx = -1; } if (ax < 0) { ax = 0; dx = 1; } }
+        if (phase === 1) { ay += dy * sp * dt; if (ay > 100) { ay = 100; dy = -1; } if (ay < 0) { ay = 0; dy = 1; } }
+        xh.style.left = `${6 + ax * 0.38}%`; xh.style.top = `${10 + ay * 0.62}%`; xh.dataset.phase = phase;
+        requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+      btn.onclick = async () => {
+        if (busy || !balls) return;
+        if (phase === 0) { phase = 1; ay = 0; dy = 1; stepSound('left'); btn.textContent = '⚾ Throw! (up and down)'; return; }
+        busy = true; phase = 2; balls--; $('.cv-p', el).textContent = balls;
+        const fr = f.getBoundingClientRect(); const xr = xh.getBoundingClientRect(); const tr = tg.getBoundingClientRect();
+        const bx = xr.left + xr.width / 2 - fr.left; const by = xr.top + xr.height / 2 - fr.top;
+        const ball = document.createElement('span'); ball.className = 'cv-ball'; ball.style.left = '50%'; ball.style.top = '100%'; f.appendChild(ball);
+        ball.animate([{ left: '50%', top: '100%', transform: 'scale(1.6)' }, { left: bx + 'px', top: by + 'px', transform: 'scale(.8)' }], { duration: 420, easing: 'ease-out', fill: 'forwards' });
+        await wait(440); if (!el.isConnected) return;
+        const d = Math.hypot(bx - (tr.left + tr.width / 2 - fr.left), by - (tr.top + tr.height / 2 - fr.top)); const r = tr.width / 2;
+        if (d <= r * 0.36) {   // bullseye: DUNK
+          dunks++; $('.cv-s', el).textContent = dunks; tg.classList.add('hit'); f.classList.add('dunked'); jingle(true); tell(pickOne(WET));
+          await wait(1500); if (!el.isConnected) return; f.classList.remove('dunked'); tg.classList.remove('hit');
+        } else if (d <= r) { stepSound('right'); tg.classList.add('wob'); tell('Ha! Close, but my seat didn’t budge!'); await wait(700); tg.classList.remove('wob'); }
+        else { missSound(); tell(pickOne(TAUNTS)); await wait(500); }
+        ball.remove(); busy = false; phase = 0; ax = Math.random() * 100; btn.textContent = '⚾ Throw!';
+        if (!balls) { btn.disabled = true; setTimeout(() => done(dunks, `dunked Dwebble ${dunks} time${dunks === 1 ? '' : 's'}`), 500); }
       };
-      holes.forEach((h) => { h.onpointerdown = (e) => { e.preventDefault(); if (!on || !h.classList.contains('up')) return; clearTimeout(h._t);
-        const bad = h.classList.contains('bad'); score = Math.max(0, score + (bad ? -3 : 1)); h.classList.remove('up', 'bad'); h.classList.add(bad ? 'boo' : 'bonk');
-        setTimeout(() => h.classList.remove('bonk', 'boo'), 320); bad ? missSound() : stepSound('up'); $('.cv-s', el).textContent = score; }; });
-      pop();
     } },
   ducks: { name: 'Psyduck Pond', who: 'Psyduck', face: 'psyduck', icon: '🦆', blurb: 'Pick 3 Psyduck from the stream. Each one has tickets written underneath.',
     how: 'Tap 3 Psyduck as they float by. Each one has 1, 2, 3 or 5 tickets on the bottom, and one lucky duck has 10.',
@@ -113,7 +139,7 @@ const GAMES = {
       const COLORS = [['red', 1, 0.33], ['blue', 2, 0.25], ['green', 3, 0.17], ['purple', 5, 0.12], ['gold', 10, 0.06], ['volt', -5, 0.07]];
       el.innerHTML = `<div class="cv-hud"><span>⏱️ <b class="cv-t">30</b></span><span>⭐ <b class="cv-s">0</b></span></div>
         <div class="cv-field cv-sky cv-bp"><div class="cv-bp-rail"></div><div class="cv-pika"><span class="cv-pika-r"></span><span class="cv-pika-l"></span></div><svg class="cv-bolt" viewBox="0 0 20 100" preserveAspectRatio="none"><polyline points="10,0 4,18 14,34 5,52 15,70 6,86 11,100" fill="none" stroke="#fff35a" stroke-width="3"/></svg><span class="cv-tail"></span></div>
-        <div class="cv-bp-btns"><button class="btn alt" id="cvtail">⬆️ 🌀 Iron Tail</button><button class="btn" id="cvzap">⬇️ ⚡ Thunderbolt</button></div>
+        <div class="cv-bp-pad"><button class="btn alt" id="cvleft" aria-label="Run left">◀</button><button class="btn alt" id="cvtail">⬆️ 🌀<small>Iron Tail</small></button><button class="btn" id="cvzap">⬇️ ⚡<small>Thunderbolt</small></button><button class="btn alt" id="cvright" aria-label="Run right">▶</button></div>
         <div class="cv-bp-key small muted">${COLORS.filter(([k]) => k !== 'volt').map(([k, v]) => `<span><i class="cv-dot ${k}"></i>${v}</span>`).join('')}<span><i class="cv-dot volt"></i>−5</span></div>`;
       const f = $('.cv-bp', el); const pika = $('.cv-pika', f); const bolt = $('.cv-bolt', f); const tail = $('.cv-tail', f);
       Promise.all([fz().then((m) => m?.walkSprite('Pikachu', 2, 'right')), fz().then((m) => m?.walkSprite('Pikachu', 2, 'left'))]).then(([r, l]) => {
@@ -131,7 +157,13 @@ const GAMES = {
       const swing = () => { const t = performance.now(); if (!on || t - tailAt < 450) return; tailAt = t;
         tail.style.left = px + '%'; tail.classList.remove('go'); void tail.offsetWidth; tail.classList.add('go'); pika.classList.remove('spin'); void pika.offsetWidth; pika.classList.add('spin');
         [...bs].filter((b) => !b._dead && Math.abs(b._x - px) < 14 && b._y > 58 && b._y < 100).forEach(pop); };
-      $('#cvzap', el).onclick = zap; $('#cvtail', el).onclick = swing;
+      // pointerdown (not click) so the buttons answer instantly on a phone, with no double-tap zoom
+      const press = (id, fn) => { const b = $(id, el); b.onpointerdown = (e) => { e.preventDefault(); fn(); }; b.onclick = (e) => e.preventDefault(); };
+      press('#cvzap', zap); press('#cvtail', swing);
+      const hold = (id, dir) => { const b = $(id, el); let held = false;
+        b.onpointerdown = (e) => { e.preventDefault(); held = true; b.setPointerCapture?.(e.pointerId); target = dir < 0 ? 4 : 96; };
+        b.onpointerup = b.onpointercancel = b.onlostpointercapture = () => { if (held) { held = false; target = px; } }; };
+      hold('#cvleft', -1); hold('#cvright', 1);
       // her ask 11-11: up = Iron Tail, down = Thunderbolt (arrow keys or a swipe on the play area); a plain tap moves Pikachu
       let sy = null; let sx = 0;
       f.onpointerdown = (e) => { sy = e.clientY; sx = e.clientX; };

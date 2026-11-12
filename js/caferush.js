@@ -4,14 +4,14 @@
 // help it. The tent improving as they fix it": a camp scene. Machoke walks to a supply pile to pick up vines, sturdy branches or
 // leaves, then walks to the tent that calls for it and works on it. Each wobbly tent needs two fixes: torn -> patched -> sturdy.
 // A tent left too long collapses. Tap targets act on press (one listener on the scene; her 11-08 "it isn't taking the first time").
-import * as store from './store.js?v=6af5265c';
-import { $, esc, toast, num } from './util.js?v=6af5265c';
-import { me, logRoll } from './play.js?v=6af5265c';
-import { dailyRoll } from './weather.js?v=6af5265c';
-import { gameSay } from './chatter.js?v=6af5265c';
-import { markWinner } from './sparkle.js?v=6af5265c';
-import { faceSrc } from './sentry.js?v=6af5265c';
-import { pageMusic } from './chiptune.js?v=6af5265c';
+import * as store from './store.js?v=6af5272b';
+import { $, esc, toast, num } from './util.js?v=6af5272b';
+import { me, logRoll } from './play.js?v=6af5272b';
+import { dailyRoll } from './weather.js?v=6af5272b';
+import { gameSay } from './chatter.js?v=6af5272b';
+import { markWinner } from './sparkle.js?v=6af5272b';
+import { faceSrc } from './sentry.js?v=6af5272b';
+import { pageMusic } from './chiptune.js?v=6af5272b';
 
 export const isCafe = (g) => g.kind === 'cafe' || g.id === 'mess-hall-rush';
 // her site check 11-09: 🛖 and 🪵 are newer emoji that show as empty boxes on Windows 10 and older phones, so ⛺ and 🌲 are used
