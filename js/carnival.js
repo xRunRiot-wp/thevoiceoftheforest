@@ -5,15 +5,15 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af64494';
-import { $, $$, esc, toast, num } from './util.js?v=6af64494';
-import { me, logRoll } from './play.js?v=6af64494';
-import { markWinner } from './sparkle.js?v=6af64494';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af64494';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af64494';
-import { DECOR } from './basedecor.js?v=6af64494';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af64494';
-import { REWARD_CURSORS } from './digcursor.js?v=6af64494';
+import * as store from './store.js?v=6af64e2f';
+import { $, $$, esc, toast, num } from './util.js?v=6af64e2f';
+import { me, logRoll } from './play.js?v=6af64e2f';
+import { markWinner } from './sparkle.js?v=6af64e2f';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af64e2f';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af64e2f';
+import { DECOR } from './basedecor.js?v=6af64e2f';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af64e2f';
+import { REWARD_CURSORS } from './digcursor.js?v=6af64e2f';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -52,7 +52,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af64494').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af64e2f').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -448,23 +448,29 @@ export function renderCarnival(main, g, gm, onEdit) {
   const say = (html) => { talk.innerHTML = html; };
   $$('[data-stand]', scene).forEach((b) => { b.onclick = () => snack(b.dataset.stand); });
   const tabs = () => $$('[data-tab]', main).forEach((b) => { b.className = `btn sm ${b.dataset.tab === tab ? '' : 'alt'}`; b.onclick = () => { tab = b.dataset.tab; buying = null; tabs(); draw(); }; });
-  const card = (k, pic, title, line, btn, extra = '') => `<div class="cv-booth">${face(pic)}<div class="grow"><b>${esc(title)}</b><p class="small muted" style="margin:2px 0 6px">${esc(line)}</p>${extra}</div><button class="btn sm" data-go="${k}" ${!c ? 'disabled' : ''}>${btn}</button></div>`;
+  // her ask 11-12 "make these look like ticket counters with the pokemon ready. trying to maximize the empty row space":
+  // each game / ride / snack is a little ticket booth (striped awning, its Pokémon moving behind the counter), side by
+  // side in a grid instead of one long row each
+  const spOf = (k, pic) => GAMES[k]?.who || SNACKS[k]?.who || (pic ? pic[0].toUpperCase() + pic.slice(1) : '');
+  const card = (k, pic, title, line, btn, extra = '') => `<div class="cv-booth tc"><span class="tc-awn"></span><div class="tc-win"><span class="tc-bulbs"></span><span class="tc-sp" data-sp="${esc(spOf(k, pic))}">${face(pic)}</span><span class="tc-counter"></span></div>
+    <div class="tc-body"><b class="tc-name">${esc(title)}</b><p class="small muted tc-line">${esc(line)}</p>${extra ? `<div class="tc-pills">${extra}</div>` : ''}</div><button class="btn sm tc-go" data-go="${k}" ${!c ? 'disabled' : ''}>${btn}</button></div>`;
+  const fillSprites = () => $$('.tc-sp[data-sp]', panel).forEach((el) => { const sp = el.dataset.sp; el.removeAttribute('data-sp'); if (sp) spriteInto(el, sp, 2, 'down', true); });
 
   function draw() {
     showTix();
     if (tab === 'games') {
       const pt = c ? playsToday(c.id) : {};
       panel.innerHTML = `<p class="small muted" style="margin-top:0">Each booth pays tickets for your first ${PAID_PLAYS} games a day. After that you can still play for fun.</p>
-        ${Object.entries(GAMES).map(([k, G]) => card(k, G.face, `${G.icon} ${G.name}`, G.blurb, 'Play', `<span class="pill">${Math.max(0, PAID_PLAYS - num(pt[k]))}/${PAID_PLAYS} paid games left today</span>${c && num(rec(c.id).best?.[k]) ? ` <span class="pill">🏆 best ${num(rec(c.id).best[k])}</span>` : ''}`)).join('')}`;
-      $$('[data-go]', panel).forEach((b) => { b.onclick = () => playGame(b.dataset.go); });
+        <div class="cv-grid">${Object.entries(GAMES).map(([k, G]) => card(k, G.face, `${G.icon} ${G.name}`, G.blurb, 'Play', `<span class="pill">${Math.max(0, PAID_PLAYS - num(pt[k]))}/${PAID_PLAYS} paid left today</span>${c && num(rec(c.id).best?.[k]) ? ` <span class="pill">🏆 best ${num(rec(c.id).best[k])}</span>` : ''}`)).join('')}</div>`;
+      $$('[data-go]', panel).forEach((b) => { b.onclick = () => playGame(b.dataset.go); }); fillSprites();
     } else if (tab === 'rides') {
       panel.innerHTML = `<p class="small muted" style="margin-top:0">Rides cost tickets. ${buddyName(c) ? `Riding together counts as play time for ${esc(buddyName(c))} and raises your bond.` : 'Bring your nursery buddy and it counts as their play time!'}</p>
-        ${Object.entries(RIDES).map(([k, R]) => card(k, R.face, R.name, R.blurb, `🎟️ ${R.cost}`)).join('')}`;
-      $$('[data-go]', panel).forEach((b) => { b.onclick = () => ride(b.dataset.go); });
+        <div class="cv-grid">${Object.entries(RIDES).map(([k, R]) => card(k, R.face, R.name, R.blurb, `🎟️ ${R.cost}`)).join('')}</div>`;
+      $$('[data-go]', panel).forEach((b) => { b.onclick = () => ride(b.dataset.go); }); fillSprites();
     } else if (tab === 'snacks') {
       panel.innerHTML = `<p class="small muted" style="margin-top:0">${buddyName(c) ? `Sharing a snack counts as a meal for ${esc(buddyName(c))}.` : 'Carnival treats! Your nursery buddy would love one.'}</p>
-        ${Object.entries(SNACKS).map(([k, S]) => card(k, S.face, S.name, `${S.who}’s stand`, `🎟️ ${S.cost}`)).join('')}`;
-      $$('[data-go]', panel).forEach((b) => { b.onclick = () => snack(b.dataset.go); });
+        <div class="cv-grid">${Object.entries(SNACKS).map(([k, S]) => card(k, S.face, S.name, `${S.who}’s stand`, `🎟️ ${S.cost}`)).join('')}</div>`;
+      $$('[data-go]', panel).forEach((b) => { b.onclick = () => snack(b.dataset.go); }); fillSprites();
     } else if (tab === 'wish') {
       // her asks 11-11: like May's Wishing Star, come back once a day for 7 days, then make a wish; the star is the
       // dreamcatcher charm from Wishmaker: it starts fully open, and each day you click one open section and it folds
