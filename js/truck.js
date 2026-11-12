@@ -7,15 +7,15 @@
 // Run's day sky) above a soft, faded Woodland Base picture; bins at their old size but smoother (basket_hd/chest_hd = Scale4x of
 // the sprites, the chest recoloured to wood and gold).
 // Art: the Woodland Base tent (GM's campaign art) backdrop, Machamp / Voltorb / runner sprites (SpriteCollab), items, basket, chest and logs (PMDCollab RawAsset).
-import * as store from './store.js?v=6af529f6';
-import { $, esc, num, uid } from './util.js?v=6af529f6';
-import { me, logRoll, gameBondGreat } from './play.js?v=6af529f6';
-import { dailyRoll } from './weather.js?v=6af529f6';
-import { gameSay } from './chatter.js?v=6af529f6';
-import { markWinner } from './sparkle.js?v=6af529f6';
-import { rareItem } from './sentry.js?v=6af529f6';
-import { startBroadcast } from './watch.js?v=6af529f6';
-import { stepSound, missSound, jingle, ensureAudio, pageMusic } from './chiptune.js?v=6af529f6';
+import * as store from './store.js?v=6af52ada';
+import { $, esc, num, uid } from './util.js?v=6af52ada';
+import { me, logRoll, gameBondGreat } from './play.js?v=6af52ada';
+import { dailyRoll } from './weather.js?v=6af52ada';
+import { gameSay } from './chatter.js?v=6af52ada';
+import { markWinner } from './sparkle.js?v=6af52ada';
+import { rareItem } from './sentry.js?v=6af52ada';
+import { startBroadcast } from './watch.js?v=6af52ada';
+import { stepSound, missSound, jingle, ensureAudio, pageMusic } from './chiptune.js?v=6af52ada';
 
 export const isTruck = (g) => g.kind === 'truck' || g.id === 'machamp-wagon';
 

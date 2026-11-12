@@ -5,15 +5,15 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af529f6';
-import { $, $$, esc, toast, num } from './util.js?v=6af529f6';
-import { me, logRoll } from './play.js?v=6af529f6';
-import { markWinner } from './sparkle.js?v=6af529f6';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af529f6';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af529f6';
-import { DECOR } from './basedecor.js?v=6af529f6';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af529f6';
-import { REWARD_CURSORS } from './digcursor.js?v=6af529f6';
+import * as store from './store.js?v=6af52ada';
+import { $, $$, esc, toast, num } from './util.js?v=6af52ada';
+import { me, logRoll } from './play.js?v=6af52ada';
+import { markWinner } from './sparkle.js?v=6af52ada';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af52ada';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af52ada';
+import { DECOR } from './basedecor.js?v=6af52ada';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af52ada';
+import { REWARD_CURSORS } from './digcursor.js?v=6af52ada';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -35,13 +35,13 @@ export const carnivalMini = () => `<div class="cv-mini"><span class="cv-mini-com
 // ---- you and your buddy, side by side (your character's walk sprite + the nursery sprite sheet)
 const BROW = { idle: 0, hop: 1, sleep: 2, right: 3, left: 4, eat: 5, nod: 6 };
 const BSCALE = [0, 1.5, 1.8, 2.1];
-function pairHTML(c, cls = '') {
+function pairHTML(c, cls = '', held = false) {
   const L = c ? buddyLook(c.id) : null;
   let bud = '';
   if (L && L.egg) bud = '<img class="cv-egg" src="assets/nursery/egg.png" alt="Egg">';
   else if (L) { const S = BSCALE[L.stage] || 1.8; const pw = Math.round(L.cw * S); const ph = Math.round(L.ch * S);
     bud = `<span class="baby-spr cv-bspr" data-pw="${pw}" data-ph="${ph}" style="width:${pw}px;height:${ph}px;margin-bottom:-${Math.round(ph * 0.42)}px;background-image:url(${L.url});background-size:${pw * 10}px ${ph * 7}px"></span>`; }
-  return `<div class="cv-pair ${cls}"><span class="cv-char"></span><span class="cv-bud">${bud}</span></div>`;
+  return `<div class="cv-pair ${cls}"><span class="cv-char"></span><span class="cv-bud">${bud}</span>${held ? `<button class="cv-held ${L && !L.egg ? 'bud' : 'char'}" aria-label="Take a bite"></button>` : ''}</div>`;
 }
 function budRow(root, name, loop = true) {
   const L = buddyLook(me()?.id || ''); const spr = $('.cv-bspr', root); if (!spr || !L || L.egg) return;
@@ -49,7 +49,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af529f6').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af52ada').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -129,7 +129,7 @@ const GAMES = {
       // the Surskit skate in zig-zags across the pond first, then dart under their pads
       const names = { surskit: 'Surskit', masquerain: 'Masquerain', lotad: 'Lotad' };
       const sprites = {};
-      Promise.all(Object.entries(names).map(([k, n]) => fz().then((m) => m?.walkSprite(n, 1.6, 'down', true)).then((w) => { sprites[k] = w?.html || ''; }).catch(() => {}))).then(async () => {
+      Promise.all(Object.entries(names).map(([k, n]) => fz().then((m) => m?.walkSprite(n, 2.6, 'down', true)).then((w) => { sprites[k] = w?.html || ''; }).catch(() => {}))).then(async () => {
         if (!el.isConnected) return;
         const show = [...Array(5)].map(() => { const d = document.createElement('span'); d.className = 'cv-skater'; d.innerHTML = sprites.surskit; d.style.left = `${10 + Math.random() * 80}%`; d.style.top = `${10 + Math.random() * 70}%`; sk.appendChild(d); return d; });
         for (let r = 0; r < 4; r++) { show.forEach((d) => { d.style.left = `${5 + Math.random() * 85}%`; d.style.top = `${5 + Math.random() * 75}%`; }); await wait(650); if (!el.isConnected) return; }
@@ -408,7 +408,8 @@ export function renderCarnival(main, g, gm, onEdit) {
         ${Array.from({ length: 22 }, (_, i) => { const t = (i + 0.5) / 22; const seg = t < 0.5 ? t * 2 : (t - 0.5) * 2; const x = t * 300; const y = 4 + Math.sin(seg * Math.PI) * 26 - (t < 0.5 ? 0 : 1); return `<circle class="cv-bulb ${i % 7 === 3 ? 'flick' : ''}" cx="${x.toFixed(1)}" cy="${(y + 3).toFixed(1)}" r="2.6" style="animation-delay:${(i % 4) * 0.3}s"/>`; }).join('')}</svg>
       <div class="cv-ground"></div><div class="cv-fog"></div><div class="cv-fog b"></div>
       <div class="cv-tix" id="cvtix"></div>
-      <div class="cv-walk">${pairHTML(c)}</div>
+      <div class="cv-stands">${Object.entries(SNACKS).map(([k, S]) => `<button class="cv-stand s-${k}" data-stand="${k}" title="${esc(S.name)} · ${S.cost} tickets"><span class="cv-awn"></span><img src="${P(S.face)}" alt="${esc(S.who)}"><span class="cv-stand-treat">${S.icon}</span><small>🎟️${S.cost}</small></button>`).join('')}</div>
+      <div class="cv-walk">${pairHTML(c, '', true)}</div>
     </div>
     <div id="cvtalk">${mime(pickOne(GREET))}</div>
     ${c ? '' : '<p class="small muted">Pick your character on the home page to play and win tickets.</p>'}
@@ -425,6 +426,7 @@ export function renderCarnival(main, g, gm, onEdit) {
   const showTix = () => { const e = $('#cvtix', main); if (e) e.innerHTML = c ? `🎟️ <b>${ticketsOf(c.id)}</b> ticket${ticketsOf(c.id) === 1 ? '' : 's'}` : '🎟️'; };
   showTix();
   const say = (html) => { talk.innerHTML = html; };
+  $$('[data-stand]', scene).forEach((b) => { b.onclick = () => snack(b.dataset.stand); });
   const tabs = () => $$('[data-tab]', main).forEach((b) => { b.className = `btn sm ${b.dataset.tab === tab ? '' : 'alt'}`; b.onclick = () => { tab = b.dataset.tab; buying = null; tabs(); draw(); }; });
   const card = (k, pic, title, line, btn, extra = '') => `<div class="cv-booth">${face(pic)}<div class="grow"><b>${esc(title)}</b><p class="small muted" style="margin:2px 0 6px">${esc(line)}</p>${extra}</div><button class="btn sm" data-go="${k}" ${!c ? 'disabled' : ''}>${btn}</button></div>`;
 
@@ -567,17 +569,36 @@ export function renderCarnival(main, g, gm, onEdit) {
     return out.isConnected ? form.name : null;
   }
 
-  async function snack(k) {
-    const S = SNACKS[k]; if (ticketsOf(c.id) < S.cost) { say(mime(`${S.name} is ${S.cost} tickets. Try a game booth first!`)); return; }
-    addTickets(c.id, -S.cost); showTix();
-    panel.innerHTML = `${host(S.face, S.who, S.line)}<div class="cv-snackscene"><span class="cv-treat">${S.icon}</span>${pairHTML(c)}</div><p class="cv-rsay" id="cvrsay">Nom nom nom…</p>`;
-    const sc = $('.cv-snackscene', panel); fillPair(sc, c, 'down', 2); setTimeout(() => budRow(sc, 'eat'), 200);
-    await wait(2800); if (!sc.isConnected) return;
-    const care = carnivalCare(c, 'feed', 2);
-    store.pushLimited('log', { t: Date.now(), text: `${c.nickname}${buddyName(c) ? ` and ${buddyName(c)}` : ''} shared some ${S.name} at the Star Carnival.` });
-    budRow(sc, 'hop', false);
-    $('#cvrsay', panel).innerHTML = `${buddyName(c) ? `${esc(buddyName(c))} loved it!` : 'Delicious!'} ${care === 'ok' || care === 'grew' ? '🍼 Counts as a meal · ❤️ bond went up.' : care ? `${esc(care)}` : ''} <button class="btn alt sm" id="cvmid">Back to the midway</button>`;
-    $('#cvmid', panel).onclick = () => draw();
+  // her ask 11-11: snacks are bought at the stands up on the midway (or from the Snacks list), and the baby holds the
+  // treat in the scene; tap the treat to give a bite (it also nibbles by itself now and then). 3 bites and it's gone,
+  // which counts as a meal.
+  let holding = null; let biteTimer = 0;
+  function snack(k) {
+    const S = SNACKS[k]; if (!c) return;
+    if (holding) { say(host(SNACKS[holding].face, SNACKS[holding].who, `Finish your ${SNACKS[holding].name} first! Tap it to take a bite.`)); scene.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    if (ticketsOf(c.id) < S.cost) { say(mime(`${S.name} is ${S.cost} tickets. Try a game booth first!`)); return; }
+    addTickets(c.id, -S.cost); showTix(); ensureAudio(); stepSound('right');
+    const held = $('.cv-held', scene); if (!held) return;
+    holding = k; held.innerHTML = S.icon; held.dataset.bites = '3'; held.className = held.className.replace(/\s*(show|b\d|nom)\b/g, '') + ' show b3';
+    const who = buddyName(c) || c.nickname;
+    say(host(S.face, S.who, `${S.line} Here you go! Tap the ${S.name} to give ${who} a bite.`));
+    scene.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    held.onclick = () => bite(); clearInterval(biteTimer);
+    biteTimer = setInterval(() => { if (!scene.isConnected || !holding) { clearInterval(biteTimer); return; } bite(); }, 7000);
+  }
+  function bite() {
+    const held = $('.cv-held', scene); if (!held || !holding) return; const S = SNACKS[holding];
+    const n = Math.max(0, num(held.dataset.bites) - 1); held.dataset.bites = String(n);
+    held.classList.remove('b3', 'b2', 'b1', 'nom'); void held.offsetWidth; held.classList.add('b' + Math.max(1, n), 'nom');
+    budRow(scene, 'eat'); setTimeout(() => budRow(scene, 'idle'), 1100); stepSound('up');
+    if (n > 0) return;
+    clearInterval(biteTimer); const k = holding; holding = null;
+    setTimeout(() => {
+      held.classList.remove('show'); held.innerHTML = '';
+      const care = carnivalCare(c, 'feed', 2); budRow(scene, 'hop', false); setTimeout(() => budRow(scene, 'idle'), 1300); jingle(true);
+      store.pushLimited('log', { t: Date.now(), text: `${c.nickname}${buddyName(c) ? ` and ${buddyName(c)}` : ''} shared some ${SNACKS[k].name} at the Star Carnival.` });
+      say(host(S.face, S.who, `${buddyName(c) ? `${buddyName(c)} loved it!` : 'Delicious, right?'} ${care === 'ok' || care === 'grew' ? '🍼 That counts as a meal, and your bond went up!' : care ? care : ''}`));
+    }, 500);
   }
 
   let folding = false;
