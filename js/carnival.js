@@ -4,16 +4,16 @@
 // You and your buddy walk the midway together: ride the rides (counts as play time for the buddy), eat carnival snacks
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
-// State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { n, day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af523df';
-import { $, $$, esc, toast, num } from './util.js?v=6af523df';
-import { me, logRoll } from './play.js?v=6af523df';
-import { markWinner } from './sparkle.js?v=6af523df';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af523df';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af523df';
-import { DECOR } from './basedecor.js?v=6af523df';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af523df';
-import { REWARD_CURSORS } from './digcursor.js?v=6af523df';
+// State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
+import * as store from './store.js?v=6af52581';
+import { $, $$, esc, toast, num } from './util.js?v=6af52581';
+import { me, logRoll } from './play.js?v=6af52581';
+import { markWinner } from './sparkle.js?v=6af52581';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af52581';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af52581';
+import { DECOR } from './basedecor.js?v=6af52581';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af52581';
+import { REWARD_CURSORS } from './digcursor.js?v=6af52581';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -49,7 +49,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af523df').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af52581').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -299,6 +299,26 @@ const STAR_DAYS = 7;
 const WISHES = [['tickets', '🎟️', '100 tickets', 'A big pile of carnival tickets.'], ['prize', '🎁', 'A free prize', 'Your next Prize Booth trade costs nothing, any prize at all.'],
   ['bond', '❤️', 'A bond heart', 'Your nursery buddy gets a whole bond heart.']];
 
+// the Wishmaker dreamcatcher (her ask 11-11, from her screenshot of the movie): 7 tan sections with a blue swirl band,
+// a red bead and a gold tassel on each, and the flap with red stars on top that fills in as sections fold closed
+const closedOf = (st) => (Array.isArray(st?.closed) ? st.closed : Array.from({ length: Math.min(STAR_DAYS, num(st?.n)) }, (_, i) => i));
+const pol = (r, a) => { const t = a * Math.PI / 180; return `${(r * Math.sin(t)).toFixed(1)} ${(-r * Math.cos(t)).toFixed(1)}`; };
+const wedge = (r0, r1, a0, a1) => (r0 ? `M${pol(r0, a0)} L${pol(r1, a0)} A${r1} ${r1} 0 0 1 ${pol(r1, a1)} L${pol(r0, a1)} A${r0} ${r0} 0 0 0 ${pol(r0, a0)}Z`
+  : `M0 0 L${pol(r1, a0)} A${r1} ${r1} 0 0 1 ${pol(r1, a1)}Z`);
+function dreamcatcherSVG(closed) {
+  const th = 360 / STAR_DAYS; const h = th / 2; const shut = new Set(closed);
+  const part = (i) => `<g class="dc-part ${shut.has(i) ? 'shut' : ''}" data-panel="${i}" transform="rotate(${shut.has(i) ? 0 : i * th})">
+    <path d="${wedge(0, 92, -h, h)}" fill="#f1dcbc" stroke="#3a2a1a" stroke-width="1.4"/>
+    <path d="${wedge(50, 76, -h, h)}" fill="#2a3f9a"/><path d="${wedge(60, 65, -h, h)}" fill="#dcf0ee" opacity=".9"/>
+    <path d="${wedge(76, 82, -h, h)}" fill="#cfe9ea"/><path d="M0 0 L${pol(92, -h)}" stroke="#3a2a1a" stroke-width="1.4"/>
+    <path d="M${pol(94, -h)} L${pol(110, -h - 4)} L${pol(112, -h + 3)} Z" fill="#f2b632" stroke="#9a6a10" stroke-width=".8"/><circle cx="${pol(93, -h).split(' ')[0]}" cy="${pol(93, -h).split(' ')[1]}" r="5" fill="#d0242a" stroke="#6a0a0a" stroke-width="1"/></g>`;
+  const order = [...Array(STAR_DAYS).keys()].filter((i) => !shut.has(i)).concat(closed);   // folded sections stack on top
+  const n = closed.length; const stars = Array.from({ length: n }, (_, k) => { const row = [0, 1, 1, 2, 2, 2, 3][k]; const col = [0, 0, 1, 0, 1, 2, 0][k]; const cnt = [1, 2, 2, 3, 3, 3, 1][k];
+    const x = (col - (cnt - 1) / 2) * 13; const y = -84 + row * 14; return `<text x="${x}" y="${y}" font-size="13" text-anchor="middle" fill="#c0262c">★</text>`; }).join('');
+  return `<svg class="cv-dream" viewBox="-120 -125 240 245" role="img" aria-label="Wishmaker dreamcatcher, ${n} of ${STAR_DAYS} closed"><circle r="14" fill="#f1dcbc" stroke="#3a2a1a" stroke-width="1.4"/>${order.map(part).join('')}
+    ${n ? `<g class="dc-flap"><path d="M0 -6 L${pol(96, -h * 1.04)} A96 96 0 0 1 ${pol(96, h * 1.04)} Z" fill="#f1dcbc" stroke="#3a2a1a" stroke-width="1.6"/>${stars}</g>` : ''}<circle r="5" fill="#3a2a1a"/></svg>`;
+}
+
 const GREET = ['Welcome, welcome to the Wishmaker Star Carnival! The comet only comes once in a thousand years, so have fun!', 'Step right up! Games, rides and the fluffiest cotton candy under the comet!',
   'Ooh, a little one! Hold their paw tight, the midway gets busy after dark.', 'Win tickets at the booths and trade them at the Prize Booth. Everyone’s a winner… almost!'];
 
@@ -357,16 +377,16 @@ export function renderCarnival(main, g, gm, onEdit) {
         ${Object.entries(SNACKS).map(([k, S]) => card(k, S.face, S.name, `${S.who}’s stand`, `🎟️ ${S.cost}`)).join('')}`;
       $$('[data-go]', panel).forEach((b) => { b.onclick = () => snack(b.dataset.go); });
     } else if (tab === 'wish') {
-      // her ask 11-11 (like May's Wishing Star): tap the star once a day; after 7 taps it is fully charged and Jirachi
-      // wakes up to grant one wish. carnival/<id>.star = { n: taps so far, day: last tap day }
-      const st = c ? rec(c.id).star || {} : {}; const n = num(st.n); const tapped = st.day === today(); const full = n >= STAR_DAYS;
-      panel.innerHTML = `${host('jirachi', 'Jirachi', full ? 'Yawn… you charged the Wishing Star all the way! I’m awake… make your wish!' : tapped ? 'Zzz… the star took in your light for today… come back tomorrow…' : 'Zzz… tap the Wishing Star to charge it… seven days… and I’ll wake up…')}
-        <div class="cv-wishstar ${full ? 'full' : ''}"><button class="cv-star" id="cvstar" ${!c || (tapped && !full) ? 'disabled' : ''} aria-label="Wishing Star"><span>⭐</span></button>
-        <div class="cv-pips">${Array.from({ length: STAR_DAYS }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</div>
-        <p class="small" style="margin:6px 0 0">${full ? '🌟 <b>Fully charged!</b> Pick your wish below.' : `<b>${n}/${STAR_DAYS}</b> days charged${tapped ? ' · come back tomorrow' : ' · tap the star!'}`}</p></div>
-        ${full ? `<div class="cv-wishes">${WISHES.map(([k, ic, t, d]) => `<button class="cv-wishbtn" data-wish="${k}"><b>${ic} ${esc(t)}</b><small>${esc(d)}</small></button>`).join('')}</div>` : '<p class="small muted">Tap once a day, any 7 days. Each tap gives 2 tickets. On the 7th day Jirachi wakes up and grants a wish.</p>'}
+      // her asks 11-11: like May's Wishing Star, come back once a day for 7 days, then make a wish; the star is the
+      // dreamcatcher charm from Wishmaker: it starts fully open, and each day you click one open section and it folds
+      // closed (a red star appears on the flap). All 7 closed = Jirachi wakes up. carnival/<id>.star = { closed: [i], day }
+      const st = c ? rec(c.id).star || {} : {}; const closed = closedOf(st); const n = closed.length; const tapped = st.day === today(); const full = n >= STAR_DAYS;
+      panel.innerHTML = `${host('jirachi', 'Jirachi', full ? 'Yawn… the dreamcatcher is closed… I’m awake! Make your wish!' : tapped ? 'Zzz… one section a day… come back tomorrow…' : 'Zzz… close one part of the dreamcatcher each day… seven days… and I’ll wake up…')}
+        <div class="cv-wishstar ${full ? 'full' : ''} ${!c || tapped || full ? '' : 'can'}">${dreamcatcherSVG(closed)}
+        <p class="small" style="margin:6px 0 0">${full ? '🌟 <b>All 7 closed!</b> Pick your wish below.' : `<b>${n}/${STAR_DAYS}</b> closed${tapped ? ' · come back tomorrow' : c ? ' · tap an open section to close it!' : ''}`}</p></div>
+        ${full ? `<div class="cv-wishes">${WISHES.map(([k, ic, t, d]) => `<button class="cv-wishbtn" data-wish="${k}"><b>${ic} ${esc(t)}</b><small>${esc(d)}</small></button>`).join('')}</div>` : '<p class="small muted">Close one section a day, any 7 days. Each one gives 2 tickets. When all 7 are closed, Jirachi wakes up and grants a wish.</p>'}
         ${c && rec(c.id).freePrize ? '<p class="pill">🎁 You have a free Prize Booth wish waiting! Open the Prize Booth.</p>' : ''}`;
-      const sb = $('#cvstar', panel); if (sb) sb.onclick = chargeStar;
+      if (c && !tapped && !full) $$('[data-panel]', panel).forEach((g) => { g.onclick = () => chargeStar(+g.dataset.panel, g); });
       $$('[data-wish]', panel).forEach((b) => { b.onclick = () => wish(b.dataset.wish); });
     } else if (tab === 'prizes') drawPrizes();
   }
@@ -493,16 +513,24 @@ export function renderCarnival(main, g, gm, onEdit) {
     $('#cvmid', panel).onclick = () => draw();
   }
 
-  async function chargeStar() {
-    const r = rec(c.id); const st = r.star || {}; if (st.day === today() || num(st.n) >= STAR_DAYS) return;
-    const n = num(st.n) + 1; store.set('carnival/' + c.id, { ...r, star: { n, day: today() } }); addTickets(c.id, 2); ensureAudio(); stepSound('up');
-    if (n >= STAR_DAYS) { jingle(true); store.pushLimited('log', { t: Date.now(), text: `🌠 ${c.nickname} fully charged the Wishing Star! Jirachi is waking up…` }); }
-    toast(n >= STAR_DAYS ? '🌟 The Wishing Star is fully charged! Jirachi is awake!' : `⭐ The Wishing Star glows a little brighter (${n}/${STAR_DAYS}) · +2 tickets`);
+  let folding = false;
+  async function chargeStar(i, g) {
+    const r = rec(c.id); const st = r.star || {}; const closed = closedOf(st); if (folding || st.day === today() || closed.length >= STAR_DAYS || closed.includes(i)) return;
+    folding = true; ensureAudio(); stepSound('up');
+    // fold the section shut: it swings round to the flap at the top
+    const from = i * (360 / STAR_DAYS); const to = from > 180 ? 360 : 0; const t0 = performance.now();
+    await new Promise((ok) => { const f = (t) => { const k = Math.min(1, (t - t0) / 800); const e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+      g.setAttribute('transform', `rotate(${from + (to - from) * e}) scale(${1 - 0.15 * e}, 1)`); if (k < 1 && g.isConnected) requestAnimationFrame(f); else ok(); }; requestAnimationFrame(f); });
+    folding = false;
+    const next = [...closed, i]; const n = next.length;
+    store.set('carnival/' + c.id, { ...rec(c.id), star: { closed: next, n, day: today() } }); addTickets(c.id, 2);
+    if (n >= STAR_DAYS) { jingle(true); store.pushLimited('log', { t: Date.now(), text: `🌠 ${c.nickname} closed the whole Wishmaker dreamcatcher! Jirachi is waking up…` }); }
+    toast(n >= STAR_DAYS ? '🌟 The dreamcatcher is closed! Jirachi is awake!' : `🌠 One more section closed (${n}/${STAR_DAYS}) · +2 tickets`);
     draw();
   }
   async function wish(k) {
-    const r = rec(c.id); if (num(r.star?.n) < STAR_DAYS) return; const W = WISHES.find((x) => x[0] === k); if (!W) return;
-    store.set('carnival/' + c.id, { ...r, star: { n: 0, day: today() }, wishes: num(r.wishes) + 1, ...(k === 'prize' ? { freePrize: true } : {}) });
+    const r = rec(c.id); if (closedOf(r.star).length < STAR_DAYS) return; const W = WISHES.find((x) => x[0] === k); if (!W) return;
+    store.set('carnival/' + c.id, { ...r, star: { closed: [], n: 0, day: today() }, wishes: num(r.wishes) + 1, ...(k === 'prize' ? { freePrize: true } : {}) });
     panel.innerHTML = `<div class="cv-wishscene"><div class="cv-stars"></div><div class="cv-comet big"><i></i></div><div class="cv-jbig"></div><p class="cv-rsay" id="cvrsay">You hold the Wishing Star tight and wish for ${esc(W[2].toLowerCase())}…</p></div>`;
     spriteInto($('.cv-jbig', panel), 'Jirachi', 2.5, 'down', true); ensureAudio();
     await wait(2600); if (!panel.isConnected) return;

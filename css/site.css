@@ -3119,3 +3119,11 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .cv-pips i.on { background: radial-gradient(circle, #fff, #ffd75e 60%); border-color: #ffd75e; box-shadow: 0 0 8px #ffd75e; }
 .cv-wishes { display: grid; gap: 8px; }
 .cv-wishbtn { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border: 2px solid var(--orange); border-radius: 12px; background: var(--paper); color: var(--ink); cursor: pointer; text-align: left; font: inherit; }
+
+/* Wishmaker dreamcatcher (her ask 11-11) */
+.cv-dream { width: min(280px, 100%); height: auto; display: block; margin: 0 auto; filter: drop-shadow(0 0 10px rgba(255, 236, 160, .35)); }
+.cv-wishstar.can .dc-part:not(.shut) { cursor: pointer; }
+.cv-wishstar.can .dc-part:not(.shut):hover path:first-child { fill: #fff1d6; }
+.cv-wishstar.can .cv-dream { animation: cv-dcpulse 2.4s ease-in-out infinite; }
+@keyframes cv-dcpulse { 50% { filter: drop-shadow(0 0 18px rgba(255, 236, 160, .7)); } }
+.cv-wishstar.full .cv-dream { filter: drop-shadow(0 0 22px #fff3a0); animation: cv-float 1.6s ease-in-out infinite; }
