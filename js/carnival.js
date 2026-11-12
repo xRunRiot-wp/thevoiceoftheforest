@@ -5,15 +5,15 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af528f1';
-import { $, $$, esc, toast, num } from './util.js?v=6af528f1';
-import { me, logRoll } from './play.js?v=6af528f1';
-import { markWinner } from './sparkle.js?v=6af528f1';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af528f1';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af528f1';
-import { DECOR } from './basedecor.js?v=6af528f1';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af528f1';
-import { REWARD_CURSORS } from './digcursor.js?v=6af528f1';
+import * as store from './store.js?v=6af529f6';
+import { $, $$, esc, toast, num } from './util.js?v=6af529f6';
+import { me, logRoll } from './play.js?v=6af529f6';
+import { markWinner } from './sparkle.js?v=6af529f6';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af529f6';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af529f6';
+import { DECOR } from './basedecor.js?v=6af529f6';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af529f6';
+import { REWARD_CURSORS } from './digcursor.js?v=6af529f6';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -49,7 +49,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af528f1').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af529f6').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -156,10 +156,10 @@ const GAMES = {
     play(el, c, done) {
       const COLORS = [['red', 1, 0.33], ['blue', 2, 0.25], ['green', 3, 0.17], ['purple', 5, 0.12], ['gold', 10, 0.06], ['volt', -5, 0.07]];
       el.innerHTML = `<div class="cv-hud"><span>⏱️ <b class="cv-t">30</b></span><span>⭐ <b class="cv-s">0</b></span></div>
-        <div class="cv-field cv-sky cv-bp"><div class="cv-bp-rail"></div><div class="cv-pika"><span class="cv-pika-r"></span><span class="cv-pika-l"></span></div><svg class="cv-bolt" viewBox="0 0 20 100" preserveAspectRatio="none"><polyline points="10,0 4,18 14,34 5,52 15,70 6,86 11,100" fill="none" stroke="#fff35a" stroke-width="3"/></svg><span class="cv-tail"></span></div>
+        <div class="cv-field cv-sky cv-bp"><div class="cv-tpole l"><i></i></div><div class="cv-tpole r"><i></i></div><svg class="cv-rope" viewBox="0 0 1000 90" preserveAspectRatio="none" aria-hidden="true"><path class="cv-rope-shadow" d=""/><path class="cv-rope-base" d=""/><path class="cv-rope-twist" d=""/><path class="cv-rope-twist b" d=""/><path class="cv-rope-hi" d=""/></svg><div class="cv-pika"><span class="cv-pika-r"></span><span class="cv-pika-l"></span></div><svg class="cv-bolt" viewBox="0 0 20 100" preserveAspectRatio="none"><polyline points="10,0 4,18 14,34 5,52 15,70 6,86 11,100" fill="none" stroke="#fff35a" stroke-width="3"/></svg><span class="cv-tail"></span></div>
         <div class="cv-bp-pad"><button class="btn alt" id="cvleft" aria-label="Run left">◀</button><button class="btn alt" id="cvtail">⬆️ 🌀<small>Iron Tail</small></button><button class="btn" id="cvzap">⬇️ ⚡<small>Thunderbolt</small></button><button class="btn alt" id="cvright" aria-label="Run right">▶</button></div>
         <div class="cv-bp-key small muted">${COLORS.filter(([k]) => k !== 'volt').map(([k, v]) => `<span><i class="cv-dot ${k}"></i>${v}</span>`).join('')}<span><i class="cv-dot volt"></i>−5</span></div>`;
-      const f = $('.cv-bp', el); const pika = $('.cv-pika', f); const bolt = $('.cv-bolt', f); const tail = $('.cv-tail', f);
+      const f = $('.cv-bp', el); const pika = $('.cv-pika', f); const ropePaths = $$('.cv-rope path', f); const bolt = $('.cv-bolt', f); const tail = $('.cv-tail', f);
       Promise.all([fz().then((m) => m?.walkSprite('Pikachu', 2, 'right')), fz().then((m) => m?.walkSprite('Pikachu', 2, 'left'))]).then(([r, l]) => {
         if (!f.isConnected) return; if (r) $('.cv-pika-r', pika).innerHTML = r.html; if (l) $('.cv-pika-l', pika).innerHTML = l.html; }).catch(() => {});
       let score = 0; let on = true; let px = 50; let target = 50; let face = 'r'; let zapAt = 0; let tailAt = 0; const bs = new Set();
@@ -202,6 +202,10 @@ const GAMES = {
       const step = (t) => { if (!el.isConnected) return; const dt = Math.min(0.05, (t - last) / 1000); last = t;
         const d = target - px; if (Math.abs(d) > 0.5) { const nf = d > 0 ? 'r' : 'l'; if (nf !== face) { face = nf; pika.dataset.face = face; } px += Math.sign(d) * Math.min(Math.abs(d), 75 * dt); pika.classList.add('run'); } else pika.classList.remove('run');
         pika.style.left = px + '%';
+        { // the rope sags most right under Pikachu's feet (deeper while he runs)
+          const x = Math.max(30, Math.min(970, px * 10)); const dip = 66 + (pika.classList.contains('run') ? 3 : 0) + Math.sin(t / 260) * 1.2;
+          const d = `M0 50 Q${(x / 2).toFixed(1)} ${(50 + (dip - 50) * 0.9).toFixed(1)} ${x.toFixed(1)} ${dip.toFixed(1)} Q${((x + 1000) / 2).toFixed(1)} ${(50 + (dip - 50) * 0.9).toFixed(1)} 1000 50`;
+          ropePaths.forEach((r) => r.setAttribute('d', d)); }
         bs.forEach((b) => { if (b._dead) return; b._y += b._sp * dt; b.style.bottom = b._y + '%'; b.style.marginLeft = `${Math.sin(t / 600 + b._w) * 6}px`; if (b._y > 112) { b.remove(); bs.delete(b); } });
         requestAnimationFrame(step); };
       pika.dataset.face = 'r'; requestAnimationFrame(step); spawn();
