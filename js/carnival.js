@@ -5,15 +5,15 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af52d94';
-import { $, $$, esc, toast, num } from './util.js?v=6af52d94';
-import { me, logRoll } from './play.js?v=6af52d94';
-import { markWinner } from './sparkle.js?v=6af52d94';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af52d94';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af52d94';
-import { DECOR } from './basedecor.js?v=6af52d94';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af52d94';
-import { REWARD_CURSORS } from './digcursor.js?v=6af52d94';
+import * as store from './store.js?v=6af64494';
+import { $, $$, esc, toast, num } from './util.js?v=6af64494';
+import { me, logRoll } from './play.js?v=6af64494';
+import { markWinner } from './sparkle.js?v=6af64494';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af64494';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af64494';
+import { DECOR } from './basedecor.js?v=6af64494';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af64494';
+import { REWARD_CURSORS } from './digcursor.js?v=6af64494';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -30,7 +30,10 @@ const face = (k, cls = '') => `<img class="cv-face ${cls}" src="${P(k)}" alt="">
 const mime = (line) => `<div class="cv-talk">${face('mrmime')}<div class="bubble"><b>Mr. Mime:</b> “${esc(line)}”</div></div>`;
 const host = (k, who, line) => `<div class="cv-talk">${face(k)}<div class="bubble"><b>${esc(who)}:</b> “${esc(line)}”</div></div>`;
 
-export const carnivalMini = () => `<div class="cv-mini"><span class="cv-mini-comet"></span><span>🎡</span><span>🎪</span><span>🎠</span></div>`;
+// her ask 11-12 "Fix the panel to match the style. It's run by Jirachi": round picture like the other cards, night
+// midway under the comet with Jirachi (moving sprite) floating over the tents
+export const carnivalMini = () => { [0, 400, 1500, 4000].forEach((ms) => setTimeout(() => document.querySelectorAll('.cv-mini-jira:empty:not([data-ld])').forEach((el) => { el.dataset.ld = 1; spriteInto(el, 'Jirachi', 2.4, 'down', true).finally(() => { if (!el.firstChild) delete el.dataset.ld; }); }), ms));
+  return `<div class="cv-mini"><span class="cv-mini-stars"></span><span class="cv-mini-comet"></span><span class="cv-mini-tents"><i>🎪</i><i>🎡</i><i>🎪</i></span><span class="cv-mini-jira"></span></div>`; };
 
 // ---- you and your buddy, side by side (your character's walk sprite + the nursery sprite sheet)
 const BROW = { idle: 0, hop: 1, sleep: 2, right: 3, left: 4, eat: 5, nod: 6 };
@@ -49,7 +52,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af52d94').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af64494').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;

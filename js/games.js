@@ -1,33 +1,33 @@
 // Gambling games (Lucky Den Gambling Corner and any game the GM adds). Each game is a prize wheel:
 // slices are sized by weight and picked by weight, like the GM's Wheel of Names wheels.
-import { markWinner } from './sparkle.js?v=6af52d94';
-import * as store from './store.js?v=6af52d94';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af52d94';
-import { $, $$, esc, toast, num, uid } from './util.js?v=6af52d94';
-import { modal, portrait } from './ui.js?v=6af52d94';
-import * as sheet from './sheetdata.js?v=6af52d94';
-import { shop } from './guild.js?v=6af52d94';
-import { merged, editContent } from './content-store.js?v=6af52d94';
-import { logRoll, me, addTeamFx } from './play.js?v=6af52d94';
-import { luckyReaction, gmTodo } from './chatter.js?v=6af52d94';
-import { ranks } from './rulebook.js?v=6af52d94';
-import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6af52d94';
-import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6af52d94';
-import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6af52d94';
-import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6af52d94';
-import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6af52d94';
-import { isCafe, renderCafe, cafeDue, cafeMini } from './caferush.js?v=6af52d94';
-import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6af52d94';
-import { isTruck, renderTruck, truckMini } from './truck.js?v=6af52d94';
-import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6af52d94';
-import { isBattle, renderBattle, battleMini } from './battle.js?v=6af52d94';
-import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6af52d94';
-import { isCarnival, renderCarnival, carnivalMini } from './carnival.js?v=6af52d94';
-import { watchGamePage, stopGamePage } from './watch.js?v=6af52d94';
+import { markWinner } from './sparkle.js?v=6af64494';
+import * as store from './store.js?v=6af64494';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af64494';
+import { $, $$, esc, toast, num, uid } from './util.js?v=6af64494';
+import { modal, portrait } from './ui.js?v=6af64494';
+import * as sheet from './sheetdata.js?v=6af64494';
+import { shop } from './guild.js?v=6af64494';
+import { merged, editContent } from './content-store.js?v=6af64494';
+import { logRoll, me, addTeamFx } from './play.js?v=6af64494';
+import { luckyReaction, gmTodo } from './chatter.js?v=6af64494';
+import { ranks } from './rulebook.js?v=6af64494';
+import { isFortune, renderFortune, fortuneMini } from './fortune.js?v=6af64494';
+import { isSentry, renderSentry, sentryMini, sentryDue } from './sentry.js?v=6af64494';
+import { isDance, renderDance, danceMini, danceDue } from './dance.js?v=6af64494';
+import { isKitchen, renderKitchen, kitchenMini, kitchenDue } from './kitchen.js?v=6af64494';
+import { isNursery, renderNursery, nurseryDue } from './nursery.js?v=6af64494';
+import { isCafe, renderCafe, cafeDue, cafeMini } from './caferush.js?v=6af64494';
+import { isMailRun, renderMailRun, mailRunMini } from './mailrun.js?v=6af64494';
+import { isTruck, renderTruck, truckMini } from './truck.js?v=6af64494';
+import { isCards21, renderCards21, cards21Mini, c21Live } from './cards21.js?v=6af64494';
+import { isBattle, renderBattle, battleMini } from './battle.js?v=6af64494';
+import { isBallLab, renderBallLab, ballLabMini } from './balllab.js?v=6af64494';
+import { isCarnival, renderCarnival, carnivalMini } from './carnival.js?v=6af64494';
+import { watchGamePage, stopGamePage } from './watch.js?v=6af64494';
 
 export const GAMES = [
   {
-    id: 'star-carnival', kind: 'carnival', group: 'Outings', name: 'Wishmaker Star Carnival', host: 'Mr. Mime',
+    id: 'star-carnival', kind: 'carnival', group: 'Outings', name: 'Wishmaker Star Carnival', host: 'Jirachi',   // her ask 11-12: run by Jirachi
     intro: 'The Millennium Comet is back in the sky, and the Star Carnival has set up its tents under it. Bring your nursery buddy: ride the rides, share cotton candy, play the booth games for tickets, and trade them at the Prize Booth for base pieces, cursors, themes and dice.',
     cost: '', slices: [],
   },
