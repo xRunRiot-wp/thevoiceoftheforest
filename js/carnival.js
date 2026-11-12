@@ -5,15 +5,15 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af52ada';
-import { $, $$, esc, toast, num } from './util.js?v=6af52ada';
-import { me, logRoll } from './play.js?v=6af52ada';
-import { markWinner } from './sparkle.js?v=6af52ada';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af52ada';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af52ada';
-import { DECOR } from './basedecor.js?v=6af52ada';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af52ada';
-import { REWARD_CURSORS } from './digcursor.js?v=6af52ada';
+import * as store from './store.js?v=6af52c30';
+import { $, $$, esc, toast, num } from './util.js?v=6af52c30';
+import { me, logRoll } from './play.js?v=6af52c30';
+import { markWinner } from './sparkle.js?v=6af52c30';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af52c30';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af52c30';
+import { DECOR } from './basedecor.js?v=6af52c30';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af52c30';
+import { REWARD_CURSORS } from './digcursor.js?v=6af52c30';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -49,7 +49,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af52ada').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af52c30').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -210,25 +210,41 @@ const GAMES = {
         requestAnimationFrame(step); };
       pika.dataset.face = 'r'; requestAnimationFrame(step); spawn();
     } },
-  rings: { name: 'Slowpoke Ring Toss', who: 'Slowpoke', face: 'slowpoke', icon: '⭕', blurb: 'Toss rings onto the Slowpoke. They’re slow… but they do sway.',
-    how: '6 rings. The arrow slides back and forth: tap Throw when it’s right over a Slowpoke. 3 tickets a ringer, +5 for all six.',
+  // her ask 11-11: "I love the slowpoke game. Increase the quality. Instead of rings id like to throw klefkis":
+  // a proper booth (awning, lights, counter), moving Slowpoke sprites on stools, and Klefki (key rings!) that spin
+  // through the air in an arc and stack up on the Slowpoke they land on
+  rings: { name: 'Slowpoke Klefki Toss', who: 'Slowpoke', face: 'slowpoke', icon: '🔑', blurb: 'Toss Klefki onto the Slowpoke. They’re slow… but they do sway.',
+    how: '6 Klefki. The arrow slides back and forth along the counter: tap Throw when it’s right under a Slowpoke. 3 tickets a ringer, +5 if all six land.',
     tickets: (s) => s * 3 + (s >= 6 ? 5 : 0),
     play(el, c, done) {
-      el.innerHTML = '<div class="cv-hud"><span>⭕ Rings: <b class="cv-p">6</b></span><span>✅ <b class="cv-s">0</b></span></div><div class="cv-field cv-ringlane"><div class="cv-aim"></div></div><button class="btn block" id="cvthrow">⭕ Throw!</button>';
-      const f = $('.cv-ringlane', el); const aim = $('.cv-aim', f); let rings = 6; let hits = 0; let busy = false;
-      const pokes = [20, 50, 80].map((x, i) => { const s = document.createElement('div'); s.className = 'cv-slowpoke'; s.innerHTML = `<img src="${P('slowpoke')}" alt="Slowpoke"><span class="cv-stack"></span>`; s._x0 = x; s._ph = i * 2; f.appendChild(s); return s; });
+      el.innerHTML = `<div class="cv-hud"><span>🔑 Klefki: <b class="cv-p">6</b></span><span>✅ <b class="cv-s">0</b></span></div>
+        <div class="cv-field cv-kbooth"><div class="cv-kawn"></div><div class="cv-klights">${Array.from({ length: 11 }, (_, i) => `<i style="animation-delay:${(i % 3) * 0.3}s"></i>`).join('')}</div>
+          <div class="cv-kwall"></div><div class="cv-kshelf"></div><div class="cv-kcounter"><div class="cv-aim2"></div></div><div class="cv-kleft"></div></div>
+        <button class="btn block" id="cvthrow">🔑 Throw!</button>`;
+      const f = $('.cv-kbooth', el); const aim = $('.cv-aim2', f); const left = $('.cv-kleft', f); let rings = 6; let hits = 0; let busy = false; let kHTML = '';
+      const pokes = [20, 50, 80].map((x, i) => { const s2 = document.createElement('div'); s2.className = 'cv-kslow'; s2.innerHTML = '<span class="cv-kstack"></span><span class="cv-kspr"></span><span class="cv-kstool"></span>'; s2._x0 = x; s2._ph = i * 2; f.appendChild(s2); return s2; });
+      pokes.forEach((p) => spriteInto($('.cv-kspr', p), 'Slowpoke', 2.6, 'down', true));
+      fz().then((m) => m?.walkSprite('Klefki', 1.6, 'down', true)).then((w) => { kHTML = w?.html || '🔑'; if (el.isConnected) left.innerHTML = Array.from({ length: rings }, () => `<span>${kHTML}</span>`).join(''); }).catch(() => { kHTML = '🔑'; });
       let ax = 0; let dir = 1; let last = performance.now();
-      const step = (t) => { if (!el.isConnected) return; const dt = (t - last) / 1000; last = t;
+      const step = (t) => { if (!el.isConnected) return; const dt = Math.min(0.05, (t - last) / 1000); last = t;
         const sp = 70 + (6 - rings) * 12; ax += dir * sp * dt; if (ax > 100) { ax = 100; dir = -1; } if (ax < 0) { ax = 0; dir = 1; }
         aim.style.left = ax + '%'; pokes.forEach((p) => { p._x = p._x0 + Math.sin(t / 1400 + p._ph) * 5; p.style.left = p._x + '%'; });
         requestAnimationFrame(step); };
       requestAnimationFrame(step);
       $('#cvthrow', el).onclick = async () => {
         if (busy || !rings) return; busy = true; rings--; $('.cv-p', el).textContent = rings; const x = ax;
-        const ring = document.createElement('span'); ring.className = 'cv-ring'; ring.style.left = x + '%'; f.appendChild(ring); await wait(550); if (!el.isConnected) return;
-        const hit = pokes.find((p) => Math.abs(p._x - x) < 6.5);
-        if (hit) { hits++; ring.remove(); $('.cv-stack', hit).insertAdjacentHTML('beforeend', '<i></i>'); stepSound('up'); $('.cv-s', el).textContent = hits; } else { ring.classList.add('miss'); missSound(); setTimeout(() => ring.remove(), 500); }
-        busy = false; if (!rings) setTimeout(() => done(hits, `${hits} of 6 ringers`), 700);
+        left.lastElementChild?.remove();
+        // the Klefki flies up in an arc from the counter, spinning, toward the Slowpoke heads
+        const k = document.createElement('span'); k.className = 'cv-kfly'; k.innerHTML = kHTML || '🔑'; f.appendChild(k);
+        const fr = f.getBoundingClientRect(); const hit = pokes.find((p) => Math.abs(p._x - x) < 6.5);
+        const headY = hit ? $('.cv-kstack', hit).getBoundingClientRect().top - fr.top + 6 : fr.height * 0.36;
+        await k.animate([{ left: x + '%', top: '88%', transform: 'translate(-50%,-50%) rotate(0) scale(1.3)' },
+          { left: x + '%', top: `${(headY / fr.height) * 100 - 18}%`, transform: 'translate(-50%,-50%) rotate(360deg) scale(1)', offset: 0.6 },
+          { left: (hit ? hit._x : x) + '%', top: `${(headY / fr.height) * 100}%`, transform: 'translate(-50%,-50%) rotate(540deg) scale(.95)' }], { duration: 620, easing: 'ease-out', fill: 'forwards' }).finished.catch(() => {});
+        if (!el.isConnected) return;
+        if (hit) { hits++; k.remove(); const st = $('.cv-kstack', hit); st.insertAdjacentHTML('beforeend', `<span class="cv-kon">${kHTML || '🔑'}</span>`); hit.classList.remove('yay'); void hit.offsetWidth; hit.classList.add('yay'); stepSound('up'); $('.cv-s', el).textContent = hits; }
+        else { missSound(); await k.animate([{ top: k.style.top || '36%', opacity: 1 }, { top: '96%', opacity: 0, transform: 'translate(-50%,-50%) rotate(720deg) scale(.8)' }], { duration: 520, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {}); k.remove(); }
+        busy = false; if (!rings) setTimeout(() => done(hits, `${hits} of 6 Klefki landed`), 700);
       };
     } },
   hammer: { name: 'Machamp’s Strength Test', who: 'Machamp', face: 'machamp', icon: '🔔', blurb: 'Swing the big hammer and ring the bell at the top!',

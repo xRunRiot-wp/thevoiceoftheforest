@@ -3249,3 +3249,26 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .cv-held .cv-cotton { transform: scale(.55); transform-origin: 50% 100%; }
 .cv-held.show::after { content: '👆'; position: absolute; top: -20px; font-size: 14px; animation: cv-float 1s ease-in-out infinite; opacity: .85; }
 @media (max-width: 420px) { .cv-stand { width: 40px; } .cv-stand img { width: 26px; height: 26px; } }
+
+/* Slowpoke Klefki Toss (her ask 11-11) */
+.cv-kbooth { height: 320px; background: linear-gradient(#140b28, #2b1650 55%, #4a1f4f); }
+.cv-kawn { position: absolute; top: 0; left: 0; right: 0; height: 30px; background: repeating-linear-gradient(90deg, #d63a3a 0 26px, #f6eedf 26px 52px); z-index: 4; box-shadow: 0 3px 6px rgba(0, 0, 0, .5); }
+.cv-kawn::after { content: ''; position: absolute; left: 0; right: 0; bottom: -12px; height: 12px; background: radial-gradient(circle at 13px 0, #d63a3a 12px, transparent 13px) 0 0 / 52px 12px repeat-x, radial-gradient(circle at 39px 0, #f6eedf 12px, transparent 13px) 0 0 / 52px 12px repeat-x; }
+.cv-klights { position: absolute; top: 46px; left: 4%; right: 4%; display: flex; justify-content: space-between; z-index: 3; }
+.cv-klights i { width: 9px; height: 9px; border-radius: 50%; background: #ffe07a; box-shadow: 0 0 8px #ffd040; animation: cv-kblink 1s steps(1) infinite; }
+@keyframes cv-kblink { 50% { background: #ff7a7a; box-shadow: 0 0 8px #ff5050; } }
+.cv-kwall { position: absolute; top: 30px; left: 0; right: 0; bottom: 30%; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .03) 0 40px, rgba(0, 0, 0, .08) 40px 80px); }
+.cv-kshelf { position: absolute; left: 0; right: 0; bottom: 30%; height: 10px; background: linear-gradient(#a8783a, #6a4220); box-shadow: 0 4px 6px rgba(0, 0, 0, .4); z-index: 1; }
+.cv-kslow { position: absolute; bottom: calc(30% + 8px); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 2; }
+.cv-kspr { display: flex; align-items: flex-end; }
+.cv-kstool { width: 54px; height: 14px; margin-top: -4px; background: linear-gradient(#c08a4a, #7a4a1e); border-radius: 50%; box-shadow: 0 3px 4px rgba(0, 0, 0, .4); }
+.cv-kstack { display: flex; flex-direction: column-reverse; align-items: center; margin-bottom: -46px; min-height: 1px; z-index: 3; }
+.cv-kon { margin-top: -36px; animation: cv-kland .35s ease-out; } .cv-kon .fzs-spr { margin-bottom: 0 !important; }
+@keyframes cv-kland { 0% { transform: translateY(-14px) scale(1.2); } 60% { transform: translateY(3px) scale(.95); } }
+.cv-kslow.yay .cv-kspr { animation: cv-kyay .5s ease-out; } @keyframes cv-kyay { 40% { transform: translateY(-6px); } }
+.cv-kcounter { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(#d29a5a, #8a5a2a 30%, #6a4220); border-top: 4px solid #f2c14e; z-index: 5; }
+.cv-kcounter::before { content: ''; position: absolute; inset: 14px 0 0; background: repeating-linear-gradient(90deg, rgba(0, 0, 0, .12) 0 2px, transparent 2px 60px); }
+.cv-aim2 { position: absolute; top: -2px; width: 0; height: 0; border: 12px solid transparent; border-bottom: 18px solid #fff35a; transform: translate(-50%, -100%); filter: drop-shadow(0 0 4px #fff35a); }
+.cv-kfly { position: absolute; z-index: 6; pointer-events: none; font-size: 28px; }
+.cv-kfly .fzs-spr { margin-bottom: 0 !important; }
+.cv-kleft { position: absolute; left: 8px; bottom: 8px; display: flex; gap: 2px; z-index: 6; } .cv-kleft span { transform: scale(.75); transform-origin: 0 100%; display: flex; } .cv-kleft .fzs-spr { margin-bottom: 0 !important; }
