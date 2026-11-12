@@ -5,15 +5,15 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af5272b';
-import { $, $$, esc, toast, num } from './util.js?v=6af5272b';
-import { me, logRoll } from './play.js?v=6af5272b';
-import { markWinner } from './sparkle.js?v=6af5272b';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af5272b';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af5272b';
-import { DECOR } from './basedecor.js?v=6af5272b';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af5272b';
-import { REWARD_CURSORS } from './digcursor.js?v=6af5272b';
+import * as store from './store.js?v=6af5283f';
+import { $, $$, esc, toast, num } from './util.js?v=6af5283f';
+import { me, logRoll } from './play.js?v=6af5283f';
+import { markWinner } from './sparkle.js?v=6af5283f';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af5283f';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af5283f';
+import { DECOR } from './basedecor.js?v=6af5283f';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af5283f';
+import { REWARD_CURSORS } from './digcursor.js?v=6af5283f';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -49,7 +49,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af5272b').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af5283f').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -76,11 +76,11 @@ const GAMES = {
     tickets: (s) => s * 2 + (s >= 6 ? 5 : 0),
     play(el, c, done) {
       el.innerHTML = `<div class="cv-hud"><span>⚾ Balls: <b class="cv-p">8</b></span><span>💦 Dunks: <b class="cv-s">0</b></span></div>
-        <div class="cv-field cv-dunk"><div class="cv-target"><i></i><i></i><i></i></div><div class="cv-pole"></div>
-          <div class="cv-tank"><div class="cv-plank"></div><div class="cv-dweb"></div><div class="cv-water2"></div><div class="cv-splash"></div></div>
+        <div class="cv-field cv-dunk"><div class="cv-dsky"></div><div class="cv-dstars"></div><div class="cv-dstars b"></div><div class="cv-pole"></div><div class="cv-target"><span class="cv-trings"></span><b>DUNK</b>${[0, 90, 180, 270].map((a) => `<em style="transform:rotate(${a}deg) translateY(-47px)"></em>`).join('')}</div>
+          <div class="cv-tank"><div class="cv-plank"></div><div class="cv-dweb"></div><div class="cv-water2"><span class="cv-caustic"></span><span class="cv-wave"></span><span class="cv-wave b"></span>${Array.from({ length: 7 }, (_, i) => `<i class="cv-bub" style="left:${8 + i * 13}%;animation-delay:${(i * 0.53) % 3}s;animation-duration:${2.4 + (i % 3) * 0.7}s"></i>`).join('')}</div><div class="cv-deck2"></div><div class="cv-splash"></div></div>
           <div class="cv-xh"></div><div class="cv-taunt"></div></div><button class="btn block" id="cvthrow2">⚾ Throw!</button>`;
       const f = $('.cv-dunk', el); const xh = $('.cv-xh', f); const tg = $('.cv-target', f); const dweb = $('.cv-dweb', f); const taunt = $('.cv-taunt', f); const btn = $('#cvthrow2', el);
-      spriteInto(dweb, 'Dwebble', 2, 'left', true);
+      spriteInto(dweb, 'Dwebble', 3.2, 'left', true);
       const TAUNTS = ['Dweb dweb! Missed me!', 'Is that all you’ve got?', 'Nice try, slowpoke!', 'My shell is staying DRY today!', 'You throw like a Magikarp!'];
       const WET = ['BLUB BLUB! No fair!', 'SPLASH! Brrr, that’s cold!', 'Glub… you got me…', 'My rock is all wet!'];
       const tell = (t) => { taunt.textContent = t; taunt.classList.remove('show'); void taunt.offsetWidth; taunt.classList.add('show'); };
