@@ -5,15 +5,15 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af5283f';
-import { $, $$, esc, toast, num } from './util.js?v=6af5283f';
-import { me, logRoll } from './play.js?v=6af5283f';
-import { markWinner } from './sparkle.js?v=6af5283f';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af5283f';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af5283f';
-import { DECOR } from './basedecor.js?v=6af5283f';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af5283f';
-import { REWARD_CURSORS } from './digcursor.js?v=6af5283f';
+import * as store from './store.js?v=6af528f1';
+import { $, $$, esc, toast, num } from './util.js?v=6af528f1';
+import { me, logRoll } from './play.js?v=6af528f1';
+import { markWinner } from './sparkle.js?v=6af528f1';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af528f1';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af528f1';
+import { DECOR } from './basedecor.js?v=6af528f1';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af528f1';
+import { REWARD_CURSORS } from './digcursor.js?v=6af528f1';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -49,7 +49,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af5283f').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af528f1').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -113,22 +113,40 @@ const GAMES = {
         if (!balls) { btn.disabled = true; setTimeout(() => done(dunks, `dunked Dwebble ${dunks} time${dunks === 1 ? '' : 's'}`), 500); }
       };
     } },
-  ducks: { name: 'Psyduck Pond', who: 'Psyduck', face: 'psyduck', icon: '🦆', blurb: 'Pick 3 Psyduck from the stream. Each one has tickets written underneath.',
-    how: 'Tap 3 Psyduck as they float by. Each one has 1, 2, 3 or 5 tickets on the bottom, and one lucky duck has 10.',
+  // her ask 11-11: Psyduck Pond became the Surskit Lily Pad Search: Surskit skate around the pond, then dive under the
+  // lily pads; flip pads to find them (a Masquerain is worth the most, a Lotad gives an extra flip)
+  lily: { name: 'Surskit Lily Pad Search', who: 'Surskit', face: 'surskit', icon: '🍃', blurb: 'Watch the Surskit skate, then find where they hide under the lily pads!',
+    how: '12 lily pads and 5 flips. Each Surskit you find = 3 tickets, the Masquerain = 8, and a Lotad gives you 1 extra flip. Empty pads are just water.',
     tickets: (s) => s,
     play(el, c, done) {
-      el.innerHTML = '<div class="cv-hud"><span>🦆 Picks left: <b class="cv-p">3</b></span><span>🎟️ <b class="cv-s">0</b></span></div><div class="cv-field cv-pond"><div class="cv-water"></div></div>';
-      const f = $('.cv-pond', el); const vals = [1, 1, 2, 2, 3, 3, 5, 10].sort(() => Math.random() - 0.5); let picks = 3; let sum = 0;
-      const ducks = vals.map((v, i) => { const d = document.createElement('button'); d.className = 'cv-duck'; d.innerHTML = `<img src="${P('psyduck')}" alt="Psyduck"><i></i><b>${v}</b>`;
-        d._x = (i % 4) * 25 + Math.random() * 10; d._lane = i < 4 ? 0 : 1; d._v = v; f.appendChild(d); return d; });
-      let last = performance.now();
-      const step = (t) => { if (!el.isConnected) return; const dt = (t - last) / 1000; last = t;
-        ducks.forEach((d) => { if (d.classList.contains('picked')) return; d._x = (d._x + (d._lane ? -1 : 1) * dt * 9 + 110) % 110; d.style.left = `${d._x - 8}%`; d.style.top = d._lane ? '58%' : '22%'; d.style.transform = `translateY(${Math.sin(t / 400 + d._x) * 3}px)`; });
-        requestAnimationFrame(step); };
-      requestAnimationFrame(step);
-      ducks.forEach((d) => { d.onclick = () => { if (!picks || d.classList.contains('picked')) return; picks--; sum += d._v; d.classList.add('picked'); d._v >= 5 ? jingle(true) : stepSound('right');
-        $('.cv-p', el).textContent = picks; $('.cv-s', el).textContent = sum;
-        if (!picks) setTimeout(() => { ducks.forEach((x) => x.classList.add('picked')); setTimeout(() => done(sum, `picked ducks worth ${sum}`), 1400); }, 400); }; });
+      el.innerHTML = '<div class="cv-hud"><span>🍃 Flips left: <b class="cv-p">5</b></span><span>🎟️ <b class="cv-s">0</b></span></div><div class="cv-field cv-lpond"><div class="cv-lwater"></div><div class="cv-pads"></div><div class="cv-skaters"></div></div><p class="cv-hint small muted" style="text-align:center">Watch the Surskit…</p>';
+      const f = $('.cv-lpond', el); const padsEl = $('.cv-pads', f); const sk = $('.cv-skaters', f); const hint = $('.cv-hint', el);
+      const hide = ['surskit', 'surskit', 'surskit', 'surskit', 'masquerain', 'lotad', 'lotad', '', '', '', '', ''].sort(() => Math.random() - 0.5);
+      const VAL = { surskit: 3, masquerain: 8 };
+      let flips = 5; let sum = 0; let ready = false;
+      padsEl.innerHTML = hide.map((k, i) => `<button class="cv-pad" data-i="${i}" style="--r:${Math.round(Math.random() * 360)}deg;animation-delay:${(i % 5) * 0.4}s"><span class="cv-under"></span><span class="cv-leaf"></span></button>`).join('');
+      const pads = $$('.cv-pad', padsEl);
+      // the Surskit skate in zig-zags across the pond first, then dart under their pads
+      const names = { surskit: 'Surskit', masquerain: 'Masquerain', lotad: 'Lotad' };
+      const sprites = {};
+      Promise.all(Object.entries(names).map(([k, n]) => fz().then((m) => m?.walkSprite(n, 1.6, 'down', true)).then((w) => { sprites[k] = w?.html || ''; }).catch(() => {}))).then(async () => {
+        if (!el.isConnected) return;
+        const show = [...Array(5)].map(() => { const d = document.createElement('span'); d.className = 'cv-skater'; d.innerHTML = sprites.surskit; d.style.left = `${10 + Math.random() * 80}%`; d.style.top = `${10 + Math.random() * 70}%`; sk.appendChild(d); return d; });
+        for (let r = 0; r < 4; r++) { show.forEach((d) => { d.style.left = `${5 + Math.random() * 85}%`; d.style.top = `${5 + Math.random() * 75}%`; }); await wait(650); if (!el.isConnected) return; }
+        const homes = pads.filter((p, i) => hide[i] === 'surskit' || hide[i] === 'masquerain');
+        show.forEach((d, j) => { const p = homes[j % homes.length]; const pr = p.getBoundingClientRect(); const fr = f.getBoundingClientRect(); d.style.left = `${((pr.left + pr.width / 2 - fr.left) / fr.width) * 100}%`; d.style.top = `${((pr.top + pr.height / 2 - fr.top) / fr.height) * 100}%`; });
+        await wait(700); show.forEach((d) => d.classList.add('dive')); await wait(400); sk.innerHTML = '';
+        pads.forEach((p, i) => { $('.cv-under', p).innerHTML = hide[i] ? sprites[hide[i]] || '' : '<i class="cv-ripple"></i>'; });
+        ready = true; hint.textContent = 'Where did they go? Tap a lily pad to flip it!';
+      });
+      pads.forEach((p) => { p.onclick = () => {
+        if (!ready || !flips || p.classList.contains('open')) return; const k = hide[+p.dataset.i]; p.classList.add('open'); flips--;
+        if (k === 'lotad') { flips++; stepSound('right'); hint.textContent = 'A Lotad! It gives you an extra flip!'; }
+        else if (VAL[k]) { sum += VAL[k]; k === 'masquerain' ? jingle(true) : stepSound('up'); hint.textContent = k === 'masquerain' ? 'WOW, a Masquerain! +8' : 'Found a Surskit! +3'; }
+        else { missSound(); hint.textContent = 'Just water… splash!'; }
+        $('.cv-p', el).textContent = flips; $('.cv-s', el).textContent = sum;
+        if (!flips) { ready = false; setTimeout(() => { pads.forEach((x) => x.classList.add('open')); setTimeout(() => done(sum, `found ${sum} tickets’ worth of Surskit`), 1500); }, 500); }
+      }; });
     } },
   balloons: { name: 'Pikachu Balloon Pop', who: 'Pikachu', face: 'pikachu', icon: '🎈', blurb: 'Run along the top as Pikachu and pop the balloons with Iron Tail and Thunderbolt!',
     how: '30 seconds. Tap where Pikachu should run (or use ← →). ⬆️ Up = 🌀 Iron Tail: swings wide but only reaches balloons near the top. ⬇️ Down = ⚡ Thunderbolt: zaps straight down and pops the first balloon under Pikachu. On a phone, swipe up or down, or use the buttons. Red 1 · Blue 2 · Green 3 · Purple 5 · Gold 10. Voltorb balloons blow up for −5!',
