@@ -4,16 +4,16 @@
 // You and your buddy walk the midway together: ride the rides (counts as play time for the buddy), eat carnival snacks
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
-// State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, wishDay, total }.
-import * as store from './store.js?v=6af52116';
-import { $, $$, esc, toast, num } from './util.js?v=6af52116';
-import { me, logRoll } from './play.js?v=6af52116';
-import { markWinner } from './sparkle.js?v=6af52116';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af52116';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af52116';
-import { DECOR } from './basedecor.js?v=6af52116';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af52116';
-import { REWARD_CURSORS } from './digcursor.js?v=6af52116';
+// State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { n, day }, freePrize, wishes, total }.
+import * as store from './store.js?v=6af523df';
+import { $, $$, esc, toast, num } from './util.js?v=6af523df';
+import { me, logRoll } from './play.js?v=6af523df';
+import { markWinner } from './sparkle.js?v=6af523df';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af523df';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af523df';
+import { DECOR } from './basedecor.js?v=6af523df';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af523df';
+import { REWARD_CURSORS } from './digcursor.js?v=6af523df';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -49,7 +49,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af52116').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af523df').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -104,8 +104,8 @@ const GAMES = {
         $('.cv-p', el).textContent = picks; $('.cv-s', el).textContent = sum;
         if (!picks) setTimeout(() => { ducks.forEach((x) => x.classList.add('picked')); setTimeout(() => done(sum, `picked ducks worth ${sum}`), 1400); }, 400); }; });
     } },
-  balloons: { name: 'Pikachu Balloon Pop', who: 'Pikachu', face: 'pikachu', icon: '🎈', blurb: 'Run along the top as Pikachu and pop the balloons with Iron Tail and Thundershock!',
-    how: '30 seconds. Tap where Pikachu should run (or use ← →). ⚡ Thundershock zaps straight down and pops the first balloon under Pikachu. 🌀 Iron Tail swings wide but only reaches balloons near the top. Red 1 · Blue 2 · Green 3 · Purple 5 · Gold 10. Voltorb balloons blow up for −5!',
+  balloons: { name: 'Pikachu Balloon Pop', who: 'Pikachu', face: 'pikachu', icon: '🎈', blurb: 'Run along the top as Pikachu and pop the balloons with Iron Tail and Thunderbolt!',
+    how: '30 seconds. Tap where Pikachu should run (or use ← →). ⬆️ Up = 🌀 Iron Tail: swings wide but only reaches balloons near the top. ⬇️ Down = ⚡ Thunderbolt: zaps straight down and pops the first balloon under Pikachu. On a phone, swipe up or down, or use the buttons. Red 1 · Blue 2 · Green 3 · Purple 5 · Gold 10. Voltorb balloons blow up for −5!',
     tickets: (s) => (s >= 120 ? 20 : s >= 80 ? 12 : s >= 45 ? 7 : s > 0 ? 3 : 0),
     // her ask 11-11: Pikachu runs on top and pops rising balloons with Iron Tail or Thundershock; very round, colourful
     // balloons where each colour is worth something
@@ -113,7 +113,7 @@ const GAMES = {
       const COLORS = [['red', 1, 0.33], ['blue', 2, 0.25], ['green', 3, 0.17], ['purple', 5, 0.12], ['gold', 10, 0.06], ['volt', -5, 0.07]];
       el.innerHTML = `<div class="cv-hud"><span>⏱️ <b class="cv-t">30</b></span><span>⭐ <b class="cv-s">0</b></span></div>
         <div class="cv-field cv-sky cv-bp"><div class="cv-bp-rail"></div><div class="cv-pika"><span class="cv-pika-r"></span><span class="cv-pika-l"></span></div><svg class="cv-bolt" viewBox="0 0 20 100" preserveAspectRatio="none"><polyline points="10,0 4,18 14,34 5,52 15,70 6,86 11,100" fill="none" stroke="#fff35a" stroke-width="3"/></svg><span class="cv-tail"></span></div>
-        <div class="row cv-bp-btns"><button class="btn" id="cvzap">⚡ Thundershock</button><button class="btn alt" id="cvtail">🌀 Iron Tail</button></div>
+        <div class="cv-bp-btns"><button class="btn alt" id="cvtail">⬆️ 🌀 Iron Tail</button><button class="btn" id="cvzap">⬇️ ⚡ Thunderbolt</button></div>
         <div class="cv-bp-key small muted">${COLORS.filter(([k]) => k !== 'volt').map(([k, v]) => `<span><i class="cv-dot ${k}"></i>${v}</span>`).join('')}<span><i class="cv-dot volt"></i>−5</span></div>`;
       const f = $('.cv-bp', el); const pika = $('.cv-pika', f); const bolt = $('.cv-bolt', f); const tail = $('.cv-tail', f);
       Promise.all([fz().then((m) => m?.walkSprite('Pikachu', 2, 'right')), fz().then((m) => m?.walkSprite('Pikachu', 2, 'left'))]).then(([r, l]) => {
@@ -132,10 +132,15 @@ const GAMES = {
         tail.style.left = px + '%'; tail.classList.remove('go'); void tail.offsetWidth; tail.classList.add('go'); pika.classList.remove('spin'); void pika.offsetWidth; pika.classList.add('spin');
         [...bs].filter((b) => !b._dead && Math.abs(b._x - px) < 14 && b._y > 58 && b._y < 100).forEach(pop); };
       $('#cvzap', el).onclick = zap; $('#cvtail', el).onclick = swing;
-      f.onpointerdown = (e) => { const r = f.getBoundingClientRect(); target = Math.max(4, Math.min(96, (e.clientX - r.left) / r.width * 100)); };
+      // her ask 11-11: up = Iron Tail, down = Thunderbolt (arrow keys or a swipe on the play area); a plain tap moves Pikachu
+      let sy = null; let sx = 0;
+      f.onpointerdown = (e) => { sy = e.clientY; sx = e.clientX; };
+      f.onpointerup = (e) => { if (sy == null) return; const dy = e.clientY - sy; const r = f.getBoundingClientRect(); sy = null;
+        if (dy < -30) swing(); else if (dy > 30) zap(); else target = Math.max(4, Math.min(96, (sx - r.left) / r.width * 100)); };
+      f.style.touchAction = 'none';
       const keys = (e) => { if (!el.isConnected) { removeEventListener('keydown', keys); return; }
         if (e.key === 'ArrowLeft') target = Math.max(4, px - 12); else if (e.key === 'ArrowRight') target = Math.min(96, px + 12);
-        else if (e.key === ' ' || e.key === 'z') zap(); else if (e.key === 'ArrowUp' || e.key === 'x') swing(); else return; e.preventDefault(); };
+        else if (e.key === 'ArrowDown' || e.key === ' ') zap(); else if (e.key === 'ArrowUp') swing(); else return; e.preventDefault(); };
       addEventListener('keydown', keys);
       timer(el, 30, null, () => { on = false; removeEventListener('keydown', keys); setTimeout(() => done(score, `${score} balloon points`), 700); });
       const spawn = () => { if (!el.isConnected || !on) return;
@@ -228,7 +233,7 @@ const RIDES = {
     lines: ['Click, click, click… Dragonite pulls you up the big hill…', 'WHOOOOSH! Down the drop!', '{b} is squealing with joy!', 'The car rolls into the station. Again! Again!'] },
   teacups: { name: 'Lapras Tea Cups', face: 'lapras', cost: 4, blurb: 'Spin in a Lapras teacup as fast as you dare.',
     lines: ['You climb into a Lapras teacup…', 'Spin it faster! Faster!', '{b} is getting dizzy… and loving it.', 'The cups slow down. Everything is still spinning a little!'] },
-  funhouse: { name: 'Haunter’s Funhouse', face: 'haunter', cost: 5, blurb: 'Wobbly mirrors, flickering lights… and something giggling in the dark.',
+  funhouse: { name: 'Haunter’s Funhouse', face: 'haunter', cost: 5, blurb: 'Haunter’s magic mirror twists your buddy into its evolved, shiny, Mega, paradox or Gigantamax form!',
     lines: ['The door creaks shut behind you. It’s very dark in here…', 'The lights flicker. Was that a giggle?', 'BOO! Haunter pops out of a mirror! {b} jumps!', 'You made it out! Haunter waves goodbye. “Come back soon, hehehe!”'] },
 };
 const SNACKS = {
@@ -261,6 +266,38 @@ function grant(c, p) {
   else { const f = p.kind === 'cursor' ? 'cursors' : p.kind === 'theme' ? 'themes' : 'dice'; store.update('party/' + c.id, (x) => ({ ...x, [f]: [...new Set([...(x?.[f] || []), p.k])] })); }
 }
 const where = (p) => (p.kind === 'decor' ? 'Open your base and tap 🔨 Build to put it out.' : p.kind === 'cursor' ? 'Open ⚙️ Settings → Cursor to use it (on a computer with a mouse).' : p.kind === 'theme' ? 'Open ⚙️ Settings → Theme to switch to it.' : 'Open ⚙️ Settings → Dice skin to roll with them.');
+
+// Haunter's funhouse mirror (her ask 11-11): what each nursery baby can turn into (first = favourite evolution)
+const EVOS = { pichu: ['Raichu', 'Pikachu'], cleffa: ['Clefable', 'Clefairy'], igglybuff: ['Jigglypuff'], togepi: ['Togekiss', 'Togetic'], tyrogue: ['Hitmontop', 'Hitmonlee', 'Hitmonchan'],
+  smoochum: ['Jynx'], elekid: ['Electivire', 'Electabuzz'], magby: ['Magmortar', 'Magmar'], azurill: ['Azumarill', 'Marill'], wynaut: ['Wobbuffet'], budew: ['Roserade', 'Roselia'],
+  chingling: ['Chimecho', 'Chingling'], bonsly: ['Sudowoodo'], mimejr: ['Mr. Mime'], happiny: ['Blissey', 'Chansey'], munchlax: ['Snorlax'], riolu: ['Lucario'], ditto: ['Ditto'] };
+const BABY_NAME = { mimejr: 'Mime Jr.' };
+const SHINY_HUE = { pichu: -50, cleffa: 160, igglybuff: 150, togepi: 200, tyrogue: 140, smoochum: 180, elekid: 150, magby: 70, azurill: 300, wynaut: 160, budew: 230, chingling: 140, bonsly: 60, mimejr: 160, happiny: 120, munchlax: 140, riolu: 160 };
+const an = (w) => (/^[AEIOU]/i.test(w) ? 'an ' : 'a ') + w;
+async function mirrorForm(sp) {
+  const key = sp.startsWith('m_') ? 'ditto' : sp; const baby = BABY_NAME[key] || key.charAt(0).toUpperCase() + key.slice(1);
+  const shiny = { fx: 'fx-shiny', style: `--hue:${SHINY_HUE[key] ?? 150}deg`, name: `a shiny ${baby}`, label: `a shiny ${baby}, sparkling all over` };
+  // the evolution's walk sprite: usually the final form, sometimes the middle one; tries the next if one is missing
+  const evoSprite = async () => { const m = await fz(); const list = [...(EVOS[key] || [baby])]; if (list.length > 1 && Math.random() < 0.3) list.push(list.shift());
+    for (const n of list) { const w = await m?.walkSprite(n, 2, 'down', true).catch(() => null); if (w) return { n, html: w.html }; } return null; };
+  const kinds = ['evolved', 'shiny', 'mega', 'paradox', 'gmax'].sort(() => Math.random() - 0.5);
+  for (const k of kinds) {
+    if (k === 'shiny') return shiny;
+    const e = await evoSprite(); if (!e) continue;
+    const short = e.n.replace(/^Mr\. /, '');
+    if (k === 'evolved') return { fx: 'fx-evolved', html: e.html, name: an(e.n), label: `${an(e.n)}, all grown up` };
+    if (k === 'mega') return { fx: 'fx-mega', html: e.html, name: `Mega ${e.n}`, label: `Mega ${e.n}, glowing with Mega Evolution energy` };
+    if (k === 'gmax') return { fx: 'fx-gmax', html: e.html, name: `Gigantamax ${e.n}`, label: `a HUGE Gigantamax ${e.n} with red Dynamax clouds` };
+    if (key === 'igglybuff') return { fx: 'fx-ancient', html: e.html, name: 'Scream Tail', label: 'Scream Tail, its ancient paradox form' };
+    return Math.random() < 0.5 ? { fx: 'fx-ancient', html: e.html, name: `an ancient paradox ${e.n}`, label: `an ancient paradox ${e.n} from the distant past` }
+      : { fx: 'fx-future', html: e.html, name: `Iron ${short}`, label: `Iron ${short}, a paradox from the far future` };
+  }
+  return shiny;
+}
+
+const STAR_DAYS = 7;
+const WISHES = [['tickets', '🎟️', '100 tickets', 'A big pile of carnival tickets.'], ['prize', '🎁', 'A free prize', 'Your next Prize Booth trade costs nothing, any prize at all.'],
+  ['bond', '❤️', 'A bond heart', 'Your nursery buddy gets a whole bond heart.']];
 
 const GREET = ['Welcome, welcome to the Wishmaker Star Carnival! The comet only comes once in a thousand years, so have fun!', 'Step right up! Games, rides and the fluffiest cotton candy under the comet!',
   'Ooh, a little one! Hold their paw tight, the midway gets busy after dark.', 'Win tickets at the booths and trade them at the Prize Booth. Everyone’s a winner… almost!'];
@@ -320,28 +357,35 @@ export function renderCarnival(main, g, gm, onEdit) {
         ${Object.entries(SNACKS).map(([k, S]) => card(k, S.face, S.name, `${S.who}’s stand`, `🎟️ ${S.cost}`)).join('')}`;
       $$('[data-go]', panel).forEach((b) => { b.onclick = () => snack(b.dataset.go); });
     } else if (tab === 'wish') {
-      const done = c && rec(c.id).wishDay === today();
-      panel.innerHTML = `${host('jirachi', 'Jirachi', done ? 'Zzz… one wish a day… come back tomorrow…' : 'Yawn… you woke me up! Make a wish on the Millennium Comet. I’ll try to grant it!')}
-        <p class="small muted">One wish a day. Jirachi grants a few tickets, and sometimes a lot.</p><button class="btn block" id="cvwish" ${done || !c ? 'disabled' : ''}>🌠 Make a wish</button>`;
-      const w = $('#cvwish', panel); if (w) w.onclick = wish;
+      // her ask 11-11 (like May's Wishing Star): tap the star once a day; after 7 taps it is fully charged and Jirachi
+      // wakes up to grant one wish. carnival/<id>.star = { n: taps so far, day: last tap day }
+      const st = c ? rec(c.id).star || {} : {}; const n = num(st.n); const tapped = st.day === today(); const full = n >= STAR_DAYS;
+      panel.innerHTML = `${host('jirachi', 'Jirachi', full ? 'Yawn… you charged the Wishing Star all the way! I’m awake… make your wish!' : tapped ? 'Zzz… the star took in your light for today… come back tomorrow…' : 'Zzz… tap the Wishing Star to charge it… seven days… and I’ll wake up…')}
+        <div class="cv-wishstar ${full ? 'full' : ''}"><button class="cv-star" id="cvstar" ${!c || (tapped && !full) ? 'disabled' : ''} aria-label="Wishing Star"><span>⭐</span></button>
+        <div class="cv-pips">${Array.from({ length: STAR_DAYS }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</div>
+        <p class="small" style="margin:6px 0 0">${full ? '🌟 <b>Fully charged!</b> Pick your wish below.' : `<b>${n}/${STAR_DAYS}</b> days charged${tapped ? ' · come back tomorrow' : ' · tap the star!'}`}</p></div>
+        ${full ? `<div class="cv-wishes">${WISHES.map(([k, ic, t, d]) => `<button class="cv-wishbtn" data-wish="${k}"><b>${ic} ${esc(t)}</b><small>${esc(d)}</small></button>`).join('')}</div>` : '<p class="small muted">Tap once a day, any 7 days. Each tap gives 2 tickets. On the 7th day Jirachi wakes up and grants a wish.</p>'}
+        ${c && rec(c.id).freePrize ? '<p class="pill">🎁 You have a free Prize Booth wish waiting! Open the Prize Booth.</p>' : ''}`;
+      const sb = $('#cvstar', panel); if (sb) sb.onclick = chargeStar;
+      $$('[data-wish]', panel).forEach((b) => { b.onclick = () => wish(b.dataset.wish); });
     } else if (tab === 'prizes') drawPrizes();
   }
 
   function drawPrizes() {
-    const meC = c ? party()[c.id] || c : null; const tix = c ? ticketsOf(c.id) : 0;
+    const meC = c ? party()[c.id] || c : null; const free = c && !!rec(c.id).freePrize; const tix = c ? (free ? Infinity : ticketsOf(c.id)) : 0;
     const list = PRIZES().filter((p) => p.kind === prizeTab);
     panel.innerHTML = `${host('mrmime', 'Mr. Mime', 'The Prize Booth! Trade your tickets for something special. Mime-mime!')}
       <div class="row cv-tabs">${PRIZE_TABS.map(([k, l]) => `<button class="btn sm ${k === prizeTab ? '' : 'alt'}" data-pt="${k}">${l}</button>`).join('')}</div>
-      ${buying ? `<p class="base-hint">Trade <b>${buying.price} tickets</b> for the <b>${esc(buying.name)}</b>? <button class="btn sm" id="cvbuy" ${tix < buying.price ? 'disabled' : ''}>Trade</button> <button class="btn alt sm" id="cvnobuy">Cancel</button>${tix < buying.price ? ` <span class="small bad-t">You need ${buying.price - tix} more tickets.</span>` : ''}</p>` : ''}
+      ${free ? '<p class="pill">🌟 Jirachi’s wish: your next trade is FREE!</p>' : ''}${buying ? `<p class="base-hint">Trade <b>${free ? 'your free wish' : buying.price + ' tickets'}</b> for the <b>${esc(buying.name)}</b>? <button class="btn sm" id="cvbuy" ${tix < buying.price ? 'disabled' : ''}>Trade</button> <button class="btn alt sm" id="cvnobuy">Cancel</button>${tix < buying.price ? ` <span class="small bad-t">You need ${buying.price - tix} more tickets.</span>` : ''}</p>` : ''}
       <div class="cv-prizes">${list.map((p, i) => { const have = meC && owns(meC, p); const n = meC && p.kind === 'decor' ? ownedDecor(c.id, p.k) : 0;
         return `<button class="cv-prize ${buying === p ? 'on' : ''} ${have ? 'have' : ''}" data-pz="${i}" ${have || !c ? 'disabled' : ''}>${prizeArt(p)}<b>${esc(p.name)}</b><small>${have ? '✓ Yours' : `🎟️ ${p.price}`}${n ? ` · have ${n}` : ''}</small></button>`; }).join('')}</div>`;
     $$('[data-pt]', panel).forEach((b) => { b.onclick = () => { prizeTab = b.dataset.pt; buying = null; drawPrizes(); }; });
     $$('[data-pz]', panel).forEach((b) => { b.onclick = () => { buying = list[+b.dataset.pz]; drawPrizes(); }; });
     const no = $('#cvnobuy', panel); if (no) no.onclick = () => { buying = null; drawPrizes(); };
     const yes = $('#cvbuy', panel); if (yes) yes.onclick = () => {
-      const p = buying; if (!p || ticketsOf(c.id) < p.price) { toast('Not enough tickets for that one yet.'); return; }
-      addTickets(c.id, -p.price); grant(c, p);
-      store.pushLimited('log', { t: Date.now(), text: `🎪 ${c.nickname} traded ${p.price} carnival tickets for the ${p.name}!` });
+      const p = buying; const fr = !!rec(c.id).freePrize; if (!p || (!fr && ticketsOf(c.id) < p.price)) { toast('Not enough tickets for that one yet.'); return; }
+      if (fr) store.set('carnival/' + c.id, { ...rec(c.id), freePrize: false }); else addTickets(c.id, -p.price); grant(c, p);
+      store.pushLimited('log', { t: Date.now(), text: fr ? `🌟 ${c.nickname} used Jirachi’s wish for the ${p.name}!` : `🎪 ${c.nickname} traded ${p.price} carnival tickets for the ${p.name}!` });
       toast(`🎉 The ${p.name} is yours! ${where(p)}`); markWinner(c.id); jingle(true); buying = null; drawPrizes(); showTix();
       say(mime(`Congratulations! Enjoy your ${p.name}!`));
     };
@@ -381,7 +425,8 @@ export function renderCarnival(main, g, gm, onEdit) {
     const rbox = $('.cv-ride', panel); fillPair(rbox, c, k === 'coaster' || k === 'carousel' ? 'right' : 'down', 1.6);
     if (k === 'carousel') { spriteInto($('.cv-mount', rbox), 'Rapidash', 1.6, 'right', false); }
     if (k === 'coaster') { spriteInto($('.cv-drag', rbox), 'Dragonite', 1.4, 'right', false); }
-    const out = $('#cvrsay', panel);
+    const out = $('#cvrsay', panel); let extra = '';
+    if (k === 'funhouse') { extra = await funhouse(rbox, out, c, bn); if (extra == null) return; } else
     for (let i = 0; i < R.lines.length; i++) {
       if (!out.isConnected) return; out.textContent = R.lines[i].replace('{b}', bn);
       if (i === 1 || i === 2) budRow(rbox, 'hop', false); if (k === 'funhouse' && i === 2) rbox.classList.add('boo');
@@ -389,8 +434,8 @@ export function renderCarnival(main, g, gm, onEdit) {
     }
     if (!out.isConnected) return;
     const care = carnivalCare(c, 'play', 4);
-    store.pushLimited('log', { t: Date.now(), text: `🎠 ${c.nickname}${buddyName(c) ? ` and ${buddyName(c)}` : ''} rode the ${R.name} at the Star Carnival!` });
-    panel.innerHTML = `<div class="cv-end"><h3>What a ride!</h3><p>${esc(R.name)}${buddyName(c) ? ` with ${esc(buddyName(c))}` : ''}</p>
+    store.pushLimited('log', { t: Date.now(), text: `🎠 ${c.nickname}${buddyName(c) ? ` and ${buddyName(c)}` : ''} rode the ${R.name} at the Star Carnival!${extra ? ` Haunter’s mirror turned ${buddyName(c) || c.nickname} into ${extra}!` : ''}` });
+    panel.innerHTML = `<div class="cv-end"><h3>What a ride!</h3><p>${esc(R.name)}${buddyName(c) ? ` with ${esc(buddyName(c))}` : ''}</p>${extra ? `<p>🪞 Haunter’s mirror showed ${esc(bn)} as <b>${esc(extra)}</b>!</p>` : ''}
       ${care === 'ok' || care === 'grew' ? '<p class="small muted">🎈 Counts as play time · ❤️ bond went up</p>' : care ? `<p class="small muted">${esc(care)}</p>` : ''}
       <div class="row" style="gap:8px;justify-content:center"><button class="btn" id="cvagain">Ride again (🎟️ ${R.cost})</button><button class="btn alt" id="cvmid">Back to the midway</button></div></div>`;
     $('#cvagain', panel).onclick = () => ride(k); $('#cvmid', panel).onclick = () => draw();
@@ -402,7 +447,37 @@ export function renderCarnival(main, g, gm, onEdit) {
     if (k === 'coaster') return `<div class="cv-stars"></div><svg class="cv-track" viewBox="0 0 300 200"><path d="M-10 170 L60 170 Q90 170 110 40 Q120 10 140 40 Q170 175 200 150 Q230 120 250 150 Q270 175 310 170" fill="none" stroke="#f2c14e" stroke-width="4"/><path d="M-10 178 L60 178 Q92 178 112 48 Q120 20 138 48 Q170 183 200 158 Q230 128 250 158 Q270 183 310 178" fill="none" stroke="#a45ae2" stroke-width="2"/></svg>
       <div class="cv-car"><span class="cv-drag"></span><span class="cv-cart">${pair}</span></div>`;
     if (k === 'teacups') return `<div class="cv-turntable"><div class="cv-cup">${face('lapras', 'cv-cupface')}<div class="cv-cupin">${pair}</div></div></div>`;
-    return `<div class="cv-dark"></div><div class="cv-mirror"></div><div class="cv-haunt">${face('haunter')}</div><div class="cv-seat">${pair}</div>`;
+    return `<div class="cv-dark"></div><div class="cv-seat cv-fh-seat">${pair}</div><div class="cv-mirror"><div class="cv-refl"></div></div><div class="cv-haunt"></div>`;
+  }
+
+  // her ask 11-11: Haunter is a moving sprite, and his funhouse mirror twists the nursery buddy into its evolved form, its
+  // shiny form, a Mega Evolution, a paradox form or a Gigantamax form. SpriteCollab only has walk sprites for the plain
+  // evolutions, so the shiny / Mega / paradox / Gigantamax looks are Haunter's illusions drawn over the real sprites
+  // (colour shifts, a Mega rainbow aura, ancient or future paradox glows, Gigantamax size with red Dynamax clouds).
+  async function funhouse(rbox, out, c, bn) {
+    const say = (t) => { if (out.isConnected) out.textContent = t; };
+    const L = buddyLook(c.id); const sp = L && !L.egg ? (L.url.match(/nursery\/([^/.]+)\.png/) || [])[1] || '' : '';
+    spriteInto($('.cv-haunt', rbox), 'Haunter', 2, 'down', true);
+    say('The door creaks shut behind you. It’s very dark in here…'); await wait(2200); if (!out.isConnected) return null;
+    rbox.classList.add('boo'); budRow(rbox, 'hop', false); say('The lights flicker… and Haunter floats right out of the wall! “Hehehe! Look into my mirror!”'); await wait(2600); if (!out.isConnected) return null;
+    const refl = $('.cv-refl', rbox); const mirror = $('.cv-mirror', rbox);
+    const real = $('.cv-bspr', rbox);
+    const copy = () => { refl.className = 'cv-refl'; refl.removeAttribute('style'); refl.innerHTML = ''; if (real) { const cl = real.cloneNode(true); cl.classList.remove('cv-bspr'); refl.appendChild(cl); } };
+    if (!sp) {
+      mirror.classList.add('wob'); say(`Haunter waves his hands, and ${bn}’s reflection stretches tall and thin, then short and wide!`); await wait(2600); mirror.classList.remove('wob');
+      say('Haunter cackles. “Bring a little one next time, hehehe!” You made it out!'); await wait(2200); return out.isConnected ? '' : null;
+    }
+    copy(); await wait(600);
+    mirror.classList.add('wob'); say(`Haunter waves his hands over the mirror… ${bn}’s reflection starts to wobble and stretch…`); await wait(2600); if (!out.isConnected) return null;
+    const form = await mirrorForm(sp);
+    mirror.classList.remove('wob');
+    if (form.html) refl.innerHTML = form.html; else copy();
+    refl.className = 'cv-refl ' + form.fx; if (form.style) refl.setAttribute('style', form.style);
+    jingle(true); budRow(rbox, 'hop', false);
+    say(`Whoa! In the mirror, ${bn} looks like ${form.label}!`); await wait(3400); if (!out.isConnected) return null;
+    mirror.classList.add('wob'); say('Haunter cackles and the mirror wobbles back to normal. You made it out! “Come back soon, hehehe!”'); await wait(900); copy(); await wait(1500);
+    mirror.classList.remove('wob');
+    return out.isConnected ? form.name : null;
   }
 
   async function snack(k) {
@@ -418,17 +493,27 @@ export function renderCarnival(main, g, gm, onEdit) {
     $('#cvmid', panel).onclick = () => draw();
   }
 
-  async function wish() {
-    if (rec(c.id).wishDay === today()) return;
-    const big = Math.random() < 0.1; const t = big ? 30 : 5 + Math.floor(Math.random() * 11);
-    store.set('carnival/' + c.id, { ...rec(c.id), wishDay: today() });
-    panel.innerHTML = `<div class="cv-wishscene"><div class="cv-stars"></div><div class="cv-comet big"><i></i></div><div class="cv-jbig"></div><p class="cv-rsay" id="cvrsay">You close your eyes and make a wish…</p></div>`;
-    spriteInto($('.cv-jbig', panel), 'Jirachi', 2.5, 'down', true);
-    await wait(2200); if (!panel.isConnected) return;
-    addTickets(c.id, t); carnivalCare(c, 'play', 3); showTix(); jingle(true); if (big) markWinner(c.id);
-    logRoll(c.nickname, 'Star Carnival · Wishing Star', null, `Jirachi granted ${t} tickets${big ? ' (a big wish!)' : ''}`, 'note');
-    $('#cvrsay', panel).innerHTML = `${big ? '🌟 <b>Wish granted, big time!</b>' : '✨ Jirachi’s third eye twinkles…'} <b>+${t} tickets!</b> <button class="btn alt sm" id="cvmid">Back to the midway</button>`;
-    $('#cvmid', panel).onclick = () => { tab = 'games'; tabs(); draw(); };
+  async function chargeStar() {
+    const r = rec(c.id); const st = r.star || {}; if (st.day === today() || num(st.n) >= STAR_DAYS) return;
+    const n = num(st.n) + 1; store.set('carnival/' + c.id, { ...r, star: { n, day: today() } }); addTickets(c.id, 2); ensureAudio(); stepSound('up');
+    if (n >= STAR_DAYS) { jingle(true); store.pushLimited('log', { t: Date.now(), text: `🌠 ${c.nickname} fully charged the Wishing Star! Jirachi is waking up…` }); }
+    toast(n >= STAR_DAYS ? '🌟 The Wishing Star is fully charged! Jirachi is awake!' : `⭐ The Wishing Star glows a little brighter (${n}/${STAR_DAYS}) · +2 tickets`);
+    draw();
+  }
+  async function wish(k) {
+    const r = rec(c.id); if (num(r.star?.n) < STAR_DAYS) return; const W = WISHES.find((x) => x[0] === k); if (!W) return;
+    store.set('carnival/' + c.id, { ...r, star: { n: 0, day: today() }, wishes: num(r.wishes) + 1, ...(k === 'prize' ? { freePrize: true } : {}) });
+    panel.innerHTML = `<div class="cv-wishscene"><div class="cv-stars"></div><div class="cv-comet big"><i></i></div><div class="cv-jbig"></div><p class="cv-rsay" id="cvrsay">You hold the Wishing Star tight and wish for ${esc(W[2].toLowerCase())}…</p></div>`;
+    spriteInto($('.cv-jbig', panel), 'Jirachi', 2.5, 'down', true); ensureAudio();
+    await wait(2600); if (!panel.isConnected) return;
+    let got = '';
+    if (k === 'tickets') { addTickets(c.id, 100); got = '+100 tickets!'; }
+    else if (k === 'prize') got = 'Your next Prize Booth trade is free!';
+    else { const care = carnivalCare(c, 'play', 20); got = care === '' ? 'Jirachi saves the bond for when you have a buddy… (no nursery buddy right now)' : `${buddyName(c)} feels so loved! (+1 bond heart)`; }
+    jingle(true); markWinner(c.id); showTix();
+    store.pushLimited('log', { t: Date.now(), text: `🌟 Jirachi granted ${c.nickname}’s wish on the Wishing Star: ${W[2]}!` });
+    $('#cvrsay', panel).innerHTML = `🌟 <b>Wish granted!</b> ${esc(got)} <button class="btn alt sm" id="cvmid">Back to the midway</button>`;
+    $('#cvmid', panel).onclick = () => { tab = k === 'prize' ? 'prizes' : 'games'; tabs(); draw(); };
   }
 
   // GM: see everyone's tickets and hand some out
