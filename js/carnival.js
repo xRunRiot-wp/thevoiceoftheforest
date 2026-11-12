@@ -5,15 +5,15 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af52c30';
-import { $, $$, esc, toast, num } from './util.js?v=6af52c30';
-import { me, logRoll } from './play.js?v=6af52c30';
-import { markWinner } from './sparkle.js?v=6af52c30';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af52c30';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af52c30';
-import { DECOR } from './basedecor.js?v=6af52c30';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af52c30';
-import { REWARD_CURSORS } from './digcursor.js?v=6af52c30';
+import * as store from './store.js?v=6af52d94';
+import { $, $$, esc, toast, num } from './util.js?v=6af52d94';
+import { me, logRoll } from './play.js?v=6af52d94';
+import { markWinner } from './sparkle.js?v=6af52d94';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af52d94';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af52d94';
+import { DECOR } from './basedecor.js?v=6af52d94';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af52d94';
+import { REWARD_CURSORS } from './digcursor.js?v=6af52d94';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -49,7 +49,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af52c30').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af52d94').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -247,13 +247,14 @@ const GAMES = {
         busy = false; if (!rings) setTimeout(() => done(hits, `${hits} of 6 Klefki landed`), 700);
       };
     } },
-  hammer: { name: 'Machamp’s Strength Test', who: 'Machamp', face: 'machamp', icon: '🔔', blurb: 'Swing the big hammer and ring the bell at the top!',
+  hammer: { name: 'Scrafty’s Strength Test', who: 'Scrafty', face: 'scrafty', icon: '🔔', blurb: 'Swing the big hammer and ring the bell at the top!',
     how: '3 swings. The power bar goes up and down fast: tap Swing! at the very top. Ring the bell (95+) for 6 tickets, 80+ gets 3, 50+ gets 1.',
     tickets: (s) => s,
     play(el, c, done) {
       el.innerHTML = `<div class="cv-hud"><span>🔨 Swings: <b class="cv-p">3</b></span><span>💪 <b class="cv-s">–</b></span></div>
         <div class="cv-field cv-strength"><div class="cv-tower"><span class="cv-bell">🔔</span><span class="cv-puck"></span><b style="bottom:95%">RING!</b><b style="bottom:80%">Champ</b><b style="bottom:50%">Strong</b><b style="bottom:20%">Wimpy</b></div>
-        <div class="cv-meter"><span class="cv-fill"></span></div><div class="cv-champ">${face('machamp')}</div></div><button class="btn block" id="cvswing">🔨 Swing!</button>`;
+        <div class="cv-meter"><span class="cv-fill"></span></div><div class="cv-champ"></div></div><button class="btn block" id="cvswing">🔨 Swing!</button>`;
+      spriteInto($('.cv-champ', el), 'Scrafty', 2.4, 'left', true);   // her ask 11-11: Scrafty runs the strength test now
       const fill = $('.cv-fill', el); const puck = $('.cv-puck', el); let swings = 3; let tix = 0; let best = 0; let busy = false; let v = 0; let dir = 1; let last = performance.now(); const notes = [];
       const step = (t) => { if (!el.isConnected) return; const dt = (t - last) / 1000; last = t; if (!busy) { v += dir * (140 + (3 - swings) * 40) * dt; if (v > 100) { v = 100; dir = -1; } if (v < 0) { v = 0; dir = 1; } fill.style.height = v + '%'; } requestAnimationFrame(step); };
       requestAnimationFrame(step);
