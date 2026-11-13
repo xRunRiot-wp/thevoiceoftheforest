@@ -4,7 +4,7 @@
 // (Ferris wheel, big top, carousel, tea cups, a running coaster, the funhouse), the snack stands, lamp posts with
 // string lights, and a crowd of Pokémon wandering about. Walk with the arrow buttons, the keyboard or by tapping a spot;
 // stand by a booth or ride and tap the pop-up (or tap the booth itself) to play / ride / buy.
-const fz = () => import('./fzscene.js?v=6af66101').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af66305').catch(() => null);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 const P = (k) => `assets/portraits/${k}.png`;
 const ROW = { right: 2, left: 6 };

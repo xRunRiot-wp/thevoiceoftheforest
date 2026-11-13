@@ -5,16 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af66101';
-import { $, $$, esc, toast, num } from './util.js?v=6af66101';
-import { me, logRoll } from './play.js?v=6af66101';
-import { markWinner } from './sparkle.js?v=6af66101';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af66101';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af66101';
-import { DECOR } from './basedecor.js?v=6af66101';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af66101';
-import { REWARD_CURSORS } from './digcursor.js?v=6af66101';
-import { midwayHTML, mountMidway } from './midway.js?v=6af66101';
+import * as store from './store.js?v=6af66305';
+import { $, $$, esc, toast, num } from './util.js?v=6af66305';
+import { me, logRoll } from './play.js?v=6af66305';
+import { markWinner } from './sparkle.js?v=6af66305';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af66305';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af66305';
+import { DECOR } from './basedecor.js?v=6af66305';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af66305';
+import { REWARD_CURSORS } from './digcursor.js?v=6af66305';
+import { midwayHTML, mountMidway } from './midway.js?v=6af66305';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -58,7 +58,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af66101').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af66305').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -553,20 +553,22 @@ export function renderCarnival(main, g, gm, onEdit) {
       <div class="pb-sign"><span class="pb-bulbs"></span>🎁 PRIZE BOOTH 🎁<span class="pb-bulbs b"></span></div><div class="pb-awn"></div>
       <div class="pb-tabs">${PRIZE_TABS.map(([k, l]) => `<button class="pb-tab ${k === prizeTab ? 'on' : ''}" data-pt="${k}">${l}</button>`).join('')}</div>
       <div class="pb-wall pb-${prizeTab}"><span class="pb-section">${esc(tabName)}</span>
-        <div class="pb-shelf">${list.map((p, i) => { if (p.decoy) return `<button class="pb-item decoy" data-pz="${i}" ${!c ? 'disabled' : ''} aria-label="${esc(p.name)}, just for show"><i class="mw-pz ${p.art} pb-dz"></i><span class="pb-price">SHOW</span></button>`; const have = meC && owns(meC, p); const n = meC && p.kind === 'decor' ? ownedDecor(c.id, p.k) : 0;
+        <div class="pb-shelf">${list.map((p, i) => { if (p.decoy) return `<span class="pb-item decoy" aria-hidden="true"><i class="mw-pz ${p.art} pb-dz"></i></span>`; const have = meC && owns(meC, p); const n = meC && p.kind === 'decor' ? ownedDecor(c.id, p.k) : 0;
           return `<button class="pb-item ${buying === p ? 'on' : ''} ${have ? 'have' : ''}" data-pz="${i}" ${!c ? 'disabled' : ''} aria-label="${esc(p.name)}, ${p.price} tickets">${prizeArt(p)}<span class="pb-price">${have ? '✓' : `🎟️${p.price}`}</span>${n ? `<span class="pb-have">×${n}</span>` : ''}</button>`; }).join('')}</div>
+        <div class="pb-stage"><div class="pb-props">${[...DECOYS, ...DECOYS.slice().reverse()].map(([art]) => `<i class="mw-pz ${art}"></i>`).join('')}</div>
+          <span class="pb-mime"></span><span class="pb-jr"></span>
+          <div class="pb-say"><b>Mr. Mime:</b> <span id="pbsay">${buying ? esc(lineFor(buying)) : 'Step right up! Point at any prize and I’ll tell you all about it. Mime-mime!'}</span></div></div>
       </div>
       <div class="pb-counter">
-        <span class="pb-mime"></span><span class="pb-jr"></span>
-        <div class="pb-say"><b>Mr. Mime:</b> <span id="pbsay">${buying ? esc(lineFor(buying)) : 'Step right up! Point at any prize and I’ll tell you all about it. Mime-mime!'}</span></div>
         <div class="pb-front"><span class="pb-tix">🎟️ ${c ? (free ? 'Free wish!' : `${ticketsOf(c.id)} tickets`) : '–'}</span>
           ${free ? '<span class="pill">🌟 Jirachi’s wish: your next trade is FREE!</span>' : ''}
           ${buying ? `<span class="pb-buy">Trade <b>${free ? 'your free wish' : buying.price + ' tickets'}</b> for the <b>${esc(buying.name)}</b>? <button class="btn sm" id="cvbuy" ${tix < buying.price || (meC && owns(meC, buying)) ? 'disabled' : ''}>Trade</button> <button class="btn alt sm" id="cvnobuy">Cancel</button>${tix < buying.price ? ` <span class="small bad-t">You need ${buying.price - tix} more tickets.</span>` : ''}</span>` : '<span class="small pb-hint">Tap a prize to pick it.</span>'}
         </div>
       </div></div>`;
     const sayEl = $('#pbsay', panel); const jr = $('.pb-jr', panel);
-    spriteInto($('.pb-mime', panel), 'Mr. Mime', 2.2, 'down', true);
-    spriteInto(jr, 'Mime Jr', 1.8, 'down', true);
+    const narrow = innerWidth < 600;
+    spriteInto($('.pb-mime', panel), 'Mr. Mime', narrow ? 5 : 8, 'down', true);
+    spriteInto(jr, 'Mime Jr', narrow ? 4.4 : 7, 'down', true);
     $$('[data-pt]', panel).forEach((b) => { b.onclick = () => { prizeTab = b.dataset.pt; buying = null; drawPrizes(); }; });
     const rest = () => { sayEl.textContent = buying ? lineFor(buying) : 'Step right up! Point at any prize and I’ll tell you all about it. Mime-mime!'; };
     $$('[data-pz]', panel).forEach((b) => {

@@ -3629,3 +3629,14 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .pb-dz { transform: scale(2.4); transform-origin: 50% 100%; margin: 0 auto 6px; }
 .pb-item.decoy .pb-price { background: #3a2a4a; color: #ffe07a; letter-spacing: 1px; }
 .pb-jr.nope { animation: pb-nope .5s ease-in-out 2; } @keyframes pb-nope { 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
+/* her ask 11-12: huge Mr. Mime + Mime Jr. in front, prizes as the background; show prizes not clickable */
+.pb-item.decoy { pointer-events: none; cursor: default; opacity: .8; }
+.pb-stage { position: relative; height: 340px; margin: 0 -6px -6px; background: repeating-linear-gradient(transparent 0 78px, #a8723a 78px 84px, #5a3a1a 84px 86px); overflow: hidden; }
+.pb-props { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 86px; align-items: end; justify-items: center; opacity: .7; pointer-events: none; }
+.pb-props i { transform: scale(2.4); transform-origin: 50% 100%; margin-bottom: 8px; }
+.pb-counter { padding: 0 12px 10px; min-height: 0; margin-top: -44px; z-index: 3; }
+.pb-mime { left: 8%; bottom: 34px; z-index: 2; pointer-events: none; filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .6)); }
+.pb-jr { right: 9%; bottom: 36px; z-index: 2; pointer-events: none; filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .6)); }
+.pb-say, .pb-say[class] { left: 50%; right: auto; top: 10px; width: min(52%, 420px); transform: translateX(-50%); font-size: 14px; }
+.pb-say::before { left: -8px; bottom: 14px; }
+@media (max-width: 600px) { .pb-stage { height: 270px; } .pb-say, .pb-say[class] { top: 6px; width: 58%; font-size: 12px; } .pb-mime { left: 2%; } .pb-jr { right: 6%; } .pb-props { grid-template-columns: repeat(5, 1fr); } }
