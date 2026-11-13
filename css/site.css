@@ -3422,3 +3422,37 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .cv-cbox .cv-face { width: 56px; height: 56px; display: block; margin: 0 auto 6px; }
 .cv-ctitle { display: block; font-family: var(--pix); font-size: 18px; color: var(--brown); }
 .cv-cbox p { margin: 8px 0 12px; }
+
+/* her ask 11-12 "fix the layering": lamp posts stand behind the rides and booths (string lights stay on top), Lapras
+   sits in front of the tea cups instead of poking out behind them */
+.mw-lamp { z-index: 1; }
+.mw-teacups .mw-host { left: auto !important; right: -6px; bottom: 0 !important; transform: none; z-index: 2 !important; }
+/* "make sure all the balloons come to the pokemon": the string ends at the Pokémon's paw, beside it */
+.mw-ball { top: auto; bottom: calc(45% + 22px); right: -8px; }
+/* "fix the dragonite sleigh situation": Dragonite right in front of the cars, level with them, two straight reins */
+.mw-train { gap: 0; align-items: flex-end; }
+.mw-car { width: 24px; height: 13px; margin-right: 2px; }
+.mw-reins { width: 14px; height: 6px; margin: 0 0 4px; transform: none; background: none; border-top: 2px solid #e8b46a; border-bottom: 2px solid #c99a3a; }
+.mw-drag { margin: 0 0 -2px; animation: none; }
+.cv-car .cv-drag { margin-left: 0; transform: none; animation: none; display: flex; align-items: flex-end; padding-left: 22px; }
+.cv-car .cv-drag::before { left: 0; bottom: 14px; width: 26px; height: 0; border-top: 2px solid #e8b46a; background: none; transform: none; }
+.cv-car .cv-drag::after { left: 0; bottom: 8px; width: 26px; height: 0; border-top: 2px solid #c99a3a; background: none; transform: none; }
+.cv-car .cv-drag .fzs-spr { margin-bottom: 0 !important; }
+
+/* Dragonite sleigh, take 2 (her ask 11-12 "fix the dragonite sleigh situation"): he flies upright just ahead of the
+   cars on the same track, reins drawn live from the car to him (midway + the ride screen) */
+.mw-dragfly { position: absolute; left: 0; top: 0; offset-rotate: 0deg; offset-anchor: 30% 85%; animation: mw-ride-d 7s cubic-bezier(.45, 0, .55, 1) infinite; z-index: 2; }
+@keyframes mw-ride-d { 0% { offset-distance: 9%; } 12% { offset-distance: 17%; } 92% { offset-distance: 100%; } 100% { offset-distance: 100%; } }
+.mw-dragfly .mw-drag { margin: 0; }
+.mw-reinsvg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 1; }
+.mw-reinsvg line, .cv-reinsvg line { stroke: #e8b46a; stroke-width: 1.6; stroke-linecap: round; }
+.mw-reinsvg line.r2, .cv-reinsvg line.r2 { stroke: #c99a3a; }
+.cv-r-coaster { height: 290px; }
+.cv-r-coaster .cv-track, .cv-r-coaster .cv-car { top: 74px; }
+.cv-dragfly { position: absolute; left: 0; top: 74px; offset-path: path('M-10 170 L60 170 Q90 170 110 40 Q120 10 140 40 Q170 175 200 150 Q230 120 250 150 Q270 175 310 170'); offset-rotate: 0deg; offset-anchor: 30% 90%; animation: cv-ride-d 8.4s cubic-bezier(.5, 0, .5, 1) 1 forwards; z-index: 3; }
+@keyframes cv-ride-d { 0% { offset-distance: 10%; } 30% { offset-distance: 39%; } 45% { offset-distance: 60%; } 92% { offset-distance: 100%; } 100% { offset-distance: 100%; } }
+.cv-dragfly .cv-drag .fzs-spr { margin-bottom: 0 !important; }
+.cv-reinsvg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
+/* Lapras in front, centred, a touch smaller so the cups stay visible; Dragonite a longer lead on the drop */
+.mw-teacups .mw-host { right: auto !important; left: 50% !important; bottom: -8px !important; transform: translateX(-50%) scale(.82); transform-origin: 50% 100%; }
+@keyframes cv-ride-d { 0% { offset-distance: 12%; } 30% { offset-distance: 44%; } 45% { offset-distance: 67%; } 90% { offset-distance: 100%; } 100% { offset-distance: 100%; } }

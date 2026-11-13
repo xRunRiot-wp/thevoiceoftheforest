@@ -5,16 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af653d4';
-import { $, $$, esc, toast, num } from './util.js?v=6af653d4';
-import { me, logRoll } from './play.js?v=6af653d4';
-import { markWinner } from './sparkle.js?v=6af653d4';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af653d4';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af653d4';
-import { DECOR } from './basedecor.js?v=6af653d4';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af653d4';
-import { REWARD_CURSORS } from './digcursor.js?v=6af653d4';
-import { midwayHTML, mountMidway } from './midway.js?v=6af653d4';
+import * as store from './store.js?v=6af655d8';
+import { $, $$, esc, toast, num } from './util.js?v=6af655d8';
+import { me, logRoll } from './play.js?v=6af655d8';
+import { markWinner } from './sparkle.js?v=6af655d8';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af655d8';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af655d8';
+import { DECOR } from './basedecor.js?v=6af655d8';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af655d8';
+import { REWARD_CURSORS } from './digcursor.js?v=6af655d8';
+import { midwayHTML, mountMidway } from './midway.js?v=6af655d8';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -53,7 +53,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af653d4').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af655d8').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -544,7 +544,17 @@ export function renderCarnival(main, g, gm, onEdit) {
     setTimeout(() => $('.cv-ride', panel)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
     const rbox = $('.cv-ride', panel); fillPair(rbox, c, k === 'coaster' || k === 'carousel' ? 'right' : 'down', 1.6);
     if (k === 'carousel') { spriteInto($('.cv-mount', rbox), 'Rapidash', 1.6, 'right', false); }
-    if (k === 'coaster') { spriteInto($('.cv-drag', rbox), 'Dragonite', 1.4, 'right', false); }
+    if (k === 'coaster') {
+      // her ask 11-12: Dragonite pulls the car like a sleigh: he flies upright just ahead on the same track and the two
+      // reins are redrawn every frame from the car to him, so they never come loose
+      spriteInto($('.cv-drag', rbox), 'Dragonite', 1.4, 'right', false).then(() => $('.cv-drag .fzs-spr', rbox)?.classList.add('walking'));
+      const car = $('.cv-cart', rbox); const dr = $('.cv-dragfly', rbox); const ls = $$('.cv-reinsvg line', rbox);
+      const rein = () => { if (!rbox.isConnected) return; const b = rbox.getBoundingClientRect(); const a = car.getBoundingClientRect(); const d = dr.getBoundingClientRect();
+        const ax = a.right - b.left - 4; const ay = a.top + a.height * 0.7 - b.top; const dx = d.left + d.width * 0.35 - b.left; const dy = d.top + d.height * 0.62 - b.top;
+        ls.forEach((l, i) => { l.setAttribute('x1', ax.toFixed(1)); l.setAttribute('y1', (ay - 2 + i * 5).toFixed(1)); l.setAttribute('x2', dx.toFixed(1)); l.setAttribute('y2', (dy - 2 + i * 5).toFixed(1)); });
+        requestAnimationFrame(rein); };
+      requestAnimationFrame(rein);
+    }
     const out = $('#cvrsay', panel); let extra = '';
     if (k === 'funhouse') { extra = await funhouse(rbox, out, c, bn); if (extra == null) return; } else
     for (let i = 0; i < R.lines.length; i++) {
@@ -565,7 +575,7 @@ export function renderCarnival(main, g, gm, onEdit) {
     if (k === 'carousel') return `<div class="cv-canopy"></div><div class="cv-rlights"></div><div class="cv-pole"></div><div class="cv-seat cv-bob"><span class="cv-mount"></span>${pair}</div><div class="cv-deck"></div>`;
     if (k === 'wheel') return `<div class="cv-stars"></div><div class="cv-comet big"><i></i></div><div class="cv-bigwheel"><div class="cv-arm"><div class="cv-gondola">${pair}</div></div></div>`;
     if (k === 'coaster') return `<div class="cv-stars"></div><svg class="cv-track" viewBox="0 0 300 200"><path d="M-10 170 L60 170 Q90 170 110 40 Q120 10 140 40 Q170 175 200 150 Q230 120 250 150 Q270 175 310 170" fill="none" stroke="#f2c14e" stroke-width="4"/><path d="M-10 178 L60 178 Q92 178 112 48 Q120 20 138 48 Q170 183 200 158 Q230 128 250 158 Q270 183 310 178" fill="none" stroke="#a45ae2" stroke-width="2"/></svg>
-      <div class="cv-car"><span class="cv-drag"></span><span class="cv-cart">${pair}</span></div>`;
+      <div class="cv-car"><span class="cv-cart">${pair}</span></div><div class="cv-dragfly"><span class="cv-drag"></span></div><svg class="cv-reinsvg" aria-hidden="true"><line class="r1"/><line class="r2"/></svg>`;
     if (k === 'teacups') return `<div class="cv-turntable"><div class="cv-cup">${face('lapras', 'cv-cupface')}<div class="cv-cupin">${pair}</div></div></div>`;
     return `<div class="cv-dark"></div><div class="cv-seat cv-fh-seat">${pair}</div><div class="cv-mirror"><div class="cv-refl"></div></div><div class="cv-haunt"></div>`;
   }

@@ -4,7 +4,7 @@
 // (Ferris wheel, big top, carousel, tea cups, a running coaster, the funhouse), the snack stands, lamp posts with
 // string lights, and a crowd of Pokémon wandering about. Walk with the arrow buttons, the keyboard or by tapping a spot;
 // stand by a booth or ride and tap the pop-up (or tap the booth itself) to play / ride / buy.
-const fz = () => import('./fzscene.js?v=6af653d4').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af655d8').catch(() => null);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 const P = (k) => `assets/portraits/${k}.png`;
 const ROW = { right: 2, left: 6 };
@@ -88,7 +88,9 @@ function coaster(x) {
     <svg viewBox="0 0 360 210" aria-hidden="true">${sup}${cross}<path d="${d}" fill="none" stroke="#e24a4a" stroke-width="5"/><path d="${d}" fill="none" stroke="#ffb0a0" stroke-width="1.2" transform="translate(0 -2)"/>
       ${pts.filter((_, i) => i % 5 === 0).map(([px, y], i) => `<circle class="cv-bulb" cx="${px}" cy="${y - 4}" r="2" style="animation-delay:${(i % 3) * 0.3}s"/>`).join('')}
       <rect x="0" y="196" width="40" height="12" fill="#6b2a3a" stroke="#f2c14e"/><text x="20" y="206" text-anchor="middle" font-size="8" fill="#ffe7a0">GO!</text></svg>
-    <span class="mw-train" style="offset-path:path('${d}')"><span class="mw-car"></span><span class="mw-car"></span><span class="mw-car lead"></span><span class="mw-reins"></span><span class="mw-drag" data-sp="Dragonite"></span></span>
+    <span class="mw-train" style="offset-path:path('${d}')"><span class="mw-car"></span><span class="mw-car"></span><span class="mw-car lead"></span></span>
+    <span class="mw-dragfly" style="offset-path:path('${d}')"><span class="mw-drag" data-sp="Dragonite"></span></span>
+    <svg class="mw-reinsvg" viewBox="0 0 360 210" aria-hidden="true"><line class="r1"/><line class="r2"/></svg>
     <span class="mw-tag">🎢 Dragonite Coaster</span></button>`;
 }
 
@@ -244,6 +246,17 @@ export function mountMidway(scene, D, onSpot, onMove) {
   const ku = (e) => { if (['ArrowLeft', 'a', 'A'].includes(e.key) && held === -1) held = 0; if (['ArrowRight', 'd', 'D'].includes(e.key) && held === 1) held = 0; };
   addEventListener('keydown', kd); addEventListener('keyup', ku);
   function cleanup() { removeEventListener('keydown', kd); removeEventListener('keyup', ku); }
+  // her ask 11-12 "fix the dragonite sleigh situation": Dragonite flies upright just ahead of the cars on the same
+  // track; two reins are redrawn every frame from the lead car to him so they always stay attached
+  const cBox = world.querySelector('.mw-coaster'); const lead = cBox?.querySelector('.mw-car.lead'); const drag = cBox?.querySelector('.mw-dragfly');
+  const rl = cBox ? [...cBox.querySelectorAll('.mw-reinsvg line')] : [];
+  const reins = () => {
+    if (!cBox || !lead || !drag) return; const b = cBox.getBoundingClientRect(); if (b.right < 0 || b.left > innerWidth) return;
+    const a = lead.getBoundingClientRect(); const d = drag.getBoundingClientRect(); const k = 360 / (b.width || 360);
+    const ax = (a.left + a.width / 2 - b.left) * k; const ay = (a.top + a.height / 2 - b.top) * k;
+    const dx = (d.left + d.width * 0.35 - b.left) * k; const dy = (d.top + d.height * 0.62 - b.top) * k;
+    rl.forEach((l, i) => { l.setAttribute('x1', ax.toFixed(1)); l.setAttribute('y1', (ay - 2 + i * 4).toFixed(1)); l.setAttribute('x2', dx.toFixed(1)); l.setAttribute('y2', (dy - 2 + i * 4).toFixed(1)); });
+  };
   let last = performance.now(); let hinted = false;
   const tick = (now) => {
     if (!scene.isConnected) { cleanup(); return; }
@@ -262,7 +275,7 @@ export function mountMidway(scene, D, onSpot, onMove) {
         if (Math.abs(n.to - n.x) < 3) { n.wait = 1 + r() * 4; n.to = Math.max(60, Math.min(MW_W - 60, n.x + (r() - 0.5) * 700)); }
         n.el.style.transform = `translateX(${n.x.toFixed(1)}px)`;
       }
-      show();
+      show(); reins();
     }
     requestAnimationFrame(tick);
   };
