@@ -5,16 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af655d8';
-import { $, $$, esc, toast, num } from './util.js?v=6af655d8';
-import { me, logRoll } from './play.js?v=6af655d8';
-import { markWinner } from './sparkle.js?v=6af655d8';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af655d8';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af655d8';
-import { DECOR } from './basedecor.js?v=6af655d8';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af655d8';
-import { REWARD_CURSORS } from './digcursor.js?v=6af655d8';
-import { midwayHTML, mountMidway } from './midway.js?v=6af655d8';
+import * as store from './store.js?v=6af65b8b';
+import { $, $$, esc, toast, num } from './util.js?v=6af65b8b';
+import { me, logRoll } from './play.js?v=6af65b8b';
+import { markWinner } from './sparkle.js?v=6af65b8b';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af65b8b';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af65b8b';
+import { DECOR } from './basedecor.js?v=6af65b8b';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af65b8b';
+import { REWARD_CURSORS } from './digcursor.js?v=6af65b8b';
+import { midwayHTML, mountMidway } from './midway.js?v=6af65b8b';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -24,6 +24,11 @@ const party = () => store.get('party') || {};
 const rec = (id) => store.get('carnival/' + id) || {};
 const playsToday = (id) => { const r = rec(id); return r.day === today() ? r.plays || {} : {}; };
 const ticketsOf = (id) => num(party()[id]?.tickets);
+const pokeOf = (id) => num(party()[id]?.poke);
+const addPoke = (id, n) => store.update('party/' + id, (x) => ({ ...x, poke: Math.max(0, num(x?.poke) + n) }));
+// her ask 11-12 "make it so players have to pay to play the games (under 10 poke)" + "booth games cost POKE not tickets":
+// each booth game costs a few Poké for its prize plays; once a booth's daily ticket plays are used up it is free, just for fun
+const GAME_COST = { dunk: 5, lily: 4, balloons: 6, rings: 5, hammer: 4, hats: 5 };
 const addTickets = (id, n) => store.update('party/' + id, (x) => ({ ...x, tickets: Math.max(0, num(x?.tickets) + n) }));
 const wait = (ms) => new Promise((ok) => setTimeout(ok, ms));
 const pickOne = (a) => a[Math.floor(Math.random() * a.length)];
@@ -53,7 +58,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af655d8').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af65b8b').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -272,33 +277,80 @@ const GAMES = {
         if (!swings) setTimeout(() => done(tix, `swings of ${notes.join(', ')}`, tix), 400);
       };
     } },
-  hats: { name: 'Haunter’s Hat Trick', who: 'Haunter', face: 'haunter', icon: '🎩', blurb: 'Haunter hides under a top hat and shuffles. Can you keep your eye on him?',
-    how: '3 rounds, each one faster. Watch the hat Haunter hides under, then tap it. 1 right = 4 tickets, 2 = 9, all 3 = 15.',
+  // her ask 11-12 "Increase the quality of the Haunter's Hat Trick. I want the hats to be top down on a spooky table cloth.
+  // I also want it to be just a ghost hand (could be haunters, gengars, mimikyu, etc.). The goal it to figure out which hat
+  // has the hand holding the tickets.": three top hats seen from above on a spooky tablecloth (candles, cobwebs, fringe);
+  // a ghost's hand (Haunter, Gengar, Mimikyu, Dusknoir, Banette) grabs the tickets and hides under one hat, the hats
+  // slide around each other, then you lift the one you think has the hand
+  hats: { name: 'Haunter’s Hat Trick', who: 'Haunter', face: 'haunter', icon: '🎩', blurb: 'A ghost hand grabs the tickets and hides under a top hat. Which hat has the hand?',
+    how: '3 rounds, each one faster. Watch which hat the ghost hand hides under while the hats slide around, then tap it. 1 right = 4 tickets, 2 = 9, all 3 = 15.',
     tickets: (s) => [0, 4, 9, 15][s] || 0,
     play(el, c, done) {
-      el.innerHTML = '<div class="cv-hud"><span>🎩 Round <b class="cv-p">1</b>/3</span><span>✅ <b class="cv-s">0</b></span></div><div class="cv-field cv-hats"><div class="cv-ghost"></div></div><p class="cv-hint small muted" style="text-align:center"></p>';
-      const f = $('.cv-hats', el); const ghost = $('.cv-ghost', f); ghost.style.backgroundImage = `url(${P('haunter')})`; const hint = $('.cv-hint', el);
-      const X = [18, 50, 82]; const hats = X.map((x, i) => { const h = document.createElement('button'); h.className = 'cv-hat'; h.innerHTML = '🎩'; h._slot = i; h.style.left = x + '%'; f.appendChild(h); return h; });
+      const HANDS = [['Haunter', '#9a6ad8', '#3d1f66', '#c9a6ff', 'haunt'], ['Gengar', '#6f4ba6', '#26123f', '#ff5a6a', 'geng'], ['Mimikyu', '#17121d', '#000', '#5a4a66', 'mimi'],
+        ['Dusknoir', '#5d5f6c', '#1f2028', '#f2c14e', 'dusk'], ['Banette', '#4a4a5c', '#15151e', '#e8c24a', 'bane']].sort(() => Math.random() - 0.5);
+      const hatSVG = (i) => `<svg viewBox="-50 -50 100 100" aria-hidden="true"><defs><radialGradient id="hb${i}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#4b3d63"/><stop offset="1" stop-color="#191226"/></radialGradient>
+        <radialGradient id="hc${i}" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#6a5888"/><stop offset=".55" stop-color="#3a2c52"/><stop offset="1" stop-color="#1e1530"/></radialGradient></defs>
+        <circle r="47" fill="url(#hb${i})" stroke="#0c0814" stroke-width="2"/><circle r="44" fill="none" stroke="#5b4a78" stroke-width="1" opacity=".55"/>
+        <circle r="31" fill="#9b1f4a" stroke="#4a0a22" stroke-width="1.5"/><circle r="31" fill="none" stroke="#e0507e" stroke-width="1" stroke-dasharray="3 5" opacity=".7"/>
+        <circle r="26" fill="url(#hc${i})" stroke="#120c1c" stroke-width="1.5"/><path d="M-16 -12 A20 20 0 0 1 4 -21" fill="none" stroke="#b9a6dc" stroke-width="3" stroke-linecap="round" opacity=".45"/>
+        <g transform="translate(-30 -21) rotate(-35)"><rect x="-6" y="-3" width="12" height="6" rx="1.5" fill="#f2c14e" stroke="#7a5410"/><circle r="1.6" fill="#7a5410"/></g></svg>`;
+      // a ghost hand seen from above, fingers spread around a fan of carnival tickets
+      const ticket = (r, x) => `<g transform="translate(${x} -16) rotate(${r})"><rect x="-8" y="-17" width="16" height="30" rx="2" fill="#ffcf4a" stroke="#a56a10" stroke-width="1.2"/><rect x="-5" y="-13" width="10" height="22" rx="1" fill="none" stroke="#d0402a" stroke-width=".9" stroke-dasharray="2 1.5"/><text y="2" font-size="9" text-anchor="middle" fill="#d0402a">★</text></g>`;
+      const handSVG = ([, fill, ink, accent, kind]) => {
+        const fingers = kind === 'mimi' ? [[-22, -26], [-6, -36], [12, -32], [26, -20]] : kind === 'geng' ? [[-20, -24, -28], [0, -32, 0], [20, -24, 28]] : [[-22, -28, -30], [-7, -36, -10], [9, -36, 10], [24, -28, 30]];
+        const fw = kind === 'geng' ? 11 : 8;
+        const fg = fingers.map(([x, y, r]) => kind === 'mimi'
+          ? `<path d="M${x * 0.4 - 3} -4 Q${x * 0.8} ${y * 0.6} ${x} ${y} L${x + 4} ${y + 7} Q${x * 0.7 + 3} ${y * 0.4} ${x * 0.4 + 5} -2 Z" fill="${fill}" stroke="${ink}" stroke-width="1.2"/>`
+          : `<g transform="translate(${x * 0.55} -8) rotate(${r})"><rect x="${-fw / 2}" y="${y * 0.75}" width="${fw}" height="${-y * 0.75 + 6}" rx="${fw / 2}" fill="${fill}" stroke="${ink}" stroke-width="1.6"/></g>`).join('');
+        const palm = kind === 'mimi' ? `<path d="M-20 6 Q-24 -8 -10 -10 Q0 -14 12 -10 Q24 -6 20 8 Q22 18 14 26 L18 40 L8 30 L4 44 L-2 30 L-8 42 L-10 28 L-18 36 L-14 22 Q-22 16 -20 6 Z" fill="${fill}" stroke="${ink}" stroke-width="1.4"/>`
+          : `<path d="M-8 22 Q-6 38 0 46 Q6 38 8 22 Z" fill="${fill}" opacity=".55"/><ellipse cx="0" cy="6" rx="${kind === 'geng' ? 24 : 21}" ry="19" fill="${fill}" stroke="${ink}" stroke-width="1.8"/>`;
+        const mark = kind === 'dusk' ? `<path d="M-10 10 Q0 2 10 10" stroke="${accent}" stroke-width="2.5" fill="none"/><circle cx="0" cy="15" r="3" fill="${accent}"/>`
+          : kind === 'bane' ? `<path d="M-12 6 L12 6 M-8 2 L-8 10 M0 2 L0 10 M8 2 L8 10" stroke="${accent}" stroke-width="1.6"/>`
+          : kind === 'geng' ? `<path d="M-14 16 L-8 10 L-2 16 L4 10 L10 16" stroke="${accent}" stroke-width="1.6" fill="none" opacity=".8"/>`
+          : kind === 'mimi' ? `<circle cx="-6" cy="10" r="2.2" fill="${accent}"/><circle cx="6" cy="10" r="2.2" fill="${accent}"/>` : `<ellipse cx="0" cy="8" rx="10" ry="7" fill="${accent}" opacity=".35"/>`;
+        const thumb = kind === 'mimi' ? '' : `<g transform="translate(-19 -1) rotate(-62)"><rect x="-4.5" y="-17" width="9" height="19" rx="4.5" fill="${fill}" stroke="${ink}" stroke-width="1.5"/></g>`;
+        return `<svg viewBox="-50 -55 100 105" aria-hidden="true"><ellipse cx="0" cy="14" rx="30" ry="22" fill="${accent}" opacity=".18"/>${fg}${palm}${mark}${ticket(-22, -10)}${ticket(0, 0)}${ticket(22, 10)}${thumb}</svg>`;
+      };
+      el.innerHTML = `<div class="cv-hud"><span>🎩 Round <b class="cv-p">1</b>/3</span><span>✅ <b class="cv-s">0</b></span></div>
+        <div class="cv-field cv-hats"><div class="cv-cloth"><span class="cv-web l"></span><span class="cv-web r"></span><i class="cv-candle l">🕯️</i><i class="cv-candle r">🕯️</i><span class="cv-hpeek"></span><div class="cv-hand"></div></div><div class="cv-fringe"></div></div>
+        <p class="cv-hint small muted" style="text-align:center"></p>`;
+      const cloth = $('.cv-cloth', el); const hand = $('.cv-hand', el); const hint = $('.cv-hint', el); const peek = $('.cv-hpeek', el);
+      const X = [20, 50, 80]; const Y = 58;
+      const hats = X.map((x, i) => { const h = document.createElement('button'); h.className = 'cv-hat'; h.setAttribute('aria-label', `Hat ${i + 1}`);
+        h.innerHTML = `<span class="cv-hshad"></span><span class="cv-hlift">${hatSVG(i)}</span>`; h._slot = i; h.style.left = x + '%'; h.style.top = Y + '%'; cloth.appendChild(h); return h; });
+      const place = (h, slot) => { h.style.left = X[slot] + '%'; h.style.top = Y + '%'; };
+      // two hats trade places: one swings over the top, the other under, so you can follow them
+      const swap = (a, b, ms) => { const ha = hats.find((h) => h._slot === a); const hb = hats.find((h) => h._slot === b); const mid = (X[a] + X[b]) / 2; const bend = Math.abs(a - b) === 2 ? 26 : 18;
+        const anim = (h, from, to, dy) => h.animate([{ left: X[from] + '%', top: Y + '%' }, { left: mid + '%', top: (Y + dy) + '%' }, { left: X[to] + '%', top: Y + '%' }], { duration: ms, easing: 'ease-in-out' });
+        anim(ha, a, b, -bend); anim(hb, b, a, bend); ha._slot = b; hb._slot = a; place(ha, b); place(hb, a); };
       let score = 0;
       const round = async (n) => {
-        $('.cv-p', el).textContent = n; const g = Math.floor(Math.random() * 3); const swaps = [5, 8, 12][n - 1]; const ms = [460, 340, 240][n - 1];
-        hats.forEach((h) => { h.style.transition = `left ${ms}ms ease-in-out, transform .3s`; h.classList.remove('lift'); });
-        ghost.style.left = X[hats[g]._slot] + '%'; ghost.classList.add('show'); hats[g].classList.add('lift'); hint.textContent = 'Haunter hides under this one… hehehe!'; await wait(1300);
-        hats[g].classList.remove('lift'); await wait(350); ghost.classList.remove('show'); hint.textContent = 'Shuffling…';
-        for (let i = 0; i < swaps; i++) { const a = Math.floor(Math.random() * 3); let b = Math.floor(Math.random() * 2); if (b >= a) b++;
-          const ha = hats.find((h) => h._slot === a); const hb = hats.find((h) => h._slot === b); ha._slot = b; hb._slot = a; ha.style.left = X[b] + '%'; hb.style.left = X[a] + '%'; await wait(ms + 40); if (!el.isConnected) return; }
-        hint.textContent = 'Where is Haunter? Tap a hat!';
+        const H = HANDS[n - 1]; $('.cv-p', el).textContent = n; const g = Math.floor(Math.random() * 3); const swaps = [6, 9, 13][n - 1]; const ms = [520, 400, 300][n - 1];
+        hats.forEach((h) => h.classList.remove('lift', 'right', 'wrong'));
+        hand.innerHTML = handSVG(H); hand.style.left = X[hats[g]._slot] + '%'; hand.style.top = (Y + 4) + '%'; hand.className = 'cv-hand';
+        peek.innerHTML = ''; spriteInto(peek, H[0], 2, 'down', true);
+        hats[g].classList.add('lift'); await wait(250); hand.classList.add('show', 'wave');
+        hint.innerHTML = `<b>${H[0]}’s</b> hand has the tickets… and it’s hiding under this hat! Hehehe!`; await wait(1700); if (!el.isConnected) return;
+        hand.classList.remove('wave'); hats[g].classList.remove('lift'); await wait(380); hand.classList.remove('show'); hint.textContent = 'Shuffling… keep your eye on that hat!';
+        for (let i = 0; i < swaps; i++) { const a = Math.floor(Math.random() * 3); let b = Math.floor(Math.random() * 2); if (b >= a) b++; swap(a, b, ms); await wait(ms + 40); if (!el.isConnected) return; }
+        hint.textContent = 'Which hat has the hand holding the tickets? Tap it!'; cloth.classList.add('pick');
         const pick = await new Promise((ok) => hats.forEach((h, i) => { h.onclick = () => ok(i); }));
-        hats.forEach((h) => { h.onclick = null; });
-        ghost.style.left = X[hats[g]._slot] + '%'; hats[pick].classList.add('lift'); if (pick !== g) hats[g].classList.add('lift'); ghost.classList.add('show');
-        const right = pick === g; if (right) { score++; stepSound('up'); hint.textContent = 'Found him! “Aww, no fair!”'; } else { missSound(); hint.textContent = '“Hehehe! Over here!”'; }
-        $('.cv-s', el).textContent = score; await wait(1500);
+        hats.forEach((h) => { h.onclick = null; }); cloth.classList.remove('pick');
+        hand.style.left = X[hats[g]._slot] + '%'; const right = pick === g;
+        hats[pick].classList.add('lift', right ? 'right' : 'wrong'); await wait(260);
+        if (!right) { missSound(); hint.innerHTML = 'Empty! <i>“Hehehe! Over here!”</i>'; await wait(650); hats[g].classList.add('lift'); await wait(200); }
+        hand.classList.add('show', right ? 'give' : 'wave');
+        if (right) { score++; stepSound('up'); hint.innerHTML = `You found <b>${H[0]}’s</b> hand! It hands over the tickets.`; }
+        $('.cv-s', el).textContent = score; await wait(1800); if (!el.isConnected) return;
+        hats.forEach((h) => h.classList.remove('lift')); await wait(300); hand.classList.remove('show', 'give', 'wave'); await wait(300);
       };
-      (async () => { for (let n = 1; n <= 3; n++) { await round(n); if (!el.isConnected) return; } done(score, `found Haunter ${score} of 3 times`); })();
+      (async () => { for (let n = 1; n <= 3; n++) { await round(n); if (!el.isConnected) return; } done(score, `found the ghost hand ${score} of 3 times`); })();
     } },
 };
 
 // ---- rides (cost tickets; count as play time and raise Bond) and snacks (count as food)
+// her ask 11-12 "I do want a faster second row with other pokemon on it": the carousel's back row
+const CAROUSEL_BACK = ['Ponyta', 'Blitzle', 'Tauros', 'Gogoat', 'Mareep', 'Mudbray'];
 const RIDES = {
   carousel: { name: 'Rapidash Carousel', face: 'rapidash', cost: 4, blurb: 'Round and round on a Rapidash, with the band organ playing.',
     lines: ['The band organ starts up and the Rapidash rise and fall…', '{b} waves at everyone going by!', 'Round and round under the twinkling lights.', 'The music winds down. What a ride!'] },
@@ -433,7 +485,7 @@ export function renderCarnival(main, g, gm, onEdit) {
   const ed = $('#ed', main); if (ed) ed.onclick = onEdit;
   const scene = $('#cvscene', main); const panel = $('#cvpanel', main); const talk = $('#cvtalk', main);
   // her ask 11-12: a busy midway you walk around; tapping a booth / ride / stand (or its pop-up) opens it
-  const mw = mountMidway(scene, { GAMES, RIDES, SNACKS }, (kind, k) => { if (!c) { say(mime('Pick your character on the home page first, then come play!')); return; } if (kind === 'game') playGame(k); else if (kind === 'ride') ride(k); else snack(k); }, (d) => budRow(scene, d || 'idle'));
+  const mw = mountMidway(scene, { GAMES, RIDES, SNACKS, GAME_COST }, (kind, k) => { if (!c) { say(mime('Pick your character on the home page first, then come play!')); return; } if (kind === 'game') playGame(k); else if (kind === 'ride') ride(k); else snack(k); }, (d) => budRow(scene, d || 'idle'));
   fillPair(scene, c, 'right', 2).then(() => mw.refaceMe());
   spriteInto($('.cv-jirachi', scene), 'Jirachi', 1.5, 'down', true);
   const hopTimer = setInterval(() => { if (!scene.isConnected) { clearInterval(hopTimer); return; } budRow(scene, 'hop', false); setTimeout(() => budRow(scene, 'idle'), 1300); }, 9000);
@@ -453,8 +505,8 @@ export function renderCarnival(main, g, gm, onEdit) {
     showTix();
     if (tab === 'games') {
       const pt = c ? playsToday(c.id) : {};
-      panel.innerHTML = `<p class="small muted" style="margin-top:0">Each booth pays tickets for your first ${PAID_PLAYS} games a day. After that you can still play for fun.</p>
-        <div class="cv-grid">${Object.entries(GAMES).map(([k, G]) => card(k, G.face, `${G.icon} ${G.name}`, G.blurb, 'Play', `<span class="pill">${Math.max(0, PAID_PLAYS - num(pt[k]))}/${PAID_PLAYS} paid left today</span>${c && num(rec(c.id).best?.[k]) ? ` <span class="pill">🏆 best ${num(rec(c.id).best[k])}</span>` : ''}`)).join('')}</div>`;
+      panel.innerHTML = `<p class="small muted" style="margin-top:0">Each booth game costs a few Poké and pays tickets, for your first ${PAID_PLAYS} games a booth each day. After that you can play free, just for fun.${c ? ` <b>You have 💰 ${pokeOf(c.id)} Poké.</b>` : ''}</p>
+        <div class="cv-grid">${Object.entries(GAMES).map(([k, G]) => card(k, G.face, `${G.icon} ${G.name}`, G.blurb, num(pt[k]) < PAID_PLAYS ? `Play 💰 ${GAME_COST[k] || 0}` : 'Play free', `<span class="pill">${Math.max(0, PAID_PLAYS - num(pt[k]))}/${PAID_PLAYS} paid left today</span>${c && num(rec(c.id).best?.[k]) ? ` <span class="pill">🏆 best ${num(rec(c.id).best[k])}</span>` : ''}`)).join('')}</div>`;
       $$('[data-go]', panel).forEach((b) => { b.onclick = () => playGame(b.dataset.go); }); fillSprites();
     } else if (tab === 'rides') {
       panel.innerHTML = `<p class="small muted" style="margin-top:0">Rides cost tickets. ${buddyName(c) ? `Riding together counts as play time for ${esc(buddyName(c))} and raises your bond.` : 'Bring your nursery buddy and it counts as their play time!'}</p>
@@ -500,8 +552,14 @@ export function renderCarnival(main, g, gm, onEdit) {
   }
 
   // a booth game in the panel, then the end screen with the tickets
-  function playGame(k) {
-    const G = GAMES[k]; ensureAudio();
+  function playGame(k, ok) {
+    const G = GAMES[k]; const cost = num(playsToday(c.id)[k]) < PAID_PLAYS ? GAME_COST[k] || 0 : 0;
+    if (cost && !ok) {
+      if (pokeOf(c.id) < cost) { say(mime(`${G.name} is ${cost} Poké a game. Come back with a little more Poké!`)); return; }
+      confirmSpend(G.face, G.name, cost, () => playGame(k, true), 'Poké'); return;
+    }
+    if (cost) { addPoke(c.id, -cost); logRoll(c.nickname, `Star Carnival · ${G.name}`, null, `paid ${cost} Poké to play`, 'note'); }
+    ensureAudio();
     panel.innerHTML = `<div class="row" style="justify-content:space-between;align-items:center"><b>${G.icon} ${esc(G.name)}</b><button class="btn alt sm" id="cvback">← Midway</button></div>
       ${host(G.face, G.who, G.blurb)}<p class="small muted">${esc(G.how)}</p><div class="cv-game" id="cvg"></div>`;
     $('#cvback', panel).onclick = () => draw();
@@ -518,16 +576,17 @@ export function renderCarnival(main, g, gm, onEdit) {
     const box = $('#cvg', panel); if (!box) return;
     box.innerHTML = `<div class="cv-end"><h3>${t ? `🎟️ +${t} tickets!` : paidN >= PAID_PLAYS ? 'Just for fun!' : 'No tickets this time!'}</h3><p>${esc(note)}${score > prev && prev ? ' · 🏆 new best!' : ''}</p>
       ${paidN >= PAID_PLAYS ? `<p class="small muted">This booth’s ticket roll is used up for you today. Come back tomorrow!</p>` : `<p class="small muted">${PAID_PLAYS - paidN - 1} paid game${PAID_PLAYS - paidN - 1 === 1 ? '' : 's'} left here today.</p>`}
-      <div class="row" style="gap:8px;justify-content:center"><button class="btn" id="cvagain">Play again</button><button class="btn alt" id="cvmid">Back to the midway</button></div></div>`;
+      <div class="row" style="gap:8px;justify-content:center"><button class="btn" id="cvagain">Play again${paidN + 1 < PAID_PLAYS && GAME_COST[k] ? ` (💰 ${GAME_COST[k]})` : ''}</button><button class="btn alt" id="cvmid">Back to the midway</button></div></div>`;
     $('#cvagain', box).onclick = () => playGame(k); $('#cvmid', box).onclick = () => draw();
     showTix();
   }
 
   // her ask 11-12 "there is a ticket confirmation message if it is a snack or ride": a Yes / No box before tickets are spent
-  function confirmSpend(pic, title, cost, go) {
+  function confirmSpend(pic, title, cost, go, unit = 'tickets') {
+    const have = unit === 'Poké' ? pokeOf(c.id) : ticketsOf(c.id); const sym = unit === 'Poké' ? '💰' : '🎟️';
     $('.cv-confirm')?.remove();
     const box = document.createElement('div'); box.className = 'cv-confirm';
-    box.innerHTML = `<div class="cv-cbox" role="dialog" aria-label="Spend tickets?">${face(pic)}<b class="cv-ctitle">${esc(title)}</b><p>Spend <b>🎟️ ${cost} tickets</b>?<br><span class="small muted">You have ${ticketsOf(c.id)} · ${ticketsOf(c.id) - cost} left after</span></p><div class="row" style="gap:8px;justify-content:center"><button class="btn sm" data-y>Yes, spend ${cost}</button><button class="btn alt sm" data-n>No thanks</button></div></div>`;
+    box.innerHTML = `<div class="cv-cbox" role="dialog" aria-label="Spend tickets?">${face(pic)}<b class="cv-ctitle">${esc(title)}</b><p>${unit === 'Poké' ? 'Pay' : 'Spend'} <b>${sym} ${cost} ${unit}</b>${unit === 'Poké' ? ' to play' : ''}?<br><span class="small muted">You have ${have} · ${have - cost} left after</span></p><div class="row" style="gap:8px;justify-content:center"><button class="btn sm" data-y>Yes, ${unit === 'Poké' ? 'pay' : 'spend'} ${cost}</button><button class="btn alt sm" data-n>No thanks</button></div></div>`;
     document.body.appendChild(box);
     const close = () => box.remove();
     $('[data-y]', box).onclick = () => { close(); go(); }; $('[data-n]', box).onclick = close;
@@ -543,7 +602,7 @@ export function renderCarnival(main, g, gm, onEdit) {
       <div class="cv-ride cv-r-${k}">${rideArt(k, c)}</div><p class="cv-rsay" id="cvrsay"></p>`;
     setTimeout(() => $('.cv-ride', panel)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
     const rbox = $('.cv-ride', panel); fillPair(rbox, c, k === 'coaster' || k === 'carousel' ? 'right' : 'down', 1.6);
-    if (k === 'carousel') { spriteInto($('.cv-mount', rbox), 'Rapidash', 1.6, 'right', false); }
+
     if (k === 'coaster') {
       // her ask 11-12: Dragonite pulls the car like a sleigh: he flies upright just ahead on the same track and the two
       // reins are redrawn every frame from the car to him, so they never come loose
@@ -556,6 +615,8 @@ export function renderCarnival(main, g, gm, onEdit) {
       requestAnimationFrame(rein);
     }
     const out = $('#cvrsay', panel); let extra = '';
+    let cnote = '';
+    if (k === 'carousel') { cnote = await carouselRide(rbox, out, bn); if (cnote == null) return; } else
     if (k === 'funhouse') { extra = await funhouse(rbox, out, c, bn); if (extra == null) return; } else
     for (let i = 0; i < R.lines.length; i++) {
       if (!out.isConnected) return; out.textContent = R.lines[i].replace('{b}', bn);
@@ -564,15 +625,53 @@ export function renderCarnival(main, g, gm, onEdit) {
     }
     if (!out.isConnected) return;
     const care = carnivalCare(c, 'play', 4);
-    store.pushLimited('log', { t: Date.now(), text: `🎠 ${c.nickname}${buddyName(c) ? ` and ${buddyName(c)}` : ''} rode the ${R.name} at the Star Carnival!${extra ? ` Haunter’s mirror turned ${buddyName(c) || c.nickname} into ${extra}!` : ''}` });
-    panel.innerHTML = `<div class="cv-end"><h3>What a ride!</h3><p>${esc(R.name)}${buddyName(c) ? ` with ${esc(buddyName(c))}` : ''}</p>${extra ? `<p>🪞 Haunter’s mirror showed ${esc(bn)} as <b>${esc(extra)}</b>!</p>` : ''}
+    store.pushLimited('log', { t: Date.now(), text: `🎠 ${c.nickname}${buddyName(c) ? ` and ${buddyName(c)}` : ''} rode the ${R.name} at the Star Carnival!${cnote ? ' ' + cnote : ''}${extra ? ` Haunter’s mirror turned ${buddyName(c) || c.nickname} into ${extra}!` : ''}` });
+    panel.innerHTML = `<div class="cv-end"><h3>What a ride!</h3><p>${esc(R.name)}${buddyName(c) ? ` with ${esc(buddyName(c))}` : ''}</p>${cnote ? `<p>${esc(cnote)}</p>` : ''}${extra ? `<p>🪞 Haunter’s mirror showed ${esc(bn)} as <b>${esc(extra)}</b>!</p>` : ''}
       ${care === 'ok' || care === 'grew' ? '<p class="small muted">🎈 Counts as play time · ❤️ bond went up</p>' : care ? `<p class="small muted">${esc(care)}</p>` : ''}
       <div class="row" style="gap:8px;justify-content:center"><button class="btn" id="cvagain">Ride again (🎟️ ${R.cost})</button><button class="btn alt" id="cvmid">Back to the midway</button></div></div>`;
     $('#cvagain', panel).onclick = () => ride(k); $('#cvmid', panel).onclick = () => draw();
   }
+  // her ask 11-12 "make this rapidash larger and in running motion with flames. Every once in a while I want the carousel
+  // to spin out of control and everyone freaks out. Sometimes I want it to jump down and run off the page with everyone.
+  // Then I want a rare chance for it to be a Rapidash that is shiny. I do want a faster second row with other pokemon on
+  // it": a big galloping Rapidash with trailing flames, a faster back row (CAROUSEL_BACK), and per ride a 1 in 5 chance
+  // it spins out of control (everyone screams), a 1 in 7 chance Rapidash breaks free and gallops off the screen with
+  // everyone, and a 1 in 20 chance the Rapidash is shiny. Returns a note for the log / end screen ('' if nothing special)
+  async function carouselRide(rbox, out, bn) {
+    const shiny = Math.random() < 0.05; const roll = Math.random(); const ev = roll < 0.2 ? 'wild' : roll < 0.34 ? 'run' : '';
+    const m = await fz(); const w = await m?.walkSprite('Rapidash', 2.6, 'right', false, shiny).catch(() => null);
+    const mount = $('.cv-mount', rbox); if (w && mount?.isConnected) { mount.innerHTML = w.html; $('.fzs-spr', mount)?.classList.add('walking'); }
+    if (shiny) rbox.classList.add('shiny');
+    $$('.cv-cspr[data-sp]', rbox).forEach((el) => { const sp = el.dataset.sp; el.removeAttribute('data-sp'); m?.walkSprite(sp, 1.5, 'left', false).then((x) => { if (x && el.isConnected) { el.innerHTML = x.html; $('.fzs-spr', el)?.classList.add('walking'); } }).catch(() => {}); });
+    const line = async (t, ms) => { if (!out.isConnected) return false; out.textContent = t; await wait(ms); return out.isConnected; };
+    if (!await line('The band organ starts up and the carousel begins to turn…', 2200)) return null;
+    if (shiny && !await line(`✨ Wait… ${bn}’s Rapidash is SHINY! Its flames are a cool blue!`, 2600)) return null;
+    budRow(rbox, 'hop', false);
+    if (!await line(`${bn} waves at everyone going by!`, 2200)) return null;
+    if (ev === 'wild') {
+      rbox.classList.add('fast'); if (!await line('Uh oh… the carousel is going faster… and FASTER!', 2000)) return null;
+      rbox.classList.add('wild'); budRow(rbox, 'hop');
+      if (!await line('It’s spinning out of control! Everyone on the carousel is screaming!', 3000)) return null;
+      rbox.classList.remove('wild'); budRow(rbox, 'idle');
+      if (!await line('Clunk… creak… it finally slows down. Everyone is very dizzy!', 2000)) return null;
+      rbox.classList.remove('fast');
+    } else if (ev === 'run') {
+      rbox.classList.add('flare'); if (!await line('Rapidash snorts, and its flames flare up…', 1800)) return null;
+      rbox.classList.add('runoff'); budRow(rbox, 'hop');
+      if (!await line('It breaks free from its pole, jumps off the carousel and gallops away with everyone!', 3000)) return null;
+      rbox.classList.remove('runoff'); rbox.classList.add('comeback'); budRow(rbox, 'idle');
+      if (!await line('…a moment later, Rapidash trots back onto the carousel, very proud of itself.', 2400)) return null;
+      rbox.classList.remove('comeback', 'flare');
+    } else if (!await line('Round and round under the twinkling lights.', 2200)) return null;
+    if (!await line('The music winds down. What a ride!', 1800)) return null;
+    return [shiny ? '✨ A rare SHINY Rapidash!' : '', ev === 'wild' ? '🌀 The carousel spun out of control!' : ev === 'run' ? '🔥 Rapidash broke free and galloped off with everyone!' : ''].filter(Boolean).join(' ');
+  }
   function rideArt(k, c) {
     const pair = pairHTML(c, 'small');
-    if (k === 'carousel') return `<div class="cv-canopy"></div><div class="cv-rlights"></div><div class="cv-pole"></div><div class="cv-seat cv-bob"><span class="cv-mount"></span>${pair}</div><div class="cv-deck"></div>`;
+    if (k === 'carousel') return `<div class="cv-canopy"></div><div class="cv-rlights"></div>
+      <div class="cv-crow"><div class="cv-ctrack">${[...CAROUSEL_BACK, ...CAROUSEL_BACK].map((n, i) => `<span class="cv-cmount" style="animation-delay:${(i % 3) * -0.4}s"><i class="cv-cpole"></i><span class="cv-cspr" data-sp="${n}"></span><b class="cv-yell">${['😱', '❗', '😵', '🙀'][i % 4]}</b></span>`).join('')}</div></div>
+      <div class="cv-cfloor"></div><div class="cv-fpoles"><div class="cv-ftrack">${'<i></i>'.repeat(12)}</div></div>
+      <div class="cv-pole"></div><div class="cv-seat cv-bob cv-front"><span class="cv-flames"><i></i><i></i><i></i><i></i><i></i></span><span class="cv-mount"></span>${pair}<b class="cv-yell me">😱</b></div><div class="cv-deck"></div>`;
     if (k === 'wheel') return `<div class="cv-stars"></div><div class="cv-comet big"><i></i></div><div class="cv-bigwheel"><div class="cv-arm"><div class="cv-gondola">${pair}</div></div></div>`;
     if (k === 'coaster') return `<div class="cv-stars"></div><svg class="cv-track" viewBox="0 0 300 200"><path d="M-10 170 L60 170 Q90 170 110 40 Q120 10 140 40 Q170 175 200 150 Q230 120 250 150 Q270 175 310 170" fill="none" stroke="#f2c14e" stroke-width="4"/><path d="M-10 178 L60 178 Q92 178 112 48 Q120 20 138 48 Q170 183 200 158 Q230 128 250 158 Q270 183 310 178" fill="none" stroke="#a45ae2" stroke-width="2"/></svg>
       <div class="cv-car"><span class="cv-cart">${pair}</span></div><div class="cv-dragfly"><span class="cv-drag"></span></div><svg class="cv-reinsvg" aria-hidden="true"><line class="r1"/><line class="r2"/></svg>`;

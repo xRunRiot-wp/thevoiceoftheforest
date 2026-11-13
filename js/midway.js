@@ -4,7 +4,7 @@
 // (Ferris wheel, big top, carousel, tea cups, a running coaster, the funhouse), the snack stands, lamp posts with
 // string lights, and a crowd of Pokémon wandering about. Walk with the arrow buttons, the keyboard or by tapping a spot;
 // stand by a booth or ride and tap the pop-up (or tap the booth itself) to play / ride / buy.
-const fz = () => import('./fzscene.js?v=6af655d8').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af65b8b').catch(() => null);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 const P = (k) => `assets/portraits/${k}.png`;
 const ROW = { right: 2, left: 6 };
@@ -18,7 +18,7 @@ const CROWD = ['Bidoof', 'Pachirisu', 'Buneary', 'Shinx', 'Starly', 'Chimchar', 
 function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 
 const bulbs = (n, w, y, cls = '') => Array.from({ length: n }, (_, i) => `<i class="mw-bulb ${cls}" style="left:${((i + 0.5) / n * w).toFixed(1)}px;top:${y}px;animation-delay:${(i % 4) * 0.25}s"></i>`).join('');
-const prizes = (r, n) => Array.from({ length: n }, () => ['🧸', '🎀', '⭐', '🎈', '🪀', '🎁', '💎', '🌟'][Math.floor(r() * 8)]).map((p, i) => `<i style="animation-delay:${(i * 0.3).toFixed(1)}s">${p}</i>`).join('');
+const prizes = (r, n) => Array.from({ length: n }, () => ['ted', 'bow', 'star', 'bal', 'yo', 'gift', 'gem', 'ted'][Math.floor(r() * 8)]).map((p, i) => `<i class="mw-pz ${p}" style="animation-delay:${(i * 0.3).toFixed(1)}s"></i>`).join('');
 
 // a booth-game stall: striped awning, lit sign, prizes on the back wall, the host behind the counter
 function booth(x, w, spot, title, host, a, b, r, extra = '') {
@@ -113,12 +113,14 @@ function strength(x) {
     <span class="mw-host" data-sp="Scrafty" style="left:12px;bottom:12px"></span><span class="mw-tag">🔔 Strength Test</span></button>`;
 }
 
+// her ask 11-12 "make the the same stlye as the cotton candy": shelf prizes and treats are drawn (CSS) like the cotton
+// candy cones instead of emoji
 // snack counters (her ask 11-12 "give the swirlix a cotton candy counter"): a stall like the game booths, its treats on
 // the back shelf, the snack maker behind the counter and a machine on top (cotton candy spinner, popcorn cart, cake stand)
 const SNACK_LOOK = {
   cotton: { a: '#ff8ad0', b: '#bfe6ff', shelf: '<i class="mw-cc p"></i><i class="mw-cc b"></i><i class="mw-cc p"></i><i class="mw-cc b"></i>', top: '<span class="mw-spinner"><i></i></span>' },
-  popcorn: { a: '#d63a3a', b: '#fff4c8', shelf: '<i>🍿</i><i>🥤</i><i>🍿</i>', top: '<span class="mw-popper"><i>🍿</i></span>' },
-  puff: { a: '#ff9bc8', b: '#fff0f6', shelf: '<i>🧁</i><i>🍰</i><i>🧁</i>', top: '<span class="mw-cakestand">🧁</span>' },
+  popcorn: { a: '#d63a3a', b: '#fff4c8', shelf: '<i class="mw-pz pop"></i><i class="mw-pz cup"></i><i class="mw-pz pop"></i><i class="mw-pz cup"></i>', top: '<span class="mw-popper"><i></i><i></i><i></i></span>' },
+  puff: { a: '#ff9bc8', b: '#fff0f6', shelf: '<i class="mw-pz cake"></i><i class="mw-pz slice"></i><i class="mw-pz cake"></i><i class="mw-pz slice"></i>', top: '<span class="mw-cakestand"><i class="mw-pz cake"></i></span>' },
 };
 function stand(x, k, S) {
   const L = SNACK_LOOK[k] || SNACK_LOOK.popcorn; const w = k === 'cotton' ? 140 : 120;
@@ -192,7 +194,7 @@ export function midwayHTML(pair, SNACKS) {
     <div class="mw-hint">◀ ▶ to walk around · tap a booth or ride</div>`;
 }
 
-const LABEL = (kind, key, D) => kind === 'game' ? `${D.GAMES[key].icon} Play ${D.GAMES[key].name}` : kind === 'ride' ? `🎟️${D.RIDES[key].cost} Ride the ${D.RIDES[key].name}` : `🎟️${D.SNACKS[key].cost} Buy ${D.SNACKS[key].name}`;
+const LABEL = (kind, key, D) => kind === 'game' ? `${D.GAMES[key].icon} Play ${D.GAMES[key].name}${D.GAME_COST?.[key] ? ` (💰${D.GAME_COST[key]})` : ''}` : kind === 'ride' ? `🎟️${D.RIDES[key].cost} Ride the ${D.RIDES[key].name}` : `🎟️${D.SNACKS[key].cost} Buy ${D.SNACKS[key].name}`;
 
 // walking, camera, the crowd and the pop-up. D = { GAMES, RIDES, SNACKS }; onSpot(kind, key); onMove(dir|null)
 export function mountMidway(scene, D, onSpot, onMove) {
