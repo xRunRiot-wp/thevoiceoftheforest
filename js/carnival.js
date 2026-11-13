@@ -5,16 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af66305';
-import { $, $$, esc, toast, num } from './util.js?v=6af66305';
-import { me, logRoll } from './play.js?v=6af66305';
-import { markWinner } from './sparkle.js?v=6af66305';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af66305';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af66305';
-import { DECOR } from './basedecor.js?v=6af66305';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af66305';
-import { REWARD_CURSORS } from './digcursor.js?v=6af66305';
-import { midwayHTML, mountMidway } from './midway.js?v=6af66305';
+import * as store from './store.js?v=6af68c91';
+import { $, $$, esc, toast, num } from './util.js?v=6af68c91';
+import { me, logRoll } from './play.js?v=6af68c91';
+import { markWinner } from './sparkle.js?v=6af68c91';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af68c91';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af68c91';
+import { DECOR } from './basedecor.js?v=6af68c91';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af68c91';
+import { REWARD_CURSORS } from './digcursor.js?v=6af68c91';
+import { midwayHTML, mountMidway } from './midway.js?v=6af68c91';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -28,6 +28,12 @@ const pokeOf = (id) => num(party()[id]?.poke);
 const addPoke = (id, n) => store.update('party/' + id, (x) => ({ ...x, poke: Math.max(0, num(x?.poke) + n) }));
 // her ask 11-12 "make it so players have to pay to play the games (under 10 poke)" + "booth games cost POKE not tickets":
 // each booth game costs a few Poké for its prize plays; once a booth's daily ticket plays are used up it is free, just for fun
+// Surskit pond scenery (her ask 11-13): grassy banks, cattails and reeds at the edges, slow rings drifting on the water
+function pondDecor() {
+  const reeds = (n) => Array.from({ length: n }, (_, i) => `<i style="--h:${40 + Math.round(Math.random() * 45)}px;--t:${Math.round(Math.random() * 14 - 7)}deg;animation-delay:${(i * 0.37).toFixed(2)}s"${i % 2 ? ' class="cat"' : ''}></i>`).join('');
+  const rips = Array.from({ length: 6 }, (_, i) => `<i class="cv-lrip" style="left:${8 + Math.round(Math.random() * 84)}%;top:${8 + Math.round(Math.random() * 80)}%;animation-delay:${(i * 0.9).toFixed(1)}s"></i>`).join('');
+  return `<div class="cv-lbank t"></div><div class="cv-lbank b"></div><div class="cv-reeds l">${reeds(5)}</div><div class="cv-reeds r">${reeds(5)}</div><div class="cv-lrips">${rips}</div>`;
+}
 const GAME_COST = { dunk: 5, lily: 4, balloons: 6, rings: 5, hammer: 4, hats: 5 };
 const addTickets = (id, n) => store.update('party/' + id, (x) => ({ ...x, tickets: Math.max(0, num(x?.tickets) + n) }));
 const wait = (ms) => new Promise((ok) => setTimeout(ok, ms));
@@ -58,7 +64,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af66305').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af68c91').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -128,19 +134,22 @@ const GAMES = {
     how: '12 lily pads and 5 flips. Each Surskit you find = 3 tickets, the Masquerain = 8, and a Lotad gives you 1 extra flip. Empty pads are just water.',
     tickets: (s) => s,
     play(el, c, done) {
-      el.innerHTML = '<div class="cv-hud"><span>🍃 Flips left: <b class="cv-p">5</b></span><span>🎟️ <b class="cv-s">0</b></span></div><div class="cv-field cv-lpond"><div class="cv-lwater"></div><div class="cv-pads"></div><div class="cv-skaters"></div></div><p class="cv-hint small muted" style="text-align:center">Watch the Surskit…</p>';
+      el.innerHTML = '<div class="cv-hud"><span>🍃 Flips left: <b class="cv-p">5</b></span><span>🎟️ <b class="cv-s">0</b></span></div><div class="cv-field cv-lpond"><div class="cv-lwater"><i class="cv-lshine"></i><i class="cv-lshine b"></i></div>' + pondDecor() + '<div class="cv-pads"></div><div class="cv-skaters"></div></div><p class="cv-hint small muted" style="text-align:center">Watch the Surskit…</p>';
       const f = $('.cv-lpond', el); const padsEl = $('.cv-pads', f); const sk = $('.cv-skaters', f); const hint = $('.cv-hint', el);
       const hide = ['surskit', 'surskit', 'surskit', 'surskit', 'masquerain', 'lotad', 'lotad', '', '', '', '', ''].sort(() => Math.random() - 0.5);
       const VAL = { surskit: 3, masquerain: 8 };
       let flips = 5; let sum = 0; let ready = false;
-      padsEl.innerHTML = hide.map((k, i) => `<button class="cv-pad" data-i="${i}" style="--r:${Math.round(Math.random() * 360)}deg;animation-delay:${(i % 5) * 0.4}s"><span class="cv-under"></span><span class="cv-leaf"></span></button>`).join('');
+      // her ask 11-13 "work on the lillipads and water": notched pads with veins and a rim, some with a lotus flower,
+      // each a slightly different size and shade, a shadow on the water under each one
+      const lotus = new Set([...Array(12).keys()].sort(() => Math.random() - 0.5).slice(0, 3));
+      padsEl.innerHTML = hide.map((k, i) => `<button class="cv-pad" data-i="${i}" aria-label="Lily pad ${i + 1}" style="--r:${Math.round(Math.random() * 360)}deg;--s:${(0.86 + Math.random() * 0.18).toFixed(2)};--h:${Math.round(Math.random() * 24 - 12)}deg;animation-delay:${(i % 5) * 0.4}s"><span class="cv-pshadow"></span><span class="cv-under"></span><span class="cv-leaf">${lotus.has(i) ? '<span class="cv-lotus"><i></i><i></i><i></i><i></i><i></i><b></b></span>' : ''}</span></button>`).join('');
       const pads = $$('.cv-pad', padsEl);
       // the Surskit skate in zig-zags across the pond first, then dart under their pads
       const names = { surskit: 'Surskit', masquerain: 'Masquerain', lotad: 'Lotad' };
       const sprites = {};
       Promise.all(Object.entries(names).map(([k, n]) => fz().then((m) => m?.walkSprite(n, 2.6, 'down', true)).then((w) => { sprites[k] = w?.html || ''; }).catch(() => {}))).then(async () => {
         if (!el.isConnected) return;
-        const show = [...Array(5)].map(() => { const d = document.createElement('span'); d.className = 'cv-skater'; d.innerHTML = sprites.surskit; d.style.left = `${10 + Math.random() * 80}%`; d.style.top = `${10 + Math.random() * 70}%`; sk.appendChild(d); return d; });
+        const show = [...Array(5)].map(() => { const d = document.createElement('span'); d.className = 'cv-skater'; d.innerHTML = '<i class="cv-wake"></i>' + sprites.surskit; d.style.left = `${10 + Math.random() * 80}%`; d.style.top = `${10 + Math.random() * 70}%`; sk.appendChild(d); return d; });
         for (let r = 0; r < 4; r++) { show.forEach((d) => { d.style.left = `${5 + Math.random() * 85}%`; d.style.top = `${5 + Math.random() * 75}%`; }); await wait(650); if (!el.isConnected) return; }
         const homes = pads.filter((p, i) => hide[i] === 'surskit' || hide[i] === 'masquerain');
         show.forEach((d, j) => { const p = homes[j % homes.length]; const pr = p.getBoundingClientRect(); const fr = f.getBoundingClientRect(); d.style.left = `${((pr.left + pr.width / 2 - fr.left) / fr.width) * 100}%`; d.style.top = `${((pr.top + pr.height / 2 - fr.top) / fr.height) * 100}%`; });

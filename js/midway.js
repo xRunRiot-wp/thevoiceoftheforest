@@ -4,7 +4,7 @@
 // (Ferris wheel, big top, carousel, tea cups, a running coaster, the funhouse), the snack stands, lamp posts with
 // string lights, and a crowd of Pokémon wandering about. Walk with the arrow buttons, the keyboard or by tapping a spot;
 // stand by a booth or ride and tap the pop-up (or tap the booth itself) to play / ride / buy.
-const fz = () => import('./fzscene.js?v=6af66305').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af68c91').catch(() => null);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 const P = (k) => `assets/portraits/${k}.png`;
 const ROW = { right: 2, left: 6 };
@@ -20,6 +20,11 @@ function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 10139
 const bulbs = (n, w, y, cls = '') => Array.from({ length: n }, (_, i) => `<i class="mw-bulb ${cls}" style="left:${((i + 0.5) / n * w).toFixed(1)}px;top:${y}px;animation-delay:${(i % 4) * 0.25}s"></i>`).join('');
 const prizes = (r, n) => Array.from({ length: n }, () => ['ted', 'bow', 'star', 'bal', 'yo', 'gift', 'gem', 'ted'][Math.floor(r() * 8)]).map((p, i) => `<i class="mw-pz ${p}" style="animation-delay:${(i * 0.3).toFixed(1)}s"></i>`).join('');
 
+// her ask 11-13 "each booth have a banner hanging down": a cloth banner hangs from both ends of every stall's awning,
+// in the stall's colours with its emblem, swaying a little
+const FLAG_ICON = { dunk: '🐚', rings: '🔑', balloons: '🎈', lily: '🍃', hammer: '🔔', hats: '🎩', cotton: '🍭', popcorn: '🍿', puff: '🧁' };
+const flags = (spot) => { const ic = FLAG_ICON[String(spot).split(':')[1]] || '⭐'; return `<span class="mw-flag l"><b>${ic}</b></span><span class="mw-flag r"><b>${ic}</b></span>`; };
+
 // a booth-game stall: striped awning, lit sign, prizes on the back wall, the host behind the counter
 function booth(x, w, spot, title, host, a, b, r, extra = '') {
   return `<button class="mw-spot mw-booth" data-spot="${spot}" data-x="${x}" style="left:${x - w / 2}px;width:${w}px;--a:${a};--b:${b}" aria-label="${esc(title)}">
@@ -27,7 +32,7 @@ function booth(x, w, spot, title, host, a, b, r, extra = '') {
     <span class="mw-back"><span class="mw-prz">${prizes(r, Math.round(w / 26))}</span></span>
     <span class="mw-host" data-sp="${esc(host)}"></span>${extra}
     <span class="mw-counter"><span class="mw-ctop"></span></span>
-    <span class="mw-awn"></span><span class="mw-sign">${esc(title)}${bulbs(Math.round(w / 14), w - 16, -5, 'sm')}</span></button>`;
+    <span class="mw-awn"></span>${flags(spot)}<span class="mw-sign">${esc(title)}${bulbs(Math.round(w / 14), w - 16, -5, 'sm')}</span></button>`;
 }
 
 function wheel(x) {
@@ -110,7 +115,7 @@ function strength(x) {
     <svg viewBox="0 0 100 230" aria-hidden="true"><rect x="40" y="18" width="20" height="196" rx="4" fill="#f6eedf" stroke="#8a5a1a" stroke-width="2"/>
       ${Array.from({ length: 9 }, (_, i) => `<rect x="43" y="${30 + i * 20}" width="14" height="14" rx="2" fill="${['#e24a4a', '#ff7a3a', '#ff9b3a', '#ffc23a', '#ffe14a', '#c6e84a', '#7ad84a', '#3ec27a', '#3aa0c2'][i]}" class="mw-meter" style="animation-delay:${(8 - i) * 0.12}s"/>`).join('')}
       <circle cx="50" cy="12" r="11" fill="#f2c14e" stroke="#8a5a1a" stroke-width="2" class="mw-bell"/><rect x="18" y="210" width="64" height="16" rx="3" fill="#6b2a3a" stroke="#f2c14e" stroke-width="2"/></svg>
-    <span class="mw-host" data-sp="Scrafty" style="left:12px;bottom:12px"></span><span class="mw-tag">🔔 Strength Test</span></button>`;
+    <span class="mw-host" data-sp="Scrafty" style="left:12px;bottom:12px"></span><span class="mw-flag one" style="--a:#e24a4a;--b:#f2c14e"><b>💪</b></span><span class="mw-tag">🔔 Strength Test</span></button>`;
 }
 
 // her ask 11-12 "make the the same stlye as the cotton candy": shelf prizes and treats are drawn (CSS) like the cotton
@@ -129,7 +134,7 @@ function stand(x, k, S) {
     <span class="mw-back"><span class="mw-prz mw-treats">${L.shelf}</span></span>
     <span class="mw-host" data-sp="${esc(S.who)}"></span>${L.top}
     <span class="mw-counter"><span class="mw-ctop"></span><span class="mw-price">🎟️ ${S.cost}</span></span>
-    <span class="mw-awn"></span><span class="mw-sign">${esc(S.name)}${bulbs(Math.round(w / 14), w - 16, -5, 'sm')}</span></button>`;
+    <span class="mw-awn"></span>${flags('snack:' + k)}<span class="mw-sign">${esc(S.name)}${bulbs(Math.round(w / 14), w - 16, -5, 'sm')}</span></button>`;
 }
 
 function arch(x) {
