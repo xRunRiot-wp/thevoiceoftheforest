@@ -5,16 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af65b8b';
-import { $, $$, esc, toast, num } from './util.js?v=6af65b8b';
-import { me, logRoll } from './play.js?v=6af65b8b';
-import { markWinner } from './sparkle.js?v=6af65b8b';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af65b8b';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af65b8b';
-import { DECOR } from './basedecor.js?v=6af65b8b';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af65b8b';
-import { REWARD_CURSORS } from './digcursor.js?v=6af65b8b';
-import { midwayHTML, mountMidway } from './midway.js?v=6af65b8b';
+import * as store from './store.js?v=6af65f8d';
+import { $, $$, esc, toast, num } from './util.js?v=6af65f8d';
+import { me, logRoll } from './play.js?v=6af65f8d';
+import { markWinner } from './sparkle.js?v=6af65f8d';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af65f8d';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af65f8d';
+import { DECOR } from './basedecor.js?v=6af65f8d';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af65f8d';
+import { REWARD_CURSORS } from './digcursor.js?v=6af65f8d';
+import { midwayHTML, mountMidway } from './midway.js?v=6af65f8d';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -58,7 +58,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af65b8b').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af65f8d').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -350,6 +350,7 @@ const GAMES = {
 
 // ---- rides (cost tickets; count as play time and raise Bond) and snacks (count as food)
 // her ask 11-12 "I do want a faster second row with other pokemon on it": the carousel's back row
+const TEACUP_BACK = ['Marill', 'Psyduck', 'Wooper'];   // her ask 11-12: other tea cups in the back
 const CAROUSEL_BACK = ['Ponyta', 'Blitzle', 'Tauros', 'Gogoat', 'Mareep', 'Mudbray'];
 const RIDES = {
   carousel: { name: 'Rapidash Carousel', face: 'rapidash', cost: 4, blurb: 'Round and round on a Rapidash, with the band organ playing.',
@@ -358,8 +359,8 @@ const RIDES = {
     lines: ['Your car rocks gently as it starts to climb…', 'Up, up, up over the tents and the lights…', 'From the very top you can see the whole carnival, and the Millennium Comet!', '{b} makes a wish on the comet. Back down we go.'] },
   coaster: { name: 'Dragonite Coaster', face: 'dragonite', cost: 6, blurb: 'Dragonite pulls the coaster car up the big hill. Hold on tight!',
     lines: ['Click, click, click… Dragonite pulls you up the big hill…', 'WHOOOOSH! Down the drop!', '{b} is squealing with joy!', 'The car rolls into the station. Again! Again!'] },
-  teacups: { name: 'Lapras Tea Cups', face: 'lapras', cost: 4, blurb: 'Spin in a Lapras teacup as fast as you dare.',
-    lines: ['You climb into a Lapras teacup…', 'Spin it faster! Faster!', '{b} is getting dizzy… and loving it.', 'The cups slow down. Everything is still spinning a little!'] },
+  teacups: { name: 'Lapras Tea Cups', face: 'lapras', cost: 4, blurb: 'Lapras uses Whirlpool to spin the floating teacups. Hold on tight!',
+    lines: ['You climb into a teacup floating on Lapras’s pool…', 'Lapras uses Whirlpool! The water swirls and the cups start to spin!', '{b} holds on tight as the cup spins faster and faster!', 'The whirlpool calms down and the cups drift to a stop. Everything is still spinning a little!'] },
   funhouse: { name: 'Haunter’s Funhouse', face: 'haunter', cost: 5, blurb: 'Haunter’s magic mirror twists your buddy into its evolved, shiny, Mega, paradox or Gigantamax form!',
     lines: ['The door creaks shut behind you. It’s very dark in here…', 'The lights flicker. Was that a giggle?', 'BOO! Haunter pops out of a mirror! {b} jumps!', 'You made it out! Haunter waves goodbye. “Come back soon, hehehe!”'] },
 };
@@ -616,6 +617,11 @@ export function renderCarnival(main, g, gm, onEdit) {
     }
     const out = $('#cvrsay', panel); let extra = '';
     let cnote = '';
+    if (k === 'teacups') {
+      spriteInto($('.cv-lap-spr', rbox), 'Lapras', 1.8, 'right', true);
+      $$('.cv-tc-sp[data-sp]', rbox).forEach((el) => { const sp = el.dataset.sp; el.removeAttribute('data-sp'); spriteInto(el, sp, 1, 'down', true); });
+      setTimeout(() => rbox.classList.add('whirl'), 2000); setTimeout(() => rbox.classList.add('fast'), 4400); setTimeout(() => rbox.classList.remove('fast'), 6600); setTimeout(() => rbox.classList.add('calm'), 6800);
+    }
     if (k === 'carousel') { cnote = await carouselRide(rbox, out, bn); if (cnote == null) return; } else
     if (k === 'funhouse') { extra = await funhouse(rbox, out, c, bn); if (extra == null) return; } else
     for (let i = 0; i < R.lines.length; i++) {
@@ -675,7 +681,16 @@ export function renderCarnival(main, g, gm, onEdit) {
     if (k === 'wheel') return `<div class="cv-stars"></div><div class="cv-comet big"><i></i></div><div class="cv-bigwheel"><div class="cv-arm"><div class="cv-gondola">${pair}</div></div></div>`;
     if (k === 'coaster') return `<div class="cv-stars"></div><svg class="cv-track" viewBox="0 0 300 200"><path d="M-10 170 L60 170 Q90 170 110 40 Q120 10 140 40 Q170 175 200 150 Q230 120 250 150 Q270 175 310 170" fill="none" stroke="#f2c14e" stroke-width="4"/><path d="M-10 178 L60 178 Q92 178 112 48 Q120 20 138 48 Q170 183 200 158 Q230 128 250 158 Q270 183 310 178" fill="none" stroke="#a45ae2" stroke-width="2"/></svg>
       <div class="cv-car"><span class="cv-cart">${pair}</span></div><div class="cv-dragfly"><span class="cv-drag"></span></div><svg class="cv-reinsvg" aria-hidden="true"><line class="r1"/><line class="r2"/></svg>`;
-    if (k === 'teacups') return `<div class="cv-turntable"><div class="cv-cup">${face('lapras', 'cv-cupface')}<div class="cv-cupin">${pair}</div></div></div>`;
+    // her ask 11-12 "make the tea cup from the side and other rea cubs in the back. Lapras is using whirlpool to turn the
+    // floating cups": side view on a night pool; Lapras floats at the side using Whirlpool (a swirling vortex), smaller
+    // cups with Pokémon drift and spin in the back, and your cup spins in front (stripes slide, the handle swings round)
+    if (k === 'teacups') {
+      const tcup = (cls, inner = '') => `<div class="cv-tc ${cls}"><span class="cv-tc-in"></span><span class="cv-tc-riders">${inner}</span><span class="cv-tc-handle"></span><span class="cv-tc-body"></span><span class="cv-tc-saucer"></span></div>`;
+      return `<div class="cv-stars"></div><div class="cv-pool"><span class="cv-wave"></span><span class="cv-wave b"></span><div class="cv-whirl"><i></i><i></i><i></i></div></div><span class="cv-spray"><i></i><i></i><i></i><i></i></span>
+        ${TEACUP_BACK.map((n, i) => tcup(`back c${i}`, `<span class="cv-tc-sp" data-sp="${n}"></span>`)).join('')}
+        <div class="cv-lapras"><span class="cv-lap-spr"></span><span class="cv-lap-say">Whirlpool!</span></div>
+        ${tcup('front cv-tc-me', pair)}`;
+    }
     return `<div class="cv-dark"></div><div class="cv-seat cv-fh-seat">${pair}</div><div class="cv-mirror"><div class="cv-refl"></div></div><div class="cv-haunt"></div>`;
   }
 

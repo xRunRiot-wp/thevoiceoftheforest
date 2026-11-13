@@ -1,11 +1,11 @@
 // Using a bag item from the top bar's pins (her ask 10-27): shows what the item does (from the Index) and, on Use,
 // applies the clear-cut benefits itself (healing HP, curing status, restoring Will) and takes one out of the bag.
 // Anything that needs a roll or a target (seeds thrown at foes, food for Hunger) is used up and logged for the GM.
-import * as store from './store.js?v=6af65b8b';
-import { esc, num, toast } from './util.js?v=6af65b8b';
-import { maxHp } from './ui.js?v=6af65b8b';
-import { loadIndex, find } from './effects.js?v=6af65b8b';
-import { logRoll } from './play.js?v=6af65b8b';
+import * as store from './store.js?v=6af65f8d';
+import { esc, num, toast } from './util.js?v=6af65f8d';
+import { maxHp } from './ui.js?v=6af65f8d';
+import { loadIndex, find } from './effects.js?v=6af65f8d';
+import { logRoll } from './play.js?v=6af65f8d';
 
 const CURES = [[/heals? poison/i, ['Poison', 'Badly Poisoned']], [/heals? paralysis/i, ['Paralysis']], [/heals? sleep/i, ['Sleep']], [/heals? burn/i, ['Burn']],
   [/heals? frozen/i, ['Frozen']], [/heals? confusion/i, ['Confused']], [/heals? infatuat/i, ['Infatuated']]];

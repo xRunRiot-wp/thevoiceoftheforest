@@ -3550,3 +3550,44 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .cv-r-carousel.runoff .cv-pole::after { display: block; content: '💥'; position: absolute; left: -9px; top: 40%; width: auto; height: auto; background: none; font-size: 18px; }
 .cv-r-carousel.comeback .cv-front { animation: cv-comeback 2.2s ease-out forwards; }
 @keyframes cv-comeback { 0% { transform: translate(-320%, 22px); } 80% { transform: translate(-50%, 22px); } 100% { transform: translate(-50%, 0); } }
+/* her ask 11-12: tea cups from the side, more cups in the back, Lapras turning them with Whirlpool */
+.cv-r-teacups { height: 260px; --spin: 2.4s; background: linear-gradient(#0b0620, #2a1450 55%, #1a2a5a 56%, #10204a); }
+.cv-r-teacups.whirl { --spin: 1.2s; } .cv-r-teacups.fast { --spin: .5s; } .cv-r-teacups.calm { --spin: 3s; }
+.cv-pool { position: absolute; left: 0; right: 0; top: 118px; bottom: 0; background: linear-gradient(#2a5ab0, #163a80 50%, #0c2458); overflow: hidden; }
+.cv-wave { position: absolute; left: -20%; right: -20%; top: 10px; height: 8px; background: radial-gradient(ellipse at 50% 100%, rgba(200, 235, 255, .45) 0 40%, transparent 42%) 0 0 / 40px 8px; animation: cv-wave 3s linear infinite; }
+.cv-wave.b { top: 46px; opacity: .6; animation-duration: 4.4s; animation-direction: reverse; }
+@keyframes cv-wave { to { transform: translateX(40px); } }
+.cv-whirl { position: absolute; left: 50%; top: 62px; width: 320px; height: 320px; margin: -160px 0 0 -160px; transform: scaleY(.2); opacity: .35; transition: opacity 1s; pointer-events: none; }
+.cv-whirl i { position: absolute; inset: 0; border-radius: 50%; background: repeating-radial-gradient(circle, transparent 0 9px, rgba(220, 245, 255, .55) 9px 12px), repeating-conic-gradient(rgba(160, 220, 255, .35) 0 20deg, transparent 20deg 45deg); -webkit-mask: radial-gradient(circle, transparent 0 14%, #000 16% 70%, transparent 72%), conic-gradient(#000 0 70%, transparent); -webkit-mask-composite: source-in; mask: radial-gradient(circle, transparent 0 14%, #000 16% 70%, transparent 72%), conic-gradient(#000 0 70%, transparent); mask-composite: intersect; animation: cv-spin calc(var(--spin) * 1.4) linear infinite; }
+.cv-whirl i:nth-child(2) { inset: 18%; animation-duration: var(--spin); opacity: .8; }
+.cv-whirl i:nth-child(3) { inset: 36%; animation-duration: calc(var(--spin) * .6); background: radial-gradient(circle, #0a1a40 0 40%, rgba(120, 200, 255, .9) 60%, transparent 70%); -webkit-mask: none; mask: none; }
+.cv-r-teacups.whirl .cv-whirl { opacity: 1; } .cv-r-teacups.calm .cv-whirl { opacity: .3; }
+.cv-spray { position: absolute; left: 50%; top: 140px; z-index: 2; width: 0; height: 0; opacity: 0; transition: opacity .6s; }
+.cv-spray i { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #d8f2ff; animation: cv-spray 1s ease-out infinite; }
+.cv-spray i:nth-child(2) { animation-delay: .25s; --dx: -40px; } .cv-spray i:nth-child(3) { animation-delay: .5s; --dx: 50px; } .cv-spray i:nth-child(4) { animation-delay: .75s; --dx: -70px; }
+@keyframes cv-spray { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(var(--dx, 70px), -40px); opacity: 0; } }
+.cv-r-teacups.whirl .cv-spray { opacity: 1; } .cv-r-teacups.calm .cv-spray { opacity: 0; }
+.cv-lapras { position: absolute; left: 4px; top: 70px; z-index: 2; animation: cv-cbob 2.2s ease-in-out infinite; }
+.cv-lap-say { position: absolute; left: 40px; top: -6px; padding: 1px 6px; border-radius: 8px; background: #fff8ea; color: #2a5ab0; font-size: 11px; font-weight: 700; white-space: nowrap; transform: scale(0); transition: transform .3s; }
+.cv-r-teacups.whirl:not(.calm) .cv-lap-say { transform: scale(1); }
+/* a teacup from the side: inside (back of the rim), riders, the handle, the striped bowl in front, the saucer */
+.cv-tc { position: absolute; width: 150px; height: 120px; --a: #7ac8f0; --b: #f6eedf; }
+.cv-tc-in { position: absolute; left: 0; right: 0; top: 34px; height: 26px; border-radius: 50%; background: radial-gradient(ellipse at 50% 70%, #2a4a7a, #16284a); border: 4px solid var(--b); box-sizing: border-box; }
+.cv-tc-riders { position: absolute; left: 0; right: 0; bottom: 70px; display: flex; justify-content: center; align-items: flex-end; }
+.cv-tc-body { position: absolute; left: 4px; right: 4px; top: 47px; height: 58px; border-radius: 0 0 50% 50% / 0 0 100% 100%; overflow: hidden;
+  background: linear-gradient(90deg, rgba(0, 0, 0, .35), transparent 30%, rgba(255, 255, 255, .25) 45%, transparent 60%, rgba(0, 0, 0, .4)), repeating-linear-gradient(90deg, var(--a) 0 18px, var(--b) 18px 36px);
+  background-size: 100% 100%, 72px 100%; animation: cv-tcspin var(--spin) linear infinite; box-shadow: inset 0 3px 0 rgba(255, 255, 255, .5); }
+@keyframes cv-tcspin { to { background-position: 0 0, 72px 0; } }
+.cv-tc-saucer { position: absolute; left: -8px; right: -8px; bottom: 6px; height: 16px; border-radius: 50%; background: linear-gradient(var(--b), #b8a890); box-shadow: 0 4px 6px rgba(0, 0, 0, .4); z-index: -1; }
+.cv-tc-handle { position: absolute; left: 50%; top: 56px; width: 26px; height: 30px; margin-left: -13px; border: 7px solid var(--a); border-radius: 50%; box-sizing: border-box; animation: cv-tchandle calc(var(--spin) * 2) linear infinite; }
+@keyframes cv-tchandle { 0% { transform: translateX(68px) scaleX(1); } 25% { transform: translateX(0) scaleX(.3); } 50% { transform: translateX(-68px) scaleX(1); } 75% { transform: translateX(0) scaleX(.3); } 100% { transform: translateX(68px) scaleX(1); } }
+.cv-tc.front { left: 50%; bottom: 14px; margin-left: -75px; z-index: 3; --a: #ff8ad0; animation: cv-tcbob 1.8s ease-in-out infinite; }
+.cv-tc.front .cv-tc-riders .cv-pair { margin-bottom: -6px; }
+@keyframes cv-tcbob { 50% { transform: translateY(-5px) rotate(-2deg); } }
+.cv-r-teacups.fast .cv-tc.front { animation: cv-tcwob .3s ease-in-out infinite alternate; } @keyframes cv-tcwob { from { transform: rotate(-4deg); } to { transform: rotate(4deg) translateY(-3px); } }
+.cv-tc.back { top: 22px; z-index: 1; transform: scale(.48); transform-origin: 50% 100%; filter: brightness(.8); animation: cv-tcdrift calc(var(--spin) * 5) ease-in-out infinite alternate; }
+.cv-tc.back .cv-tc-sp { margin-bottom: -14px; transform: scale(2); transform-origin: 50% 100%; }
+.cv-tc.back.c0 { left: 22%; margin-left: -75px; --a: #8ae08a; }
+.cv-tc.back.c1 { left: 52%; margin-left: -75px; --a: #ffd36a; animation-delay: -1.5s; }
+.cv-tc.back.c2 { left: 82%; margin-left: -75px; --a: #b98aff; animation-delay: -3s; }
+@keyframes cv-tcdrift { from { translate: -24px 0; } to { translate: 24px -6px; } }

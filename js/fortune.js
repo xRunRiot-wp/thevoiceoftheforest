@@ -1,14 +1,14 @@
 // "What's the Weather?" — Castform's fortune-telling table. Instead of a wheel, the player picks a weather card
 // for the NEXT weather reading (every 6 hours). Once a day per character; a right guess pays the prize.
 // If today's 1d100 sky roll hits 100 the game breaks and Castform stops hosting until the GM reopens it.
-import { markWinner } from './sparkle.js?v=6af65b8b';
-import * as store from './store.js?v=6af65b8b';
-import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af65b8b';
-import { $, $$, esc, toast, num } from './util.js?v=6af65b8b';
-import { modal, closeModal, portrait } from './ui.js?v=6af65b8b';
-import { logRoll, me } from './play.js?v=6af65b8b';
-import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6af65b8b';
-import { gameSay } from './chatter.js?v=6af65b8b';
+import { markWinner } from './sparkle.js?v=6af65f8d';
+import * as store from './store.js?v=6af65f8d';
+import { unlockChar, charOpen, pinOf } from './charlock.js?v=6af65f8d';
+import { $, $$, esc, toast, num } from './util.js?v=6af65f8d';
+import { modal, closeModal, portrait } from './ui.js?v=6af65f8d';
+import { logRoll, me } from './play.js?v=6af65f8d';
+import { WEATHERS, currentWeather, dailyRoll } from './weather.js?v=6af65f8d';
+import { gameSay } from './chatter.js?v=6af65f8d';
 
 export const isFortune = (g) => g.kind === 'fortune' || g.id === 'what-s-the-weather';
 
