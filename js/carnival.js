@@ -5,16 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af65085';
-import { $, $$, esc, toast, num } from './util.js?v=6af65085';
-import { me, logRoll } from './play.js?v=6af65085';
-import { markWinner } from './sparkle.js?v=6af65085';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af65085';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af65085';
-import { DECOR } from './basedecor.js?v=6af65085';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af65085';
-import { REWARD_CURSORS } from './digcursor.js?v=6af65085';
-import { midwayHTML, mountMidway } from './midway.js?v=6af65085';
+import * as store from './store.js?v=6af653d4';
+import { $, $$, esc, toast, num } from './util.js?v=6af653d4';
+import { me, logRoll } from './play.js?v=6af653d4';
+import { markWinner } from './sparkle.js?v=6af653d4';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af653d4';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af653d4';
+import { DECOR } from './basedecor.js?v=6af653d4';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af653d4';
+import { REWARD_CURSORS } from './digcursor.js?v=6af653d4';
+import { midwayHTML, mountMidway } from './midway.js?v=6af653d4';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -53,7 +53,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af65085').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af653d4').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -523,8 +523,20 @@ export function renderCarnival(main, g, gm, onEdit) {
     showTix();
   }
 
-  async function ride(k) {
+  // her ask 11-12 "there is a ticket confirmation message if it is a snack or ride": a Yes / No box before tickets are spent
+  function confirmSpend(pic, title, cost, go) {
+    $('.cv-confirm')?.remove();
+    const box = document.createElement('div'); box.className = 'cv-confirm';
+    box.innerHTML = `<div class="cv-cbox" role="dialog" aria-label="Spend tickets?">${face(pic)}<b class="cv-ctitle">${esc(title)}</b><p>Spend <b>🎟️ ${cost} tickets</b>?<br><span class="small muted">You have ${ticketsOf(c.id)} · ${ticketsOf(c.id) - cost} left after</span></p><div class="row" style="gap:8px;justify-content:center"><button class="btn sm" data-y>Yes, spend ${cost}</button><button class="btn alt sm" data-n>No thanks</button></div></div>`;
+    document.body.appendChild(box);
+    const close = () => box.remove();
+    $('[data-y]', box).onclick = () => { close(); go(); }; $('[data-n]', box).onclick = close;
+    box.onclick = (e) => { if (e.target === box) close(); };
+    $('[data-y]', box).focus();
+  }
+  async function ride(k, ok) {
     const R = RIDES[k]; if (ticketsOf(c.id) < R.cost) { say(mime(`That ride is ${R.cost} tickets. Win a few more at the game booths!`)); return; }
+    if (!ok) { confirmSpend(R.face, R.name, R.cost, () => ride(k, true)); return; }
     addTickets(c.id, -R.cost); showTix(); ensureAudio();
     const bn = buddyName(c) || c.nickname;
     panel.innerHTML = `<div class="row" style="justify-content:space-between;align-items:center"><b>${esc(R.name)}</b></div>
@@ -592,10 +604,11 @@ export function renderCarnival(main, g, gm, onEdit) {
   // treat in the scene; tap the treat to give a bite (it also nibbles by itself now and then). 3 bites and it's gone,
   // which counts as a meal.
   let holding = null; let biteTimer = 0;
-  function snack(k) {
+  function snack(k, ok) {
     const S = SNACKS[k]; if (!c) return;
     if (holding) { say(host(SNACKS[holding].face, SNACKS[holding].who, `Finish your ${SNACKS[holding].name} first! Tap it to take a bite.`)); scene.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
     if (ticketsOf(c.id) < S.cost) { say(mime(`${S.name} is ${S.cost} tickets. Try a game booth first!`)); return; }
+    if (!ok) { confirmSpend(S.face, S.name, S.cost, () => snack(k, true)); return; }
     addTickets(c.id, -S.cost); showTix(); ensureAudio(); stepSound('right');
     const held = $('.cv-held', scene); if (!held) return;
     holding = k; held.innerHTML = S.icon; held.dataset.bites = '3'; held.className = held.className.replace(/\s*(show|b\d|nom)\b/g, '') + ' show b3';

@@ -4,7 +4,7 @@
 // (Ferris wheel, big top, carousel, tea cups, a running coaster, the funhouse), the snack stands, lamp posts with
 // string lights, and a crowd of Pokémon wandering about. Walk with the arrow buttons, the keyboard or by tapping a spot;
 // stand by a booth or ride and tap the pop-up (or tap the booth itself) to play / ride / buy.
-const fz = () => import('./fzscene.js?v=6af65085').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af653d4').catch(() => null);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 const P = (k) => `assets/portraits/${k}.png`;
 const ROW = { right: 2, left: 6 };
@@ -88,7 +88,7 @@ function coaster(x) {
     <svg viewBox="0 0 360 210" aria-hidden="true">${sup}${cross}<path d="${d}" fill="none" stroke="#e24a4a" stroke-width="5"/><path d="${d}" fill="none" stroke="#ffb0a0" stroke-width="1.2" transform="translate(0 -2)"/>
       ${pts.filter((_, i) => i % 5 === 0).map(([px, y], i) => `<circle class="cv-bulb" cx="${px}" cy="${y - 4}" r="2" style="animation-delay:${(i % 3) * 0.3}s"/>`).join('')}
       <rect x="0" y="196" width="40" height="12" fill="#6b2a3a" stroke="#f2c14e"/><text x="20" y="206" text-anchor="middle" font-size="8" fill="#ffe7a0">GO!</text></svg>
-    <span class="mw-train" style="offset-path:path('${d}')"><span class="mw-car"></span><span class="mw-car"></span><span class="mw-car lead" data-sp="Dragonite"></span></span>
+    <span class="mw-train" style="offset-path:path('${d}')"><span class="mw-car"></span><span class="mw-car"></span><span class="mw-car lead"></span><span class="mw-reins"></span><span class="mw-drag" data-sp="Dragonite"></span></span>
     <span class="mw-tag">🎢 Dragonite Coaster</span></button>`;
 }
 
@@ -111,8 +111,21 @@ function strength(x) {
     <span class="mw-host" data-sp="Scrafty" style="left:12px;bottom:12px"></span><span class="mw-tag">🔔 Strength Test</span></button>`;
 }
 
+// snack counters (her ask 11-12 "give the swirlix a cotton candy counter"): a stall like the game booths, its treats on
+// the back shelf, the snack maker behind the counter and a machine on top (cotton candy spinner, popcorn cart, cake stand)
+const SNACK_LOOK = {
+  cotton: { a: '#ff8ad0', b: '#bfe6ff', shelf: '<i class="mw-cc p"></i><i class="mw-cc b"></i><i class="mw-cc p"></i><i class="mw-cc b"></i>', top: '<span class="mw-spinner"><i></i></span>' },
+  popcorn: { a: '#d63a3a', b: '#fff4c8', shelf: '<i>🍿</i><i>🥤</i><i>🍿</i>', top: '<span class="mw-popper"><i>🍿</i></span>' },
+  puff: { a: '#ff9bc8', b: '#fff0f6', shelf: '<i>🧁</i><i>🍰</i><i>🧁</i>', top: '<span class="mw-cakestand">🧁</span>' },
+};
 function stand(x, k, S) {
-  return `<button class="mw-spot cv-stand mw-stand s-${k}" data-spot="snack:${k}" data-x="${x}" style="left:${x - 30}px" title="${esc(S.name)} · ${S.cost} tickets" aria-label="${esc(S.name)}"><span class="cv-awn"></span><img src="${P(S.face)}" alt="${esc(S.who)}"><span class="cv-stand-treat">${S.icon}</span><small>🎟️${S.cost}</small></button>`;
+  const L = SNACK_LOOK[k] || SNACK_LOOK.popcorn; const w = k === 'cotton' ? 140 : 120;
+  return `<button class="mw-spot mw-booth mw-snack s-${k}" data-spot="snack:${k}" data-x="${x}" style="left:${x - w / 2}px;width:${w}px;--a:${L.a};--b:${L.b}" title="${esc(S.name)} · ${S.cost} tickets" aria-label="${esc(S.name)}">
+    <span class="mw-bpost l"></span><span class="mw-bpost r"></span>
+    <span class="mw-back"><span class="mw-prz mw-treats">${L.shelf}</span></span>
+    <span class="mw-host" data-sp="${esc(S.who)}"></span>${L.top}
+    <span class="mw-counter"><span class="mw-ctop"></span><span class="mw-price">🎟️ ${S.cost}</span></span>
+    <span class="mw-awn"></span><span class="mw-sign">${esc(S.name)}${bulbs(Math.round(w / 14), w - 16, -5, 'sm')}</span></button>`;
 }
 
 function arch(x) {
@@ -158,7 +171,7 @@ export function midwayHTML(pair, SNACKS) {
     stand(330, 'cotton', SNACKS.cotton),
     wheel(540),
     booth(800, 150, 'game:dunk', 'Dunk a Dwebble', 'Dwebble', '#2f7ad6', '#f6eedf', r, tank),
-    stand(965, 'popcorn', SNACKS.popcorn),
+    stand(955, 'popcorn', SNACKS.popcorn),
     bigTop(1160),
     booth(1410, 150, 'game:rings', 'Klefki Toss', 'Slowpoke', '#d63a3a', '#f6eedf', r, pins),
     booth(1590, 150, 'game:balloons', 'Balloon Pop', 'Pikachu', '#f2b01e', '#fff4c8', r, balloons),
@@ -189,7 +202,7 @@ export function mountMidway(scene, D, onSpot, onMove) {
   const spots = [...world.querySelectorAll('[data-spot]')].map((el) => { const [kind, key] = el.dataset.spot.split(':'); return { el, kind, key, x: +el.dataset.x }; });
   let x = 300; let target = null; let dir = 0; let held = 0; let face = 'right'; let moving = false; let pending = null; let near = null;
   // hosts and ride riders as little moving sprites
-  fz().then((m) => { if (!m) return; world.querySelectorAll('[data-sp]').forEach(async (el) => { const w = await m.walkSprite(el.dataset.sp, el.classList.contains('mw-car') ? 1.1 : el.classList.contains('mw-horse') ? 1.2 : 1.6, el.classList.contains('mw-car') ? 'right' : 'down', !el.classList.contains('mw-car')).catch(() => null); if (w && el.isConnected) el.innerHTML = w.html.replace('class="fzs-spr"', 'class="fzs-spr idling"'); }); });
+  fz().then((m) => { if (!m) return; world.querySelectorAll('[data-sp]').forEach(async (el) => { const fly = el.classList.contains('mw-drag'); const w = await m.walkSprite(el.dataset.sp, fly ? 1.5 : el.classList.contains('mw-horse') ? 1.2 : 1.6, fly ? 'right' : 'down', !fly).catch(() => null); if (w && el.isConnected) el.innerHTML = w.html.replace('class="fzs-spr"', 'class="fzs-spr idling"'); }); });
   // the crowd: Pokémon strolling the midway, a few holding balloons
   const crowd = []; const box = world.querySelector('.mw-crowd'); const r = Math.random;
   const pool = CROWD.slice().sort(() => r() - 0.5).slice(0, 16);

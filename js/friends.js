@@ -2,14 +2,14 @@
 // friends, see who's on the site right now (and where), and invite them to a game like Noctowl's 21.
 // online/<id> = { t, at } (each open device refreshes it every 2 minutes); party/<id>/friends = [ids];
 // invites/<id>/<inviteId> = { from, fromId, game, name, t } (shown once as a pop-up on the friend's device, then removed).
-import * as store from './store.js?v=6af65085';
-import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6af65085';
-import { sendFx, startLetterWatch } from './letterfx.js?v=6af65085';
-import { giftNote, writeMail } from './mailbox.js?v=6af65085';
-import { playingNow, openWatch } from './watch.js?v=6af65085';
-import { modal, closeModal, portrait } from './ui.js?v=6af65085';
-import { keepsake } from './shopkit.js?v=6af65085';
-import { hasBase, openBase } from './mybase.js?v=6af65085';
+import * as store from './store.js?v=6af653d4';
+import { $, $$, esc, toast, uid, timeAgo, num } from './util.js?v=6af653d4';
+import { sendFx, startLetterWatch } from './letterfx.js?v=6af653d4';
+import { giftNote, writeMail } from './mailbox.js?v=6af653d4';
+import { playingNow, openWatch } from './watch.js?v=6af653d4';
+import { modal, closeModal, portrait } from './ui.js?v=6af653d4';
+import { keepsake } from './shopkit.js?v=6af653d4';
+import { hasBase, openBase } from './mybase.js?v=6af653d4';
 
 const ONLINE_FOR = 5 * 60e3; const BEAT = 2 * 60e3;
 const meId = () => { try { return localStorage.getItem('dc.me.' + store.tableCode()) || ''; } catch { return ''; } };
@@ -79,12 +79,12 @@ export function openFriends() {
     $$('[data-unfr]', box).forEach((b) => b.onclick = () => { store.set(`party/${me.id}/friends`, mine.filter((id) => id !== b.dataset.unfr)); draw(box); });
     $$('[data-watch]', box).forEach((a) => a.onclick = () => closeModal());
     // her ask 10-29: tap a portrait for a mini look at their character
-    $$('[data-peek]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => import('./play.js?v=6af65085').then((m) => m.viewCharacter(b.dataset.peek, { mini: true })), 50); });
+    $$('[data-peek]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => import('./play.js?v=6af653d4').then((m) => m.viewCharacter(b.dataset.peek, { mini: true })), 50); });
     // her ask 10-29: a mail button to send just a letter
     $$('[data-mail]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => writeMail(me, b.dataset.mail), 50); });
     $$('[data-send]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openSend(b.dataset.send), 50); });
     // her ask 10-29: battle a friend like the main Pokémon games
-    $$('[data-bt]', box).forEach((b) => b.onclick = () => { closeModal(); import('./battle.js?v=6af65085').then((m) => m.challenge(b.dataset.bt)); });
+    $$('[data-bt]', box).forEach((b) => b.onclick = () => { closeModal(); import('./battle.js?v=6af653d4').then((m) => m.challenge(b.dataset.bt)); });
     // her ask 11-01: visit a friend's base, like visiting an igloo in Club Penguin
     $$('[data-visit]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openBase(b.dataset.visit), 50); });
     $$('[data-watchp]', box).forEach((b) => b.onclick = () => { closeModal(); setTimeout(() => openWatch(b.dataset.watchp), 50); });
