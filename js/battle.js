@@ -8,12 +8,12 @@
 // Guild Training: b = 'npc:<key>' (a guild member from GUILD below); the player's device picks for them and works out every round.
 // spar/<playerId>/<key> = { w, l, first } = the Guild Training Board.
 // Both players pick a move; when both are in, player a's device works out the round (player b's after a short wait).
-import * as store from './store.js?v=6af6607f';
-import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6af6607f';
-import { portrait, maxHp } from './ui.js?v=6af6607f';
-import { allMoves, me, statVal } from './play.js?v=6af6607f';
-import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6af6607f';
-import { TYPE_ICONS } from './theme.js?v=6af6607f';
+import * as store from './store.js?v=6af66101';
+import { $, $$, esc, toast, num, uid, pool, painFor, die, roll } from './util.js?v=6af66101';
+import { portrait, maxHp } from './ui.js?v=6af66101';
+import { allMoves, me, statVal } from './play.js?v=6af66101';
+import { ensureAudio, jingle, missSound, pageMusic } from './chiptune.js?v=6af66101';
+import { TYPE_ICONS } from './theme.js?v=6af66101';
 
 export const isBattle = (g) => g.kind === 'battle' || g.id === 'friendly-battle';
 export const GAME_ID = 'friendly-battle';
@@ -214,7 +214,7 @@ async function resolve(bid) {
       const m2 = randomMove(); say(`${nm(id)}’s finger wag turned into ${m2.name}!`, 'use', id); return attack(m2, id, foe);
     }
     let slices = [];
-    try { slices = (await import('./games.js?v=6af6607f')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
+    try { slices = (await import('./games.js?v=6af66101')).games().find((g) => g.id === 'gemini-metronome')?.slices || []; } catch { /* plain Metronome */ }
     const wt = (x) => parseFloat(x[1]) || 1; let r = Math.random() * slices.reduce((s, x) => s + wt(x), 0);
     const sl = slices.find((x) => (r -= wt(x)) <= 0) || ['Lucky Star', 1, ''];
     say(`🌟 The Metronome wheel spins… ${sl[0]}!`, 'up', id);

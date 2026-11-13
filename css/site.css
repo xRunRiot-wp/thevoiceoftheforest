@@ -3626,3 +3626,6 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .pb-tix, .pb-buy, .pb-hint { padding: 3px 8px; border-radius: 8px; background: rgba(255, 248, 234, .95); }
 .pb-tix { font-weight: 700; }
 @media (max-width: 420px) { .pb-say { left: 78px; right: 84px; font-size: 12px; } .pb-shelf { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); } }
+.pb-dz { transform: scale(2.4); transform-origin: 50% 100%; margin: 0 auto 6px; }
+.pb-item.decoy .pb-price { background: #3a2a4a; color: #ffe07a; letter-spacing: 1px; }
+.pb-jr.nope { animation: pb-nope .5s ease-in-out 2; } @keyframes pb-nope { 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }

@@ -1,20 +1,20 @@
 // her ask 11-07: TV display mode for in-person sessions. A home screen of big flat tiles (Echo Show / Windows 8 feel)
 // around the Friend Zone, and an overview panel that stays at the side on every page. Turned on in Settings, per device.
 // This screen faces the whole table, so nothing here may show hidden missions or other GM-only data.
-import * as store from './store.js?v=6af6607f';
-import { $, esc, num } from './util.js?v=6af6607f';
-import { tvMode, openSettings } from './theme.js?v=6af6607f';
-import { renderFriendZone, locations } from './friendzone.js?v=6af6607f';
-import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af6607f';
-import { renderMessHall, renderRoster, rosterAllowed, liveTeamFx, fxLeftHTML } from './play.js?v=6af6607f';
-import { renderNurseryParty } from './nursery.js?v=6af6607f';
-import { chatterLatestHTML } from './chatter.js?v=6af6607f';
-import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af6607f';
-import { sitePages } from './sitepages.js?v=6af6607f';
-import { openBase, hasBase } from './mybase.js?v=6af6607f';
-import { topPatron } from './vault.js?v=6af6607f';
-import { portrait, modal } from './ui.js?v=6af6607f';
-import { sideActionsHTML, bindSideActions } from './hotbar.js?v=6af6607f';
+import * as store from './store.js?v=6af66101';
+import { $, esc, num } from './util.js?v=6af66101';
+import { tvMode, openSettings } from './theme.js?v=6af66101';
+import { renderFriendZone, locations } from './friendzone.js?v=6af66101';
+import { missionBy, GUILD_ICON, rankFor } from './guild.js?v=6af66101';
+import { renderMessHall, renderRoster, rosterAllowed, liveTeamFx, fxLeftHTML } from './play.js?v=6af66101';
+import { renderNurseryParty } from './nursery.js?v=6af66101';
+import { chatterLatestHTML } from './chatter.js?v=6af66101';
+import { currentWeather, WEATHERS, wxFxHTML, wxIconHTML, showWeather } from './weather.js?v=6af66101';
+import { sitePages } from './sitepages.js?v=6af66101';
+import { openBase, hasBase } from './mybase.js?v=6af66101';
+import { topPatron } from './vault.js?v=6af66101';
+import { portrait, modal } from './ui.js?v=6af66101';
+import { sideActionsHTML, bindSideActions } from './hotbar.js?v=6af66101';
 
 // her ask 11-07: the Bases tile (in place of GM): every character's base as a door to knock on, like igloos on a map
 function renderBases(main) {
