@@ -5,16 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af65f8d';
-import { $, $$, esc, toast, num } from './util.js?v=6af65f8d';
-import { me, logRoll } from './play.js?v=6af65f8d';
-import { markWinner } from './sparkle.js?v=6af65f8d';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af65f8d';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af65f8d';
-import { DECOR } from './basedecor.js?v=6af65f8d';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af65f8d';
-import { REWARD_CURSORS } from './digcursor.js?v=6af65f8d';
-import { midwayHTML, mountMidway } from './midway.js?v=6af65f8d';
+import * as store from './store.js?v=6af6607f';
+import { $, $$, esc, toast, num } from './util.js?v=6af6607f';
+import { me, logRoll } from './play.js?v=6af6607f';
+import { markWinner } from './sparkle.js?v=6af6607f';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af6607f';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af6607f';
+import { DECOR } from './basedecor.js?v=6af6607f';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af6607f';
+import { REWARD_CURSORS } from './digcursor.js?v=6af6607f';
+import { midwayHTML, mountMidway } from './midway.js?v=6af6607f';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -58,7 +58,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af65f8d').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af6607f').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -375,10 +375,10 @@ const DECOR_PRICES = { doll: 40, big: 120, mat: 60, plant: 60, desk: 80, chair: 
 const SPECIAL = { sb_big_regirock: 200, sb_big_regice: 200, sb_big_registeel: 200, sb_goldshield: 250, sb_silvershield: 150 };
 let prizeCache = null;
 const PRIZES = () => (prizeCache ||= [
-  ...Object.entries(DECOR).filter(([, it]) => it[5] === 'win').map(([k, it]) => ({ kind: 'decor', k, name: it[0], pic: it[1], price: SPECIAL[k] || DECOR_PRICES[it[6]] || 80 })),
-  ...[['jirachi', 150], ['drifloon', 120]].map(([k, price]) => ({ kind: 'cursor', k, name: REWARD_CURSORS[k] || k, pic: `assets/ui/${k}_cursor.png`, price })),
-  ...[['carnival', 200], ['cottoncandy', 200]].map(([k, price]) => ({ kind: 'theme', k, name: (THEMES[k]?.name || k) + ' theme', price })),
-  ...[['comet', 150], ['cottoncandy', 150], ['carousel', 150]].map(([k, price]) => ({ kind: 'dice', k, name: DICE_REWARDS[k] || k, price })),
+  ...Object.entries(DECOR).filter(([, it]) => it[5] === 'win').map(([k, it]) => ({ kind: 'decor', k, name: it[0], pic: it[1], desc: it[3], price: SPECIAL[k] || DECOR_PRICES[it[6]] || 80 })),
+  ...[['jirachi', 150], ['drifloon', 120]].map(([k, price]) => ({ kind: 'cursor', k, name: REWARD_CURSORS[k] || k, pic: `assets/ui/${k}_cursor.png`, desc: 'A new mouse pointer for the whole site (on a computer).', price })),
+  ...[['carnival', 200], ['cottoncandy', 200]].map(([k, price]) => ({ kind: 'theme', k, name: (THEMES[k]?.name || k) + ' theme', desc: 'Changes the colors of the whole site.', price })),
+  ...[['comet', 150], ['cottoncandy', 150], ['carousel', 150]].map(([k, price]) => ({ kind: 'dice', k, name: DICE_REWARDS[k] || k, desc: 'A new look for your dice when you roll.', price })),
 ]);
 const PRIZE_TABS = [['decor', '🏠 For your base'], ['cursor', '🖱️ Cursors'], ['theme', '🎨 Themes'], ['dice', '🎲 Dice']];
 const owns = (c, p) => (p.kind === 'cursor' ? (c.cursors || []).includes(p.k) : p.kind === 'theme' ? (c.themes || []).includes(p.k) : p.kind === 'dice' ? (c.dice || []).includes(p.k) : false);
@@ -532,22 +532,49 @@ export function renderCarnival(main, g, gm, onEdit) {
     } else if (tab === 'prizes') drawPrizes();
   }
 
+  // her ask 11-12 "have Mr. Mime standing in a booth with all the prizes (make each tab have their own section of the
+  // shop). Player will mouse over what they want (light up over each option with distractor options). A Mime Jr. is his
+  // assistant.": a carnival prize booth (marquee sign, awning, wooden shelves); each tab is its own section of shelves
+  // with its own sign; hovering (or tapping) a prize lights it up and Mr. Mime describes it; Mr. Mime stands behind the
+  // counter and Mime Jr. sits on it, hopping over to hand you the prize
   function drawPrizes() {
     const meC = c ? party()[c.id] || c : null; const free = c && !!rec(c.id).freePrize; const tix = c ? (free ? Infinity : ticketsOf(c.id)) : 0;
     const list = PRIZES().filter((p) => p.kind === prizeTab);
-    panel.innerHTML = `${host('mrmime', 'Mr. Mime', 'The Prize Booth! Trade your tickets for something special. Mime-mime!')}
-      <div class="row cv-tabs">${PRIZE_TABS.map(([k, l]) => `<button class="btn sm ${k === prizeTab ? '' : 'alt'}" data-pt="${k}">${l}</button>`).join('')}</div>
-      ${free ? '<p class="pill">🌟 Jirachi’s wish: your next trade is FREE!</p>' : ''}${buying ? `<p class="base-hint">Trade <b>${free ? 'your free wish' : buying.price + ' tickets'}</b> for the <b>${esc(buying.name)}</b>? <button class="btn sm" id="cvbuy" ${tix < buying.price ? 'disabled' : ''}>Trade</button> <button class="btn alt sm" id="cvnobuy">Cancel</button>${tix < buying.price ? ` <span class="small bad-t">You need ${buying.price - tix} more tickets.</span>` : ''}</p>` : ''}
-      <div class="cv-prizes">${list.map((p, i) => { const have = meC && owns(meC, p); const n = meC && p.kind === 'decor' ? ownedDecor(c.id, p.k) : 0;
-        return `<button class="cv-prize ${buying === p ? 'on' : ''} ${have ? 'have' : ''}" data-pz="${i}" ${have || !c ? 'disabled' : ''}>${prizeArt(p)}<b>${esc(p.name)}</b><small>${have ? '✓ Yours' : `🎟️ ${p.price}`}${n ? ` · have ${n}` : ''}</small></button>`; }).join('')}</div>`;
+    const tabName = (PRIZE_TABS.find(([k]) => k === prizeTab) || [])[1] || '';
+    const lineFor = (p) => { const have = meC && owns(meC, p); return have ? `The ${p.name}? You already have that one! Mime-mime!` : `Ooh, the ${p.name}! ${p.desc || ''} Only ${p.price} tickets!`; };
+    panel.innerHTML = `<div class="pb-booth">
+      <div class="pb-sign"><span class="pb-bulbs"></span>🎁 PRIZE BOOTH 🎁<span class="pb-bulbs b"></span></div><div class="pb-awn"></div>
+      <div class="pb-tabs">${PRIZE_TABS.map(([k, l]) => `<button class="pb-tab ${k === prizeTab ? 'on' : ''}" data-pt="${k}">${l}</button>`).join('')}</div>
+      <div class="pb-wall pb-${prizeTab}"><span class="pb-section">${esc(tabName)}</span>
+        <div class="pb-shelf">${list.map((p, i) => { const have = meC && owns(meC, p); const n = meC && p.kind === 'decor' ? ownedDecor(c.id, p.k) : 0;
+          return `<button class="pb-item ${buying === p ? 'on' : ''} ${have ? 'have' : ''}" data-pz="${i}" ${!c ? 'disabled' : ''} aria-label="${esc(p.name)}, ${p.price} tickets">${prizeArt(p)}<span class="pb-price">${have ? '✓' : `🎟️${p.price}`}</span>${n ? `<span class="pb-have">×${n}</span>` : ''}</button>`; }).join('')}</div>
+      </div>
+      <div class="pb-counter">
+        <span class="pb-mime"></span><span class="pb-jr"></span>
+        <div class="pb-say"><b>Mr. Mime:</b> <span id="pbsay">${buying ? esc(lineFor(buying)) : 'Step right up! Point at any prize and I’ll tell you all about it. Mime-mime!'}</span></div>
+        <div class="pb-front"><span class="pb-tix">🎟️ ${c ? (free ? 'Free wish!' : `${ticketsOf(c.id)} tickets`) : '–'}</span>
+          ${free ? '<span class="pill">🌟 Jirachi’s wish: your next trade is FREE!</span>' : ''}
+          ${buying ? `<span class="pb-buy">Trade <b>${free ? 'your free wish' : buying.price + ' tickets'}</b> for the <b>${esc(buying.name)}</b>? <button class="btn sm" id="cvbuy" ${tix < buying.price || (meC && owns(meC, buying)) ? 'disabled' : ''}>Trade</button> <button class="btn alt sm" id="cvnobuy">Cancel</button>${tix < buying.price ? ` <span class="small bad-t">You need ${buying.price - tix} more tickets.</span>` : ''}</span>` : '<span class="small pb-hint">Tap a prize to pick it.</span>'}
+        </div>
+      </div></div>`;
+    const sayEl = $('#pbsay', panel); const jr = $('.pb-jr', panel);
+    spriteInto($('.pb-mime', panel), 'Mr. Mime', 2.2, 'down', true);
+    spriteInto(jr, 'Mime Jr', 1.8, 'down', true);
     $$('[data-pt]', panel).forEach((b) => { b.onclick = () => { prizeTab = b.dataset.pt; buying = null; drawPrizes(); }; });
-    $$('[data-pz]', panel).forEach((b) => { b.onclick = () => { buying = list[+b.dataset.pz]; drawPrizes(); }; });
+    const rest = () => { sayEl.textContent = buying ? lineFor(buying) : 'Step right up! Point at any prize and I’ll tell you all about it. Mime-mime!'; };
+    $$('[data-pz]', panel).forEach((b) => {
+      const p = list[+b.dataset.pz];
+      const show = () => { sayEl.textContent = lineFor(p); const r = b.getBoundingClientRect(); const w = panel.querySelector('.pb-booth').getBoundingClientRect(); jr.style.setProperty('--jx', `${Math.max(-120, Math.min(120, r.left + r.width / 2 - (w.left + w.width / 2)))}px`); jr.classList.add('look'); };
+      b.onmouseenter = show; b.onfocus = show; b.onmouseleave = () => { jr.classList.remove('look'); rest(); };
+      b.onclick = () => { buying = p; drawPrizes(); };
+    });
     const no = $('#cvnobuy', panel); if (no) no.onclick = () => { buying = null; drawPrizes(); };
     const yes = $('#cvbuy', panel); if (yes) yes.onclick = () => {
       const p = buying; const fr = !!rec(c.id).freePrize; if (!p || (!fr && ticketsOf(c.id) < p.price)) { toast('Not enough tickets for that one yet.'); return; }
       if (fr) store.set('carnival/' + c.id, { ...rec(c.id), freePrize: false }); else addTickets(c.id, -p.price); grant(c, p);
       store.pushLimited('log', { t: Date.now(), text: fr ? `🌟 ${c.nickname} used Jirachi’s wish for the ${p.name}!` : `🎪 ${c.nickname} traded ${p.price} carnival tickets for the ${p.name}!` });
       toast(`🎉 The ${p.name} is yours! ${where(p)}`); markWinner(c.id); jingle(true); buying = null; drawPrizes(); showTix();
+      const j = $('.pb-jr', panel); j?.classList.add('give'); const s2 = $('#pbsay', panel); if (s2) s2.textContent = `Congratulations! Mime Jr., wrap up the ${p.name}! Enjoy it!`;
       say(mime(`Congratulations! Enjoy your ${p.name}!`));
     };
   }

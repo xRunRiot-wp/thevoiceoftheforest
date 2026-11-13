@@ -1,9 +1,9 @@
 // 3D dice: every d6 roll on this device plays as tumbling dice over the screen, then shows the result.
 // Results always come from the site's own roller; the animation just lands each die on its value.
 // Each player picks their own skin. her ask 11-07: it's saved on the character so it matches on every browser; this browser's copy is only the fallback.
-import { $, $$, esc } from './util.js?v=6af65f8d';
-import { modal } from './ui.js?v=6af65f8d';
-import * as store from './store.js?v=6af65f8d';
+import { $, $$, esc } from './util.js?v=6af6607f';
+import { modal } from './ui.js?v=6af6607f';
+import * as store from './store.js?v=6af6607f';
 
 const THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 const KEY = 'dc.dice';
