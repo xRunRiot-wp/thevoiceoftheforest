@@ -3673,3 +3673,45 @@ body[data-tv] .tv-nparty .nursery-room { min-height: 380px; max-width: 1000px; m
 .pb-say, .pb-say[class] { left: 50%; right: auto; top: 10px; width: min(52%, 420px); transform: translateX(-50%); font-size: 14px; }
 .pb-say::before { left: -8px; bottom: 14px; }
 @media (max-width: 600px) { .pb-stage { height: 270px; } .pb-say, .pb-say[class] { top: 6px; width: 58%; font-size: 12px; } .pb-mime { left: 2%; } .pb-jr { right: 6%; } .pb-props { grid-template-columns: repeat(5, 1fr); } }
+
+/* her ask 11-14 "make the dragonite roller coaster look less clunky... he can fly above it and pull it that way":
+   Dragonite hovers high above the lead car (gentle bob and tilt), two reins run up from the car to his hands */
+.mw-dragfly .mw-drag { animation: mw-hover 1.8s ease-in-out infinite; }
+@keyframes mw-hover { 0%, 100% { transform: translateY(-6px) rotate(-5deg); } 50% { transform: translateY(-12px) rotate(2deg); } }
+@keyframes mw-ride-d { 0% { offset-distance: 4%; } 12% { offset-distance: 12%; } 96% { offset-distance: 100%; } 100% { offset-distance: 100%; } }
+.cv-dragfly .cv-drag { display: block; animation: cv-hover 1.8s ease-in-out infinite; }
+@keyframes cv-hover { 0%, 100% { transform: translateY(-58px) rotate(-5deg); } 50% { transform: translateY(-68px) rotate(2deg); } }
+@keyframes cv-ride-d { 0% { offset-distance: 5%; } 30% { offset-distance: 36%; } 45% { offset-distance: 57%; } 95% { offset-distance: 100%; } 100% { offset-distance: 100%; } }
+.mw-reinsvg line, .cv-reinsvg line { stroke-width: 1.3; }
+
+/* Scrafty's Strength Test, detailed (her ask 11-14): night booth, striped tower with ticks + bulbs, sign, big red
+   button your Pokémon jumps on or punches */
+.cv-str2 { display: block; padding: 0; background: radial-gradient(ellipse at 50% 100%, #5a2a5a, transparent 60%), linear-gradient(#120a2a, #2a1446 70%, #3a1d4a); }
+.cv-s2stars { position: absolute; inset: 0; background: radial-gradient(circle, #fff 0 1px, transparent 1.5px) 0 0 / 37px 29px, radial-gradient(circle, #ffe7a0 0 1px, transparent 1.5px) 13px 17px / 53px 41px; opacity: .45; }
+.cv-s2lights { position: absolute; left: 0; right: 0; top: 4px; height: 22px; display: flex; justify-content: space-around; border-top: 2px solid #3a2a20; }
+.cv-s2lights i { width: 8px; height: 10px; margin-top: 3px; border-radius: 50%; background: #ffd24a; box-shadow: 0 0 8px #ffd24a; animation: tc-blink 1.2s steps(1) infinite; }
+.cv-s2lights i:nth-child(3n) { background: #ff6a8a; box-shadow: 0 0 8px #ff6a8a; } .cv-s2lights i:nth-child(3n+1) { background: #7ad8ff; box-shadow: 0 0 8px #7ad8ff; }
+.cv-s2sign { position: absolute; left: 50%; top: 24px; transform: translateX(-50%) rotate(-2deg); padding: 3px 10px; background: #6b2a3a; border: 2px solid #f2c14e; border-radius: 6px; font-family: var(--pix); font-weight: 700; font-size: 12px; letter-spacing: 1px; color: #ffe7a0; white-space: nowrap; text-shadow: 0 0 6px #ff8a3a; z-index: 2; }
+.cv-str2 .cv-tower { position: absolute; left: 50%; bottom: 54px; top: 86px; width: 40px; height: auto; margin-left: -20px; background: repeating-linear-gradient(0deg, #f6eedf 0 18px, #d63a3a 18px 36px); border: 3px solid #8a5a1a; border-radius: 8px 8px 2px 2px; box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .25), 0 0 14px rgba(255, 200, 80, .25); }
+.cv-str2 .cv-tower::before { content: ''; position: absolute; left: 50%; top: 4px; bottom: 4px; width: 6px; margin-left: -3px; background: #3a2a20; border-radius: 3px; }
+.cv-str2 .cv-tower b { left: 52px; font-size: 10px; text-shadow: 0 1px 2px #000; }
+.cv-str2 .cv-tower b::before { content: ''; position: absolute; left: -12px; top: 50%; width: 8px; border-top: 2px dashed #ffe7a0; }
+.cv-ticks i { position: absolute; left: 2px; width: 7px; border-top: 2px solid #3a2a20; } .cv-ticks i.big { width: 12px; }
+.cv-bulbs { position: absolute; top: 0; bottom: 0; width: 0; } .cv-bulbs.l { left: -9px; } .cv-bulbs.r { right: -9px; }
+.cv-bulbs em { position: absolute; left: -3px; width: 6px; height: 6px; border-radius: 50%; background: #ffe07a; box-shadow: 0 0 6px #ffe07a; animation: tc-blink 1s steps(1) infinite; }
+.cv-str2 .cv-puck { z-index: 1; box-shadow: 0 0 8px #f2c14e; }
+.cv-str2 .cv-bell { top: -32px; z-index: 1; }
+.cv-rays { position: absolute; left: 50%; top: -18px; width: 80px; height: 80px; margin: -40px 0 0 -40px; border-radius: 50%; background: repeating-conic-gradient(rgba(255, 224, 122, .35) 0 10deg, transparent 10deg 30deg); opacity: .35; animation: cv-spin 8s linear infinite; pointer-events: none; }
+.cv-tower.rung .cv-rays { opacity: 1; animation-duration: 1.2s; } .cv-tower.rung { box-shadow: 0 0 26px #ffe07a; }
+@keyframes cv-spin { to { transform: rotate(360deg); } }
+.cv-s2base { position: absolute; left: 50%; bottom: 30px; width: 96px; height: 26px; margin-left: -48px; background: linear-gradient(#8a5a1a, #5a3a14); border: 2px solid #f2c14e; border-radius: 6px 6px 2px 2px; z-index: 2; box-sizing: border-box; }
+.cv-s2pad { position: absolute; left: 50%; bottom: 54px; width: 50px; height: 16px; margin-left: -25px; z-index: 2; border-radius: 50% 50% 6px 6px / 90% 90% 6px 6px; background: radial-gradient(ellipse at 40% 30%, #ff9a9a, #e23a3a 50%, #9a1a1a); border: 2px solid #5a0a0a; box-shadow: 0 0 10px rgba(255, 80, 80, .6); transform-origin: 50% 100%; box-sizing: border-box; }
+.cv-s2pad.hit { animation: cv-pad .35s ease-out; } @keyframes cv-pad { 30% { transform: scale(1.2, .45); } 100% { transform: none; } }
+.cv-str2 .cv-meter { position: absolute; left: 12px; bottom: 44px; height: 52%; margin: 0; }
+.cv-s2me { position: absolute; left: calc(50% - 120px); bottom: 30px; z-index: 3; display: flex; align-items: flex-end; }
+.cv-s2me .fzs-spr { margin-bottom: 0 !important; }
+.cv-str2 .cv-champ { position: absolute; right: 4px; bottom: 30px; z-index: 2; }
+.cv-s2floor { position: absolute; left: 0; right: 0; bottom: 0; height: 32px; background: repeating-linear-gradient(90deg, #6b4220 0 26px, #5a3618 26px 28px); border-top: 3px solid #3a2410; z-index: 1; }
+.cv-s2bang { position: absolute; left: 50%; top: 50%; z-index: 5; transform: translate(-50%, 0) scale(0); font-family: var(--pix); font-weight: 900; font-size: 20px; color: #ffe07a; -webkit-text-stroke: 1px #6b2a3a; text-shadow: 0 0 8px #ff8a3a; pointer-events: none; white-space: nowrap; }
+.cv-s2bang.go { animation: cv-bang .9s ease-out forwards; } @keyframes cv-bang { 0% { transform: translate(-50%, 0) scale(.3) rotate(-10deg); opacity: 1; } 25% { transform: translate(-50%, -12px) scale(1.25) rotate(4deg); opacity: 1; } 100% { transform: translate(-50%, -30px) scale(1); opacity: 0; } }
+.cv-s2say { margin: 8px 0; text-align: center; min-height: 1.3em; }

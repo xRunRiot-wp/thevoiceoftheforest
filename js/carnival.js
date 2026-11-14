@@ -5,16 +5,16 @@
 // (counts as food), play booth games for tickets, and spend the tickets at the Prize Booth on base pieces, cursors,
 // site themes and dice. Each booth game pays tickets for the first PAID_PLAYS games a day; after that it is just for fun.
 // State: party/<id>/tickets, carnival/<id> = { day, plays: { game: n }, best: { game: score }, star: { closed: [sections], day }, freePrize, wishes, total }.
-import * as store from './store.js?v=6af68c91';
-import { $, $$, esc, toast, num } from './util.js?v=6af68c91';
-import { me, logRoll } from './play.js?v=6af68c91';
-import { markWinner } from './sparkle.js?v=6af68c91';
-import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af68c91';
-import { buddyLook, carnivalCare } from './nursery.js?v=6af68c91';
-import { DECOR } from './basedecor.js?v=6af68c91';
-import { THEMES, DICE_REWARDS } from './theme.js?v=6af68c91';
-import { REWARD_CURSORS } from './digcursor.js?v=6af68c91';
-import { midwayHTML, mountMidway } from './midway.js?v=6af68c91';
+import * as store from './store.js?v=6af8823a';
+import { $, $$, esc, toast, num } from './util.js?v=6af8823a';
+import { me, logRoll } from './play.js?v=6af8823a';
+import { markWinner } from './sparkle.js?v=6af8823a';
+import { ensureAudio, jingle, stepSound, missSound, pageMusic } from './chiptune.js?v=6af8823a';
+import { buddyLook, carnivalCare } from './nursery.js?v=6af8823a';
+import { DECOR } from './basedecor.js?v=6af8823a';
+import { THEMES, DICE_REWARDS } from './theme.js?v=6af8823a';
+import { REWARD_CURSORS } from './digcursor.js?v=6af8823a';
+import { midwayHTML, mountMidway } from './midway.js?v=6af8823a';
 
 export const isCarnival = (g) => g.kind === 'carnival' || g.id === 'star-carnival';
 const PAID_PLAYS = 3;
@@ -64,7 +64,7 @@ function budRow(root, name, loop = true) {
   spr.style.backgroundPositionY = `-${r * ph}px`; spr.style.setProperty('--fw', pw + 'px'); spr.style.setProperty('--n', n);
   spr.style.animation = 'none'; void spr.offsetWidth; spr.style.animation = `baby-anim ${Math.max(0.4, n * 0.12)}s steps(${n}, jump-none) ${loop ? 'infinite' : '1 forwards'}`;
 }
-const fz = () => import('./fzscene.js?v=6af68c91').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af8823a').catch(() => null);
 async function fillPair(root, c, face = 'right', S = 2) {
   budRow(root, 'idle');
   const slot = $('.cv-char', root); if (!slot || !c?.pokemon) return;
@@ -265,25 +265,63 @@ const GAMES = {
         busy = false; if (!rings) setTimeout(() => done(hits, `${hits} of 6 Klefki landed`), 700);
       };
     } },
-  hammer: { name: 'Scrafty’s Strength Test', who: 'Scrafty', face: 'scrafty', icon: '🔔', blurb: 'Swing the big hammer and ring the bell at the top!',
-    how: '3 swings. The power bar goes up and down fast: tap Swing! at the very top. Ring the bell (95+) for 6 tickets, 80+ gets 3, 50+ gets 1.',
+  // her ask 11-14 "Scraft's strength test needs more detail. I'd like the user's pokemon to jump onto the button or
+  // punch it": a night booth (string lights, striped tower with ticks and bulbs, sign, bell with rays); your Pokémon
+  // stands by a big red button at the foot of the tower and, each try, either jumps onto it or punches it, then the
+  // puck shoots up. Scrafty cheers from the side
+  hammer: { name: 'Scrafty’s Strength Test', who: 'Scrafty', face: 'scrafty', icon: '🔔', blurb: 'Smash the big button and ring the bell at the top!',
+    how: '3 tries. The power bar goes up and down fast: tap Hit! at the very top and your Pokémon jumps on or punches the button. Ring the bell (95+) for 6 tickets, 80+ gets 3, 50+ gets 1.',
     tickets: (s) => s,
     play(el, c, done) {
-      el.innerHTML = `<div class="cv-hud"><span>🔨 Swings: <b class="cv-p">3</b></span><span>💪 <b class="cv-s">–</b></span></div>
-        <div class="cv-field cv-strength"><div class="cv-tower"><span class="cv-bell">🔔</span><span class="cv-puck"></span><b style="bottom:95%">RING!</b><b style="bottom:80%">Champ</b><b style="bottom:50%">Strong</b><b style="bottom:20%">Wimpy</b></div>
-        <div class="cv-meter"><span class="cv-fill"></span></div><div class="cv-champ"></div></div><button class="btn block" id="cvswing">🔨 Swing!</button>`;
-      spriteInto($('.cv-champ', el), 'Scrafty', 2.4, 'left', true);   // her ask 11-11: Scrafty runs the strength test now
-      const fill = $('.cv-fill', el); const puck = $('.cv-puck', el); let swings = 3; let tix = 0; let best = 0; let busy = false; let v = 0; let dir = 1; let last = performance.now(); const notes = [];
+      const marks = [95, 80, 50, 20].map((v, i) => `<b style="bottom:${v}%">${['RING!', 'Champ', 'Strong', 'Wimpy'][i]}</b>`).join('');
+      const ticks = Array.from({ length: 19 }, (_, i) => `<i style="bottom:${(i + 1) * 5}%" class="${(i + 1) % 2 ? '' : 'big'}"></i>`).join('');
+      const bulbs = Array.from({ length: 9 }, (_, i) => `<em style="bottom:${6 + i * 11}%;animation-delay:${(i % 3) * 0.25}s"></em>`).join('');
+      el.innerHTML = `<div class="cv-hud"><span>💥 Tries: <b class="cv-p">3</b></span><span>💪 <b class="cv-s">–</b></span></div>
+        <div class="cv-field cv-strength cv-str2"><div class="cv-s2stars"></div><div class="cv-s2lights">${Array.from({ length: 12 }, (_, i) => `<i style="animation-delay:${(i % 4) * 0.2}s"></i>`).join('')}</div>
+          <div class="cv-s2sign">TEST YOUR STRENGTH</div>
+          <div class="cv-tower"><span class="cv-rays"></span><span class="cv-bell">🔔</span><span class="cv-ticks">${ticks}</span><span class="cv-bulbs l">${bulbs}</span><span class="cv-bulbs r">${bulbs}</span><span class="cv-puck"></span>${marks}</div>
+          <div class="cv-s2base"></div><span class="cv-s2pad"></span>
+          <div class="cv-meter"><span class="cv-fill"></span></div>
+          <div class="cv-s2me"></div><div class="cv-champ"></div><div class="cv-s2bang"></div><div class="cv-s2floor"></div></div>
+        <p class="cv-s2say">Tap <b>Hit!</b> when the bar is at the top.</p><button class="btn block" id="cvswing">💥 Hit!</button>`;
+      spriteInto($('.cv-champ', el), 'Scrafty', 2, 'left', true);   // her ask 11-11: Scrafty runs the strength test now
+      const meEl = $('.cv-s2me', el); const pad = $('.cv-s2pad', el); const bang = $('.cv-s2bang', el); const say = $('.cv-s2say', el); const field = $('.cv-field', el);
+      const pname = c?.nickname || 'Your Pokémon';
+      (async () => { const m = await fz(); const w = c?.pokemon ? await m?.walkSprite(c.pokemon, 2, 'right', true, !!c.shiny).catch(() => null) : null;
+        if (meEl.isConnected) meEl.innerHTML = w ? w.html : '<span style="font-size:40px">🥊</span>'; })();
+      const fill = $('.cv-fill', el); const puck = $('.cv-puck', el); let swings = 3; let tix = 0; let busy = false; let v = 0; let dir = 1; let last = performance.now(); const notes = [];
       const step = (t) => { if (!el.isConnected) return; const dt = (t - last) / 1000; last = t; if (!busy) { v += dir * (140 + (3 - swings) * 40) * dt; if (v > 100) { v = 100; dir = -1; } if (v < 0) { v = 0; dir = 1; } fill.style.height = v + '%'; } requestAnimationFrame(step); };
       requestAnimationFrame(step);
+      let jumpNext = Math.random() < 0.5;
+      // your Pokémon jumps onto the button or punches it (alternating), the button squashes and a POW! pops up
+      const hitButton = async (p) => {
+        const spr = meEl.firstElementChild || meEl; const a = spr.getBoundingClientRect(); const b = pad.getBoundingClientRect(); const f = field.getBoundingClientRect();
+        const cx = b.left + b.width / 2 - (a.left + a.width / 2); const jump = jumpNext; jumpNext = !jumpNext;
+        say.textContent = jump ? `${pname} leaps up high…` : `${pname} winds up a big punch…`;
+        let to; let anim;
+        if (jump) { const top = b.top - a.bottom + 6; const hi = -(50 + p * 0.6);
+          to = `translate(${cx.toFixed(1)}px, ${top.toFixed(1)}px)`;
+          anim = [{ transform: 'translate(0px, 0px) scale(1, 1)' }, { transform: 'translate(0px, 4px) scale(1.12, .86)', offset: 0.15 }, { transform: `translate(${(cx * 0.55).toFixed(1)}px, ${(hi + top).toFixed(1)}px) scale(.94, 1.08)`, offset: 0.6 }, { transform: to + ' scale(1, 1)' }];
+        } else { const side = b.left - a.right + 10; to = `translate(${side.toFixed(1)}px, 0px)`;
+          anim = [{ transform: 'translate(0px, 0px) rotate(0deg)' }, { transform: 'translate(-12px, 0px) rotate(-8deg)', offset: 0.5 }, { transform: to + ' rotate(4deg)' }]; }
+        await meEl.animate(anim, { duration: jump ? 640 : 420, easing: jump ? 'cubic-bezier(.3,.6,.5,1)' : 'ease-in', fill: 'forwards' }).finished.catch(() => {});
+        if (!el.isConnected) return null;
+        pad.classList.remove('hit'); void pad.offsetWidth; pad.classList.add('hit');
+        bang.textContent = p >= 95 ? 'KA-BOOM!' : p >= 80 ? 'WHAM!' : p >= 50 ? 'POW!' : 'boop';
+        bang.style.left = `${b.left + b.width / 2 - f.left}px`; bang.style.top = `${b.top - f.top - 34}px`; bang.classList.remove('go'); void bang.offsetWidth; bang.classList.add('go');
+        say.textContent = jump ? `${pname} stomps on the button!` : `${pname} punches the button!`;
+        return () => meEl.animate([{ transform: to }, { transform: 'translate(0px, 0px)' }], { duration: 420, easing: 'ease-out', fill: 'forwards' });
+      };
       $('#cvswing', el).onclick = async () => {
         if (busy || !swings) return; busy = true; swings--; const p = Math.round(v); $('.cv-p', el).textContent = swings;
+        const back = await hitButton(p); if (!el.isConnected) return;
         puck.style.transition = 'bottom .5s cubic-bezier(.2,.9,.3,1)'; puck.style.bottom = `${Math.min(92, p)}%`; await wait(550); if (!el.isConnected) return;
-        const t = p >= 95 ? 6 : p >= 80 ? 3 : p >= 50 ? 1 : 0; tix += t; best = Math.max(best, p); notes.push(p);
-        if (p >= 95) { $('.cv-bell', el).classList.add('ring'); jingle(true); } else (p >= 50 ? stepSound('right') : missSound());
-        $('.cv-s', el).textContent = `${p}${t ? ` (+${t})` : ''}`; await wait(900); if (!el.isConnected) return;
-        $('.cv-bell', el).classList.remove('ring'); puck.style.transition = 'bottom .3s'; puck.style.bottom = '0%'; busy = false;
-        if (!swings) setTimeout(() => done(tix, `swings of ${notes.join(', ')}`, tix), 400);
+        const t = p >= 95 ? 6 : p >= 80 ? 3 : p >= 50 ? 1 : 0; tix += t; notes.push(p);
+        if (p >= 95) { $('.cv-bell', el).classList.add('ring'); $('.cv-tower', el).classList.add('rung'); jingle(true); say.textContent = 'DING DING DING! Scrafty is impressed!'; }
+        else { (p >= 50 ? stepSound('right') : missSound()); say.textContent = p >= 80 ? 'So close! Scrafty whistles.' : p >= 50 ? 'Strong! Scrafty nods.' : 'Scrafty snickers… try again!'; }
+        $('.cv-s', el).textContent = `${p}${t ? ` (+${t})` : ''}`; back?.(); await wait(900); if (!el.isConnected) return;
+        $('.cv-bell', el).classList.remove('ring'); $('.cv-tower', el).classList.remove('rung'); puck.style.transition = 'bottom .3s'; puck.style.bottom = '0%'; busy = false;
+        if (!swings) setTimeout(() => done(tix, `tries of ${notes.join(', ')}`, tix), 400);
       };
     } },
   // her ask 11-12 "Increase the quality of the Haunter's Hat Trick. I want the hats to be top down on a spooky table cloth.
@@ -366,8 +404,8 @@ const RIDES = {
     lines: ['The band organ starts up and the Rapidash rise and fall…', '{b} waves at everyone going by!', 'Round and round under the twinkling lights.', 'The music winds down. What a ride!'] },
   wheel: { name: 'Wishing Star Wheel', face: 'jirachi', cost: 5, blurb: 'Ride to the top of the Ferris wheel and see the Millennium Comet up close.',
     lines: ['Your car rocks gently as it starts to climb…', 'Up, up, up over the tents and the lights…', 'From the very top you can see the whole carnival, and the Millennium Comet!', '{b} makes a wish on the comet. Back down we go.'] },
-  coaster: { name: 'Dragonite Coaster', face: 'dragonite', cost: 6, blurb: 'Dragonite pulls the coaster car up the big hill. Hold on tight!',
-    lines: ['Click, click, click… Dragonite pulls you up the big hill…', 'WHOOOOSH! Down the drop!', '{b} is squealing with joy!', 'The car rolls into the station. Again! Again!'] },
+  coaster: { name: 'Dragonite Coaster', face: 'dragonite', cost: 6, blurb: 'Dragonite flies above the coaster and pulls the car up the big hill. Hold on tight!',
+    lines: ['Dragonite flaps high above, pulling you up the big hill…', 'WHOOOOSH! Down the drop!', '{b} is squealing with joy!', 'The car rolls into the station. Again! Again!'] },
   teacups: { name: 'Lapras Tea Cups', face: 'lapras', cost: 4, blurb: 'Lapras uses Whirlpool to spin the floating teacups. Hold on tight!',
     lines: ['You climb into a teacup floating on Lapras’s pool…', 'Lapras uses Whirlpool! The water swirls and the cups start to spin!', '{b} holds on tight as the cup spins faster and faster!', 'The whirlpool calms down and the cups drift to a stop. Everything is still spinning a little!'] },
   funhouse: { name: 'Haunter’s Funhouse', face: 'haunter', cost: 5, blurb: 'Haunter’s magic mirror twists your buddy into its evolved, shiny, Mega, paradox or Gigantamax form!',
@@ -654,9 +692,9 @@ export function renderCarnival(main, g, gm, onEdit) {
       // reins are redrawn every frame from the car to him, so they never come loose
       spriteInto($('.cv-drag', rbox), 'Dragonite', 1.4, 'right', false).then(() => $('.cv-drag .fzs-spr', rbox)?.classList.add('walking'));
       const car = $('.cv-cart', rbox); const dr = $('.cv-dragfly', rbox); const ls = $$('.cv-reinsvg line', rbox);
-      const rein = () => { if (!rbox.isConnected) return; const b = rbox.getBoundingClientRect(); const a = car.getBoundingClientRect(); const d = dr.getBoundingClientRect();
-        const ax = a.right - b.left - 4; const ay = a.top + a.height * 0.7 - b.top; const dx = d.left + d.width * 0.35 - b.left; const dy = d.top + d.height * 0.62 - b.top;
-        ls.forEach((l, i) => { l.setAttribute('x1', ax.toFixed(1)); l.setAttribute('y1', (ay - 2 + i * 5).toFixed(1)); l.setAttribute('x2', dx.toFixed(1)); l.setAttribute('y2', (dy - 2 + i * 5).toFixed(1)); });
+      const rein = () => { if (!rbox.isConnected) return; const b = rbox.getBoundingClientRect(); const a = car.getBoundingClientRect(); const d = ($('.fzs-spr', dr) || $('.cv-drag', dr) || dr).getBoundingClientRect();
+        const ax = a.left + a.width * 0.62 - b.left; const ay = a.top + a.height * 0.38 - b.top; const dx = d.left + d.width * 0.45 - b.left; const dy = d.top + d.height * 0.6 - b.top;
+        ls.forEach((l, i) => { l.setAttribute('x1', (ax - 4 + i * 8).toFixed(1)); l.setAttribute('y1', ay.toFixed(1)); l.setAttribute('x2', (dx - 3 + i * 6).toFixed(1)); l.setAttribute('y2', dy.toFixed(1)); });
         requestAnimationFrame(rein); };
       requestAnimationFrame(rein);
     }

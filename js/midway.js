@@ -4,7 +4,7 @@
 // (Ferris wheel, big top, carousel, tea cups, a running coaster, the funhouse), the snack stands, lamp posts with
 // string lights, and a crowd of Pokémon wandering about. Walk with the arrow buttons, the keyboard or by tapping a spot;
 // stand by a booth or ride and tap the pop-up (or tap the booth itself) to play / ride / buy.
-const fz = () => import('./fzscene.js?v=6af68c91').catch(() => null);
+const fz = () => import('./fzscene.js?v=6af8823a').catch(() => null);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 const P = (k) => `assets/portraits/${k}.png`;
 const ROW = { right: 2, left: 6 };
@@ -259,10 +259,10 @@ export function mountMidway(scene, D, onSpot, onMove) {
   const rl = cBox ? [...cBox.querySelectorAll('.mw-reinsvg line')] : [];
   const reins = () => {
     if (!cBox || !lead || !drag) return; const b = cBox.getBoundingClientRect(); if (b.right < 0 || b.left > innerWidth) return;
-    const a = lead.getBoundingClientRect(); const d = drag.getBoundingClientRect(); const k = 360 / (b.width || 360);
+    const a = lead.getBoundingClientRect(); const d = (drag.querySelector('.fzs-spr') || drag.firstElementChild || drag).getBoundingClientRect(); const k = 360 / (b.width || 360);
     const ax = (a.left + a.width / 2 - b.left) * k; const ay = (a.top + a.height / 2 - b.top) * k;
-    const dx = (d.left + d.width * 0.35 - b.left) * k; const dy = (d.top + d.height * 0.62 - b.top) * k;
-    rl.forEach((l, i) => { l.setAttribute('x1', ax.toFixed(1)); l.setAttribute('y1', (ay - 2 + i * 4).toFixed(1)); l.setAttribute('x2', dx.toFixed(1)); l.setAttribute('y2', (dy - 2 + i * 4).toFixed(1)); });
+    const dx = (d.left + d.width * 0.45 - b.left) * k; const dy = (d.top + d.height * 0.6 - b.top) * k;
+    rl.forEach((l, i) => { l.setAttribute('x1', (ax - 3 + i * 6).toFixed(1)); l.setAttribute('y1', (ay - 4).toFixed(1)); l.setAttribute('x2', (dx - 2 + i * 4).toFixed(1)); l.setAttribute('y2', dy.toFixed(1)); });
   };
   let last = performance.now(); let hinted = false;
   const tick = (now) => {

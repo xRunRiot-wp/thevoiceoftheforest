@@ -1,10 +1,10 @@
 // her ask 11-07: a fast-food-counter style order screen in the GM's Loot section:
 // type -> rarity -> item -> who gets it, plus a search bar that goes straight to any item.
-import * as store from './store.js?v=6af68c91';
-import * as sheet from './sheetdata.js?v=6af68c91';
-import { $, $$, esc, num, uid, toast } from './util.js?v=6af68c91';
-import { portrait } from './ui.js?v=6af68c91';
-import { LOOT, ITEM_PAGES, GARMENTS } from './content.js?v=6af68c91';
+import * as store from './store.js?v=6af8823a';
+import * as sheet from './sheetdata.js?v=6af8823a';
+import { $, $$, esc, num, uid, toast } from './util.js?v=6af8823a';
+import { portrait } from './ui.js?v=6af8823a';
+import { LOOT, ITEM_PAGES, GARMENTS } from './content.js?v=6af8823a';
 
 const RARITIES = ['Mundane', 'Common', 'Uncommon', 'Rare', 'Very Rare'];
 const KINDS = [['Berry', '🫐'], ['Seed', '🌱'], ['Orb', '🔮'], ['Scarf', '🧣'], ['Ribbon', '🎀'], ['Band', '🥋'], ['Bow', '🎗️'], ['Food', '🍎'], ['Projectile', '🪨'], ['Held item', '💍'], ['Other', '📦']];
